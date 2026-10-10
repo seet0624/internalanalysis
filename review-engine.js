@@ -111,9 +111,12 @@
       return hay.indexOf(k) >= 0;
     });
     // single 急 / 快, but not in everyday words like 快乐 / 愉快 / 急性
-    var rest = hay.replace(/快[乐樂活速餐递遞]|[愉欢歡畅暢爽痛凉涼轻輕飞飛勤赶趕凉]快|急[性救躁诊診]|着急|著急|焦急/g, '');
+    var rest = hay.replace(/快[乐樂活速餐递遞]|[愉欢歡畅暢爽痛凉涼轻輕飞飛勤凉]快|急[性救躁诊診]|着急|著急|焦急/g, '');
     if (!found.some(function (w) { return /急/.test(w); }) && /急/.test(rest)) found.push('急');
-    if (!found.some(function (w) { return /快/.test(w); }) && /快/.test(rest)) found.push('快');
+    // 快 only in an urgency phrase (快点 / 要快 / 快处理 …), not "效果快" / "进步快"
+    // (赶快好起来 / 加快进步 are wishes, so they don't count)
+    var FAST = /快(?:点|點|些|一点|一點|处理|處理|做|寄|发|發|给|給|出货|出貨|安排|完成)|(?:要|请|請)快/;
+    if (!found.some(function (w) { return /快/.test(w); }) && FAST.test(rest)) found.push('快');
     return found;
   }
 
@@ -683,7 +686,7 @@
       }
 
       // 起名要求（名字尽量少笔画 / 好写 / 不要用某字 …）→ red so the expert sees it
-      var NAMEWISH = /笔画|筆畫|筆劃|笔划|好写|好寫|好读|好讀|好念|好唸|易写|易寫|简单的字|簡單的字|名字(?:要|尽量|盡量|最好|希望|不要|别|別)|不要用.{0,6}字|避免.{0,6}字|不用.{0,4}(?:字|偏旁)|偏旁/;
+      var NAMEWISH = /同音|谐音|諧音|笔画|筆畫|筆劃|笔划|好写|好寫|好读|好讀|好念|好唸|易写|易寫|简单的字|簡單的字|名字(?:要|尽量|盡量|最好|希望|不要|别|別)|不要用.{0,6}字|避免.{0,6}字|不用.{0,4}(?:字|偏旁)|偏旁/;
       if (NAMEWISH.test(remarks)) {
         redRemarksMatching(function (x) { return NAMEWISH.test(x); });
         var nw = remarks.split(/[，。；;\n,]/).filter(function (x) { return NAMEWISH.test(x); })[0] || '';
