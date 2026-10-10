@@ -398,7 +398,7 @@
   function toolName(fileName) {
     var base = String(fileName).replace(/\.xlsx$/i, '');
     var m = base.match(/^(.*?)技术单/);
-    return m ? m[1] : base.split(/\s/)[0];
+    return (m ? m[1] : base.split(/\s/)[0]).replace(/[（(](男款|女款|男女款)[）)]/g, '');
   }
 
   // --- subset files: keep only some data rows, pack them up, pull the footer up, keep merges intact ---
@@ -486,13 +486,15 @@
     var wb = await load(file.buffer);
     var ws = wb.worksheets[0];
     var header = findHeader(ws);
-    var tool = /技术单/.test(file.name) ? toolName(file.name) : null;
+    // the product title inside the sheet names the tool; the file name is only a fallback
+    // (a re-uploaded output is already called "许舒涵九合平衡牌技术单（特殊加急）…" or "天富手表（男款）技术单…")
+    var tool = null;
     var overseas = file.overseas != null ? !!file.overseas : isOverseasName(file.name);
     var result = { name: file.name, tool: tool, orders: [], outputs: [], error: null, overseas: overseas };
     if (!header) { result.error = '找不到表头（序号）'; return result; }
     var range = dataRowRange(ws, header);
     var C = header.cols;
-    if (!tool) tool = toolFromSheet(ws, range, C) || toolName(file.name);
+    tool = toolFromSheet(ws, range, C) || toolName(file.name);
     result.tool = tool;
     var isWatch = /手表/.test(tool) || !!C['刻名字'];
     var isNaming = !!(C['新名字姓氏'] && C['父亲名字']);
