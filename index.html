@@ -109,6 +109,14 @@ tr.detail td{background:var(--sunk);padding:16px 20px}
 tr.problem td{background:var(--crit-bg)}
 .out.problem{border-color:var(--crit);background:var(--crit-bg);color:var(--crit)}
 .empty{align-items:center;text-align:center;padding:48px 24px}
+.modal{position:fixed;inset:0;background:rgba(10,12,16,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal-box{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:22px 22px 18px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal-box h2{font-size:17px}
+.confirm-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:14px}
+.confirm-grid dt{color:var(--muted)}
+.confirm-grid dd{margin:0;font-weight:700;overflow-wrap:anywhere}
+.confirm-warn{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 12px;font-size:13px}
+.modal-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:13px;max-width:calc(100% - 32px)}
 </style>
 </head>
@@ -190,6 +198,7 @@ tr.problem td{background:var(--crit-bg)}
         <li>备注要求<b class="red">保留某个字 / 名</b>（例如尽量保留「诗」）：红字，提醒专家如果适合、匹配尽量保留</li>
         <li>生肖按立春核对正确（例如立春前出生跟上一个生肖）：<b>不标红</b>，原文件涂的颜色也去掉</li>
         <li>要问人的单、或你按「标为有问题」的单：从原文件拿出，开（有问题）文件</li>
+        <li>每次下载前会弹出确认：日期、审核人、国内 / 海外，确认后才下载</li>
         <li>页脚：审核人 martin，制表时间今天；回传时间：名正言顺加 1 个月，九合牌、吊坠加 7 天，其他工具加 10 天</li>
       </ol>
     </section>
@@ -203,6 +212,22 @@ tr.problem td{background:var(--crit-bg)}
     <div id="out" hidden></div>
   </div>
 </main>
+<div class="modal" id="confirm" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="modal-box">
+    <h2 id="confirm-title">下载前确认</h2>
+    <dl class="confirm-grid">
+      <dt>日期</dt><dd id="cf-date"></dd>
+      <dt>审核人</dt><dd id="cf-reviewer"></dd>
+      <dt>国内 / 海外</dt><dd id="cf-region"></dd>
+      <dt>要下载</dt><dd id="cf-what"></dd>
+    </dl>
+    <div class="confirm-warn" id="cf-warn" hidden></div>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="cf-cancel">取消，去改设置</button>
+      <button type="button" class="btn primary" id="cf-ok">确认下载</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
@@ -283,6 +308,7 @@ tr.problem td{background:var(--crit-bg)}
     showError(''); $('status').hidden = false;
     try {
       state.date = date;
+      state.reviewer = $('reviewer').value.trim() || 'martin';
       state.results = await E.processFiles(state.inputs, { problems: state.problems, edits: state.edits, askFirstProducts: list($('askfirst').value), date: date, reviewer: $('reviewer').value.trim() || 'martin', splitWatchBrands: list($('brands').value), urgentWords: list($('urgent').value) });
       render();
     } catch (e) { showError('审核失败：' + (e && e.message || e)); }
@@ -312,13 +338,45 @@ tr.problem td{background:var(--crit-bg)}
     var h = outs && outs.length && outs.every(function (o) { return o.overseas; });
     return (problem ? '有问题技术单 ' : '技术单 ') + state.date + '（' + n + '）' + (h ? 'H' : '') + '.zip';
   }
+  // Every download asks first: date, reviewer and 国内 / 海外 printed in the files (审核人 changes from day to day).
+  var pendingDownload = null;
+  function regionOf(outs) {
+    var h = outs.filter(function (o) { return o.overseas; }).length;
+    return h === outs.length ? '海外（文件名有 H）' : h === 0 ? '国内（文件名没有 H）' : '国内 ' + (outs.length - h) + ' 个 + 海外 ' + h + ' 个';
+  }
+  function confirmDownload(outs, what, go) {
+    $('cf-date').textContent = state.date;
+    $('cf-reviewer').textContent = state.reviewer || 'martin';
+    $('cf-region').textContent = regionOf(outs);
+    $('cf-what').textContent = what;
+    var warn = [];
+    var setDate = $('date').value.trim().replace(/[\-\/]/g, '.').replace(/^0(\d)\./, '$1.').replace(/\.0(\d)\./, '.$1.');
+    if (setDate && setDate !== state.date) warn.push('设置里的日期已改成 ' + setDate + '，但文件还是 ' + state.date + '。');
+    var setRev = $('reviewer').value.trim() || 'martin';
+    if (setRev !== (state.reviewer || 'martin')) warn.push('设置里的审核人已改成 ' + setRev + '，但文件还是 ' + (state.reviewer || 'martin') + '。');
+    $('cf-warn').textContent = warn.length ? warn.join(' ') + ' 请先按「按新设置重新审核」。' : '';
+    $('cf-warn').hidden = !warn.length;
+    pendingDownload = go;
+    $('confirm').hidden = false;
+    $('cf-ok').focus();
+  }
+  function closeConfirm() { $('confirm').hidden = true; pendingDownload = null; }
+  $('cf-ok').addEventListener('click', function () { var go = pendingDownload; closeConfirm(); if (go) go(); });
+  $('cf-cancel').addEventListener('click', function () { closeConfirm(); $('reviewer').focus(); });
+  $('confirm').addEventListener('click', function (e) { if (e.target === $('confirm')) closeConfirm(); });
+  $('confirm').addEventListener('keydown', function (e) { if (e.key === 'Escape') closeConfirm(); });
+
   async function downloadZip(problem) {
     // 特殊加急 files never go into a zip: they are sent one by one
     var outs = allOutputs().filter(function (o) { return !!o.problem === problem && (problem || !o.urgent); });
     if (!outs.length) return;
+    var name = outZipName(problem, orderTotal(outs), outs);
+    confirmDownload(outs, name + '（' + outs.length + ' 个文件，共 ' + orderTotal(outs) + ' 单）', function () { buildZip(outs, name); });
+  }
+  async function buildZip(outs, name) {
     var zip = new JSZip();
     outs.forEach(function (o) { zip.file(o.name, o.buffer); });
-    await save(outZipName(problem, orderTotal(outs), outs), await zip.generateAsync({ type: 'blob' }));
+    await save(name, await zip.generateAsync({ type: 'blob' }));
   }
 
   var LONG = /备注|兄弟姐妹|子女|禁忌字/;
@@ -453,7 +511,10 @@ tr.problem td{background:var(--crit-bg)}
       });
     });
     Array.prototype.forEach.call($('out').querySelectorAll('.out'), function (b) {
-      b.addEventListener('click', function () { var o = state.results[+b.dataset.r].outputs[+b.dataset.o]; save(o.name, new Blob([o.buffer])); });
+      b.addEventListener('click', function () {
+        var o = state.results[+b.dataset.r].outputs[+b.dataset.o];
+        confirmDownload([o], o.name, function () { save(o.name, new Blob([o.buffer])); });
+      });
     });
   }
 
