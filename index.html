@@ -185,6 +185,8 @@ tr.problem td{background:var(--crit-bg)}
         <li>文件名最后的 <b>H</b> 代表海外：上传的文件（或 zip）有 H，下载的文件也有 H；没有 H 就不加</li>
         <li>海外单（H）有<b>天解手表、天泽手表、福运戒指、天恒手表</b>：先问能不能做，直接当有问题，并生成可复制的话术（订单编号 学员 商品，这个需确认能不能做？）</li>
         <li><b>换购</b>单（商品标题有「换购」）：「原订单编号」格子有订单号就没问题，空的才当有问题（表格没有这一栏时，看备注里有没有原订单号），生成话术（…，换购的都需要提供原订单号，这个需和服务中心确认）</li>
+        <li>备注 / 总备注写了<b class="red">出生时间</b>（例如 出生时间：0300am）：红字，请和出生时间栏核对</li>
+        <li>备注有<b class="red">起名要求</b>（例如 名字尽量少笔画、好写、不要用某个字）：红字，提醒专家</li>
         <li>备注要求<b class="red">保留某个字 / 名</b>（例如尽量保留「诗」）：红字，提醒专家如果适合、匹配尽量保留</li>
         <li>生肖按立春核对正确（例如立春前出生跟上一个生肖）：<b>不标红</b>，原文件涂的颜色也去掉</li>
         <li>要问人的单、或你按「标为有问题」的单：从原文件拿出，开（有问题）文件</li>
@@ -332,7 +334,7 @@ tr.problem td{background:var(--crit-bg)}
       '<span class="small">保存后会重新审核，问题解决了会自动回到普通文件。</span></div></td></tr>';
   }
 
-  var KIND = { zishi: '子时', urgent: '加急', engrave: '刻名字空', surname: '姓氏不符', family: '家人姓名', name: '可能是人名', zodiac: '生肖不对', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购要原单号', keepname: '保留字' };
+  var KIND = { zishi: '子时', urgent: '加急', engrave: '刻名字空', surname: '姓氏不符', family: '家人姓名', name: '可能是人名', zodiac: '生肖不对', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购要原单号', keepname: '保留字', namewish: '起名要求' };
   function render() {
     var res = state.results || [];
     var c = { orders: 0, zishi: 0, qian: 0, urgent: 0, engrave: 0, surname: 0, status: 0, dup: 0, family: 0, name: 0, zodiac: 0, problem: 0, ask: 0, newborn: 0 };

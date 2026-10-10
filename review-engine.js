@@ -667,11 +667,27 @@
       if (famHits.length || otherHits.length) o.family = familyTable(get, famHits.concat(otherHits));
 
       // 要求保留某个字 / 名（例如：尽量保留"诗"这个名）→ red so the expert sees it
-      var KEEP = /(保留|保持|沿用|留住|留下|不要改|不改|不换|要有)[^，。；;\n]{0,10}(字|名)|(字|名)[^，。；;\n]{0,6}(保留|不要改|不改|不换)/;
+      var KEEP = /(保留|保持|沿用|不要改|不改|不换)[^，。；;\n]{0,10}(字|名)|(字|名)[^，。；;\n]{0,6}(保留|不要改|不改|不换)/;
       if (KEEP.test(remarks)) {
         redRemarksMatching(function (x) { return KEEP.test(x); });
         var km = remarks.match(/[“"「『”']([\u4e00-\u9fff]{1,3})[”"」』“']/);
         add({ kind: 'keepname', level: 'high', text: '备注要求保留' + (km ? '「' + km[1] + '」' : '某个字 / 名') + ' — 已标红，提醒专家如果适合、匹配尽量保留' });
+      }
+
+      // 备注写了出生时间（出生时间：0300am / 05:35AM / 晚上11点出生）→ red
+      var BIRTH = /出生(?:时间|時間|时辰|時辰)|几点出生|幾點出生|\d{1,2}\s*[:：.]?\s*\d{2}\s*(?:am|pm|a\.m\.|p\.m\.)|[早晚上下午凌晨]{1,2}\s*\d{1,2}\s*[点點时時](?:\d{1,2}分?)?\s*(?:出生|生)/i;
+      if (BIRTH.test(remarks)) {
+        redRemarksMatching(function (x) { return BIRTH.test(x); });
+        var bm = remarks.match(/出生(?:时间|時間|时辰|時辰)\s*[:：]?\s*([^，。；;\n]{1,16})/) || remarks.match(/(\d{1,2}\s*[:：.]?\s*\d{2}\s*(?:am|pm))/i);
+        add({ kind: 'birthnote', level: 'mid', text: '备注写了出生时间' + (bm ? '（' + bm[1].trim() + '）' : '') + ' — 已标红，请和出生时间栏核对' });
+      }
+
+      // 起名要求（名字尽量少笔画 / 好写 / 不要用某字 …）→ red so the expert sees it
+      var NAMEWISH = /笔画|筆畫|筆劃|笔划|好写|好寫|好读|好讀|好念|好唸|易写|易寫|简单的字|簡單的字|名字(?:要|尽量|盡量|最好|希望|不要|别|別)|不要用.{0,6}字|避免.{0,6}字|不用.{0,4}(?:字|偏旁)|偏旁/;
+      if (NAMEWISH.test(remarks)) {
+        redRemarksMatching(function (x) { return NAMEWISH.test(x); });
+        var nw = remarks.split(/[，。；;\n,]/).filter(function (x) { return NAMEWISH.test(x); })[0] || '';
+        add({ kind: 'namewish', level: 'high', text: '备注有起名要求（' + nw.trim().slice(0, 20) + '）— 已标红，提醒专家' });
       }
 
       // 曾用名 → red
