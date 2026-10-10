@@ -454,11 +454,13 @@
     return parts[parts.length - 1].replace(/[\\:*?"<>|]/g, '').replace(/\s+/g, ' ').trim();
   }
   // [学员（加急且只有一位时）] + 工具名称 + （女款/男款, only when the file holds one gender） + 技术单 + 日期 + （单数）[（特殊加急）]H
-  function outName(tool, gender, urgent, date, count, person, problem, newborn) {
+  // H = 海外: the uploaded file (or the zip it came in) ends in H → outputs keep H, otherwise no H.
+  function isOverseasName(name) { return /(^|[^A-Za-z])H[\s_）)\]】]*\.(xlsx|zip)$/i.test(String(name || '')); }
+  function outName(tool, gender, urgent, date, count, person, problem, newborn, overseas) {
     // 许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H — normal files keep a space: 九合平衡牌技术单 9.10.2026（2）H
     var tags = (urgent ? '（特殊加急）' : '') + (newborn ? '（新生儿）' : '') + (problem ? '（有问题）' : '');
     return ((urgent || problem) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
-      '（' + count + '）H.xlsx';
+      '（' + count + '）' + (overseas ? 'H' : '') + '.xlsx';
   }
 
   // Some exports write document properties without their namespace prefix (<lastModifiedBy>),
@@ -485,7 +487,8 @@
     var ws = wb.worksheets[0];
     var header = findHeader(ws);
     var tool = /技术单/.test(file.name) ? toolName(file.name) : null;
-    var result = { name: file.name, tool: tool, orders: [], outputs: [], error: null };
+    var overseas = file.overseas != null ? !!file.overseas : isOverseasName(file.name);
+    var result = { name: file.name, tool: tool, orders: [], outputs: [], error: null, overseas: overseas };
     if (!header) { result.error = '找不到表头（序号）'; return result; }
     var range = dataRowRange(ws, header);
     var C = header.cols;
@@ -549,7 +552,7 @@
 
       // 海外技术单: these products must be checked before they can be made → 有问题
       var prodText = squash(get('商品标题') + ' ' + tool).replace(/[澤]/g, '泽').replace(/[運]/g, '运').replace(/[戒]/g, '戒');
-      var askProd = (opts.askFirstProducts || []).filter(function (p) { return p && prodText.indexOf(squash(p)) >= 0; });
+      var askProd = !overseas ? [] : (opts.askFirstProducts || []).filter(function (p) { return p && prodText.indexOf(squash(p)) >= 0; });
       if (askProd.length) add({ kind: 'product', level: 'high', problem: true, who: '能不能做', text: '海外单有「' + askProd.join('、') + '」— 先问能不能做',
         // ready-to-send line, e.g. "A26092650602475 葉宛蓉 福运戒指（男款），这个需确认能不能做？"
         copy: get('订单编号').trim() + ' ' + (get('使用人姓名').trim() || get('会员姓名').trim()) + ' ' + get('商品标题').trim() + '，这个需确认能不能做？' });
@@ -819,7 +822,7 @@
       var gender = splitBrand && gs.length === 1 && gs[0] !== '-' ? gs[0] : ''; // only 天威 / 天富 carry 男款 / 女款
       var ps = Object.keys(gp.persons);
       var person = ps.length === 1 ? ps[0] : '';
-      result.outputs.push({ name: outName(tool, gender, gp.urgent, opts.date || todayStr(), gp.count, person, gp.problem, gp.newborn), tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
+      result.outputs.push({ name: outName(tool, gender, gp.urgent, opts.date || todayStr(), gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
     }
     return result;
   }
@@ -834,5 +837,5 @@
     return out;
   }
 
-  return { processFiles: processFiles, DEFAULTS: DEFAULTS, todayStr: todayStr, _mentionedFamily: mentionedFamily, _zodiacFor: zodiacFor, _surnameVsOwn: surnameVsOwn, _surnameCheck: surnameCheck, _ziShi: ziShi };
+  return { processFiles: processFiles, DEFAULTS: DEFAULTS, todayStr: todayStr, isOverseasName: isOverseasName, _mentionedFamily: mentionedFamily, _zodiacFor: zodiacFor, _surnameVsOwn: surnameVsOwn, _surnameCheck: surnameCheck, _ziShi: ziShi };
 });
