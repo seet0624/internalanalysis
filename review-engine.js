@@ -384,7 +384,14 @@
 
   // Tool name from the product titles in the sheet: 天祥手表（男款）(鸿运换购) → 天祥手表, 名正言顺命名 → 名正言顺.
   function productName(t) {
-    return String(t || '').replace(/[（(][^）)]*[）)]/g, '').replace(/单品|單品/g, '').replace(/命名$/, '').trim();
+    t = String(t || '');
+    // bundles / gifts name the real tool in brackets: "N1 健康套餐-赠品（名正言顺命名）" → 名正言顺
+    if (/套餐|赠品|贈品|赠送|贈送|礼包|禮包|礼盒|禮盒|组合|組合|活动|活動/.test(t)) {
+      var inner = (t.match(/[（(]([^）)]+)[）)]/g) || []).map(function (b) { return b.slice(1, -1).trim(); })
+        .filter(function (b) { return b.length >= 2 && !/^(男款|女款|男女款|单品|單品)$|换购|換購/.test(b); })[0];
+      if (inner) t = inner;
+    }
+    return t.replace(/[（(][^）)]*[）)]/g, '').replace(/单品|單品/g, '').replace(/命名$/, '').trim();
   }
   function toolFromSheet(ws, range, C) {
     var count = {};
