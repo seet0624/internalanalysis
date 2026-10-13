@@ -314,7 +314,20 @@
     if (alt !== sn && names.some(function (n) { return n.replace(/\s+/g, '').indexOf(alt) === 0; })) return { kind: 'variant', own: shown };
     return { kind: 'different', own: shown };
   }
+  function isRedCell(cell) {
+    var f = cell.font, v = cell.value;
+    if (f && f.color && f.color.argb === RED) return true;
+    return !!(v && typeof v === 'object' && v.richText && v.richText.some(function (r) { return r.font && r.font.color && r.font.color.argb === RED; }));
+  }
   function unRed(cell) {
+    var v = cell.value;
+    if (v && typeof v === 'object' && v.richText) {
+      cell.value = { richText: v.richText.map(function (r) {
+        var rf = Object.assign({}, r.font || {});
+        if (rf.color && rf.color.argb === RED) delete rf.color;
+        return { text: r.text, font: rf };
+      }) };
+    }
     var f = Object.assign({}, cell.font || {});
     if (!f.color || f.color.argb !== RED) return;
     delete f.color;
@@ -513,6 +526,7 @@
     var made = parseDate(opts.date) || parseDate(todayStr());
 
     // Reviewer edits (opts.edits["file|订单编号"] = {表头: 新值}) go in first, in red, so every check sees them.
+    var reds = opts.reds || {};
     var edits = opts.edits || {}, keyCol = C['订单编号'], originals = {};
     for (var er = range.first; er <= range.last; er++) {
       var erow = ws.getRow(er);
@@ -591,7 +605,14 @@
 
       var remarkHeads = ['备注', '总备注'];
       var remarks = get('备注') + '\n' + get('总备注');
-      var redCell = function (h) { var c = cell(h); if (c && !isBlank(cellText(c))) { paintRed(c); o.changes++; } };
+      var redHeads = {}, pend = [];
+      var redCell = function (h) { var c = cell(h); if (c && !isBlank(cellText(c))) { paintRed(c); o.changes++; redHeads[h] = true; } };
+      // A rule about the whole row (繁体 / 子时) wants 备注 red too. When 备注 itself says something
+      // relevant it turns red at once; when it is only wishes / 祝福语 the reviewer decides (待确认).
+      var pendRed = function (h, why, relevant) {
+        if (isBlank(get(h))) return;
+        if (relevant.test(get(h))) redCell(h); else pend.push({ h: h, why: why });
+      };
       var redRemarksMatching = function (test) { remarkHeads.forEach(function (h) { if (test(get(h))) redCell(h); }); };
       var ask = function (text, who) { add({ kind: 'ask', level: 'high', problem: true, who: who, text: text + ' — 问' + who }); };
 
@@ -605,13 +626,14 @@
       if (C['农历时辰'] && tZi && !zYes) ask('出生时间 ' + tText + ' 是子时，但「是否子时」写否', '下单者');
       if (C['农历时辰'] && zYes && !tZi) ask('「是否子时」写是，但出生时间' + (tUnknown ? '不详' : ' ' + tText + ' 不是子时'), '下单者');
       if (zYes) {
-        ['是否子时', '农历时辰', '备注'].forEach(redCell);
+        ['是否子时', '农历时辰'].forEach(redCell);
+        pendRed('备注', '子时', /子时|子時|加一天|多一天|出生|时辰|時辰|生日/);
         if (ziKind === '前子时' || /前子/.test(zFlag)) {
           var added = /加一天|加多一天|添加多一天|多加一天|已加一天|多一天|\+\s*1\s*天/.test(remarks + get('订单状态备注'));
-          add({ kind: 'zishi', level: 'high', text: '前子时（' + (tText || zFlag) + '）— 公历生日要加一天' + (added ? '，备注写已加' : '，请确认已加') + '；时间与备注已标红' });
+          add({ kind: 'zishi', level: 'high', text: '前子时（' + (tText || zFlag) + '）— 公历生日要加一天' + (added ? '，备注写已加' : '，请确认已加') + '；时间已标红' });
         } else if (ziKind === '后子时' || /后子|後子/.test(zFlag)) {
-          add({ kind: 'zishi', level: 'mid', text: '后子时（' + (tText || zFlag) + '）— 00:00–00:59 不用加一天；时间与备注已标红' });
-        } else add({ kind: 'zishi', level: 'mid', text: '子时 — 时间与备注已标红' });
+          add({ kind: 'zishi', level: 'mid', text: '后子时（' + (tText || zFlag) + '）— 00:00–00:59 不用加一天；时间已标红' });
+        } else add({ kind: 'zishi', level: 'mid', text: '子时 — 时间已标红' });
       } else if (/子时|子時/.test(remarks)) {
         add({ kind: 'zishi-note', level: 'info', text: '备注里提到子时，但「是否子时」是否，请核对' });
       }
@@ -623,8 +645,9 @@
 
       // 名册展示 繁体 → red
       if (C['名册展示'] && /繁/.test(get('名册展示'))) {
-        redCell('名册展示'); redCell('备注');
-        add({ kind: 'trad', level: 'info', text: '名册展示：繁体 — 名册展示和备注已标红' });
+        redCell('名册展示');
+        pendRed('备注', '名册展示繁体', /繁/);
+        add({ kind: 'trad', level: 'info', text: '名册展示：繁体 — 已标红' });
       }
 
       // 双胞胎 / 三胞胎 → red
@@ -675,6 +698,15 @@
       if (selfHits.length) add({ kind: 'selfname', level: 'info', text: '备注写了学员本人名字（' + selfHits.join('、') + '）— 已标红' });
       if (otherHits.length) add({ kind: 'name', level: 'high', text: '备注有人名（' + otherHits.join('、') + '）— 已标红，请核对是谁' });
       if (famHits.length || otherHits.length) o.family = familyTable(get, famHits.concat(otherHits));
+
+      // 备注写了订单号（原订单号 / 之前的单）→ red
+      var ownNo = get('订单编号').trim().toUpperCase();
+      var idsIn = function (x) {
+        return (String(x || '').match(/[A-Za-z]?\d{14,}/g) || []).filter(function (n) { return n.length <= 15 && n.toUpperCase() !== ownNo && n.toUpperCase().slice(-14) !== ownNo.slice(-14); });
+      };
+      var nos = [];
+      remarkHeads.forEach(function (h) { var ids = idsIn(get(h)); if (ids.length) { redCell(h); ids.forEach(function (n) { if (nos.indexOf(n) < 0) nos.push(n); }); } });
+      if (nos.length) add({ kind: 'orderno', level: 'mid', text: '备注有订单号（' + nos.join('、') + '）— 已标红' });
 
       // 要求保留某个字 / 名（例如：尽量保留"诗"这个名）→ red so the expert sees it
       var KEEP = /(保留|保持|沿用|不要改|不改|不换)[^，。；;\n]{0,10}(字|名)|(字|名)[^，。；;\n]{0,6}(保留|不要改|不改|不换)/;
@@ -795,6 +827,22 @@
           if (ok2.kind === 'same' && !keepRed && snCell) unRed(snCell);
         }
       }
+
+      // 待确认的备注 + the reviewer's own 标红 / 不标红 per cell (opts.reds wins over every rule)
+      var choice = reds[file.name + '|' + key] || {};
+      pend.forEach(function (p) {
+        var pc = cell(p.h);
+        if (redHeads[p.h] || !pc || filledCells[pc.address] || isRedCell(pc)) return; // already red (rule or source)
+        var on = choice[p.h] === true, decided = Object.prototype.hasOwnProperty.call(choice, p.h);
+        add({ kind: 'pending', level: 'mid', pending: { h: p.h, on: on, decided: decided },
+          text: '「' + p.why + '」要备注跟着红，但备注看来只是祝福语 — ' + (decided ? (on ? '已选：标红' : '已选：不标红') : '要不要标红？（现在没标红）') });
+      });
+      Object.keys(choice).forEach(function (h) {
+        var c = cell(h);
+        if (!c || !C[h]) return;
+        if (choice[h]) { if (!isBlank(cellText(c))) paintRed(c); } else unRed(c);
+      });
+      if (first) o.fields.forEach(function (f) { var c = cell(f.h); f.red = !!(c && isRedCell(c)); f.manual = Object.prototype.hasOwnProperty.call(choice, f.h) ? !!choice[f.h] : null; });
     }
     // 有问题: automatic from flags, the reviewer's own choice (opts.problems) wins.
     var marks = opts.problems || {};

@@ -99,6 +99,17 @@ tr.detail td{background:var(--sunk);padding:16px 20px}
 .fields .edited input,.fields .edited textarea{border-color:var(--crit);color:var(--crit)}
 .fields .edited label{color:var(--crit);font-weight:700}
 .fields [readonly]{background:var(--sunk);color:var(--muted)}
+.fields .lab{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;min-height:26px}
+.fields .isred input,.fields .isred textarea{color:var(--crit)}
+.redtog{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;min-height:24px}
+.redtog[aria-pressed="true"]{border-color:var(--crit);color:var(--crit);font-weight:700}
+.pend{border:1px solid var(--warn);border-radius:10px}
+.pend .q{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line-soft)}
+.pend .txt{flex:1 1 260px;min-width:0;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.yn{display:inline-flex;gap:6px}
+.yn button{font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:inherit;cursor:pointer;min-height:30px}
+.yn button.on[aria-pressed="true"]{background:var(--crit);border-color:var(--crit);color:#fff}
+.yn button.off[aria-pressed="true"]{background:var(--sunk);border-color:currentColor;font-weight:700}
 .detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
 .fam{margin-top:8px;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12px;background:var(--sunk);border:1px solid var(--line-soft);border-radius:6px;padding:8px 10px;max-width:420px}
 .fam .rel{color:var(--muted)}
@@ -238,7 +249,7 @@ tr.problem td{background:var(--crit-bg)}
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var E = window.ReviewEngine;
-  var state = { inputs: [], results: null, problems: {}, open: {}, edits: {} };
+  var state = { inputs: [], results: null, problems: {}, open: {}, edits: {}, reds: {} };
   var downloadsP = window.claude && window.claude.use ? window.claude.use('downloads').catch(function () { return null; }) : Promise.resolve(null);
 
   $('date').value = E.todayStr();
@@ -310,7 +321,7 @@ tr.problem td{background:var(--crit-bg)}
     try {
       state.date = date;
       state.reviewer = $('reviewer').value.trim() || 'martin';
-      state.results = await E.processFiles(state.inputs, { problems: state.problems, edits: state.edits, askFirstProducts: list($('askfirst').value), date: date, reviewer: $('reviewer').value.trim() || 'martin', splitWatchBrands: list($('brands').value), urgentWords: list($('urgent').value) });
+      state.results = await E.processFiles(state.inputs, { problems: state.problems, edits: state.edits, reds: state.reds, askFirstProducts: list($('askfirst').value), date: date, reviewer: $('reviewer').value.trim() || 'martin', splitWatchBrands: list($('brands').value), urgentWords: list($('urgent').value) });
       render();
     } catch (e) { showError('审核失败：' + (e && e.message || e)); }
     $('status').hidden = true;
@@ -355,7 +366,10 @@ tr.problem td{background:var(--crit-bg)}
     if (setDate && setDate !== state.date) warn.push('设置里的日期已改成 ' + setDate + '，但文件还是 ' + state.date + '。');
     var setRev = $('reviewer').value.trim() || 'martin';
     if (setRev !== (state.reviewer || 'martin')) warn.push('设置里的审核人已改成 ' + setRev + '，但文件还是 ' + (state.reviewer || 'martin') + '。');
-    $('cf-warn').textContent = warn.length ? warn.join(' ') + ' 请先按「按新设置重新审核」。' : '';
+    if (warn.length) warn.push('请先按「按新设置重新审核」。');
+    var undecided = pendingList().filter(function (p) { return !p.f.pending.decided; }).length;
+    if (undecided) warn.push('还有 ' + undecided + ' 个备注没选要不要标红（没选的不会标红）。');
+    $('cf-warn').textContent = warn.join(' ');
     $('cf-warn').hidden = !warn.length;
     pendingDownload = go;
     $('confirm').hidden = false;
@@ -380,20 +394,42 @@ tr.problem td{background:var(--crit-bg)}
     await save(name, await zip.generateAsync({ type: 'blob' }));
   }
 
+  // 待确认的备注（只有祝福语，但繁体 / 子时规则要它跟着红）
+  function pendingList() {
+    var out = [];
+    (state.results || []).forEach(function (r) { r.orders.forEach(function (o) { o.flags.forEach(function (f) {
+      if (f.pending) out.push({ r: r, o: o, f: f, mk: r.name + '|' + o.key });
+    }); }); });
+    return out;
+  }
+  function setRed(mk, h, on) {
+    var m = state.reds[mk] = state.reds[mk] || {};
+    if (on == null) delete m[h]; else m[h] = on;
+    if (!Object.keys(m).length) delete state.reds[mk];
+  }
+  function ynButtons(mk, h, f) {
+    var on = f.pending.decided && f.pending.on, off = f.pending.decided && !f.pending.on;
+    return '<span class="yn" role="group" aria-label="' + esc(h) + ' 要不要标红">' +
+      '<button type="button" class="on" data-red="' + esc(mk) + '" data-h="' + esc(h) + '" data-v="1" aria-pressed="' + on + '">标红</button>' +
+      '<button type="button" class="off" data-red="' + esc(mk) + '" data-h="' + esc(h) + '" data-v="0" aria-pressed="' + off + '">不标红</button></span>';
+  }
+
   var LONG = /备注|兄弟姐妹|子女|禁忌字/;
   function detailRow(o, mk, id) {
     return '<tr class="detail"><td colspan="4"><div class="fields" data-mk="' + esc(mk) + '">' + o.fields.map(function (f, fi) {
       var fid = 'fld-' + id + '-' + fi, long = LONG.test(f.h) || f.value.length > 40;
       var attrs = ' id="' + fid + '" data-h="' + esc(f.h) + '" data-orig="' + esc(f.orig) + '"' + (f.locked ? ' readonly' : '');
-      return '<div class="f' + (long ? ' long' : '') + (f.edited ? ' edited' : '') + '"><label for="' + fid + '">' + esc(f.h) + (f.edited ? '（已改，原：' + esc(f.orig || '空') + '）' : '') + '</label>' +
+      var tog = f.locked || !f.value ? '' : '<button type="button" class="redtog" data-tog="' + esc(mk) + '" data-h="' + esc(f.h) + '" data-v="' + (f.red ? 0 : 1) + '" aria-pressed="' + !!f.red + '" title="' + (f.red ? '按一下取消红字' : '按一下设为红字') + '">' + (f.red ? '红字 ✓' : '设红字') + (f.manual != null ? '（手动）' : '') + '</button>';
+      return '<div class="f' + (long ? ' long' : '') + (f.edited ? ' edited' : '') + (f.red ? ' isred' : '') + '"><div class="lab"><label for="' + fid + '">' + esc(f.h) + (f.edited ? '（已改，原：' + esc(f.orig || '空') + '）' : '') + '</label>' + tog + '</div>' +
         (long ? '<textarea rows="' + Math.min(6, Math.max(2, Math.ceil(f.value.length / 70))) + '"' + attrs + '>' + esc(f.value) + '</textarea>' : '<input type="text" value="' + esc(f.value) + '"' + attrs + '>') + '</div>';
     }).join('') + '</div><div class="detail-actions">' +
       '<button type="button" class="btn primary" data-save="' + esc(mk) + '">保存修改（改过的格子会变红字）</button>' +
       (state.edits[mk] ? '<button type="button" class="btn" data-undo="' + esc(mk) + '">还原这单的修改</button>' : '') +
-      '<span class="small">保存后会重新审核，问题解决了会自动回到普通文件。</span></div></td></tr>';
+      (state.reds[mk] ? '<button type="button" class="btn" data-unred="' + esc(mk) + '">还原这单的手动红字</button>' : '') +
+      '<span class="small">保存后会重新审核，问题解决了会自动回到普通文件。「设红字 / 红字 ✓」可以手动加红或取消红字。</span></div></td></tr>';
   }
 
-  var KIND = { zishi: '子时', urgent: '加急', engrave: '刻名字空', surname: '姓氏不符', family: '家人姓名', name: '可能是人名', zodiac: '生肖不对', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购要原单号', keepname: '保留字', namewish: '起名要求' };
+  var KIND = { zishi: '子时', urgent: '加急', engrave: '刻名字空', surname: '姓氏不符', family: '家人姓名', name: '可能是人名', zodiac: '生肖不对', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购要原单号', keepname: '保留字', namewish: '起名要求', orderno: '备注有订单号' };
   function render() {
     var res = state.results || [];
     var c = { orders: 0, zishi: 0, qian: 0, urgent: 0, engrave: 0, surname: 0, status: 0, dup: 0, family: 0, name: 0, zodiac: 0, problem: 0, ask: 0, newborn: 0 };
@@ -441,6 +477,18 @@ tr.problem td{background:var(--crit-bg)}
       '<button type="button" class="btn primary" data-copy="all">复制全部</button></div>' +
       copies.map(function (t, i) { return '<div class="copyline"><code id="copy-' + i + '">' + esc(t) + '</code><button type="button" class="copybtn" data-copy="' + i + '">复制</button></div>'; }).join('') +
       '</section>';
+    var pl = pendingList();
+    if (pl.length) {
+      var und = pl.filter(function (p) { return !p.f.pending.decided; }).length;
+      h += '<section class="panel pend" aria-label="备注要不要标红"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">' +
+        '<h2 style="font-size:16px;color:var(--warn)">备注要不要标红？（' + pl.length + ' 单' + (und ? '，' + und + ' 单未选' : '，已全部选好') + '）</h2>' +
+        '<span class="yn"><button type="button" data-redall="1">全部标红</button><button type="button" data-redall="0">全部不标红</button></span></div>' +
+        '<div class="small" style="margin:4px 0 2px">这些单是繁体或子时，规则要备注跟着红；但备注只写祝福语。没选的默认不标红。</div>' +
+        pl.map(function (p) {
+          return '<div class="q"><b>' + esc(p.o.person) + '</b><span class="small">' + esc(p.r.tool) + ' · 序号 ' + esc(p.o.seq) + '</span>' +
+            '<span class="txt">' + esc((p.o.fields.filter(function (x) { return x.h === p.f.pending.h; })[0] || {}).value || '') + '</span>' + ynButtons(p.mk, p.f.pending.h, p.f) + '</div>';
+        }).join('') + '</section>';
+    }
     h += '<section class="panel"><h2 style="font-size:16px">需要人工处理</h2>' + (att.length ? att.map(function (a) {
       return '<div class="att"><span class="pill">' + esc(a.k) + '</span><b>' + esc(a.person) + '</b><span class="small">' + esc(a.where) + '</span><span style="flex:1 1 240px;min-width:0">' + esc(a.text) + '</span></div>';
     }).join('') : '<div class="clean">没有需要人工跟进的订单。</div>') + '</section>';
@@ -456,7 +504,7 @@ tr.problem td{background:var(--crit-bg)}
         r.orders.map(function (o, oi) {
           var mk = r.name + '|' + o.key, isOpen = !!state.open[mk];
           return '<tr' + (o.problem ? ' class="problem"' : '') + '><td>' + esc(o.seq) + '</td><td><div style="font-weight:500">' + esc(o.person) + '</div><div class="small">' + esc(o.title) + '</div></td><td>' +
-            (o.flags.length ? '<div class="flags">' + o.flags.map(function (f) { return '<span class="chip ' + f.level + '">' + esc(f.text) + '</span>'; }).join('') + '</div>' : '<span class="clean">无问题</span>') +
+            (o.flags.length ? '<div class="flags">' + o.flags.map(function (f) { return '<span class="chip ' + f.level + '">' + esc(f.text) + '</span>' + (f.pending ? ynButtons(mk, f.pending.h, f) : ''); }).join('') + '</div>' : '<span class="clean">无问题</span>') +
             (o.family ? '<div class="fam" aria-label="家人名单">' + o.family.map(function (x) {
               return '<span class="rel">' + esc(x.rel) + '</span><span' + (x.mentioned ? ' class="hit"' : '') + '>' + esc(x.name) + (x.mentioned ? '（备注提到）' : '') + '</span>';
             }).join('') + '</div>' : '') + '</td><td>' +
@@ -502,6 +550,28 @@ tr.problem td{background:var(--crit-bg)}
         run().then(function () { toast(Object.keys(ed).length ? '已保存修改，已重新审核' : '没有修改'); });
       });
     });
+    Array.prototype.forEach.call($('out').querySelectorAll('[data-red]'), function (b) {
+      b.addEventListener('click', function () {
+        // pressing the chosen answer again clears it (back to 未选)
+        setRed(b.dataset.red, b.dataset.h, b.getAttribute('aria-pressed') === 'true' ? null : b.dataset.v === '1');
+        run();
+      });
+    });
+    Array.prototype.forEach.call($('out').querySelectorAll('[data-redall]'), function (b) {
+      b.addEventListener('click', function () {
+        pendingList().forEach(function (p) { setRed(p.mk, p.f.pending.h, b.dataset.redall === '1'); });
+        run().then(function () { toast(b.dataset.redall === '1' ? '已全部标红' : '已全部设为不标红'); });
+      });
+    });
+    Array.prototype.forEach.call($('out').querySelectorAll('[data-tog]'), function (b) {
+      b.addEventListener('click', function () {
+        setRed(b.dataset.tog, b.dataset.h, b.dataset.v === '1');
+        run().then(function () { toast(b.dataset.v === '1' ? '「' + b.dataset.h + '」已设为红字' : '「' + b.dataset.h + '」已取消红字'); });
+      });
+    });
+    Array.prototype.forEach.call($('out').querySelectorAll('[data-unred]'), function (b) {
+      b.addEventListener('click', function () { delete state.reds[b.dataset.unred]; run(); });
+    });
     Array.prototype.forEach.call($('out').querySelectorAll('[data-undo]'), function (b) {
       b.addEventListener('click', function () { delete state.edits[b.dataset.undo]; run(); });
     });
@@ -526,7 +596,7 @@ tr.problem td{background:var(--crit-bg)}
   drop.addEventListener('drop', function (e) { e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer && e.dataTransfer.files); });
   $('rerun').addEventListener('click', run);
   $('reset').addEventListener('click', function () {
-    state = { inputs: [], results: null, problems: {}, open: {}, edits: {} };
+    state = { inputs: [], results: null, problems: {}, open: {}, edits: {}, reds: {} };
     $('out').innerHTML = ''; $('out').hidden = true; $('empty').hidden = false; $('reset').hidden = true; showError('');
   });
 })();
