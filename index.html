@@ -482,7 +482,7 @@ tr.problem td{background:var(--crit-bg)}
       '</section>';
     var fams = res.families || [];
     if (fams.length) h += '<section class="panel" aria-label="家人订单"><h2 style="font-size:16px">家人订单（' + fams.length + ' 组）</h2>' +
-      '<div class="small" style="margin:4px 0 2px">备注里写了别的单的订单号或姓名，而那张单也在这次上传里 → 同一家。文件里这些单整行涂同一个颜色，不同家不同颜色。</div>' +
+      '<div class="small" style="margin:4px 0 2px">父母、兄弟姐妹、子女、备注等任何一栏写了别的单的订单号或姓名，而那张单也在这次上传里 → 同一家。文件里这些单整行涂同一个颜色，不同家不同颜色。</div>' +
       fams.map(function (g) {
         return '<div class="famg"><b><span class="sw" style="background:' + g.css + '"></span>第' + g.n + '组 ' + esc(g.label) + '（' + g.colorName + '，' + g.members.length + ' 单）</b>' +
           '<span class="m">' + g.members.map(function (m) { return esc(m.person) + ' <span class="small">' + esc(m.tool) + ' · ' + esc(m.id) + '</span>'; }).join('、') + '</span></div>';

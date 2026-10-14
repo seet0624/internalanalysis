@@ -918,7 +918,7 @@
     return result;
   }
 
-  // 家人订单: an order whose 备注 names another uploaded order (its order number, or its 使用人姓名)
+  // 家人订单: an order whose sheet (父母 / 兄弟姐妹 / 子女 / 备注 …) names another uploaded order (its order number, or its 使用人姓名)
   // belongs to the same family. Families of 2+ orders share one fill colour on 订单编号 / 使用人姓名.
   var FAMILY_COLORS = [
     { argb: 'FFBDD7EE', name: '蓝色', css: '#BDD7EE' }, { argb: 'FFC6EFCE', name: '绿色', css: '#C6EFCE' },
@@ -935,6 +935,7 @@
     return String(s || '').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／,，、]+/).map(function (x) { return x.trim(); })
       .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x); });
   }
+  var SELF_COLS = /^(序号|订单时间|订单编号|原订单编号|原訂單編號|会员编号|会员姓名|服务中心编号|商品标题|加工序号|产品配置编号|股东名称|新名字姓氏|使用人姓名|新名|新名拼音|名册展示|配置人|审核人|性别|生肖|公历生日|农历时辰|是否子时|是否双胞胎|数字|颜色|刻名字)$/;
   async function scanFamilies(files) {
     var orders = [], byNo = {};
     for (var i = 0; i < files.length; i++) {
@@ -946,8 +947,11 @@
           var row = ws.getRow(r), g = function (h) { return C[h] ? cellText(row.getCell(C[h])) : ''; };
           var no = orderNo14(g('订单编号'));
           if (!no || byNo[no]) continue;
-          var o = { no: no, id: g('订单编号').trim(), person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool,
-            names: ownNames(g('使用人姓名')), text: [g('备注'), g('总备注'), g('订单状态备注')].join('\n') };
+          var snm = (g('新名字姓氏').match(/[\u4e00-\u9fff]/) || [])[0];
+          var o = { no: no, id: g('订单编号').trim(), surname: snm || '', person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool,
+            names: ownNames(g('使用人姓名')).concat(ownNames(g('会员姓名'))),
+            // every column can carry a relative (父亲名字 / 母亲名字 / 兄弟姐妹 / 子女 / 备注 …), except the order's own identity
+            text: Object.keys(C).filter(function (h) { return !SELF_COLS.test(h); }).map(g).join('\n') };
           byNo[no] = o; orders.push(o);
         }
       } catch (e) { /* the file is reported by processFile */ }
@@ -967,7 +971,7 @@
     orders.forEach(function (o) { var k = find(o.no); if (!comps[k]) { comps[k] = []; list.push(comps[k]); } comps[k].push(o); });
     var groups = list.filter(function (g) { return g.length > 1; }).map(function (g, i) {
       var count = {};
-      g.forEach(function (o) { var sn = o.person.charAt(0); count[sn] = (count[sn] || 0) + 1; });
+      g.forEach(function (o) { var sn = o.surname || o.person.charAt(0); count[sn] = (count[sn] || 0) + 1; });
       var sns = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; });
       var col = FAMILY_COLORS[i % FAMILY_COLORS.length];
       return { n: i + 1, label: sns.join(' / ') + ' 家', color: col.argb, colorName: col.name, css: col.css,
