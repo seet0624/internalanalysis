@@ -831,10 +831,12 @@
       // 家人订单 → the family's colour on 订单编号 / 使用人姓名
       var fg = opts.families && opts.families.byNo[orderNo14(get('订单编号'))];
       if (fg) {
-        ['订单编号', '使用人姓名'].forEach(function (h) {
-          var c = cell(h);
-          if (c && !isSlave(c)) c.style = Object.assign({}, c.style, { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: fg.color } } });
-        });
+        // the whole row of the table (序号 … last header column), like a hand-coloured sheet
+        var lastCol = Math.max.apply(null, Object.keys(C).map(function (h) { return C[h]; }));
+        for (var fc = 1; fc <= lastCol; fc++) {
+          var c = row.getCell(fc);
+          if (!isSlave(c)) c.style = Object.assign({}, c.style, { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: fg.color } } });
+        }
         var others = fg.members.filter(function (m) { return orderNo14(m.id) !== orderNo14(get('订单编号')); })
           .map(function (m) { return m.person + '（' + m.tool + '）'; });
         add({ kind: 'famgroup', level: 'info', group: { n: fg.n, label: fg.label, css: fg.css, colorName: fg.colorName },
