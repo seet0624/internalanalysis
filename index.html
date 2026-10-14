@@ -107,6 +107,9 @@ tr.detail td{background:var(--sunk);padding:16px 20px}
 .pend .q{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line-soft)}
 .pend .txt{flex:1 1 260px;min-width:0;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 .yn{display:inline-flex;gap:6px}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.25);vertical-align:-2px;margin-right:6px;flex:none}
+.famg{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line-soft)}
+.famg .m{font-size:13px;overflow-wrap:anywhere}
 .yn button{font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:inherit;cursor:pointer;min-height:30px}
 .yn button.on[aria-pressed="true"]{background:var(--crit);border-color:var(--crit);color:#fff}
 .yn button.off[aria-pressed="true"]{background:var(--sunk);border-color:currentColor;font-weight:700}
@@ -477,6 +480,13 @@ tr.problem td{background:var(--crit-bg)}
       '<button type="button" class="btn primary" data-copy="all">复制全部</button></div>' +
       copies.map(function (t, i) { return '<div class="copyline"><code id="copy-' + i + '">' + esc(t) + '</code><button type="button" class="copybtn" data-copy="' + i + '">复制</button></div>'; }).join('') +
       '</section>';
+    var fams = res.families || [];
+    if (fams.length) h += '<section class="panel" aria-label="家人订单"><h2 style="font-size:16px">家人订单（' + fams.length + ' 组）</h2>' +
+      '<div class="small" style="margin:4px 0 2px">备注里写了别的单的订单号或姓名，而那张单也在这次上传里 → 同一家。文件里这些单的「订单编号」「使用人姓名」格子涂同一个颜色，不同家不同颜色。</div>' +
+      fams.map(function (g) {
+        return '<div class="famg"><b><span class="sw" style="background:' + g.css + '"></span>第' + g.n + '组 ' + esc(g.label) + '（' + g.colorName + '，' + g.members.length + ' 单）</b>' +
+          '<span class="m">' + g.members.map(function (m) { return esc(m.person) + ' <span class="small">' + esc(m.tool) + ' · ' + esc(m.id) + '</span>'; }).join('、') + '</span></div>';
+      }).join('') + '</section>';
     var pl = pendingList();
     if (pl.length) {
       var und = pl.filter(function (p) { return !p.f.pending.decided; }).length;
@@ -504,7 +514,7 @@ tr.problem td{background:var(--crit-bg)}
         r.orders.map(function (o, oi) {
           var mk = r.name + '|' + o.key, isOpen = !!state.open[mk];
           return '<tr' + (o.problem ? ' class="problem"' : '') + '><td>' + esc(o.seq) + '</td><td><div style="font-weight:500">' + esc(o.person) + '</div><div class="small">' + esc(o.title) + '</div></td><td>' +
-            (o.flags.length ? '<div class="flags">' + o.flags.map(function (f) { return '<span class="chip ' + f.level + '">' + esc(f.text) + '</span>' + (f.pending ? ynButtons(mk, f.pending.h, f) : ''); }).join('') + '</div>' : '<span class="clean">无问题</span>') +
+            (o.flags.length ? '<div class="flags">' + o.flags.map(function (f) { return '<span class="chip ' + f.level + '">' + (f.group ? '<span class="sw" style="background:' + f.group.css + '"></span>' : '') + esc(f.text) + '</span>' + (f.pending ? ynButtons(mk, f.pending.h, f) : ''); }).join('') + '</div>' : '<span class="clean">无问题</span>') +
             (o.family ? '<div class="fam" aria-label="家人名单">' + o.family.map(function (x) {
               return '<span class="rel">' + esc(x.rel) + '</span><span' + (x.mentioned ? ' class="hit"' : '') + '>' + esc(x.name) + (x.mentioned ? '（备注提到）' : '') + '</span>';
             }).join('') + '</div>' : '') + '</td><td>' +

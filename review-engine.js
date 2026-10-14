@@ -546,7 +546,7 @@
     // Cells that arrive with a coloured box in the order rows become red text instead.
     var filledCells = {};
     for (var fr = range.first; fr <= range.last; fr++) {
-      ws.getRow(fr).eachCell({ includeEmpty: false }, function (c) { if (hasFill(c) && !isSlave(c)) { filledCells[c.address] = true; paintRed(c); } });
+      ws.getRow(fr).eachCell({ includeEmpty: false }, function (c) { if (hasFill(c) && !isSlave(c) && !isFamilyFill(c)) { filledCells[c.address] = true; paintRed(c); } });
     }
     var headerOrder = Object.keys(C).sort(function (a, b) { return C[a] - C[b]; });
 
@@ -828,6 +828,19 @@
         }
       }
 
+      // 家人订单 → the family's colour on 订单编号 / 使用人姓名
+      var fg = opts.families && opts.families.byNo[orderNo14(get('订单编号'))];
+      if (fg) {
+        ['订单编号', '使用人姓名'].forEach(function (h) {
+          var c = cell(h);
+          if (c && !isSlave(c)) c.style = Object.assign({}, c.style, { fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: fg.color } } });
+        });
+        var others = fg.members.filter(function (m) { return orderNo14(m.id) !== orderNo14(get('订单编号')); })
+          .map(function (m) { return m.person + '（' + m.tool + '）'; });
+        add({ kind: 'famgroup', level: 'info', group: { n: fg.n, label: fg.label, css: fg.css, colorName: fg.colorName },
+          text: '家人订单 第' + fg.n + '组 ' + fg.label + '（' + fg.colorName + '）：同组还有 ' + others.join('、') });
+      }
+
       // 待确认的备注 + the reviewer's own 标红 / 不标红 per cell (opts.reds wins over every rule)
       var choice = reds[file.name + '|' + key] || {};
       pend.forEach(function (p) {
@@ -903,9 +916,71 @@
     return result;
   }
 
+  // 家人订单: an order whose 备注 names another uploaded order (its order number, or its 使用人姓名)
+  // belongs to the same family. Families of 2+ orders share one fill colour on 订单编号 / 使用人姓名.
+  var FAMILY_COLORS = [
+    { argb: 'FFBDD7EE', name: '蓝色', css: '#BDD7EE' }, { argb: 'FFC6EFCE', name: '绿色', css: '#C6EFCE' },
+    { argb: 'FFFFEB9C', name: '黄色', css: '#FFEB9C' }, { argb: 'FFF8CBAD', name: '橙色', css: '#F8CBAD' },
+    { argb: 'FFD9C3E9', name: '紫色', css: '#D9C3E9' }, { argb: 'FFB7E4E0', name: '青色', css: '#B7E4E0' },
+    { argb: 'FFF4CCE0', name: '粉色', css: '#F4CCE0' }, { argb: 'FFD9D9D9', name: '灰色', css: '#D9D9D9' }
+  ];
+  function isFamilyFill(cell) {
+    var f = cell.fill, c = f && f.fgColor && f.fgColor.argb;
+    return !!c && FAMILY_COLORS.some(function (x) { return x.argb === String(c).toUpperCase(); });
+  }
+  function orderNo14(x) { var m = String(x || '').match(/\d{14}/); return m ? m[0] : ''; }
+  function ownNames(s) {
+    return String(s || '').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／,，、]+/).map(function (x) { return x.trim(); })
+      .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x); });
+  }
+  async function scanFamilies(files) {
+    var orders = [], byNo = {};
+    for (var i = 0; i < files.length; i++) {
+      try {
+        var wb = await load(files[i].buffer), ws = wb.worksheets[0], header = findHeader(ws);
+        if (!header) continue;
+        var range = dataRowRange(ws, header), C = header.cols, tool = toolFromSheet(ws, range, C) || toolName(files[i].name);
+        for (var r = range.first; r <= range.last; r++) {
+          var row = ws.getRow(r), g = function (h) { return C[h] ? cellText(row.getCell(C[h])) : ''; };
+          var no = orderNo14(g('订单编号'));
+          if (!no || byNo[no]) continue;
+          var o = { no: no, id: g('订单编号').trim(), person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool,
+            names: ownNames(g('使用人姓名')), text: [g('备注'), g('总备注'), g('订单状态备注')].join('\n') };
+          byNo[no] = o; orders.push(o);
+        }
+      } catch (e) { /* the file is reported by processFile */ }
+    }
+    var parent = {};
+    var find = function (x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
+    var join = function (a, b) { a = find(a); b = find(b); if (a !== b) parent[b] = a; };
+    orders.forEach(function (o) { parent[o.no] = o.no; });
+    orders.forEach(function (o) {
+      (o.text.match(/\d{14}/g) || []).forEach(function (n) { if (n !== o.no && byNo[n]) join(o.no, n); });
+      orders.forEach(function (p) {
+        if (p === o) return;
+        if (p.names.some(function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; })) join(o.no, p.no);
+      });
+    });
+    var comps = {}, list = [];
+    orders.forEach(function (o) { var k = find(o.no); if (!comps[k]) { comps[k] = []; list.push(comps[k]); } comps[k].push(o); });
+    var groups = list.filter(function (g) { return g.length > 1; }).map(function (g, i) {
+      var count = {};
+      g.forEach(function (o) { var sn = o.person.charAt(0); count[sn] = (count[sn] || 0) + 1; });
+      var sns = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; });
+      var col = FAMILY_COLORS[i % FAMILY_COLORS.length];
+      return { n: i + 1, label: sns.join(' / ') + ' 家', color: col.argb, colorName: col.name, css: col.css,
+        members: g.map(function (o) { return { id: o.id, person: o.person, tool: o.tool }; }) };
+    });
+    var map = {};
+    groups.forEach(function (g) { g.members.forEach(function (m) { map[orderNo14(m.id)] = g; }); });
+    return { groups: groups, byNo: map };
+  }
+
   async function processFiles(files, options) {
     var opts = Object.assign({}, DEFAULTS, options || {});
     var out = [];
+    opts.families = await scanFamilies(files);
+    out.families = opts.families.groups;
     for (var i = 0; i < files.length; i++) {
       try { out.push(await processFile(files[i], opts)); }
       catch (e) { out.push({ name: files[i].name, tool: toolName(files[i].name), orders: [], outputs: [], error: String(e && e.message || e) }); }
