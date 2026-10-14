@@ -708,6 +708,8 @@
       remarkHeads.forEach(function (h) { var ids = idsIn(get(h)); if (ids.length) { redCell(h); ids.forEach(function (n) { if (nos.indexOf(n) < 0) nos.push(n); }); } });
       if (nos.length) add({ kind: 'orderno', level: 'mid', text: '备注有订单号（' + nos.join('、') + '）— 已标红' });
 
+      // 曾用名、原来的名字、后来改名为…（「这次改名字希望…」说的是这次起名，不算）
+      var OLDNAME = /曾用名|原名|旧名|舊名|以前的名字|以前名字|改名前|原[来來本]的?名字?|本名|(?:后来|後來|已经|已經|之前|曾经|曾經|曾|有)改(?:过|過|了)?.{0,3}名|改名(?:为|為|成|叫|做)|改(?:过|過|了).{0,3}名|更名/;
       // 要求保留某个字 / 名（例如：尽量保留"诗"这个名）→ red so the expert sees it
       var KEEP = /(保留|保持|沿用|不要改|不改|不换)[^，。；;\n]{0,10}(字|名)|(字|名)[^，。；;\n]{0,6}(保留|不要改|不改|不换)/;
       if (KEEP.test(remarks)) {
@@ -732,10 +734,10 @@
         add({ kind: 'namewish', level: 'high', text: '备注有起名要求（' + nw.trim().slice(0, 20) + '）— 已标红，提醒专家' });
       }
 
-      // 曾用名 → red
-      if (/曾用名|原名|旧名|舊名|以前的名字|以前名字|改名前/.test(remarks)) {
-        redRemarksMatching(function (x) { return /曾用名|原名|旧名|舊名|以前的名字|以前名字|改名前/.test(x); });
-        add({ kind: 'oldname', level: 'mid', text: '备注有曾用名 — 已标红' });
+      // 曾用名 / 原来的名字 / 后来改名 → red
+      if (OLDNAME.test(remarks)) {
+        redRemarksMatching(function (x) { return OLDNAME.test(x); });
+        add({ kind: 'oldname', level: 'mid', text: '备注有曾用名 / 改过名 — 已标红' });
       }
 
       // 刻名字 empty on a watch
