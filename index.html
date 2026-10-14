@@ -5,245 +5,270 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>技术单审核台</title>
 
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap">
 <style>
-/* Layout: dark top bar; settings column + results column that stack on a phone */
+/* Three steps: 上传 → 处理待办 → 下载. Warm white ground, white cards, deep teal accent. */
 :root{
-  --bg:#F3F5F6; --surface:#FFFFFF; --sunk:#F7F8F9; --ink:#16181D; --muted:#5A616E; --line:#DCE0E4; --line-soft:#ECEEF1;
-  --accent:#0E5E63; --accent-ink:#FFFFFF; --bar:#16181D; --bar-ink:#F3F5F6; --bar-muted:#B6BCC6;
-  --crit:#B3141C; --crit-bg:#FCEBEC; --warn:#7A4300; --warn-bg:#FFF1DC; --info:#394354; --info-bg:#EDF1F5; --ok:#2C6A37;
-  --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --bg:#F4F3EF; --surface:#FFFFFF; --sunk:#F4F3EF; --ink:#1D2125; --muted:#55544E; --faint:#6B6A64; --line:#E3E1DA; --line-soft:#ECEAE3; --field:#D6D3CA;
+  --accent:#0E6B66; --accent-hover:#0B5753; --accent-soft:#E3F0EE; --accent-ink:#0B4F4B; --on-accent:#FFFFFF;
+  --crit:#B3261E; --crit-bg:#FBE9E7; --crit-ink:#8C1D18; --warn:#7A4300; --warn-bg:#FFF1DC; --orange:#C26A00;
+  --blue:#3A6EA5; --blue-bg:#E8F0F8; --blue-ink:#234D78; --ok:#2C6A37; --ok-bg:#E6F2E8;
+  --bar:#1D2125; --bar-ink:#FFFFFF; --bar-warn:#F2B866; --sel:#EEF6F5;
+  --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#111417; --surface:#1A1E23; --sunk:#151A1E; --ink:#E8EBEE; --muted:#9AA3AE; --line:#2C333B; --line-soft:#242A31;
-  --accent:#4FB3B8; --accent-ink:#0B1416; --bar:#0B0D10; --bar-ink:#E8EBEE; --bar-muted:#8D96A2;
-  --crit:#FF8A8F; --crit-bg:#3A1A1D; --warn:#F2B866; --warn-bg:#33270F; --info:#B9C3D0; --info-bg:#232A33; --ok:#7FCC8C; color-scheme:dark}}
+  --bg:#121518; --surface:#1B1F23; --sunk:#151A1D; --ink:#E9EBEC; --muted:#A3A8AD; --faint:#8E949A; --line:#2D3338; --line-soft:#252A2F; --field:#3A4147;
+  --accent:#4FB3AC; --accent-hover:#6CC4BD; --accent-soft:#17312F; --accent-ink:#8FD6CF; --on-accent:#0B1615;
+  --crit:#FF8A80; --crit-bg:#3A1C1A; --crit-ink:#FFB3AB; --warn:#F2B866; --warn-bg:#33270F; --orange:#F0A64B;
+  --blue:#8DB8E8; --blue-bg:#1B2A3A; --blue-ink:#B5D2F2; --ok:#7FCC8C; --ok-bg:#183020;
+  --bar:#0B0D10; --bar-ink:#E9EBEC; --bar-warn:#F2B866; --sel:#17312F; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#111417; --surface:#1A1E23; --sunk:#151A1E; --ink:#E8EBEE; --muted:#9AA3AE; --line:#2C333B; --line-soft:#242A31;
-  --accent:#4FB3B8; --accent-ink:#0B1416; --bar:#0B0D10; --bar-ink:#E8EBEE; --bar-muted:#8D96A2;
-  --crit:#FF8A8F; --crit-bg:#3A1A1D; --warn:#F2B866; --warn-bg:#33270F; --info:#B9C3D0; --info-bg:#232A33; --ok:#7FCC8C; color-scheme:dark}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55}
+  --bg:#121518; --surface:#1B1F23; --sunk:#151A1D; --ink:#E9EBEC; --muted:#A3A8AD; --faint:#8E949A; --line:#2D3338; --line-soft:#252A2F; --field:#3A4147;
+  --accent:#4FB3AC; --accent-hover:#6CC4BD; --accent-soft:#17312F; --accent-ink:#8FD6CF; --on-accent:#0B1615;
+  --crit:#FF8A80; --crit-bg:#3A1C1A; --crit-ink:#FFB3AB; --warn:#F2B866; --warn-bg:#33270F; --orange:#F0A64B;
+  --blue:#8DB8E8; --blue-bg:#1B2A3A; --blue-ink:#B5D2F2; --ok:#7FCC8C; --ok-bg:#183020;
+  --bar:#0B0D10; --bar-ink:#E9EBEC; --bar-warn:#F2B866; --sel:#17312F; color-scheme:dark}
 *{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
 [hidden]{display:none!important}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.wrap{max-width:1360px;margin:0 auto;padding-inline:16px}
-@media (min-width:720px){.wrap{padding-inline:32px}}
-header{background:var(--bar);color:var(--bar-ink)}
-header .wrap{padding-block:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
-h1{margin:0;font-size:22px;letter-spacing:.02em;text-wrap:balance}
-.sub{font-size:13px;color:var(--bar-muted)}
-main.wrap{padding-block:24px 64px;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
-aside{flex:1 1 300px;max-width:380px;min-width:0;display:flex;flex-direction:column;gap:16px}
-.results{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:20px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px}
-h2{margin:0;font-size:15px}
-.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:140px;padding:16px;border:1.5px dashed var(--muted);border-radius:10px;background:var(--sunk);text-align:center;cursor:pointer}
-.drop.over{border-color:var(--accent);background:var(--info-bg)}
-.drop input{position:absolute;width:1px;height:1px;opacity:0}
-.small{font-size:12px;color:var(--muted)}
-.field{display:flex;flex-direction:column;gap:6px}
-.field label{font-size:13px;font-weight:500}
-.field input,.field textarea{min-height:44px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-.field textarea{resize:vertical;font-size:13px}
-.btn{min-height:44px;padding:0 18px;border-radius:8px;border:1px solid var(--accent);background:var(--surface);color:var(--accent);font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px}
-.btn.primary{background:var(--accent);color:var(--accent-ink)}
-.btn.ghost{border-color:var(--bar-muted);background:transparent;color:var(--bar-ink);font-weight:500}
+a{color:var(--accent)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h1,h2,h3{margin:0;line-height:1.3;text-wrap:balance}
+p{margin:0}
+
+/* header + steps */
+.top{background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{max-width:1360px;margin:0 auto;padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 24px}
+@media (min-width:720px){.top-in{padding:14px 24px}}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700}
+.steps{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.step{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--faint);font-weight:500}
+.step .num{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--faint);display:inline-flex;align-items:center;justify-content:center;font-size:13px}
+.step.done{color:var(--accent)}
+.step.done .num{border:0;background:var(--accent-soft)}
+.step[aria-current="step"]{background:var(--accent);color:var(--on-accent)}
+.step[aria-current="step"] .num{border:0;background:var(--on-accent);color:var(--accent);font-weight:700}
+.step[disabled]{cursor:default;opacity:.7}
+.arrow{color:var(--field)}
+.who{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;color:var(--muted);font-size:14px}
+.who b{color:var(--ink)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid var(--field);border-radius:10px;background:var(--surface);color:var(--ink);font-weight:500;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn.primary{border-color:var(--accent);background:var(--accent);color:var(--on-accent);font-weight:700}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn.danger{color:var(--crit)}
+.btn.small{min-height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.btn.link{border:0;background:transparent;color:var(--accent);padding:0 6px;min-height:36px}
 .btn[disabled]{opacity:.5;cursor:default}
-.namefmt{font-family:var(--mono);font-size:12px;background:var(--sunk);border:1px solid var(--line-soft);border-radius:6px;padding:8px 10px;overflow-wrap:anywhere}
-ol.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.btn[aria-pressed="true"].pick-on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.btn[aria-pressed="true"].pick-red{background:var(--crit);border-color:var(--crit);color:#FFFFFF}
+.btn.red-out{border-color:var(--crit);color:var(--crit)}
+
+.page{max-width:1360px;margin:0 auto;padding:24px 16px 120px;display:flex;flex-direction:column;gap:20px}
+@media (min-width:720px){.page{padding:28px 24px 120px}}
+.narrow{max-width:960px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+.pad{padding:20px 22px}
+.lead{color:var(--muted);font-size:16px}
+.small{font-size:13px;color:var(--muted)}
+.error{background:var(--crit-bg);color:var(--crit-ink);border-radius:12px;padding:12px 16px}
+.status{display:flex;align-items:center;gap:10px;color:var(--accent-ink);font-weight:500}
+.spin{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--accent-soft);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+
+/* upload */
+.hero h1{font-size:30px;font-weight:700}
+@media (min-width:720px){.hero h1{font-size:32px}}
+.drop{position:relative;border:2px dashed #8FB8B4;border-radius:20px;background:var(--surface);padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;cursor:pointer}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.drop .ico{width:72px;height:72px;border-radius:20px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent)}
+.drop .big{font-size:20px;font-weight:700}
+.drop .fake{display:inline-flex;align-items:center;min-height:48px;padding:0 28px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:16px}
+.loaded{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.loaded ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.loaded li{font-size:13px;padding:2px 10px;border-radius:999px;background:var(--sunk);color:var(--muted);overflow-wrap:anywhere}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:16px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label,.field .lbl{font-size:13px;color:var(--muted)}
+.field input,.field textarea{min-height:44px;padding:9px 12px;border:1px solid var(--field);border-radius:10px;background:var(--surface);width:100%}
+.field textarea{resize:vertical;font-size:14px}
+.ro{min-height:44px;display:flex;align-items:center;gap:8px;padding:0 12px;border-radius:10px;background:var(--sunk);color:var(--muted)}
+details>summary{cursor:pointer;color:var(--accent);font-weight:500;min-height:40px;display:flex;align-items:center;gap:6px;list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);margin-right:4px;transition:transform .15s}
+details[open]>summary::before{transform:rotate(45deg)}
+.adv{border-top:1px solid var(--line-soft);padding-top:8px}
+.adv .fgrid{margin-top:8px}
+.namefmt{font-size:13px;background:var(--sunk);border-radius:10px;padding:12px 14px;overflow-wrap:anywhere;color:var(--muted)}
+ol.rules{margin:8px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:14px}
 ol.rules b.red{color:var(--crit)}
-.status{font-size:13px;color:var(--accent);font-weight:500}
-.error{font-size:13px;color:var(--crit)}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:12px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:flex;flex-direction:column}
-.stat .n{font-family:var(--mono);font-size:26px;font-variant-numeric:tabular-nums}
-.stat .n.hot{color:var(--crit)}
-.stat .l{font-size:12px;color:var(--muted)}
-.downloadbar{background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
-.downloadbar .files{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:13px}
-.downloadbar .files span{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}
-.att{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:10px 0;border-top:1px solid var(--line-soft)}
-.chip{display:inline-block;padding:3px 9px;border-radius:6px;font-size:12px}
-.chip.high{background:var(--crit-bg);color:var(--crit)}
-.chip.mid{background:var(--warn-bg);color:var(--warn)}
-.chip.info{background:var(--info-bg);color:var(--info)}
-.pill{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--crit-bg);color:var(--crit)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.card-h{padding:14px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line-soft)}
-.card-h h3{margin:0;font-size:16px}
-.outs{padding:12px 20px;display:flex;flex-wrap:wrap;gap:8px;background:var(--sunk);border-bottom:1px solid var(--line-soft)}
-.out{min-height:44px;display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);font-size:12px;text-align:left;font-family:var(--mono);overflow-wrap:anywhere;max-width:100%}
-.out.urgent{border-color:var(--crit);color:var(--crit)}
-.tbl{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px;min-width:540px}
-th{text-align:left;color:var(--muted);font-weight:500;padding:10px 8px}
-td{padding:10px 8px;border-top:1px solid var(--line-soft);vertical-align:top}
-th:first-child,td:first-child{padding-left:20px;width:56px;font-family:var(--mono)}
-td .flags{display:flex;flex-wrap:wrap;gap:6px}
-.clean{color:var(--ok)}
-.copybox{display:flex;flex-direction:column;gap:8px;border:2px solid var(--crit);border-radius:12px;padding:16px 20px;background:var(--surface)}
-.copyline{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:8px 0;border-top:1px solid var(--line-soft)}
-.copyline code{flex:1 1 300px;min-width:0;font-family:var(--sans);font-size:14px;overflow-wrap:anywhere;user-select:all}
-.copybtn{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:12px;font-weight:500;white-space:nowrap}
-.view{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--accent);background:var(--surface);color:var(--accent);font-size:12px;font-weight:500;white-space:nowrap;margin-bottom:6px}
-.view[aria-expanded="true"]{background:var(--accent);color:var(--accent-ink)}
-tr.detail td{background:var(--sunk);padding:16px 20px}
-.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px 14px}
-.fields .f{display:flex;flex-direction:column;gap:3px;min-width:0}
-.fields .f.long{grid-column:1/-1}
-.fields label{font-size:12px;color:var(--muted)}
-.fields input,.fields textarea{font-size:13px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface);min-height:36px;width:100%}
-.fields textarea{resize:vertical;line-height:1.5}
-.fields .edited input,.fields .edited textarea{border-color:var(--crit);color:var(--crit)}
-.fields .edited label{color:var(--crit);font-weight:700}
-.fields [readonly]{background:var(--sunk);color:var(--muted)}
-.fields .lab{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;min-height:26px}
-.fields .isred input,.fields .isred textarea{color:var(--crit)}
-.redtog{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;min-height:24px}
+.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:16px}
+.feat{display:flex;gap:12px;align-items:flex-start}
+.feat .ic{flex:none;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.feat b{display:block}
+
+/* review */
+.progress{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 32px}
+.progress .big{font-size:24px;font-weight:700}
+.progress .big em{font-style:normal;color:var(--crit)}
+.progress .big.done em{color:var(--ok)}
+.bar{flex:1 1 260px;max-width:420px;display:flex;flex-direction:column;gap:6px}
+.track{height:10px;border-radius:999px;background:var(--line-soft);overflow:hidden}
+.track span{display:block;height:100%;background:var(--accent);border-radius:999px}
+.cols{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.filters{flex:1 1 220px;max-width:260px;padding:10px;display:flex;flex-direction:column;gap:2px}
+@media (max-width:760px){.filters{max-width:none;flex-direction:row;flex-wrap:wrap}.filters .sep{display:none}.filters .sub{padding-left:12px}}
+.flt{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--ink);text-align:left}
+.flt:hover{background:var(--sunk)}
+.flt[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
+.flt .n{color:var(--faint);font-weight:400;font-variant-numeric:tabular-nums}
+.flt .n.hot{min-width:26px;padding:0 8px;border-radius:999px;background:var(--crit);color:#FFFFFF;text-align:center;font-size:13px;font-weight:700}
+.flt.sub{padding-left:28px;font-size:14px;min-height:38px;color:var(--muted)}
+.flt .lab{display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.sep{height:1px;background:var(--line-soft);margin:8px 4px}
+.main{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:12px}
+.main-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.main-h h2{font-size:18px}
+.search{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 12px;border:1px solid var(--field);border-radius:10px;background:var(--surface);flex:0 1 260px}
+.search input{border:0;outline:0;background:transparent;min-width:0;flex:1}
+.todo{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.todo.decided{background:var(--sunk)}
+.todo-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.todo-h .nm{font-weight:700;font-size:16px}
+.todo-h .meta{color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+.tag{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:700}
+.tag.crit{background:var(--crit-bg);color:var(--crit-ink)}
+.tag.warn{background:var(--warn-bg);color:var(--warn)}
+.tag.blue{background:var(--blue-bg);color:var(--blue-ink)}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.plain{background:var(--sunk);color:var(--muted);font-weight:500}
+.todo .why{color:var(--ink)}
+.quote{margin:0;padding:10px 14px;border-radius:10px;background:var(--sunk);color:var(--ink);overflow-wrap:anywhere}
+.todo.decided .quote,.todo.decided .copy{background:var(--surface)}
+.copy{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--sunk)}
+.copy code{flex:1 1 280px;min-width:0;font-family:var(--sans);font-size:14px;overflow-wrap:anywhere;user-select:all}
+.acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.decision{font-size:14px;color:var(--ok);font-weight:500}
+.alldone{text-align:center;padding:36px 20px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.files{display:flex;flex-direction:column;gap:12px}
+.file>summary{color:var(--ink);padding:12px 18px;justify-content:flex-start;flex-wrap:wrap;gap:6px 12px;min-height:52px}
+.file>summary .t{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;flex:1 1 auto;min-width:0}
+.file>summary b{font-size:16px}
+.file[open]>summary{border-bottom:1px solid var(--line-soft)}
+.tbl{overflow-x:auto;position:relative}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:580px}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:13px;padding:8px}
+td{padding:10px 8px;border-top:1px solid var(--line-soft);vertical-align:middle}
+th:first-child,td:first-child{padding-left:18px}
+th:last-child,td:last-child{padding-right:18px;text-align:right}
+tr.on td{background:var(--sel)}
+.who-cell{display:flex;align-items:center;gap:8px;font-weight:700}
+.who-cell small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.sw{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.18);display:inline-block}
+.st-crit{color:var(--crit);font-weight:500}.st-orange{color:var(--orange);font-weight:500}.st-blue{color:var(--blue);font-weight:500}.st-ok{color:var(--ok);font-weight:500}
+.mini{display:flex;flex-wrap:wrap;gap:4px}
+.mini span{font-size:12px;padding:1px 8px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+.mini span.hi{background:var(--crit-bg);color:var(--crit-ink)}
+.ferr{padding:12px 18px;color:var(--crit)}
+
+/* detail */
+.detail{flex:1 1 340px;max-width:440px;display:flex;flex-direction:column;align-self:flex-start;position:sticky;top:12px;max-height:calc(100vh - 110px)}
+@media (max-width:1100px){.detail{position:static;max-height:none;max-width:none}}
+.detail-h{padding:16px 18px;border-bottom:1px solid var(--line-soft);display:flex;flex-direction:column;gap:6px}
+.detail-h .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.detail-h .nm{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;overflow-wrap:anywhere}
+.x{width:40px;height:40px;border:0;border-radius:8px;background:transparent;display:flex;align-items:center;justify-content:center;flex:none}
+.x:hover{background:var(--sunk)}
+.tabs{display:flex;gap:4px;padding:6px 12px 0;border-bottom:1px solid var(--line-soft)}
+.tab{min-height:40px;padding:0 12px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--muted)}
+.tab[aria-selected="true"]{border-bottom-color:var(--accent);color:var(--accent);font-weight:700}
+.detail-b{padding:6px 18px 12px;overflow-y:auto;min-height:0}
+.frow{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:6px 10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line-soft)}
+.frow>label{grid-column:1;grid-row:1}
+.frow>.inp{grid-column:2;grid-row:1}
+.frow>.redtog,.frow>.tg{grid-column:3;grid-row:1}
+.frow.long{grid-template-columns:minmax(0,1fr) auto}
+.frow.long>.redtog,.frow.long>.tg{grid-column:2}
+.frow.long>.inp{grid-column:1/-1;grid-row:2}
+.frow label{font-size:13px;color:var(--muted);padding-top:8px;overflow-wrap:anywhere}
+.frow.edited label{color:var(--crit);font-weight:700}
+.frow .inp{width:100%;min-height:38px;padding:7px 10px;border:1px solid var(--field);border-radius:8px;background:var(--surface);font-size:14px;line-height:1.5}
+.frow textarea.inp{resize:vertical}
+.frow .inp[readonly]{background:var(--sunk);color:var(--muted)}
+.frow.isred .inp{color:var(--crit)}
+.frow.edited .inp{border-color:var(--crit)}
+.redtog{margin-top:4px;min-height:30px;padding:0 10px;border:1px solid var(--field);border-radius:999px;background:var(--surface);color:var(--muted);font-size:12px;white-space:nowrap}
 .redtog[aria-pressed="true"]{border-color:var(--crit);color:var(--crit);font-weight:700}
-.pend{border:1px solid var(--warn);border-radius:10px}
-.pend .q{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line-soft)}
-.pend .txt{flex:1 1 260px;min-width:0;font-size:13px;color:var(--muted);overflow-wrap:anywhere}
-.yn{display:inline-flex;gap:6px}
-.sw{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.25);vertical-align:-2px;margin-right:6px;flex:none}
-.famg{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line-soft)}
-.famg .m{font-size:13px;overflow-wrap:anywhere}
-.yn button{font-size:12px;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:inherit;cursor:pointer;min-height:30px}
-.yn button.on[aria-pressed="true"]{background:var(--crit);border-color:var(--crit);color:#fff}
-.yn button.off[aria-pressed="true"]{background:var(--sunk);border-color:currentColor;font-weight:700}
-.detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;align-items:center}
-.fam{margin-top:8px;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12px;background:var(--sunk);border:1px solid var(--line-soft);border-radius:6px;padding:8px 10px;max-width:420px}
+.note{font-size:12px;color:var(--faint)}
+.log{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.log li{padding:8px 12px;border-radius:10px;font-size:14px;overflow-wrap:anywhere}
+.log li.high{background:var(--crit-bg);color:var(--crit-ink)}
+.log li.mid{background:var(--warn-bg);color:var(--warn)}
+.log li.info{background:var(--sunk);color:var(--muted)}
+.fam{margin-top:12px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px;background:var(--sunk);border-radius:10px;padding:10px 12px}
 .fam .rel{color:var(--muted)}
 .fam .hit{color:var(--crit);font-weight:700}
-.out.newborn{border-color:var(--accent);color:var(--accent)}
-.mark{min-height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:12px;font-weight:500;white-space:nowrap}
-.mark.on{border-color:var(--crit);background:var(--crit);color:var(--surface)}
-tr.problem td{background:var(--crit-bg)}
-.out.problem{border-color:var(--crit);background:var(--crit-bg);color:var(--crit)}
-.empty{align-items:center;text-align:center;padding:48px 24px}
-.modal{position:fixed;inset:0;background:rgba(10,12,16,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
-.modal-box{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:22px 22px 18px;width:100%;max-width:440px;display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
-.modal-box h2{font-size:17px}
-.confirm-grid{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:14px}
-.confirm-grid dt{color:var(--muted)}
-.confirm-grid dd{margin:0;font-weight:700;overflow-wrap:anywhere}
-.confirm-warn{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 12px;font-size:13px}
-.modal-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:13px;max-width:calc(100% - 32px)}
+.detail-f{margin-top:auto;padding:12px 18px;border-top:1px solid var(--line-soft);display:flex;flex-wrap:wrap;gap:8px}
+.detail-f .btn{flex:1 1 130px}
+.detail-empty{padding:28px 20px;color:var(--muted);text-align:center}
+
+/* bottom bar */
+.dock{position:sticky;bottom:0;z-index:20;background:var(--bar);color:var(--bar-ink)}
+.dock-in{max-width:1360px;margin:0 auto;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 24px}
+@media (min-width:720px){.dock-in{padding-inline:24px}}
+.dock .sum{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px}
+.dock .w{color:var(--bar-warn)}
+.bulk{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:12px 18px;background:var(--warn-bg);border-color:transparent;color:var(--warn)}
+@media (max-width:600px){.dock .sum span:not(.w){display:none}.dock-in{flex-wrap:nowrap}.dock .btn{min-height:44px}.steps .step{padding:0 10px}}
+.dock .btn{background:var(--bar-ink);color:var(--bar);border-color:var(--bar-ink);font-weight:700;min-height:48px}
+
+/* download */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}
+.fact{padding:18px 22px;display:flex;flex-direction:column;gap:2px;border-bottom:1px solid var(--line-soft)}
+@media (min-width:720px){.fact{border-bottom:0;border-right:1px solid var(--line-soft)}.fact:last-child{border-right:0}}
+.fact .k{font-size:13px;color:var(--muted)}
+.fact .v{font-size:22px;font-weight:700;overflow-wrap:anywhere}
+.warnbox{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:14px 18px;border-radius:14px;background:var(--warn-bg);color:var(--warn)}
+.warnbox ul{margin:0;padding-left:20px}
+.pkg{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+.pkg.off{opacity:.65}
+.pkg-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.pkg-h .t{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px}
+.pkg-h b{font-size:17px}
+.chk{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--accent)}
+.fname{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:8px 8px 8px 14px;border-radius:10px;background:var(--sunk);overflow-wrap:anywhere}
+.fname span{min-width:0;flex:1 1 260px}
+.fname.zip{font-weight:700}
+.flist{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.go{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px}
+
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 </style>
 </head>
 <body>
 
 
-<header><div class="wrap">
-  <div><h1>技术单审核台</h1><div class="sub">上传技术单 → 自动按规则审核 → 一次下载全部，转发给专家配置五行 / 新名字</div></div>
-  <button class="btn ghost" id="reset" type="button" hidden>清空重来</button>
-</div></header>
-
-<main class="wrap">
-  <aside>
-    <section class="panel">
-      <h2>上传技术单</h2>
-      <label class="drop" id="drop">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-        <b>点击选择或拖入文件</b>
-        <span class="small">支持多个 .xlsx，或整包 .zip</span>
-        <input id="pick" type="file" multiple accept=".xlsx,.zip">
-      </label>
-      <div class="status" id="status" role="status" hidden>正在审核……</div>
-      <div class="error" id="error" role="alert" hidden></div>
-    </section>
-
-    <section class="panel">
-      <h2>审核设置</h2>
-      <div class="field">
-        <label for="date">制表时间（也用在文件名）</label>
-        <input id="date" type="text" inputmode="numeric" placeholder="例如 8.10.2026">
-      </div>
-      <div class="field">
-        <label for="reviewer">审核人</label>
-        <input id="reviewer" type="text">
-      </div>
-      <div class="field">
-        <label for="brands">要分男款 / 女款开文件的手表</label>
-        <input id="brands" type="text">
-        <span class="small">用逗号分隔。其他手表男女款合在一个文件。</span>
-      </div>
-      <div class="field">
-        <label for="askfirst">海外单要先问能不能做的产品</label>
-        <input id="askfirst" type="text">
-        <span class="small">看到这些产品，整单直接放进（有问题）文件。</span>
-      </div>
-      <div class="field">
-        <label for="urgent">加急关键词（备注 / 总备注）</label>
-        <textarea id="urgent" rows="4"></textarea>
-      </div>
-      <button class="btn" id="rerun" type="button">按新设置重新审核</button>
-      <div class="small">文件命名：</div>
-      <div class="namefmt">工具名称 +（男款 / 女款，只限天威、天富手表）+ 技术单 + 日期 +（单数）+ H（海外才有）<br>例：天富手表（女款）技术单 8.10.2026（2）H.xlsx；天祥手表技术单 8.10.2026（2）H.xlsx<br><br>加急单独开文件，（特殊加急）放在技术单后面：<br>只有一位学员：许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H.xlsx<br>多位学员：名正言顺技术单（特殊加急）9.10.2026（2）H.xlsx<br><br>新生儿：…技术单（新生儿）日期（单数）H<br>有问题：…技术单（有问题）日期（单数）H，学员名规则同上<br><br>下载：没问题的打包成 技术单 日期（全部工具的单数）H.zip；特殊加急不放进 zip，单独一个个文件下载；有问题的另一个 zip</div>
-    </section>
-
-    <section class="panel">
-      <h2>审核规则</h2>
-      <ol class="rules">
-        <li>只改字体颜色，不动位置、大小、合并格；红色一律用<b class="red">红字</b>，原文件里涂了底色的格子也改成红字</li>
-        <li><b class="red">子时</b>：前子时 23:00–23:59 生日要加一天；后子时 00:00–00:59 不用加。「是否子时」写是 → 时间栏、备注红字（否不用）</li>
-        <li>出生时间是子时但写「否」，或写「是」但时间不详 / 不是子时 → <b>问下单者</b></li>
-        <li><b class="red">订单状态备注</b>有内容：一律红字</li>
-        <li>总备注与备注<b>一字不差</b>：清空总备注</li>
-        <li>备注 / 总备注有<b class="red">人名</b>：红字，家人名单整齐列出来给你看</li>
-        <li>备注有<b class="red">曾用名 / 原名</b>：红字</li>
-        <li>备注有<b class="red">加急、急、快点 / 要快 / 快处理</b>（「效果快」「赶快好起来」这类祝福不算）：红字，开（特殊加急）文件</li>
-        <li>备注有<b class="red">日期</b>：一个月内的当加急单；超过一个月只红字</li>
-        <li>公历生日<b>未满一岁</b>：新生儿，开（新生儿）文件</li>
-        <li>名正言顺：每位学员两行一样的（只有一行会自动补一行）；<b class="red">名册展示繁体</b>红字，备注也跟着红字；<b class="red">双胞胎 / 三胞胎</b>红字（老大：父亲生日也红；老二：母亲生日也红；老三：父母生日都红）；有问题的学员整位从文件删掉，序号重新排</li>
-        <li>新名字姓氏和使用人姓名的姓<b>一样不红</b>；<b class="red">简繁体不同</b>或<b class="red">学员更换姓氏</b>：红字</li>
-        <li>姓氏和父亲 / 原名不一样：备注有<b>认祖归宗</b> → 红字给专家；没有 → <b>问下单者</b></li>
-        <li>父亲名字和母亲名字<b>一样</b>：红字，<b>问下单者</b></li>
-        <li><b class="red">生肖</b>按立春核对（2月4日前算前一年；当天按出生时间；不详 / 只有时辰算当年），对不上 → 先问下单者，没问题再问督导</li>
-        <li>手表刻名字为空：提醒查新名字是否下来；只有<b>天威、天富手表</b>分男款、女款文件（文件名也写男款 / 女款），其他手表不分</li>
-        <li>文件名最后的 <b>H</b> 代表海外：上传的文件（或 zip）有 H，下载的文件也有 H；没有 H 就不加</li>
-        <li>海外单（H）有<b>天解手表、天泽手表、福运戒指、天恒手表</b>：先问能不能做，直接当有问题，并生成可复制的话术（订单编号 学员 商品，这个需确认能不能做？）</li>
-        <li><b>换购</b>单（商品标题有「换购」）：「原订单编号」格子有订单号就没问题，空的才当有问题（表格没有这一栏时，看备注里有没有原订单号），生成话术（…，换购的都需要提供原订单号，这个需和服务中心确认）</li>
-        <li>备注 / 总备注写了<b class="red">出生时间</b>（例如 出生时间：0300am）：红字，请和出生时间栏核对</li>
-        <li>备注有<b class="red">起名要求</b>（例如 名字尽量少笔画、尽量用同音的、好写、不要用某个字）：红字，提醒专家</li>
-        <li>备注要求<b class="red">保留某个字 / 名</b>（例如尽量保留「诗」）：红字，提醒专家如果适合、匹配尽量保留</li>
-        <li>生肖按立春核对正确（例如立春前出生跟上一个生肖）：<b>不标红</b>，原文件涂的颜色也去掉</li>
-        <li>要问人的单、或你按「标为有问题」的单：从原文件拿出，开（有问题）文件</li>
-        <li>商品是<b>套餐 / 赠品</b>（例如 健康套餐-赠品（名正言顺命名））：文件名用括号里的工具名</li>
-        <li>每次下载前会弹出确认：日期、审核人、国内 / 海外，确认后才下载</li>
-        <li>页脚：审核人 martin，制表时间今天；回传时间：名正言顺加 1 个月，九合牌、吊坠加 7 天，其他工具加 10 天</li>
-      </ol>
-    </section>
-  </aside>
-
-  <div class="results" id="results">
-    <section class="panel empty" id="empty">
-      <b style="font-size:18px">还没有技术单</b>
-      <div class="small" style="max-width:460px">把今天的技术单（每个文件 = 一个工具）拖到左边。审核结果、需要人工处理的提醒和下载按钮会显示在这里。</div>
-    </section>
-    <div id="out" hidden></div>
+<div class="top"><div class="top-in">
+  <div class="brand">
+    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7" fill="#0E6B66"/><path d="M8 14.5l4 4 8-9" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    技术单审核台
   </div>
-</main>
-<div class="modal" id="confirm" hidden role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-  <div class="modal-box">
-    <h2 id="confirm-title">下载前确认</h2>
-    <dl class="confirm-grid">
-      <dt>日期</dt><dd id="cf-date"></dd>
-      <dt>审核人</dt><dd id="cf-reviewer"></dd>
-      <dt>国内 / 海外</dt><dd id="cf-region"></dd>
-      <dt>要下载</dt><dd id="cf-what"></dd>
-    </dl>
-    <div class="confirm-warn" id="cf-warn" hidden></div>
-    <div class="modal-actions">
-      <button type="button" class="btn" id="cf-cancel">取消，去改设置</button>
-      <button type="button" class="btn primary" id="cf-ok">确认下载</button>
-    </div>
-  </div>
-</div>
-<div class="toast" id="toast" hidden></div>
+  <nav class="steps" aria-label="步骤" id="steps"></nav>
+  <div class="who" id="who"></div>
+</div></div>
+
+<div id="app"></div>
+<div class="toast" id="toast" role="status" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -252,21 +277,34 @@ tr.problem td{background:var(--crit-bg)}
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var E = window.ReviewEngine;
-  var state = { inputs: [], results: null, problems: {}, open: {}, edits: {}, reds: {} };
+  var state = {
+    inputs: [], results: null, problems: {}, edits: {}, reds: {},
+    view: 'upload', filter: 'todo', sel: null, tab: 'fields', allFields: false, q: '', openFiles: {},
+    pick: { good: true, urgent: true, bad: false }, busy: false, error: '',
+    set: { date: E.todayStr(), reviewer: E.DEFAULTS.reviewer, brands: E.DEFAULTS.splitWatchBrands.join('，'), askfirst: E.DEFAULTS.askFirstProducts.join('，'), urgent: E.DEFAULTS.urgentWords.join('，') }
+  };
   var downloadsP = window.claude && window.claude.use ? window.claude.use('downloads').catch(function () { return null; }) : Promise.resolve(null);
-
-  $('date').value = E.todayStr();
-  $('reviewer').value = E.DEFAULTS.reviewer;
-  $('askfirst').value = E.DEFAULTS.askFirstProducts.join('，');
-  $('brands').value = E.DEFAULTS.splitWatchBrands.join('，');
-  $('urgent').value = E.DEFAULTS.urgentWords.join('，');
+  var RULES = "<h3 style=\"font-size:15px;margin-top:12px\">审核规则<\/h3><ol class=\"rules\">\n        <li>只改字体颜色，不动位置、大小、合并格；红色一律用<b class=\"red\">红字<\/b>，原文件里涂了底色的格子也改成红字<\/li>\n        <li><b class=\"red\">子时<\/b>：前子时 23:00–23:59 生日要加一天；后子时 00:00–00:59 不用加。「是否子时」写是 → 时间栏红字；备注写了子时 / 加一天才红，只有祝福语由你选<\/li>\n        <li>出生时间是子时但写「否」，或写「是」但时间不详 / 不是子时 → <b>问下单者<\/b><\/li>\n        <li><b class=\"red\">订单状态备注<\/b>有内容：一律红字<\/li>\n        <li>总备注与备注<b>一字不差<\/b>：清空总备注<\/li>\n        <li>备注 / 总备注写了<b class=\"red\">别的订单号<\/b>（原订单号、家人的单）：红字<\/li>\n        <li><b>家人订单<\/b>：父母、兄弟姐妹、子女、备注等任何一栏写了这次上传里另一单的订单号或姓名 → 同一家，整行涂同一个颜色，不同家不同颜色<\/li>\n        <li>备注 / 总备注有<b class=\"red\">人名<\/b>：红字，家人名单整齐列出来给你看<\/li>\n        <li>备注有<b class=\"red\">曾用名 / 原名<\/b>：红字<\/li>\n        <li>备注有<b class=\"red\">加急、急、快点 / 要快 / 快处理<\/b>（「效果快」「赶快好起来」这类祝福不算）：红字，开（特殊加急）文件<\/li>\n        <li>备注有<b class=\"red\">日期<\/b>：一个月内的当加急单；超过一个月只红字<\/li>\n        <li>公历生日<b>未满一岁<\/b>：新生儿，开（新生儿）文件<\/li>\n        <li>名正言顺：每位学员两行一样的（只有一行会自动补一行）；<b class=\"red\">名册展示繁体<\/b>红字（备注写了繁体才跟着红，只有祝福语由你选）；<b class=\"red\">双胞胎 / 三胞胎<\/b>红字（老大：父亲生日也红；老二：母亲生日也红；老三：父母生日都红）；有问题的学员整位从文件删掉，序号重新排<\/li>\n        <li>新名字姓氏和使用人姓名的姓<b>一样不红<\/b>；<b class=\"red\">简繁体不同<\/b>或<b class=\"red\">学员更换姓氏<\/b>：红字<\/li>\n        <li>姓氏和父亲 / 原名不一样：备注有<b>认祖归宗<\/b> → 红字给专家；没有 → <b>问下单者<\/b><\/li>\n        <li>父亲名字和母亲名字<b>一样<\/b>：红字，<b>问下单者<\/b><\/li>\n        <li><b class=\"red\">生肖<\/b>按立春核对（2月4日前算前一年；当天按出生时间；不详 / 只有时辰算当年），对不上 → 先问下单者，没问题再问督导<\/li>\n        <li>手表刻名字为空：提醒查新名字是否下来；只有<b>天威、天富手表<\/b>分男款、女款文件（文件名也写男款 / 女款），其他手表不分<\/li>\n        <li>文件名最后的 <b>H<\/b> 代表海外：上传的文件（或 zip）有 H，下载的文件也有 H；没有 H 就不加<\/li>\n        <li>海外单（H）有<b>天解手表、天泽手表、福运戒指、天恒手表<\/b>：先问能不能做，直接当有问题，并生成可复制的话术（订单编号 学员 商品，这个需确认能不能做？）<\/li>\n        <li><b>换购<\/b>单（商品标题有「换购」）：「原订单编号」格子有订单号就没问题，空的才当有问题（表格没有这一栏时，看备注里有没有原订单号），生成话术（…，换购的都需要提供原订单号，这个需和服务中心确认）<\/li>\n        <li>备注 / 总备注写了<b class=\"red\">出生时间<\/b>（例如 出生时间：0300am）：红字，请和出生时间栏核对<\/li>\n        <li>备注有<b class=\"red\">起名要求<\/b>（例如 名字尽量少笔画、尽量用同音的、好写、不要用某个字）：红字，提醒专家<\/li>\n        <li>备注要求<b class=\"red\">保留某个字 / 名<\/b>（例如尽量保留「诗」）：红字，提醒专家如果适合、匹配尽量保留<\/li>\n        <li>生肖按立春核对正确（例如立春前出生跟上一个生肖）：<b>不标红<\/b>，原文件涂的颜色也去掉<\/li>\n        <li>要问人的单、或你按「标为有问题」的单：从原文件拿出，开（有问题）文件<\/li>\n        <li>商品是<b>套餐 / 赠品<\/b>（例如 健康套餐-赠品（名正言顺命名））：文件名用括号里的工具名<\/li>\n        <li>下载前有确认页：日期、审核人、国内 / 海外，还有没决定的事会提醒<\/li>\n        <li>每一格都可以在资料里「设红字」或取消红字<\/li>\n        <li>页脚：审核人 martin，制表时间今天；回传时间：名正言顺加 1 个月，九合牌、吊坠加 7 天，其他工具加 10 天<\/li>\n      <\/ol><h3 style=\"font-size:15px;margin:16px 0 8px\">文件命名<\/h3><div class=\"namefmt\">工具名称 +（男款 / 女款，只限天威、天富手表）+ 技术单 + 日期 +（单数）+ H（海外才有）<br>例：天富手表（女款）技术单 8.10.2026（2）H.xlsx；天祥手表技术单 8.10.2026（2）H.xlsx<br><br>加急单独开文件，（特殊加急）放在技术单后面：<br>只有一位学员：许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H.xlsx<br>多位学员：名正言顺技术单（特殊加急）9.10.2026（2）H.xlsx<br><br>新生儿：…技术单（新生儿）日期（单数）H<br>有问题：…技术单（有问题）日期（单数）H，学员名规则同上<br><br>下载：没问题的打包成 技术单 日期（全部工具的单数）H.zip；特殊加急不放进 zip，单独一个个文件下载；有问题的另一个 zip<\/div>";
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function list(s) { return String(s || '').split(/[,，、\s]+/).map(function (x) { return x.trim(); }).filter(Boolean); }
+  function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
   var toastT;
   function toast(msg) { var t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 3500); }
-  function showError(msg) { $('error').textContent = msg || ''; $('error').hidden = !msg; }
+  function normDate(d) { return String(d || '').trim().replace(/[\-\/]/g, '.').replace(/^0(\d)\./, '$1.').replace(/\.0(\d)\./, '.$1.'); }
 
+  var ICON = {
+    up: '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17H6a4 4 0 0 1-.5-7.97A6 6 0 0 1 17.3 7.5 4.5 4.5 0 0 1 18 16.9"/><path d="M12 12v9M8.5 15.5L12 12l3.5 3.5"/></svg>',
+    dl: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>',
+    x: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    check: '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    arrow: '<svg class="arrow" width="20" height="12" viewBox="0 0 20 12" aria-hidden="true"><path d="M2 6h15M13 2l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    search: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    warn: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 18H2L12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v5M12 18v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    globe: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
+  };
+
+  // ---------- files in / files out ----------
   async function save(filename, data) {
     var dl = await downloadsP;
     if (!dl) {
@@ -278,18 +316,18 @@ tr.problem td{background:var(--crit-bg)}
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
         toast('已下载：' + filename);
-      } catch (e) { toast('下载失败：' + (e && e.message || e)); }
-      return;
+        return true;
+      } catch (e) { toast('下载失败：' + (e && e.message || e)); return false; }
     }
-    try { await dl.save({ filename: filename, data: data }); toast('已保存：' + filename); }
+    try { await dl.save({ filename: filename, data: data }); toast('已保存：' + filename); return true; }
     catch (e) {
       var code = e && e.code;
-      if (code === 'declined') return;
+      if (code === 'declined') return false;
       if (code === 'rate_limited') toast('已有一个保存窗口开着，请先处理它。');
       else toast('保存失败：' + (e && e.message || code));
+      return false;
     }
   }
-
   function decodeZipEntryName(bytes) {
     try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
     catch (e) { try { return new TextDecoder('gbk').decode(bytes); } catch (e2) { return new TextDecoder('utf-8').decode(bytes); } }
@@ -316,299 +354,457 @@ tr.problem td{background:var(--crit-bg)}
   }
 
   async function run() {
-    if (!state.inputs.length) { showError('没有找到 .xlsx 技术单。' + (state.seen && state.seen.length ? '收到的文件：' + state.seen.join('、') + '。请上传 .xlsx 或装着 .xlsx 的 .zip（旧版 .xls 请先在 Excel 另存为 .xlsx）。' : '')); return; }
-    var date = $('date').value.trim();
-    if (!/^\d{1,2}[.\-\/]\d{1,2}[.\-\/]\d{4}$/.test(date)) { showError('日期请写成 日.月.年，例如 ' + E.todayStr() + '。'); return; }
-    date = date.replace(/[\-\/]/g, '.').replace(/^0(\d)\./, '$1.').replace(/\.0(\d)\./, '.$1.');
-    showError(''); $('status').hidden = false;
+    if (!state.inputs.length) {
+      state.error = '没有找到 .xlsx 技术单。' + (state.seen && state.seen.length ? '收到的文件：' + state.seen.join('、') + '。请上传 .xlsx 或装着 .xlsx 的 .zip（旧版 .xls 请先在 Excel 另存为 .xlsx）。' : '');
+      render(); return false;
+    }
+    var date = normDate(state.set.date);
+    if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(date)) { state.error = '日期请写成 日.月.年，例如 ' + E.todayStr() + '。'; state.view = 'upload'; render(); return false; }
+    state.error = ''; state.busy = true; render();
     try {
       state.date = date;
-      state.reviewer = $('reviewer').value.trim() || 'martin';
-      state.results = await E.processFiles(state.inputs, { problems: state.problems, edits: state.edits, reds: state.reds, askFirstProducts: list($('askfirst').value), date: date, reviewer: $('reviewer').value.trim() || 'martin', splitWatchBrands: list($('brands').value), urgentWords: list($('urgent').value) });
-      render();
-    } catch (e) { showError('审核失败：' + (e && e.message || e)); }
-    $('status').hidden = true;
+      state.reviewer = state.set.reviewer.trim() || 'martin';
+      state.results = await E.processFiles(state.inputs, { problems: state.problems, edits: state.edits, reds: state.reds, askFirstProducts: list(state.set.askfirst), date: date, reviewer: state.reviewer, splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
+    } catch (e) { state.error = '审核失败：' + (e && e.message || e); }
+    state.busy = false;
+    render();
+    return !state.error;
   }
-
   async function addFiles(fl) {
     try {
       var got = await readInputs(Array.prototype.slice.call(fl || []));
       var by = {};
       state.inputs.concat(got).forEach(function (f) { by[f.name] = f; });
       state.inputs = Object.keys(by).map(function (k) { return by[k]; });
-      await run();
-    } catch (e) { showError('读取文件失败：' + (e && e.message || e)); }
+      if (await run()) { state.view = 'review'; state.filter = 'todo'; render(); window.scrollTo(0, 0); }
+    } catch (e) { state.error = '读取文件失败：' + (e && e.message || e); state.busy = false; render(); }
   }
 
+  // ---------- derived data ----------
   function allOutputs() {
     var o = [];
     (state.results || []).forEach(function (r) { r.outputs.forEach(function (x) { o.push(x); }); });
     return o;
   }
-
-  // 没问题的 → 技术单 日期（文件数）H.zip；有问题的另一个 zip
   function orderTotal(outs) { return outs.reduce(function (n, o) { return n + o.orders; }, 0); }
   // the zip carries H only when every file in it is 海外
   function outZipName(problem, n, outs) {
     var h = outs && outs.length && outs.every(function (o) { return o.overseas; });
     return (problem ? '有问题技术单 ' : '技术单 ') + state.date + '（' + n + '）' + (h ? 'H' : '') + '.zip';
   }
-  // Every download asks first: date, reviewer and 国内 / 海外 printed in the files (审核人 changes from day to day).
-  var pendingDownload = null;
   function regionOf(outs) {
+    if (!outs.length) return '—';
     var h = outs.filter(function (o) { return o.overseas; }).length;
-    return h === outs.length ? '海外（文件名有 H）' : h === 0 ? '国内（文件名没有 H）' : '国内 ' + (outs.length - h) + ' 个 + 海外 ' + h + ' 个';
+    return h === outs.length ? '海外（有 H）' : h === 0 ? '国内（没有 H）' : '国内 ' + (outs.length - h) + ' 个 + 海外 ' + h + ' 个';
   }
-  function confirmDownload(outs, what, go) {
-    $('cf-date').textContent = state.date;
-    $('cf-reviewer').textContent = state.reviewer || 'martin';
-    $('cf-region').textContent = regionOf(outs);
-    $('cf-what').textContent = what;
-    var warn = [];
-    var setDate = $('date').value.trim().replace(/[\-\/]/g, '.').replace(/^0(\d)\./, '$1.').replace(/\.0(\d)\./, '.$1.');
-    if (setDate && setDate !== state.date) warn.push('设置里的日期已改成 ' + setDate + '，但文件还是 ' + state.date + '。');
-    var setRev = $('reviewer').value.trim() || 'martin';
-    if (setRev !== (state.reviewer || 'martin')) warn.push('设置里的审核人已改成 ' + setRev + '，但文件还是 ' + (state.reviewer || 'martin') + '。');
-    if (warn.length) warn.push('请先按「按新设置重新审核」。');
-    var undecided = pendingList().filter(function (p) { return !p.f.pending.decided; }).length;
-    if (undecided) warn.push('还有 ' + undecided + ' 个备注没选要不要标红（没选的不会标红）。');
-    $('cf-warn').textContent = warn.join(' ');
-    $('cf-warn').hidden = !warn.length;
-    pendingDownload = go;
-    $('confirm').hidden = false;
-    $('cf-ok').focus();
+  function items() {
+    var out = [];
+    (state.results || []).forEach(function (r, ri) { r.orders.forEach(function (o, oi) { out.push({ r: r, o: o, ri: ri, oi: oi, mk: r.name + '|' + o.key }); }); });
+    return out;
   }
-  function closeConfirm() { $('confirm').hidden = true; pendingDownload = null; }
-  $('cf-ok').addEventListener('click', function () { var go = pendingDownload; closeConfirm(); if (go) go(); });
-  $('cf-cancel').addEventListener('click', function () { closeConfirm(); $('reviewer').focus(); });
-  $('confirm').addEventListener('click', function (e) { if (e.target === $('confirm')) closeConfirm(); });
-  $('confirm').addEventListener('keydown', function (e) { if (e.key === 'Escape') closeConfirm(); });
+  function findItem(mk) { return items().filter(function (it) { return it.mk === mk; })[0] || null; }
+  function famOf(o) { return o.flags.filter(function (f) { return f.group; })[0] || null; }
+  function statusOf(o) {
+    return o.problem ? { t: '有问题', c: 'crit', d: 'var(--crit)' } : o.urgent ? { t: '特殊加急', c: 'orange', d: 'var(--orange)' } : o.newborn ? { t: '新生儿', c: 'blue', d: 'var(--blue)' } : { t: '没问题', c: 'ok', d: 'var(--ok)' };
+  }
+  var PROB_LABEL = { product: '先问能不能做', exchange: '换购要原单号', ask: '要问下单者', zodiac: '要问下单者' };
+  var OK_LABEL = { product: '可以做，放回普通文件', exchange: '已有原单号，放回普通文件', ask: '已问过，没问题', zodiac: '已问过，没问题' };
+  // Things only the reviewer can decide: orders the rules sent to 有问题, and 备注 that may or may not turn red.
+  function todos() {
+    var out = [];
+    items().forEach(function (it) {
+      var pf = it.o.flags.filter(function (f) { return f.problem; });
+      if (it.o.autoProblem && pf.length) {
+        var k = pf[0].kind;
+        out.push({ type: 'problem', kind: k, label: PROB_LABEL[k] || '要确认', it: it, flags: pf, decided: has(state.problems, it.mk), ok: has(state.problems, it.mk) && !state.problems[it.mk] });
+      }
+      it.o.flags.forEach(function (f) {
+        if (f.pending) out.push({ type: 'pending', kind: 'pending', label: '备注要不要标红', it: it, f: f, decided: f.pending.decided });
+      });
+    });
+    return out;
+  }
+  var SHORT = { zishi: '子时', urgent: '加急', engrave: '刻名字空', family: '家人姓名', name: '人名', zodiac: '生肖', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购没原单号', keepname: '保留字', namewish: '起名要求', orderno: '订单号', trad: '繁体', twin: '双胞胎', status: '状态备注', dup: '总备注已清空', birthnote: '出生时间', oldname: '曾用名', date: '日期', pending: '备注待定', 'surname-change': '换姓', 'surname-variant': '简繁姓', 'surname-rz': '认祖归宗', edited: '已修改', 'status-urgent': '状态备注写加急', selfname: '本人名字', 'zishi-note': '子时？' };
+  var ATTENTION = { engrave: 1, name: 1, family: 1, namewish: 1, keepname: 1, 'status-urgent': 1, zishi: 1, 'surname-rz': 1, twin: 1 };
+  var FILTERS = [
+    { k: 'all', t: '全部订单', test: function () { return true; } },
+    { k: 'problem', t: '有问题', dot: 'var(--crit)', test: function (o) { return o.problem; } },
+    { k: 'urgent', t: '特殊加急', dot: 'var(--orange)', test: function (o) { return o.urgent && !o.problem; } },
+    { k: 'newborn', t: '新生儿', dot: 'var(--blue)', test: function (o) { return o.newborn && !o.problem; } },
+    { k: 'family', t: '家人订单', fam: true, test: function (o) { return !!famOf(o); } },
+    { k: 'attention', t: '要留意', dot: 'var(--warn)', test: function (o) { return o.flags.some(function (f) { return ATTENTION[f.kind] && f.level === 'high' || f.kind === 'zishi'; }); } },
+    { k: 'ok', t: '没问题', dot: 'var(--ok)', test: function (o) { return !o.problem && !o.urgent && !o.newborn; } }
+  ];
+  function matchesQ(it) {
+    var q = state.q.trim();
+    return !q || (it.o.person + ' ' + it.o.key + ' ' + it.r.tool).indexOf(q) >= 0;
+  }
 
-  async function downloadZip(problem) {
-    // 特殊加急 files never go into a zip: they are sent one by one
-    var outs = allOutputs().filter(function (o) { return !!o.problem === problem && (problem || !o.urgent); });
-    if (!outs.length) return;
-    var name = outZipName(problem, orderTotal(outs), outs);
-    confirmDownload(outs, name + '（' + outs.length + ' 个文件，共 ' + orderTotal(outs) + ' 单）', function () { buildZip(outs, name); });
+  // ---------- render ----------
+  function render() {
+    renderTop();
+    var v = state.results ? state.view : 'upload';
+    $('app').innerHTML = v === 'upload' ? viewUpload() : v === 'review' ? viewReview() : viewDownload();
   }
+  function renderTop() {
+    var has = !!state.results, v = has ? state.view : 'upload';
+    var order = ['upload', 'review', 'download'], names = ['上传', '处理待办', '下载'], vi = order.indexOf(v);
+    $('steps').innerHTML = order.map(function (k, i) {
+      var cur = k === v, done = has && i < vi;
+      return (i ? ICON.arrow : '') + '<button type="button" class="step' + (done ? ' done' : '') + '" data-view="' + k + '"' + (cur ? ' aria-current="step"' : '') + (!has && i ? ' disabled' : '') + '>' +
+        '<span class="num">' + (done ? ICON.check : i + 1) + '</span>' + names[i] + '</button>';
+    }).join('');
+    $('who').innerHTML = has
+      ? '<span>' + esc(state.date) + '</span><span aria-hidden="true">·</span><span>审核人 <b>' + esc(state.reviewer) + '</b></span><span aria-hidden="true">·</span><span>' + esc(regionOf(allOutputs()).replace(/（.*）/, '')) + '</span>' +
+        '<button type="button" class="btn small" data-view="upload" data-focus="f-reviewer">更改</button>'
+      : '<span>审核人 <b>' + esc(state.set.reviewer || 'martin') + '</b></span>';
+  }
+
+  function settingsCard() {
+    var hasRes = !!state.results;
+    return '<section class="card pad" aria-labelledby="set-h" style="display:flex;flex-direction:column;gap:16px">' +
+      '<div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px"><h2 id="set-h" style="font-size:17px">今日设置</h2><span class="small">会写进每个文件的页脚，下载前会再让你确认一次</span></div>' +
+      '<div class="fgrid">' +
+        '<div class="field"><label for="f-date">制表日期（日.月.年）</label><input id="f-date" data-set="date" type="text" inputmode="numeric" value="' + esc(state.set.date) + '"></div>' +
+        '<div class="field"><label for="f-reviewer">审核人</label><input id="f-reviewer" data-set="reviewer" type="text" value="' + esc(state.set.reviewer) + '"></div>' +
+        '<div class="field"><span class="lbl">国内 / 海外</span><div class="ro">' + ICON.globe + (hasRes ? esc(regionOf(allOutputs())) : '自动（看文件名的 H）') + '</div></div>' +
+      '</div>' +
+      '<details class="adv"' + (state.advOpen ? ' open' : '') + ' data-adv><summary>进阶设置：分男女款的手表、要先问的产品、加急字眼</summary><div class="fgrid">' +
+        '<div class="field"><label for="f-brands">要分男款 / 女款开文件的手表</label><input id="f-brands" data-set="brands" type="text" value="' + esc(state.set.brands) + '"><span class="small">用逗号分隔，其他手表男女款合在一个文件</span></div>' +
+        '<div class="field"><label for="f-askfirst">海外单要先问能不能做的产品</label><input id="f-askfirst" data-set="askfirst" type="text" value="' + esc(state.set.askfirst) + '"><span class="small">看到这些产品，整单放进（有问题）文件</span></div>' +
+        '<div class="field" style="grid-column:1/-1"><label for="f-urgent">加急关键词（备注 / 总备注）</label><textarea id="f-urgent" data-set="urgent" rows="3">' + esc(state.set.urgent) + '</textarea></div>' +
+      '</div></details>' +
+      (hasRes ? '<div class="acts"><button type="button" class="btn primary" data-rerun>按新设置重新审核</button><span class="small">改了日期、审核人或进阶设置后按这里</span></div>' : '') +
+    '</section>';
+  }
+  function viewUpload() {
+    var hasRes = !!state.results;
+    var h = '<div class="page"><div class="narrow">';
+    h += '<div class="hero" style="display:flex;flex-direction:column;gap:6px"><h1>' + (hasRes ? '加文件或改设置' : '把今天的技术单拖进来') + '</h1>' +
+      '<p class="lead">可以一次放多个 .xlsx，或者整包 .zip。所有处理都在你的电脑里完成，不会上传到网上。</p></div>';
+    if (state.error) h += '<div class="error" role="alert">' + esc(state.error) + '</div>';
+    if (state.busy) h += '<div class="status" role="status"><span class="spin" aria-hidden="true"></span>正在审核……</div>';
+    if (hasRes) h += '<section class="card pad loaded"><div style="min-width:0"><b>已上传 ' + state.inputs.length + ' 个技术单</b><ul>' + state.inputs.map(function (f) { return '<li>' + esc(f.name) + '</li>'; }).join('') + '</ul></div>' +
+      '<div class="acts"><button type="button" class="btn" data-reset>清空重来</button><button type="button" class="btn primary" data-view="review">继续处理待办</button></div></section>';
+    h += '<label class="drop" id="drop"><span class="ico">' + ICON.up + '</span><span class="big">' + (hasRes ? '再拖文件进来（会合在一起审核）' : '拖文件到这里') + '</span><span class="small">或者</span>' +
+      '<span class="fake">选择文件</span><input id="pick" type="file" multiple accept=".xlsx,.zip"><span class="small">文件名有 H（例如「技术单_2026-10-14_H.zip」）会自动当作海外单</span></label>';
+    h += settingsCard();
+    if (!hasRes) h += '<section class="feats" aria-label="会做什么">' +
+      feat('var(--crit-bg)', '<path d="M4 20h4l10-10-4-4L4 16v4z" fill="none" stroke="var(--crit)" stroke-width="1.8" stroke-linejoin="round"/>', '自动标红字', '子时、家人姓名、加急、起名要求……只改字体颜色，不动格式') +
+      feat('var(--warn-bg)', '<path d="M12 4v10M12 18v.5" fill="none" stroke="var(--warn)" stroke-width="2.2" stroke-linecap="round"/>', '列出要你决定的事', '要问下单者、要先问能不能做、备注要不要标红，一件件处理') +
+      feat('var(--accent-soft)', '<path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>', '分好文件再下载', '没问题、特殊加急、有问题、新生儿分开，文件名和页脚自动写好') +
+      '</section>';
+    h += '<section class="card pad"><details><summary>审核规则和文件命名（点开看）</summary>' + RULES + '</details></section>';
+    return h + '</div></div>';
+  }
+  function feat(bg, path, t, d) {
+    return '<div class="feat"><span class="ic" style="background:' + bg + '"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">' + path + '</svg></span><div><b>' + t + '</b><span class="small">' + d + '</span></div></div>';
+  }
+
+  function viewReview() {
+    var all = items(), td = todos(), open = td.filter(function (t) { return !t.decided; });
+    var outs = allOutputs();
+    var h = '<div class="page">';
+    if (state.error) h += '<div class="error" role="alert">' + esc(state.error) + '</div>';
+    if (state.busy) h += '<div class="status" role="status"><span class="spin" aria-hidden="true"></span>正在重新审核……</div>';
+    var doneN = all.length - open.length;
+    h += '<section class="card pad progress" aria-label="进度"><div style="display:flex;flex-direction:column;gap:4px;min-width:0">' +
+      (open.length ? '<div class="big">还有 <em>' + open.length + '</em> 件事要你决定</div>' : '<div class="big done"><em>都处理好了</em>，可以下载</div>') +
+      '<div class="small" style="font-size:14px">' + state.results.length + ' 个文件 · ' + all.length + ' 单已审核，红字已自动标好</div></div>' +
+      '<div class="bar"><div class="small" style="display:flex;justify-content:space-between"><span>已处理 ' + doneN + ' / ' + all.length + '</span><span>' + (all.length ? Math.round(doneN * 100 / all.length) : 100) + '%</span></div>' +
+      '<div class="track"><span style="width:' + (all.length ? doneN * 100 / all.length : 100) + '%"></span></div></div></section>';
+
+    // filters
+    var cnt = function (f) { return all.filter(function (it) { return f.test(it.o); }).length; };
+    var fam = (state.results.families || []);
+    var subs = {};
+    open.forEach(function (t) { subs[t.label] = (subs[t.label] || 0) + 1; });
+    h += '<div class="cols"><nav class="card filters" aria-label="筛选">' +
+      fbtn('todo', '待你决定', open.length ? '<span class="n hot">' + open.length + '</span>' : '<span class="n">0</span>') +
+      Object.keys(subs).map(function (k) { return '<button type="button" class="flt sub" data-filter="todo">' + esc(k) + '<span class="n">' + subs[k] + '</span></button>'; }).join('') +
+      '<div class="sep"></div>' +
+      FILTERS.map(function (f) {
+        var n = cnt(f);
+        if (!n && f.k !== 'all' && f.k !== 'ok' && f.k !== 'problem') return '';
+        var lab = f.fam ? '<span class="lab"><span style="display:flex;gap:2px">' + fam.slice(0, 3).map(function (g) { return '<span class="sw" style="background:' + g.css + ';width:9px;height:9px"></span>'; }).join('') + '</span>' + f.t + '</span>'
+          : f.dot ? '<span class="lab"><span class="dot" style="background:' + f.dot + '"></span>' + f.t + '</span>' : f.t;
+        return fbtn(f.k, lab, '<span class="n">' + (f.fam ? fam.length + ' 组' : n) + '</span>');
+      }).join('') + '</nav>';
+
+    // middle column
+    h += '<section class="main" aria-label="订单">';
+    if (state.filter === 'todo') {
+      h += '<div class="main-h"><h2>待你决定 · ' + open.length + '</h2>' + searchBox() + '</div>';
+      var shown = open.filter(function (t) { return matchesQ(t.it); });
+      if (!open.length) h += '<div class="card alldone"><b style="font-size:18px">没有要你决定的事了</b><span class="small">可以按下面的「去下载」，或者在「按文件看」检查每一单。</span></div>';
+      var pendOpen = shown.filter(function (x) { return x.type === 'pending'; });
+      if (pendOpen.length > 1) h += '<div class="card bulk"><span><b>' + pendOpen.length + ' 个备注</b>只写祝福语，要一起决定吗？</span><span class="acts"><button type="button" class="btn small pick-on" data-redall="0">全部不标红</button><button type="button" class="btn small red-out" data-redall="1">全部标红</button></span></div>';
+      h += shown.map(todoCard).join('');
+      var dec = td.filter(function (t) { return t.decided && matchesQ(t.it); });
+      if (dec.length) h += '<details class="card" style="padding:4px 18px"' + (state.decOpen ? ' open' : '') + ' data-dec><summary>已决定的 ' + dec.length + ' 件（可以改）</summary><div style="display:flex;flex-direction:column;gap:10px;padding:4px 0 14px">' + dec.map(todoCard).join('') + '</div></details>';
+      h += '<div class="main-h" style="margin-top:12px"><h2>按文件看</h2></div><div class="files">' + state.results.map(fileBlock).join('') + '</div>';
+    } else {
+      var f = FILTERS.filter(function (x) { return x.k === state.filter; })[0] || FILTERS[0];
+      var rows = all.filter(function (it) { return f.test(it.o) && matchesQ(it); });
+      if (f.fam) rows.sort(function (a, b) { return (famOf(a.o).group.n - famOf(b.o).group.n); });
+      h += '<div class="main-h"><h2>' + f.t + ' · ' + rows.length + '</h2>' + searchBox() + '</div>';
+      if (f.fam && fam.length) h += '<div class="card pad" style="display:flex;flex-direction:column;gap:8px"><span class="small">父母、兄弟姐妹、子女、备注等任何一栏写了别的单的订单号或姓名，而那张单也在这次上传里 → 同一家。文件里整行涂同一个颜色。</span>' +
+        fam.map(function (g) { return '<div style="display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center"><b style="display:flex;align-items:center;gap:8px"><span class="sw" style="background:' + g.css + '"></span>第' + g.n + '组 ' + esc(g.label) + '（' + g.colorName + '）</b><span class="small">' + g.members.map(function (m) { return esc(m.person) + ' · ' + esc(m.tool); }).join('、') + '</span></div>'; }).join('') + '</div>';
+      h += rows.length ? '<div class="card" style="overflow:hidden">' + orderTable(rows, true) + '</div>' : '<div class="card alldone"><span class="small">没有符合的订单</span></div>';
+    }
+    h += '</section>';
+    h += detailPanel();
+    h += '</div></div>';
+
+    // dock
+    var good = outs.filter(function (o) { return !o.problem && !o.urgent; }), urg = outs.filter(function (o) { return o.urgent && !o.problem; }), bad = outs.filter(function (o) { return o.problem; });
+    h += '<div class="dock"><div class="dock-in"><div class="sum">' +
+      '<span><b>' + good.length + '</b> 个没问题文件（' + orderTotal(good) + ' 单）</span>' +
+      (urg.length ? '<span><b>' + urg.length + '</b> 个特殊加急</span>' : '') +
+      (bad.length ? '<span><b>' + bad.length + '</b> 个有问题</span>' : '') +
+      (open.length ? '<span class="w">还有 ' + open.length + ' 件待决定，也可以先下载</span>' : '') +
+      '</div><button type="button" class="btn" data-view="download">' + ICON.dl + '去下载</button></div></div>';
+    return h;
+  }
+  function fbtn(k, label, n) { return '<button type="button" class="flt" data-filter="' + k + '" aria-pressed="' + (state.filter === k) + '">' + label + n + '</button>'; }
+  function searchBox() { return '<label class="search">' + ICON.search + '<span class="vh">搜索姓名或订单号</span><input type="search" data-q placeholder="搜索姓名或订单号" value="' + esc(state.q) + '"></label>'; }
+
+  function todoCard(t) {
+    var it = t.it, o = it.o, sw = famOf(o);
+    var h = '<article class="card todo' + (t.decided ? ' decided' : '') + '"><div class="todo-h"><span class="tag ' + (t.type === 'pending' ? 'warn' : 'crit') + '">' + esc(t.label) + '</span>' +
+      '<span class="nm">' + (sw ? '<span class="sw" style="background:' + sw.group.css + ';margin-right:6px"></span>' : '') + esc(o.person) + '</span><span class="meta">' + esc(it.r.tool) + ' · ' + esc(o.key) + ' · 序号 ' + esc(o.seq) + '</span></div>';
+    if (t.type === 'pending') {
+      var val = (o.fields.filter(function (x) { return x.h === t.f.pending.h; })[0] || {}).value || '';
+      var why = /子时/.test(t.f.text) ? '这单是子时' : '名册展示是繁体';
+      h += '<div class="why">' + why + '，规则要「' + esc(t.f.pending.h) + '」跟着红；但看来只是祝福语：</div><blockquote class="quote">「' + esc(val) + '」</blockquote>' +
+        '<div class="acts"><span class="small" style="margin-right:4px">要不要标红？' + (t.decided ? '' : '（没选的不标红）') + '</span>' +
+        '<button type="button" class="btn small red-out pick-red" data-red="' + esc(it.mk) + '" data-h="' + esc(t.f.pending.h) + '" data-v="1" aria-pressed="' + (t.decided && t.f.pending.on) + '">标红</button>' +
+        '<button type="button" class="btn small pick-on" data-red="' + esc(it.mk) + '" data-h="' + esc(t.f.pending.h) + '" data-v="0" aria-pressed="' + (t.decided && !t.f.pending.on) + '">不标红</button>' +
+        '<button type="button" class="btn link" data-open="' + esc(it.mk) + '">看全部资料</button></div>';
+    } else {
+      h += t.flags.map(function (f) { return '<div class="why">' + esc(f.text) + '</div>' + (f.copy ? '<div class="copy"><code>' + esc(f.copy) + '</code><button type="button" class="btn small" data-copytext="' + esc(f.copy) + '">复制话术</button></div>' : ''); }).join('');
+      var okOn = t.decided && t.ok, badOn = t.decided && !t.ok;
+      h += '<div class="acts">' +
+        '<button type="button" class="btn small ' + (okOn ? 'pick-on' : 'primary') + '" data-prob="' + esc(it.mk) + '" data-v="0" aria-pressed="' + okOn + '">' + esc(OK_LABEL[t.kind] || '没问题，放回普通文件') + '</button>' +
+        '<button type="button" class="btn small red-out pick-red" data-prob="' + esc(it.mk) + '" data-v="1" aria-pressed="' + badOn + '">' + (t.kind === 'product' ? '还在问，放有问题' : '放有问题文件') + '</button>' +
+        '<button type="button" class="btn link" data-open="' + esc(it.mk) + '">修改资料</button></div>';
+      if (t.decided) h += '<div class="decision">' + (t.ok ? '已决定：放回普通文件' : '已决定：放在有问题文件') + '（再按一次可以取消）</div>';
+    }
+    return h + '</article>';
+  }
+  function fileBlock(r, ri) {
+    if (r.error) return '<div class="card ferr"><b>' + esc(r.name) + '</b>：读取失败 — ' + esc(r.error) + '</div>';
+    var rows = r.orders.map(function (o, oi) { return { r: r, o: o, ri: ri, oi: oi, mk: r.name + '|' + o.key }; });
+    var td = todos().filter(function (t) { return t.it.r === r && !t.decided; }).length;
+    var key = r.name, open = has(state.openFiles, key) ? state.openFiles[key] : td > 0;
+    return '<details class="card file" data-file="' + esc(key) + '"' + (open ? ' open' : '') + '><summary><span class="t"><b>' + esc(r.tool) + '</b><span class="small">' + r.orders.length + ' 单 → ' + r.outputs.length + ' 个文件' +
+      (r.footer ? ' · 回传 ' + esc(r.footer.back) : '') + '</span></span>' +
+      (td ? '<span class="tag crit">' + td + ' 件待决定</span>' : r.orders.some(function (o) { return o.problem || o.urgent || o.newborn; }) ? '<span class="tag plain">已处理</span>' : '<span class="tag ok">全部没问题</span>') + '</summary>' +
+      orderTable(rows, false) + '</details>';
+  }
+  function orderTable(rows, showTool) {
+    return '<div class="tbl"><table><thead><tr><th scope="col">序号</th><th scope="col">使用人</th><th scope="col">状态</th><th scope="col">标红 / 提醒</th><th scope="col"><span class="vh">操作</span></th></tr></thead><tbody>' +
+      rows.map(function (it) {
+        var o = it.o, st = statusOf(o), fg = famOf(o);
+        var tags = o.flags.filter(function (f) { return SHORT[f.kind]; }).map(function (f) { return '<span' + (f.level === 'high' ? ' class="hi"' : '') + '>' + SHORT[f.kind] + '</span>'; });
+        var uniq = tags.filter(function (x, i) { return tags.indexOf(x) === i; });
+        return '<tr' + (state.sel === it.mk ? ' class="on"' : '') + '><td>' + esc(o.seq) + '</td>' +
+          '<td><span class="who-cell">' + (fg ? '<span class="sw" style="background:' + fg.group.css + '" title="家人第' + fg.group.n + '组"></span>' : '') + '<span>' + esc(o.person) + (showTool ? '<small>' + esc(it.r.tool) + '</small>' : '') + '</span></span></td>' +
+          '<td><span class="st-' + st.c + '">' + st.t + '</span>' + (fg ? '<span class="small"> · 家人第' + fg.group.n + '组</span>' : '') + '</td>' +
+          '<td>' + (uniq.length ? '<span class="mini">' + uniq.slice(0, 4).join('') + (uniq.length > 4 ? '<span>+' + (uniq.length - 4) + '</span>' : '') + '</span>' : '<span class="small">—</span>') + '</td>' +
+          '<td><button type="button" class="btn small" data-open="' + esc(it.mk) + '">' + (state.sel === it.mk ? '正在看' : '打开') + '</button></td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  var KEY_FIELDS = /^(使用人姓名|新名字姓氏|商品标题|原订单编号|公历生日|生肖|农历时辰|是否子时|父亲名字|母亲名字|父亲生日|母亲生日|是否双胞胎|兄弟姐妹|子女|名册展示|刻名字|订单状态备注|备注|总备注)$/;
+  var LONG = /备注|兄弟姐妹|子女|禁忌字/;
+  function detailPanel() {
+    var it = state.sel && findItem(state.sel);
+    if (!it) return '<aside class="card detail" aria-label="订单详情"><div class="detail-empty">按任何一单的「打开」或「修改资料」，<br>资料会在这里显示，可以直接改、设红字。</div></aside>';
+    var o = it.o, mk = it.mk, st = statusOf(o), fg = famOf(o);
+    var h = '<aside class="card detail" id="detail" aria-label="订单详情"><div class="detail-h"><div class="row"><div class="nm">' + (fg ? '<span class="sw" style="background:' + fg.group.css + '"></span>' : '') + esc(o.person) + '</div>' +
+      '<button type="button" class="x" data-close aria-label="关闭详情">' + ICON.x + '</button></div>' +
+      '<div class="small" style="font-size:14px">' + esc(it.r.tool) + ' · ' + esc(o.key) + ' · 序号 ' + esc(o.seq) + '</div>' +
+      '<div class="acts" style="gap:6px"><span class="tag ' + (st.c === 'orange' ? 'warn' : st.c) + '">' + st.t + '</span>' + (fg ? '<span class="tag blue">家人第' + fg.group.n + '组 ' + esc(fg.group.label) + '</span>' : '') + '</div></div>' +
+      '<div class="tabs" role="tablist" aria-label="详情分页">' +
+        '<button type="button" class="tab" role="tab" data-tab="fields" aria-selected="' + (state.tab === 'fields') + '">资料</button>' +
+        '<button type="button" class="tab" role="tab" data-tab="log" aria-selected="' + (state.tab === 'log') + '">审核记录（' + o.flags.length + '）</button></div>' +
+      '<div class="detail-b">';
+    if (state.tab === 'log') {
+      h += o.flags.length ? '<ul class="log">' + o.flags.map(function (f) { return '<li class="' + f.level + '">' + esc(f.text) + '</li>'; }).join('') + '</ul>' : '<p class="small" style="padding:12px 0">这单没有任何提醒。</p>';
+      if (o.family) h += '<div class="fam" aria-label="家人名单">' + o.family.map(function (x) { return '<span class="rel">' + esc(x.rel) + '</span><span' + (x.mentioned ? ' class="hit"' : '') + '>' + esc(x.name) + (x.mentioned ? '（备注提到）' : '') + '</span>'; }).join('') + '</div>';
+    } else {
+      var fields = o.fields.filter(function (f) { return state.allFields || KEY_FIELDS.test(f.h) || f.red || f.edited; });
+      h += '<div data-fields="' + esc(mk) + '">' + fields.map(function (f) {
+        var fid = 'fld-' + it.ri + '-' + it.oi + '-' + o.fields.indexOf(f), long = LONG.test(f.h) || f.value.length > 24;
+        var attrs = ' id="' + fid + '" class="inp" data-h="' + esc(f.h) + '" data-orig="' + esc(f.orig) + '"' + (f.locked ? ' readonly' : '');
+        var tog = f.locked || !f.value ? '<span class="tg"></span>' : '<button type="button" class="redtog" data-tog="' + esc(mk) + '" data-h="' + esc(f.h) + '" data-v="' + (f.red ? 0 : 1) + '" aria-pressed="' + !!f.red + '" aria-label="' + esc(f.h) + (f.red ? ' 是红字，按一下取消' : ' 设为红字') + '">' + (f.red ? '红字 ✓' : '设红字') + (f.manual != null ? '·手动' : '') + '</button>';
+        return '<div class="frow' + (long ? ' long' : '') + (f.edited ? ' edited' : '') + (f.red ? ' isred' : '') + '"><label for="' + fid + '">' + esc(f.h) + (f.edited ? '（已改）' : '') + '</label>' + tog +
+          (long ? '<textarea rows="' + Math.min(5, Math.max(2, Math.ceil(f.value.length / 26))) + '"' + attrs + '>' + esc(f.value) + '</textarea>' : '<input type="text" value="' + esc(f.value) + '"' + attrs + '>') + '</div>';
+      }).join('') + '</div>' +
+      '<button type="button" class="btn link" data-allfields style="margin-top:6px">' + (state.allFields ? '只看重要的栏' : '显示全部 ' + o.fields.length + ' 栏') + '</button>' +
+      '<p class="note">改过的格子保存后变红字；「设红字」可以手动加红或取消红字。</p>';
+    }
+    h += '</div><div class="detail-f">' +
+      (state.tab === 'fields' ? '<button type="button" class="btn primary" data-save="' + esc(mk) + '">保存修改</button>' : '') +
+      '<button type="button" class="btn danger" data-mark="' + esc(mk) + '" aria-pressed="' + !!o.problem + '">' + (o.problem ? '取消有问题' : '标为有问题') + '</button>' +
+      (state.edits[mk] ? '<button type="button" class="btn" data-undo="' + esc(mk) + '">还原修改</button>' : '') +
+      (state.reds[mk] ? '<button type="button" class="btn" data-unred="' + esc(mk) + '">还原手动红字</button>' : '') +
+      '</div></aside>';
+    return h;
+  }
+
+  function viewDownload() {
+    var outs = allOutputs(), td = todos(), open = td.filter(function (t) { return !t.decided; });
+    var good = outs.filter(function (o) { return !o.problem && !o.urgent; }), urg = outs.filter(function (o) { return o.urgent && !o.problem; }), bad = outs.filter(function (o) { return o.problem; });
+    var warn = [];
+    var setDate = normDate(state.set.date), setRev = state.set.reviewer.trim() || 'martin';
+    if (setDate && setDate !== state.date) warn.push('设置里的日期已改成 ' + setDate + '，但文件还是 ' + state.date + '，请先按「按新设置重新审核」。');
+    if (setRev !== state.reviewer) warn.push('设置里的审核人已改成 ' + setRev + '，但文件还是 ' + state.reviewer + '，请先按「按新设置重新审核」。');
+    var pend = open.filter(function (t) { return t.type === 'pending'; }).length, prob = open.length - pend;
+    if (pend) warn.push('还有 ' + pend + ' 个备注没选要不要标红，没选的不会标红。');
+    if (prob) warn.push('还有 ' + prob + ' 单要问人还没决定，现在会放在「有问题」文件。');
+    var n = (state.pick.good && good.length ? 1 : 0) + (state.pick.urgent ? urg.length : 0) + (state.pick.bad && bad.length ? 1 : 0);
+    var h = '<div class="page"><div class="narrow" style="max-width:880px;gap:20px">' +
+      '<div style="display:flex;flex-direction:column;gap:4px"><h1 style="font-size:28px">下载前确认一下</h1><p class="lead" style="font-size:15px">这三项会写进每个文件，审核人每天可能不同，请看清楚。</p></div>' +
+      '<section class="card facts" aria-label="页脚资料">' +
+        '<div class="fact"><span class="k">制表日期</span><span class="v">' + esc(state.date) + '</span></div>' +
+        '<div class="fact"><span class="k">审核人</span><span class="v">' + esc(state.reviewer) + '</span><button type="button" class="btn link" style="align-self:flex-start;padding:0" data-view="upload" data-focus="f-reviewer">不是我？改审核人</button></div>' +
+        '<div class="fact"><span class="k">国内 / 海外</span><span class="v">' + esc(regionOf(outs)) + '</span></div></section>';
+    if (warn.length) h += '<section class="warnbox" aria-label="提醒"><div style="display:flex;gap:10px;align-items:flex-start">' + ICON.warn + '<ul>' + warn.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>' +
+      (open.length ? '<button type="button" class="btn small" data-view="review">回去处理</button>' : '') + '</section>';
+    h += pkg('good', 'var(--ok)', '没问题', good.length + ' 个文件 · ' + orderTotal(good) + ' 单 · 一个 zip', good, outZipName(false, orderTotal(good), good), true);
+    if (urg.length) h += pkg('urgent', 'var(--orange)', '特殊加急', urg.length + ' 个文件 · 不放进 zip，一个个下载', urg, null, false);
+    if (bad.length) h += pkg('bad', 'var(--crit)', '有问题', bad.length + ' 个文件 · ' + orderTotal(bad) + ' 单 · 另一个 zip，先别发给专家', bad, outZipName(true, orderTotal(bad), bad), true);
+    h += '<div class="go"><button type="button" class="btn" data-view="review">返回</button>' +
+      '<button type="button" class="btn primary" data-godl' + (n ? '' : ' disabled') + ' style="min-height:48px;font-size:16px">' + ICON.dl + '确认，下载 ' + n + ' 个' + '</button></div>';
+    return h + '</div></div>';
+  }
+  function pkg(k, dot, title, sub, outs, zipName, zipped) {
+    if (!outs.length) return '<section class="card pkg off"><div class="pkg-h"><div class="t"><span class="dot" style="background:' + dot + '"></span><b>' + title + '</b><span class="small">没有文件</span></div></div></section>';
+    var on = state.pick[k];
+    var files = outs.map(function (o) {
+      var ri = -1, oi = -1;
+      (state.results || []).forEach(function (r, i) { var j = r.outputs.indexOf(o); if (j >= 0) { ri = i; oi = j; } });
+      return '<div class="fname"><span>' + esc(o.name) + '</span><button type="button" class="btn small" data-dl-r="' + ri + '" data-dl-o="' + oi + '" aria-label="只下载 ' + esc(o.name) + '">' + ICON.dl + '单独下载</button></div>';
+    }).join('');
+    return '<section class="card pkg' + (on ? '' : ' off') + '"><div class="pkg-h"><div class="t"><span class="dot" style="background:' + dot + '"></span><b>' + title + '</b><span class="small">' + sub + '</span></div>' +
+      '<label class="chk"><input type="checkbox" data-pick="' + k + '"' + (on ? ' checked' : '') + '>要下载</label></div>' +
+      (zipped ? '<div class="fname zip"><span>' + esc(zipName) + '</span></div><details><summary>看里面的 ' + outs.length + ' 个文件</summary><div class="flist">' + files + '</div></details>' : '<div class="flist">' + files + '</div>') +
+      '</section>';
+  }
+
+  // ---------- actions ----------
   async function buildZip(outs, name) {
     var zip = new JSZip();
     outs.forEach(function (o) { zip.file(o.name, o.buffer); });
-    await save(name, await zip.generateAsync({ type: 'blob' }));
+    return save(name, await zip.generateAsync({ type: 'blob' }));
   }
-
-  // 待确认的备注（只有祝福语，但繁体 / 子时规则要它跟着红）
-  function pendingList() {
-    var out = [];
-    (state.results || []).forEach(function (r) { r.orders.forEach(function (o) { o.flags.forEach(function (f) {
-      if (f.pending) out.push({ r: r, o: o, f: f, mk: r.name + '|' + o.key });
-    }); }); });
-    return out;
+  async function downloadAll() {
+    var outs = allOutputs();
+    var good = outs.filter(function (o) { return !o.problem && !o.urgent; }), urg = outs.filter(function (o) { return o.urgent && !o.problem; }), bad = outs.filter(function (o) { return o.problem; });
+    if (state.pick.good && good.length) await buildZip(good, outZipName(false, orderTotal(good), good));
+    if (state.pick.urgent) for (var i = 0; i < urg.length; i++) await save(urg[i].name, new Blob([urg[i].buffer]));
+    if (state.pick.bad && bad.length) await buildZip(bad, outZipName(true, orderTotal(bad), bad));
   }
   function setRed(mk, h, on) {
     var m = state.reds[mk] = state.reds[mk] || {};
     if (on == null) delete m[h]; else m[h] = on;
     if (!Object.keys(m).length) delete state.reds[mk];
   }
-  function ynButtons(mk, h, f) {
-    var on = f.pending.decided && f.pending.on, off = f.pending.decided && !f.pending.on;
-    return '<span class="yn" role="group" aria-label="' + esc(h) + ' 要不要标红">' +
-      '<button type="button" class="on" data-red="' + esc(mk) + '" data-h="' + esc(h) + '" data-v="1" aria-pressed="' + on + '">标红</button>' +
-      '<button type="button" class="off" data-red="' + esc(mk) + '" data-h="' + esc(h) + '" data-v="0" aria-pressed="' + off + '">不标红</button></span>';
+  function copyText(text, el) {
+    var done = function () { toast('已复制'); };
+    var fallback = function () {
+      var code = el && el.parentNode && el.parentNode.querySelector('code');
+      if (!code) return;
+      var sel = window.getSelection(), rg = document.createRange();
+      rg.selectNodeContents(code); sel.removeAllRanges(); sel.addRange(rg);
+      toast('已选中文字，请按 Ctrl+C（手机长按）复制');
+    };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  }
+  function go(view, focusId) {
+    state.view = view; render(); window.scrollTo(0, 0);
+    if (focusId && $(focusId)) $(focusId).focus();
   }
 
-  var LONG = /备注|兄弟姐妹|子女|禁忌字/;
-  function detailRow(o, mk, id) {
-    return '<tr class="detail"><td colspan="4"><div class="fields" data-mk="' + esc(mk) + '">' + o.fields.map(function (f, fi) {
-      var fid = 'fld-' + id + '-' + fi, long = LONG.test(f.h) || f.value.length > 40;
-      var attrs = ' id="' + fid + '" data-h="' + esc(f.h) + '" data-orig="' + esc(f.orig) + '"' + (f.locked ? ' readonly' : '');
-      var tog = f.locked || !f.value ? '' : '<button type="button" class="redtog" data-tog="' + esc(mk) + '" data-h="' + esc(f.h) + '" data-v="' + (f.red ? 0 : 1) + '" aria-pressed="' + !!f.red + '" title="' + (f.red ? '按一下取消红字' : '按一下设为红字') + '">' + (f.red ? '红字 ✓' : '设红字') + (f.manual != null ? '（手动）' : '') + '</button>';
-      return '<div class="f' + (long ? ' long' : '') + (f.edited ? ' edited' : '') + (f.red ? ' isred' : '') + '"><div class="lab"><label for="' + fid + '">' + esc(f.h) + (f.edited ? '（已改，原：' + esc(f.orig || '空') + '）' : '') + '</label>' + tog + '</div>' +
-        (long ? '<textarea rows="' + Math.min(6, Math.max(2, Math.ceil(f.value.length / 70))) + '"' + attrs + '>' + esc(f.value) + '</textarea>' : '<input type="text" value="' + esc(f.value) + '"' + attrs + '>') + '</div>';
-    }).join('') + '</div><div class="detail-actions">' +
-      '<button type="button" class="btn primary" data-save="' + esc(mk) + '">保存修改（改过的格子会变红字）</button>' +
-      (state.edits[mk] ? '<button type="button" class="btn" data-undo="' + esc(mk) + '">还原这单的修改</button>' : '') +
-      (state.reds[mk] ? '<button type="button" class="btn" data-unred="' + esc(mk) + '">还原这单的手动红字</button>' : '') +
-      '<span class="small">保存后会重新审核，问题解决了会自动回到普通文件。「设红字 / 红字 ✓」可以手动加红或取消红字。</span></div></td></tr>';
-  }
-
-  var KIND = { zishi: '子时', urgent: '加急', engrave: '刻名字空', surname: '姓氏不符', family: '家人姓名', name: '可能是人名', zodiac: '生肖不对', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购要原单号', keepname: '保留字', namewish: '起名要求', orderno: '备注有订单号' };
-  function render() {
-    var res = state.results || [];
-    var c = { orders: 0, zishi: 0, qian: 0, urgent: 0, engrave: 0, surname: 0, status: 0, dup: 0, family: 0, name: 0, zodiac: 0, problem: 0, ask: 0, newborn: 0 };
-    var att = [];
-    res.forEach(function (r) { r.orders.forEach(function (o) {
-      c.orders++; if (o.problem) c.problem++;
-      o.flags.forEach(function (f) {
-        if (c[f.kind] != null) c[f.kind]++;
-        if (f.kind === 'zishi' && f.level === 'high') c.qian++;
-        if (f.level === 'high') att.push({ k: f.who ? '问' + f.who : (KIND[f.kind] || '提醒'), sortK: KIND[f.kind] || '提醒', person: o.person, where: r.tool + ' · 序号 ' + o.seq, text: f.text });
-      });
-    }); });
-    var order = ['先问能不能做', '换购要原单号', '要问人', '生肖不对', '加急', '新生儿', '子时', '姓氏不符', '家人姓名', '可能是人名', '刻名字空'];
-    att.sort(function (a, b) { return order.indexOf(a.sortK) - order.indexOf(b.sortK); });
-    var outs = allOutputs();
-
-    var stats = [['有问题（单独文件）', c.problem, 1], ['要问下单者', c.ask, 1], ['生肖不对', c.zodiac, 1], ['新生儿（单独文件）', c.newborn, 1], ['技术单文件', res.length], ['订单', c.orders], ['输出文件', outs.length],
-      ['子时（前子时 ' + c.qian + '）', c.zishi, 1], ['加急', c.urgent, 1], ['刻名字空', c.engrave, 1],
-      ['姓氏与父亲不符', c.surname, 1], ['状态备注已标红', c.status], ['备注提到家人', c.family, 1], ['可能是人名', c.name, 1], ['总备注已清空', c.dup]];
-
-    var h = '';
-    var good = outs.filter(function (o) { return !o.problem && !o.urgent; }), bad = outs.filter(function (o) { return o.problem; });
-    var urgentOuts = outs.filter(function (o) { return o.urgent && !o.problem; });
-    var dlIcon = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>';
-    h += '<section class="downloadbar"><div class="files"><b>没问题的（不含特殊加急）' + good.length + ' 个文件，共 ' + orderTotal(good) + ' 单 → ' + esc(outZipName(false, orderTotal(good), good)) + '</b>' +
-      good.map(function (o) { return '<span>' + esc(o.name) + '</span>'; }).join('') +
-      '</div><button class="btn primary" type="button" id="dlgood"' + (good.length ? '' : ' disabled') + '>' + dlIcon + '下载没问题的（zip）</button></section>';
-    if (urgentOuts.length) h += '<section class="downloadbar" style="border-color:var(--warn)"><div class="files"><b style="color:var(--warn)">特殊加急 ' + urgentOuts.length + ' 个文件，共 ' + orderTotal(urgentOuts) + ' 单 · 不放进 zip，单独发</b></div>' +
-      '<div style="display:flex;flex-direction:column;gap:8px;min-width:0">' + urgentOuts.map(function (o) {
-        var ri = -1, oi = -1;
-        res.forEach(function (r, i) { var j = r.outputs.indexOf(o); if (j >= 0) { ri = i; oi = j; } });
-        return '<button type="button" class="out urgent" data-r="' + ri + '" data-o="' + oi + '" aria-label="下载 ' + esc(o.name) + '">' + dlIcon + esc(o.name) + '</button>';
-      }).join('') + '</div></section>';
-    if (bad.length) h += '<section class="downloadbar" style="border-color:var(--crit)"><div class="files"><b style="color:var(--crit)">有问题的 ' + bad.length + ' 个文件，共 ' + orderTotal(bad) + ' 单 → ' + esc(outZipName(true, orderTotal(bad), bad)) + '</b>' +
-      bad.map(function (o) { return '<span>' + esc(o.name) + '</span>'; }).join('') +
-      '</div><button class="btn" type="button" id="dlbad" style="border-color:var(--crit);color:var(--crit)">' + dlIcon + '下载有问题的（zip）</button></section>';
-    h += '<section class="stats" aria-label="审核概况">' + stats.map(function (s) {
-      return '<div class="stat"><span class="n' + (s[2] && s[1] ? ' hot' : '') + '">' + s[1] + '</span><span class="l">' + esc(s[0]) + '</span></div>';
-    }).join('') + '</section>';
-    var copies = [];
-    res.forEach(function (r) { r.orders.forEach(function (o) { o.flags.forEach(function (f) { if (f.copy) copies.push(f.copy); }); }); });
-    state.copies = copies;
-    if (copies.length) h += '<section class="copybox" aria-label="要确认的单的话术"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">' +
-      '<h2 style="font-size:16px;color:var(--crit)">要确认的单（' + copies.length + ' 单）· 复制话术</h2>' +
-      '<button type="button" class="btn primary" data-copy="all">复制全部</button></div>' +
-      copies.map(function (t, i) { return '<div class="copyline"><code id="copy-' + i + '">' + esc(t) + '</code><button type="button" class="copybtn" data-copy="' + i + '">复制</button></div>'; }).join('') +
-      '</section>';
-    var fams = res.families || [];
-    if (fams.length) h += '<section class="panel" aria-label="家人订单"><h2 style="font-size:16px">家人订单（' + fams.length + ' 组）</h2>' +
-      '<div class="small" style="margin:4px 0 2px">父母、兄弟姐妹、子女、备注等任何一栏写了别的单的订单号或姓名，而那张单也在这次上传里 → 同一家。文件里这些单整行涂同一个颜色，不同家不同颜色。</div>' +
-      fams.map(function (g) {
-        return '<div class="famg"><b><span class="sw" style="background:' + g.css + '"></span>第' + g.n + '组 ' + esc(g.label) + '（' + g.colorName + '，' + g.members.length + ' 单）</b>' +
-          '<span class="m">' + g.members.map(function (m) { return esc(m.person) + ' <span class="small">' + esc(m.tool) + ' · ' + esc(m.id) + '</span>'; }).join('、') + '</span></div>';
-      }).join('') + '</section>';
-    var pl = pendingList();
-    if (pl.length) {
-      var und = pl.filter(function (p) { return !p.f.pending.decided; }).length;
-      h += '<section class="panel pend" aria-label="备注要不要标红"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">' +
-        '<h2 style="font-size:16px;color:var(--warn)">备注要不要标红？（' + pl.length + ' 单' + (und ? '，' + und + ' 单未选' : '，已全部选好') + '）</h2>' +
-        '<span class="yn"><button type="button" data-redall="1">全部标红</button><button type="button" data-redall="0">全部不标红</button></span></div>' +
-        '<div class="small" style="margin:4px 0 2px">这些单是繁体或子时，规则要备注跟着红；但备注只写祝福语。没选的默认不标红。</div>' +
-        pl.map(function (p) {
-          return '<div class="q"><b>' + esc(p.o.person) + '</b><span class="small">' + esc(p.r.tool) + ' · 序号 ' + esc(p.o.seq) + '</span>' +
-            '<span class="txt">' + esc((p.o.fields.filter(function (x) { return x.h === p.f.pending.h; })[0] || {}).value || '') + '</span>' + ynButtons(p.mk, p.f.pending.h, p.f) + '</div>';
-        }).join('') + '</section>';
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('button, [data-view]');
+    if (!b || b.disabled) return;
+    var d = b.dataset;
+    if (d.view) { go(d.view, d.focus); return; }
+    if (d.filter) { state.filter = d.filter; render(); return; }
+    if (d.open) {
+      state.sel = d.open; state.tab = 'fields'; state.allFields = false; render();
+      if (window.innerWidth <= 1100 && $('detail')) $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
     }
-    h += '<section class="panel"><h2 style="font-size:16px">需要人工处理</h2>' + (att.length ? att.map(function (a) {
-      return '<div class="att"><span class="pill">' + esc(a.k) + '</span><b>' + esc(a.person) + '</b><span class="small">' + esc(a.where) + '</span><span style="flex:1 1 240px;min-width:0">' + esc(a.text) + '</span></div>';
-    }).join('') : '<div class="clean">没有需要人工跟进的订单。</div>') + '</section>';
-    res.forEach(function (r, ri) {
-      h += '<section class="card"><div class="card-h"><div style="min-width:0"><h3>' + esc(r.tool) + '</h3><div class="small" style="overflow-wrap:anywhere">原文件：' + esc(r.name) + ' · ' + r.orders.length + ' 单 → ' + r.outputs.length + ' 个文件</div>' +
-        (r.footer ? '<div class="small">审核人 ' + esc(r.footer.reviewer) + ' · 制表 ' + r.footer.made + ' · 回传 <b>' + r.footer.back + '</b>（' + r.footer.rule + '）</div>' : '') + '</div>' +
-        (r.error ? '<span class="error">读取失败：' + esc(r.error) + '</span>' : '') + '</div>';
-      if (r.outputs.length) h += '<div class="outs">' + r.outputs.map(function (o, oi) {
-        return '<button type="button" class="out' + (o.problem ? ' problem' : o.urgent ? ' urgent' : o.newborn ? ' newborn' : '') + '" data-r="' + ri + '" data-o="' + oi + '" aria-label="下载 ' + esc(o.name) + '">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>' + esc(o.name) + '</button>';
-      }).join('') + '</div>';
-      h += '<div class="tbl"><table><thead><tr><th scope="col">序号</th><th scope="col" style="width:180px">使用人</th><th scope="col">审核结果</th><th scope="col" style="width:130px">操作</th></tr></thead><tbody>' +
-        r.orders.map(function (o, oi) {
-          var mk = r.name + '|' + o.key, isOpen = !!state.open[mk];
-          return '<tr' + (o.problem ? ' class="problem"' : '') + '><td>' + esc(o.seq) + '</td><td><div style="font-weight:500">' + esc(o.person) + '</div><div class="small">' + esc(o.title) + '</div></td><td>' +
-            (o.flags.length ? '<div class="flags">' + o.flags.map(function (f) { return '<span class="chip ' + f.level + '">' + (f.group ? '<span class="sw" style="background:' + f.group.css + '"></span>' : '') + esc(f.text) + '</span>' + (f.pending ? ynButtons(mk, f.pending.h, f) : ''); }).join('') + '</div>' : '<span class="clean">无问题</span>') +
-            (o.family ? '<div class="fam" aria-label="家人名单">' + o.family.map(function (x) {
-              return '<span class="rel">' + esc(x.rel) + '</span><span' + (x.mentioned ? ' class="hit"' : '') + '>' + esc(x.name) + (x.mentioned ? '（备注提到）' : '') + '</span>';
-            }).join('') + '</div>' : '') + '</td><td>' +
-            '<button type="button" class="view" data-mk="' + esc(mk) + '" aria-expanded="' + isOpen + '">' + (isOpen ? '收起' : '查看 / 修改') + '</button><br>' +
-            '<button type="button" class="mark' + (o.problem ? ' on' : '') + '" data-mk="' + esc(mk) + '" aria-pressed="' + (o.problem ? 'true' : 'false') + '">' +
-            (o.problem ? '有问题 · 取消' : '标为有问题') + '</button>' +
-            (o.autoProblem && o.problem ? '<div class="small">系统判断</div>' : '') + '</td></tr>' +
-            (isOpen ? detailRow(o, mk, ri + '-' + oi) : '');
-        }).join('') + '</tbody></table></div></section>';
-    });
-    $('out').innerHTML = h;
-    $('out').hidden = false; $('empty').hidden = true; $('reset').hidden = false;
-    $('dlgood').addEventListener('click', function () { downloadZip(false); });
-    if ($('dlbad')) $('dlbad').addEventListener('click', function () { downloadZip(true); });
-    Array.prototype.forEach.call($('out').querySelectorAll('[data-copy]'), function (b) {
-      b.addEventListener('click', function () {
-        var k = b.dataset.copy, text = k === 'all' ? state.copies.join('\n') : state.copies[+k];
-        var done = function () { toast(k === 'all' ? '已复制 ' + state.copies.length + ' 条话术' : '已复制'); };
-        var fallback = function () {
-          var el = k === 'all' ? $('out').querySelector('.copybox') : $('copy-' + k);
-          var sel = window.getSelection(), rg = document.createRange();
-          rg.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(rg);
-          toast('已选中文字，请按 Ctrl+C（手机长按）复制');
-        };
-        try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+    if ('close' in d) { state.sel = null; render(); return; }
+    if (d.tab) { state.tab = d.tab; render(); return; }
+    if ('allfields' in d) { state.allFields = !state.allFields; render(); return; }
+    if (d.prob) {
+      // pressing the chosen answer again clears it (back to the rule's own decision)
+      if (b.getAttribute('aria-pressed') === 'true') delete state.problems[d.prob]; else state.problems[d.prob] = d.v === '1';
+      run(); return;
+    }
+    if (d.redall) {
+      todos().forEach(function (x) { if (x.type === 'pending' && !x.decided) setRed(x.it.mk, x.f.pending.h, d.redall === '1'); });
+      run().then(function () { toast(d.redall === '1' ? '这些备注已全部标红' : '这些备注已全部设为不标红'); }); return;
+    }
+    if (d.red) { setRed(d.red, d.h, b.getAttribute('aria-pressed') === 'true' ? null : d.v === '1'); run(); return; }
+    if (d.tog) { setRed(d.tog, d.h, d.v === '1'); run().then(function () { toast(d.v === '1' ? '「' + d.h + '」已设为红字' : '「' + d.h + '」已取消红字'); }); return; }
+    if (d.save) {
+      var box = document.querySelector('[data-fields="' + CSS.escape(d.save) + '"]'), ed = Object.assign({}, state.edits[d.save] || {});
+      if (box) Array.prototype.forEach.call(box.querySelectorAll('[data-h]'), function (el) {
+        if (el.readOnly) return;
+        if (el.value !== el.dataset.orig) ed[el.dataset.h] = el.value; else delete ed[el.dataset.h];
       });
-    });
-    Array.prototype.forEach.call($('out').querySelectorAll('.view'), function (b) {
-      b.addEventListener('click', function () {
-        var mk = b.dataset.mk;
-        if (state.open[mk]) delete state.open[mk]; else state.open[mk] = true;
-        render();
-      });
-    });
-    Array.prototype.forEach.call($('out').querySelectorAll('[data-save]'), function (b) {
-      b.addEventListener('click', function () {
-        var mk = b.dataset.save, box = $('out').querySelector('.fields[data-mk="' + CSS.escape(mk) + '"]'), ed = {};
-        Array.prototype.forEach.call(box.querySelectorAll('[data-h]'), function (el) {
-          if (el.readOnly) return;
-          if (el.value !== el.dataset.orig) ed[el.dataset.h] = el.value;
-        });
-        if (Object.keys(ed).length) state.edits[mk] = ed; else delete state.edits[mk];
-        run().then(function () { toast(Object.keys(ed).length ? '已保存修改，已重新审核' : '没有修改'); });
-      });
-    });
-    Array.prototype.forEach.call($('out').querySelectorAll('[data-red]'), function (b) {
-      b.addEventListener('click', function () {
-        // pressing the chosen answer again clears it (back to 未选)
-        setRed(b.dataset.red, b.dataset.h, b.getAttribute('aria-pressed') === 'true' ? null : b.dataset.v === '1');
-        run();
-      });
-    });
-    Array.prototype.forEach.call($('out').querySelectorAll('[data-redall]'), function (b) {
-      b.addEventListener('click', function () {
-        pendingList().forEach(function (p) { setRed(p.mk, p.f.pending.h, b.dataset.redall === '1'); });
-        run().then(function () { toast(b.dataset.redall === '1' ? '已全部标红' : '已全部设为不标红'); });
-      });
-    });
-    Array.prototype.forEach.call($('out').querySelectorAll('[data-tog]'), function (b) {
-      b.addEventListener('click', function () {
-        setRed(b.dataset.tog, b.dataset.h, b.dataset.v === '1');
-        run().then(function () { toast(b.dataset.v === '1' ? '「' + b.dataset.h + '」已设为红字' : '「' + b.dataset.h + '」已取消红字'); });
-      });
-    });
-    Array.prototype.forEach.call($('out').querySelectorAll('[data-unred]'), function (b) {
-      b.addEventListener('click', function () { delete state.reds[b.dataset.unred]; run(); });
-    });
-    Array.prototype.forEach.call($('out').querySelectorAll('[data-undo]'), function (b) {
-      b.addEventListener('click', function () { delete state.edits[b.dataset.undo]; run(); });
-    });
-    Array.prototype.forEach.call($('out').querySelectorAll('.mark'), function (b) {
-      b.addEventListener('click', function () {
-        state.problems[b.dataset.mk] = b.getAttribute('aria-pressed') !== 'true';
-        run();
-      });
-    });
-    Array.prototype.forEach.call($('out').querySelectorAll('.out'), function (b) {
-      b.addEventListener('click', function () {
-        var o = state.results[+b.dataset.r].outputs[+b.dataset.o];
-        confirmDownload([o], o.name, function () { save(o.name, new Blob([o.buffer])); });
-      });
-    });
-  }
-
-  $('pick').addEventListener('change', function (e) { addFiles(e.target.files); e.target.value = ''; });
-  var drop = $('drop');
-  drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.classList.add('over'); });
-  drop.addEventListener('dragleave', function () { drop.classList.remove('over'); });
-  drop.addEventListener('drop', function (e) { e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer && e.dataTransfer.files); });
-  $('rerun').addEventListener('click', run);
-  $('reset').addEventListener('click', function () {
-    state = { inputs: [], results: null, problems: {}, open: {}, edits: {}, reds: {} };
-    $('out').innerHTML = ''; $('out').hidden = true; $('empty').hidden = false; $('reset').hidden = true; showError('');
+      if (Object.keys(ed).length) state.edits[d.save] = ed; else delete state.edits[d.save];
+      run().then(function () { toast(Object.keys(ed).length ? '已保存修改，已重新审核' : '没有修改'); });
+      return;
+    }
+    if (d.undo) { delete state.edits[d.undo]; run(); return; }
+    if (d.unred) { delete state.reds[d.unred]; run(); return; }
+    if (d.mark) { state.problems[d.mark] = b.getAttribute('aria-pressed') !== 'true'; run(); return; }
+    if (d.copytext) { copyText(d.copytext, b); return; }
+    if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; save(o.name, new Blob([o.buffer])); return; }
+    if ('godl' in d) { downloadAll(); return; }
+    if ('rerun' in d) { run().then(function (ok) { if (ok) go('review'); }); return; }
+    if ('reset' in d) {
+      state.inputs = []; state.results = null; state.problems = {}; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {};
+      go('upload'); return;
+    }
   });
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset && t.dataset.set) state.set[t.dataset.set] = t.value;
+    if (t.dataset && 'q' in t.dataset) {
+      state.q = t.value; var pos = t.selectionStart; render();
+      var nq = document.querySelector('[data-q]'); if (nq) { nq.focus(); try { nq.setSelectionRange(pos, pos); } catch (x) {} }
+    }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.id === 'pick') { addFiles(t.files); t.value = ''; return; }
+    if (t.dataset && t.dataset.pick) { state.pick[t.dataset.pick] = t.checked; render(); }
+  });
+  // <details> remember open / closed across re-renders
+  document.addEventListener('toggle', function (e) {
+    var t = e.target;
+    if (!t.dataset) return;
+    if (t.dataset.file != null) state.openFiles[t.dataset.file] = t.open;
+    if ('adv' in t.dataset) state.advOpen = t.open;
+    if ('dec' in t.dataset) state.decOpen = t.open;
+  }, true);
+  document.addEventListener('dragover', function (e) { var dz = e.target.closest && e.target.closest('#drop'); if (dz) { e.preventDefault(); dz.classList.add('over'); } });
+  document.addEventListener('dragleave', function (e) { var dz = e.target.closest && e.target.closest('#drop'); if (dz) dz.classList.remove('over'); });
+  document.addEventListener('drop', function (e) {
+    var dz = e.target.closest && e.target.closest('#drop');
+    if (!dz) return;
+    e.preventDefault(); dz.classList.remove('over'); addFiles(e.dataTransfer && e.dataTransfer.files);
+  });
+
+  render();
 })();
 </script>
 
