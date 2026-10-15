@@ -421,7 +421,7 @@
   function toolName(fileName) {
     var base = String(fileName).replace(/\.xlsx$/i, '');
     var m = base.match(/^(.*?)技术单/);
-    return (m ? m[1] : base.split(/\s/)[0]).replace(/[（(](男款|女款|男女款)[）)]/g, '');
+    return (m ? m[1] : base.split(/\s/)[0]).replace(/^新生儿/, '').replace(/[（(](男款|女款|男女款)[）)]/g, '');
   }
 
   // --- subset files: keep only some data rows, pack them up, pull the footer up, keep merges intact ---
@@ -481,8 +481,9 @@
   function isOverseasName(name) { return /(^|[^A-Za-z])H[\s_）)\]】]*\.(xlsx|zip)$/i.test(String(name || '')); }
   function outName(tool, gender, urgent, date, count, person, problem, newborn, overseas) {
     // 许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H — normal files keep a space: 九合平衡牌技术单 9.10.2026（2）H
-    var tags = (urgent ? '（特殊加急）' : '') + (newborn ? '（新生儿）' : '') + (problem ? '（有问题）' : '');
-    return ((urgent || problem) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
+    // 新生儿 goes in front: 新生儿名正言顺技术单 14.10.2026（1）H
+    var tags = (urgent ? '（特殊加急）' : '') + (problem ? '（有问题）' : '');
+    return (newborn ? '新生儿' : '') + ((urgent || problem) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
       '（' + count + '）' + (overseas ? 'H' : '') + '.xlsx';
   }
 
