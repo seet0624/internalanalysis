@@ -239,6 +239,7 @@ tr.on td{background:var(--sel)}
 @media (min-width:720px){.fact{border-bottom:0;border-right:1px solid var(--line-soft)}.fact:last-child{border-right:0}}
 .fact .k{font-size:13px;color:var(--muted)}
 .fact .v{font-size:22px;font-weight:700;overflow-wrap:anywhere}
+.inline-in{min-height:44px;padding:0 12px;border:1px solid var(--field);border-radius:10px;background:var(--surface);font-size:18px;font-weight:700;width:100%;max-width:200px;min-width:0;flex:1 1 140px}
 .warnbox{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:14px 18px;border-radius:14px;background:var(--warn-bg);color:var(--warn)}
 .warnbox ul{margin:0;padding-left:20px}
 .pkg{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
@@ -693,7 +694,10 @@ tr.on td{background:var(--sel)}
       '<div style="display:flex;flex-direction:column;gap:4px"><h1 style="font-size:28px">下载前确认一下</h1><p class="lead" style="font-size:15px">这三项会写进每个文件，审核人每天可能不同，请看清楚。</p></div>' +
       '<section class="card facts" aria-label="页脚资料">' +
         '<div class="fact"><span class="k">制表日期</span><span class="v">' + esc(state.date) + '</span></div>' +
-        '<div class="fact"><span class="k">审核人</span><span class="v">' + esc(state.reviewer) + '</span><button type="button" class="btn link" style="align-self:flex-start;padding:0" data-view="upload" data-focus="f-reviewer">不是我？改审核人</button></div>' +
+        (state.editRev
+          ? '<div class="fact"><label class="k" for="dl-rev">审核人（改好按「确定」，文件会马上更新）</label><div class="acts" style="margin-top:4px"><input id="dl-rev" class="inline-in" data-set="reviewer" type="text" value="' + esc(state.set.reviewer) + '" autocomplete="off">' +
+            '<button type="button" class="btn small primary" data-saverev>确定</button><button type="button" class="btn small" data-cancelrev>取消</button></div></div>'
+          : '<div class="fact"><span class="k">审核人</span><span class="v">' + esc(state.reviewer) + '</span><button type="button" class="btn link" style="align-self:flex-start;padding:0" data-editrev>不是我？在这里改</button></div>') +
         '<div class="fact"><span class="k">国内 / 海外</span><span class="v">' + esc(regionOf(outs)) + '</span></div></section>';
     if (warn.length) h += '<section class="warnbox" aria-label="提醒"><div style="display:flex;gap:10px;align-items:flex-start">' + ICON.warn + '<ul>' + warn.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>' +
       (open.length ? '<button type="button" class="btn small" data-view="review">回去处理</button>' : '') + '</section>';
@@ -747,6 +751,13 @@ tr.on td{background:var(--sel)}
     };
     try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
   }
+  // 审核人 changed right on the download page: re-run so every file carries the new name, stay on this page
+  function saveReviewer() {
+    var v = (state.set.reviewer || '').trim();
+    if (!v) { toast('请填审核人'); var ri = $('dl-rev'); if (ri) ri.focus(); return; }
+    state.set.reviewer = v; state.editRev = false;
+    run().then(function (ok) { if (ok) toast('审核人已改成 ' + v + '，所有文件已更新'); });
+  }
   function go(view, focusId) {
     state.view = view; render(); window.scrollTo(0, 0);
     if (focusId && $(focusId)) $(focusId).focus();
@@ -793,11 +804,18 @@ tr.on td{background:var(--sel)}
     if (d.copytext) { copyText(d.copytext, b); return; }
     if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; save(o.name, new Blob([o.buffer])); return; }
     if ('godl' in d) { downloadAll(); return; }
+    if ('editrev' in d) { state.editRev = true; render(); var ri = $('dl-rev'); if (ri) { ri.focus(); ri.select(); } return; }
+    if ('cancelrev' in d) { state.editRev = false; state.set.reviewer = state.reviewer; render(); return; }
+    if ('saverev' in d) { saveReviewer(); return; }
     if ('rerun' in d) { run().then(function (ok) { if (ok) go('review'); }); return; }
     if ('reset' in d) {
       state.inputs = []; state.results = null; state.problems = {}; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {};
       go('upload'); return;
     }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target && e.target.id === 'dl-rev') { e.preventDefault(); saveReviewer(); }
+    if (e.key === 'Escape' && e.target && e.target.id === 'dl-rev') { state.editRev = false; state.set.reviewer = state.reviewer; render(); }
   });
   document.addEventListener('input', function (e) {
     var t = e.target;
