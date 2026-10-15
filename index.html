@@ -255,6 +255,21 @@ tr.on td{background:var(--sel)}
 .flist{display:flex;flex-direction:column;gap:6px;margin-top:6px}
 .go{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px}
 
+.rules-box{display:flex;flex-direction:column;gap:14px}
+.rules-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.rule-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:12px;align-items:start}
+.rule-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.rule-top{display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:0;text-align:left;min-height:36px;color:var(--ink)}
+.rule-no{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none}
+.rule-t{font-weight:700;font-size:16px;flex:1}
+.rule-n{font-size:12px;color:var(--faint)}
+.rule-list{margin:0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.rule-list b{color:var(--ink)}.rule-list b.r,.r{color:var(--crit)}
+.rule-card .btn.link{align-self:flex-start;padding:0;min-height:32px}
+.pv{position:fixed;inset:0;z-index:70;background:rgba(10,12,16,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.pv-box{background:var(--surface);border-radius:16px;width:100%;max-width:900px;height:min(92vh,1100px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.pv-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 10px 18px;border-bottom:1px solid var(--line)}
+.pv iframe{flex:1;width:100%;border:0;background:#F4F3EF}
 .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 </style>
 </head>
@@ -309,7 +324,6 @@ tr.on td{background:var(--sel)}
     set: { date: E.todayStr(), reviewer: E.DEFAULTS.reviewer, brands: E.DEFAULTS.splitWatchBrands.join('，'), askfirst: E.DEFAULTS.askFirstProducts.join('，'), urgent: E.DEFAULTS.urgentWords.join('，') }
   };
   var downloadsP = window.claude && window.claude.use ? window.claude.use('downloads').catch(function () { return null; }) : Promise.resolve(null);
-  var RULES = "<h3 style=\"font-size:15px;margin-top:12px\">审核规则<\/h3><ol class=\"rules\">\n        <li>只改字体颜色，不动位置、大小、合并格；红色一律用<b class=\"red\">红字<\/b>，原文件里涂了底色的格子也改成红字<\/li>\n        <li><b class=\"red\">子时<\/b>：前子时 23:00–23:59 生日要加一天；后子时 00:00–00:59 不用加。「是否子时」写是 → 时间栏红字；备注写了子时 / 加一天才红，只有祝福语由你选<\/li>\n        <li>出生时间是子时但写「否」，或写「是」但时间不详 / 不是子时 → <b>问下单者<\/b><\/li>\n        <li><b class=\"red\">订单状态备注<\/b>有内容：一律红字<\/li>\n        <li>总备注与备注<b>一字不差<\/b>：清空总备注<\/li>\n        <li>总备注说到<b class=\"red\">名字<\/b>（姓名、改名、名字要求……）或<b class=\"red\">简体 / 繁体（名册展示）<\/b>：红字<\/li>\n        <li>使用人姓名写<b class=\"red\">新生儿<\/b>（还没有名字）：红字，当新生儿单；已经有名字就不红<\/li>\n        <li>备注 / 总备注写了<b class=\"red\">别的订单号<\/b>（原订单号、家人的单）：红字<\/li>\n        <li><b>家人订单<\/b>：父母、兄弟姐妹、子女、备注等任何一栏写了这次上传里另一单的订单号或姓名 → 同一家，整行涂同一个颜色，不同家不同颜色<\/li>\n        <li>备注 / 总备注有<b class=\"red\">人名<\/b>（包括学员本人只写名不写姓，例如「宛蓉」；这次上传里其他学员的名字；「姓名：…」「小名叫…」「…的名字」；复姓如欧阳）：红字，家人名单整齐列出来给你看<\/li>\n        <li>备注有<b class=\"red\">曾用名 / 原名 / 原来的名字 / 后来改名<\/b>：红字<\/li>\n        <li>备注有<b class=\"red\">加急、急、快点 / 要快 / 快处理<\/b>（「效果快」「赶快好起来」这类祝福不算）：红字，开（特殊加急）文件<\/li>\n        <li>备注有<b class=\"red\">日期<\/b>：一个月内的当加急单；超过一个月只红字<\/li>\n        <li>公历生日<b>未满一岁<\/b>：新生儿，开（新生儿）文件<\/li>\n        <li>名正言顺：每位学员两行一样的（只有一行会自动补一行）；<b class=\"red\">名册展示繁体<\/b>红字（备注写了繁体才跟着红，只有祝福语由你选）；<b class=\"red\">双胞胎 / 三胞胎<\/b>红字（老大：父亲生日也红；老二：母亲生日也红；老三：父母生日都红）；有问题的学员整位从文件删掉，序号重新排<\/li>\n        <li>新名字姓氏和使用人姓名的姓<b>一样不红<\/b>；<b class=\"red\">简繁体不同<\/b>或<b class=\"red\">学员更换姓氏<\/b>：红字<\/li>\n        <li>姓氏和父亲 / 原名不一样：备注有<b>认祖归宗<\/b> → 红字给专家；没有 → <b>问下单者<\/b><\/li>\n        <li>父亲名字和母亲名字<b>一样<\/b>：红字，<b>问下单者<\/b><\/li>\n        <li><b class=\"red\">生肖<\/b>按立春核对（2月4日前算前一年；当天按出生时间；不详 / 只有时辰算当年），对不上 → 先问下单者，没问题再问督导<\/li>\n        <li>一个技术单里有几种产品（例如天祥、天富、鸿运手表放在同一个表）：每种产品<b>各开一个文件<\/b>，文件名和回传时间按各自的产品<\/li>\n        <li>手表<b class=\"red\">刻名字写的是订单号<\/b>：红字，当有问题，生成话术（订单编号 学员 商品，刻名字：…，这个要和服务中心确认）<\/li>\n        <li>手表刻名字为空：提醒查新名字是否下来；只有<b>天威、天富手表<\/b>分男款、女款文件（文件名也写男款 / 女款），其他手表不分<\/li>\n        <li>文件名最后的 <b>H<\/b> 代表海外：上传的文件（或 zip）有 H，下载的文件也有 H；没有 H 就不加<\/li>\n        <li>海外单（H）有<b>天解手表、天泽手表、福运戒指、天恒手表<\/b>：先问能不能做，直接当有问题，并生成可复制的话术（订单编号 学员 商品，这个需确认能不能做？）<\/li>\n        <li><b>换购<\/b>单（商品标题有「换购」）：「原订单编号」格子有订单号就没问题，空的才当有问题（表格没有这一栏时，看备注里有没有原订单号），生成话术（…，换购的都需要提供原订单号，这个需和服务中心确认）<\/li>\n        <li>备注 / 总备注写了<b class=\"red\">出生时间<\/b>（例如 出生时间：0300am）：红字，请和出生时间栏核对<\/li>\n        <li>备注有<b class=\"red\">起名要求<\/b>（例如 名字尽量少笔画、尽量用同音的、好写、不要用某个字）：红字，提醒专家<\/li>\n        <li>备注要求<b class=\"red\">保留某个字 / 名<\/b>（例如尽量保留「诗」）：红字，提醒专家如果适合、匹配尽量保留<\/li>\n        <li>生肖按立春核对正确（例如立春前出生跟上一个生肖）：<b>不标红<\/b>，原文件涂的颜色也去掉<\/li>\n        <li>要问人的单、或你按「标为有问题」的单：从原文件拿出，开（有问题）文件<\/li>\n        <li>商品是<b>套餐 / 赠品<\/b>（例如 健康套餐-赠品（名正言顺命名））：文件名用括号里的工具名<\/li>\n        <li>下载前有确认页：日期、审核人、国内 / 海外，还有没决定的事会提醒<\/li>\n        <li>每一格都可以在资料里「设红字」或取消红字<\/li>\n        <li>页脚：审核人 martin，制表时间今天；回传时间：名正言顺加 1 个月（新生儿名正言顺加 7 天），九合牌、吊坠加 7 天，其他工具加 10 天<\/li>\n      <\/ol><h3 style=\"font-size:15px;margin:16px 0 8px\">文件命名<\/h3><div class=\"namefmt\">工具名称 +（男款 / 女款，只限天威、天富手表）+ 技术单 + 日期 +（单数）+ H（海外才有）<br>例：天富手表（女款）技术单 8.10.2026（2）H.xlsx；天祥手表技术单 8.10.2026（2）H.xlsx<br><br>加急单独开文件，（特殊加急）放在技术单后面：<br>只有一位学员：许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H.xlsx<br>多位学员：名正言顺技术单（特殊加急）9.10.2026（2）H.xlsx<br><br>新生儿：新生儿…技术单 日期（单数）H，例：新生儿名正言顺技术单 14.10.2026（1）H<br>有问题：…技术单（有问题）日期（单数）H，学员名规则同上<br><br>下载：没问题的打包成 技术单 日期（全部工具的单数）H.zip；特殊加急不放进 zip，单独一个个文件下载；有问题的另一个 zip<\/div>";
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function list(s) { return String(s || '').split(/[,，、\s]+/).map(function (x) { return x.trim(); }).filter(Boolean); }
@@ -326,6 +340,7 @@ tr.on td{background:var(--sel)}
     arrow: '<svg class="arrow" width="20" height="12" viewBox="0 0 20 12" aria-hidden="true"><path d="M2 6h15M13 2l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     search: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
     warn: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 18H2L12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v5M12 18v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    eye: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
     globe: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
   };
 
@@ -465,6 +480,121 @@ tr.on td{background:var(--sel)}
     return !q || (it.o.person + ' ' + it.o.key + ' ' + it.r.tool).indexOf(q) >= 0;
   }
 
+  // ---------- 审核规则手册: one source for the cards on the page, the preview and the downloaded file ----------
+  // [[…]] = red keyword, {{…}} = bold
+  var RULE_SECTIONS = [
+    { id: 'red', t: '标红原则', c: '#B3261E', bg: '#FBE9E7', items: [
+      '只改{{字体颜色}}，不动位置、大小、合并格；红色一律是[[红字]]，不涂底色',
+      '原文件里涂了底色的格子，一律改成[[红字]]',
+      '每一格都可以在资料里「设红字」或「取消红字」，你的选择优先',
+      '自己在网页里改过的格子，保存后自动变[[红字]]'
+    ] },
+    { id: 'remark', t: '备注 / 总备注', c: '#B3261E', bg: '#FBE9E7', items: [
+      '有[[人名]]：家人姓名、学员本人（只写名也算，例如「宛蓉」）、这次上传里其他学员、「姓名：…」「小名叫…」「…的名字」、复姓（欧阳…）',
+      '有[[曾用名 / 原名 / 原来的名字 / 后来改名]]',
+      '有[[别的订单号]]（原订单号、家人的单）',
+      '写了[[出生时间]]（例如 出生时间：0300am）— 和出生时间栏核对',
+      '有[[起名要求]]（少笔画、同音、好写、不要用某个字）或要求[[保留某个字]]',
+      '提到[[简体 / 繁体]]（名册展示），或总备注说到[[名字]]',
+      '有[[日期]]：一个月内当{{特殊加急}}；超过一个月只红字',
+      '有[[加急 / 急 / 快点]]（「效果快」「赶快好起来」这类祝福不算）→ 特殊加急',
+      '{{订单状态备注}}有内容 → [[红字]]',
+      '总备注和备注{{一字不差}} → 清空总备注',
+      '名册展示繁体或子时的单，备注只写祝福语 → {{由你选}}要不要标红（可一起选）'
+    ] },
+    { id: 'naming', t: '名正言顺', c: '#0E6B66', bg: '#E3F0EE', items: [
+      '每位学员{{两行}}一样的，只有一行会自动补一行',
+      '名册展示[[繁体]] → 红字',
+      '[[双胞胎 / 三胞胎]] → 红字；老大父亲生日也红，老二母亲生日也红，老三父母生日都红',
+      '新名字姓氏和使用人姓名的姓{{一样不红}}；[[简繁体不同]]或[[学员更换姓氏]] → 红字',
+      '姓氏和父亲不同：备注有{{认祖归宗}} → 红字给专家；没有 → {{问下单者}}',
+      '父亲名字和母亲名字一样 → [[红字]]，问下单者',
+      '[[生肖]]按立春核对（2 月 4 日前算前一年；当天看出生时间；不详算当年），对不上 → 先问下单者，再问督导',
+      '使用人姓名写[[新生儿]]（还没有名字）→ 红字；已经有名字就不红'
+    ] },
+    { id: 'zishi', t: '子时', c: '#7A4300', bg: '#FFF1DC', items: [
+      '{{前子时}} 23:00–23:59：公历生日要加一天',
+      '{{后子时}} 00:00–00:59：不用加一天',
+      '「是否子时」写是 → 时间栏[[红字]]；备注写了子时 / 加一天才红',
+      '时间是子时却写「否」，或写「是」但时间不是子时 → {{问下单者}}'
+    ] },
+    { id: 'product', t: '手表与其他产品', c: '#234D78', bg: '#E8F0F8', items: [
+      '一个表里有几种产品（例如天祥、天富、鸿运手表）→ 每种产品{{各开一个文件}}',
+      '只有{{天威、天富手表}}分男款、女款文件',
+      '刻名字为空 → 提醒查新名字是否下来',
+      '刻名字写的是[[订单号]] → 有问题，话术：订单编号 学员 商品，刻名字：…，这个要和服务中心确认',
+      '海外单有{{天解手表、天泽手表、福运戒指、天恒手表}} → 先问能不能做，当有问题',
+      '{{换购}}单：原订单编号有填就没问题，空的 → 有问题，和服务中心确认',
+      '套餐 / 赠品（例如 健康套餐-赠品（名正言顺命名））→ 文件名用括号里的工具名'
+    ] },
+    { id: 'family', t: '家人订单', c: '#234D78', bg: '#E8F0F8', items: [
+      '父母、兄弟姐妹、子女、备注等任何一栏写了这次上传里另一单的{{订单号或姓名}} → 同一家',
+      '同一家{{整行涂同一个颜色}}，不同家不同颜色（蓝、绿、黄、橙、紫…）'
+    ] },
+    { id: 'files', t: '分文件与文件名', c: '#0E6B66', bg: '#E3F0EE', items: [
+      '分成：{{没问题}}、{{特殊加急}}、{{新生儿}}（未满一岁）、{{有问题}}（要问人、你标的）',
+      '普通：工具名称 +（男款 / 女款）+ 技术单 + 日期 +（单数）+ H，例：天富手表（女款）技术单 8.10.2026（2）H',
+      '特殊加急：只有一位学员 → 许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H；多位 → 名正言顺技术单（特殊加急）9.10.2026（2）H',
+      '新生儿：新生儿名正言顺技术单 14.10.2026（1）H',
+      '有问题：…技术单（有问题）日期（单数）H，学员名规则同上',
+      '{{H}} 代表海外：上传的文件或 zip 有 H，下载的也有 H',
+      '下载：没问题的打包成 技术单 日期（全部单数）H.zip；特殊加急{{不放进 zip}}，一个个下载；有问题的另一个 zip'
+    ] },
+    { id: 'footer', t: '页脚与回传时间', c: '#7A4300', bg: '#FFF1DC', items: [
+      '审核人：当天的审核人（默认 martin，下载页可以直接改）',
+      '制表时间：今天',
+      '回传时间：{{名正言顺 +1 个月}}；{{新生儿名正言顺 +7 天}}；{{九合牌、吊坠 +7 天}}；其他工具 {{+10 天}}',
+      '下载前有确认页：日期、审核人、国内 / 海外，还有没决定的事会提醒'
+    ] }
+  ];
+  function ruleText(s) { return esc(s).replace(/\[\[(.+?)\]\]/g, '<b class="r">$1</b>').replace(/\{\{(.+?)\}\}/g, '<b>$1</b>'); }
+  function ruleCount() { return RULE_SECTIONS.reduce(function (n, s) { return n + s.items.length; }, 0); }
+  // A standalone, print-ready document (A4) — opens in any browser, 打印 → 另存为 PDF works too.
+  function rulesDoc() {
+    var today = E.todayStr(), n = 0;
+    var css = '*{box-sizing:border-box}body{margin:0;background:#F4F3EF;color:#1D2125;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.7}' +
+      '.page{max-width:820px;margin:0 auto;padding:40px 28px 56px}' +
+      '.cover{background:#0E6B66;color:#fff;border-radius:18px;padding:32px 32px 28px;margin-bottom:24px}' +
+      '.cover h1{margin:0 0 6px;font-size:30px;letter-spacing:.04em}.cover p{margin:0;opacity:.9}' +
+      '.meta{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:18px;font-size:13px}.meta span{background:rgba(255,255,255,.16);border-radius:999px;padding:3px 12px}' +
+      '.toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:0 0 24px}' +
+      '.toc a{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E3E1DA;border-radius:10px;padding:8px 12px;color:#1D2125;text-decoration:none;font-weight:700;font-size:13px}' +
+      '.toc i{width:10px;height:10px;border-radius:3px;display:inline-block}' +
+      'section{background:#fff;border:1px solid #E3E1DA;border-radius:16px;padding:20px 24px;margin-bottom:16px;break-inside:avoid}' +
+      'h2{margin:0 0 12px;font-size:18px;display:flex;align-items:center;gap:10px}h2 .no{font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px}' +
+      'ol{margin:0;padding:0;list-style:none;counter-reset:r}li{counter-increment:r;position:relative;padding:7px 0 7px 38px;border-top:1px solid #F0EEE8}li:first-child{border-top:0}' +
+      'li::before{content:counter(r);position:absolute;left:0;top:8px;width:24px;height:24px;border-radius:50%;background:#F4F3EF;color:#55544E;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}' +
+      'b.r{color:#B3261E}.foot{text-align:center;color:#6B6A64;font-size:12px;margin-top:20px}' +
+      '@page{size:A4;margin:14mm}@media print{body{background:#fff}.page{padding:0}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}section{border-color:#ccc}}';
+    var body = '<div class="page"><div class="cover"><h1>技术单审核规则</h1><p>上传技术单 → 自动标红、分文件、写好文件名和页脚 → 转发给专家</p>' +
+      '<div class="meta"><span>' + RULE_SECTIONS.length + ' 个部分 · ' + ruleCount() + ' 条规则</span><span>更新日期 ' + esc(today) + '</span><span>审核人 ' + esc(state.set.reviewer || 'martin') + '</span></div></div>' +
+      '<nav class="toc">' + RULE_SECTIONS.map(function (s, i) { return '<a href="#' + s.id + '"><i style="background:' + s.c + '"></i>' + (i + 1) + '. ' + esc(s.t) + '</a>'; }).join('') + '</nav>' +
+      RULE_SECTIONS.map(function (s, i) {
+        return '<section id="' + s.id + '"><h2><span class="no" style="background:' + s.bg + ';color:' + s.c + '">第 ' + (i + 1) + ' 部分</span>' + esc(s.t) + '</h2><ol>' +
+          s.items.map(function (x) { return '<li>' + ruleText(x) + '</li>'; }).join('') + '</ol></section>';
+      }).join('') + '<div class="foot">技术单审核台 · 所有处理都在你的电脑里完成</div></div>';
+    return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>技术单审核规则 ' + esc(today) + '</title>' +
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap"><style>' + css + '</style></head><body>' + body + '</body></html>';
+  }
+  function rulesCards() {
+    return '<section class="rules-box" aria-labelledby="rules-h"><div class="rules-head"><div><h2 id="rules-h" style="font-size:18px">审核规则手册</h2>' +
+      '<p class="small" style="font-size:14px;margin-top:2px">' + RULE_SECTIONS.length + ' 个部分 · ' + ruleCount() + ' 条规则，网页就是按这些规则审核的</p></div>' +
+      '<div class="acts"><button type="button" class="btn" data-rules-preview>' + ICON.eye + '预览</button><button type="button" class="btn primary" data-rules-dl>' + ICON.dl + '下载规则</button></div></div>' +
+      '<div class="rule-grid">' + RULE_SECTIONS.map(function (s, i) {
+        var open = state.rulesOpen === s.id;
+        return '<article class="rule-card"><button type="button" class="rule-top" data-rule-open="' + s.id + '" aria-expanded="' + open + '">' +
+          '<span class="rule-no" style="background:' + s.bg + ';color:' + s.c + '">' + (i + 1) + '</span><span class="rule-t">' + esc(s.t) + '</span><span class="rule-n">' + s.items.length + ' 条</span></button>' +
+          '<ul class="rule-list">' + (open ? s.items : s.items.slice(0, 2)).map(function (x) { return '<li>' + ruleText(x) + '</li>'; }).join('') + '</ul>' +
+          (s.items.length > 2 ? '<button type="button" class="btn link" data-rule-open="' + s.id + '">' + (open ? '收起' : '看全部 ' + s.items.length + ' 条') + '</button>' : '') + '</article>';
+      }).join('') + '</div></section>';
+  }
+  function rulesPreview() {
+    if (!state.rulesPreview) return '';
+    return '<div class="pv" role="dialog" aria-modal="true" aria-label="审核规则预览"><div class="pv-box"><div class="pv-bar"><b>审核规则 · 预览</b><span class="acts">' +
+      '<button type="button" class="btn primary small" data-rules-dl>' + ICON.dl + '下载</button><button type="button" class="x" data-rules-close aria-label="关闭预览">' + ICON.x + '</button></span></div>' +
+      '<iframe title="审核规则文件" srcdoc="' + esc(rulesDoc()) + '"></iframe></div></div>';
+  }
+
   // ---------- render ----------
   function render() {
     renderTop();
@@ -519,8 +649,8 @@ tr.on td{background:var(--sel)}
       feat('var(--warn-bg)', '<path d="M12 4v10M12 18v.5" fill="none" stroke="var(--warn)" stroke-width="2.2" stroke-linecap="round"/>', '列出要你决定的事', '要问下单者、要先问能不能做、备注要不要标红，一件件处理') +
       feat('var(--accent-soft)', '<path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>', '分好文件再下载', '没问题、特殊加急、有问题、新生儿分开，文件名和页脚自动写好') +
       '</section>';
-    h += '<section class="card pad"><details><summary>审核规则和文件命名（点开看）</summary>' + RULES + '</details></section>';
-    return h + '</div></div>';
+    h += rulesCards();
+    return h + '</div></div>' + rulesPreview();
   }
   function feat(bg, path, t, d) {
     return '<div class="feat"><span class="ic" style="background:' + bg + '"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">' + path + '</svg></span><div><b>' + t + '</b><span class="small">' + d + '</span></div></div>';
@@ -804,6 +934,10 @@ tr.on td{background:var(--sel)}
     if (d.copytext) { copyText(d.copytext, b); return; }
     if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; save(o.name, new Blob([o.buffer])); return; }
     if ('godl' in d) { downloadAll(); return; }
+    if ('rulesPreview' in d) { state.rulesPreview = true; render(); var cb = document.querySelector('[data-rules-close]'); if (cb) cb.focus(); return; }
+    if ('rulesClose' in d) { state.rulesPreview = false; render(); var pb = document.querySelector('[data-rules-preview]'); if (pb) pb.focus(); return; }
+    if ('rulesDl' in d) { save('技术单审核规则 ' + E.todayStr() + '.html', new Blob([rulesDoc()], { type: 'text/html' })); return; }
+    if (d.ruleOpen) { state.rulesOpen = state.rulesOpen === d.ruleOpen ? null : d.ruleOpen; render(); return; }
     if ('editrev' in d) { state.editRev = true; render(); var ri = $('dl-rev'); if (ri) { ri.focus(); ri.select(); } return; }
     if ('cancelrev' in d) { state.editRev = false; state.set.reviewer = state.reviewer; render(); return; }
     if ('saverev' in d) { saveReviewer(); return; }
@@ -814,6 +948,7 @@ tr.on td{background:var(--sel)}
     }
   });
   document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && state.rulesPreview) { state.rulesPreview = false; render(); return; }
     if (e.key === 'Enter' && e.target && e.target.id === 'dl-rev') { e.preventDefault(); saveReviewer(); }
     if (e.key === 'Escape' && e.target && e.target.id === 'dl-rev') { state.editRev = false; state.set.reviewer = state.reviewer; render(); }
   });
