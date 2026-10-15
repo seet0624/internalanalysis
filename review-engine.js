@@ -259,6 +259,38 @@
   // A free-standing 3-character word that starts with a common surname: probably a person's name.
   var NOT_NAMES = {};
   '曾用名 曾经是 曾经的 华语名 华文名 中文名 英文名 高血压 高血糖 高血脂 金木水 文曲星 文昌星 万事兴 和万事 周岁的 何时能 时辰不 时间不 陈述的 林林总'.split(' ').forEach(function (w) { NOT_NAMES[w] = true; });
+  // Words that read like a given name but are wishes (平安、如意 …): never a name on their own.
+  var WISH_WORDS = '平安 健康 幸福 吉祥 如意 富贵 富貴 顺利 順利 美满 美滿 快乐 快樂 安康 和谐 和諧 发达 發達 兴旺 興旺 成功 长寿 長壽 万事 萬事 心想 事成 贵人 貴人 财富 財富 自由 圆满 圓滿 五福 临门 臨門 智慧 学业 學業 事业 事業 开心 開心 欢乐 歡樂 喜乐 喜樂 福气 福氣 好运 好運 美丽 美麗 聪明 聰明 孝顺 孝順 和睦 丰盛 豐盛 荣华 榮華 光明 天下 世界 文化 家庭 家人 一家 平顺 平順 顺遂 順遂 兴隆 興隆 发财 發財 进宝 進寶 吉利 康宁 康寧 安心 欣欣 向荣 向榮 永远 永遠 春风 春風 美好 成长 成長 学习 學習 工作 生意 前途 未来 未來 子孙 子孫 父母 姻缘 姻緣 桃花 正缘 正緣'.split(' ');
+  var COMPOUND_SURNAMES = /(?:欧阳|歐陽|司马|司馬|上官|诸葛|諸葛|东方|東方|皇甫|慕容|令狐|尉迟|尉遲|公孙|公孫|夏侯|长孙|長孫|司徒|宇文|端木|爱新觉罗|愛新覺羅)[\u4e00-\u9fff]{1,2}/g;
+  function givenName(full) {
+    var n = String(full || '').trim(), m = n.match(/^(?:欧阳|歐陽|司马|司馬|上官|诸葛|諸葛|东方|東方|皇甫|慕容|令狐|尉迟|尉遲|公孙|公孫|夏侯|长孙|長孫|司徒|宇文|端木)/);
+    var g = m ? n.slice(m[0].length) : SURNAMES.indexOf(n[0]) >= 0 ? n.slice(1) : '';
+    return g.length >= 2 && WISH_WORDS.indexOf(g) < 0 ? g : '';
+  }
+  // Names the remark points at directly: 姓名：张国荣 / 家人：李四、王五 / 小名叫阿宝 / 李小龙的名字 / 欧阳小芳
+  function cuedNames(text) {
+    var out = [], t = String(text || ''), m;
+    var wishy = function (n) { for (var i = 0; i < n.length - 1; i++) if (WISH_WORDS.indexOf(n.substr(i, 2)) >= 0) return true; return false; };
+    var push = function (n) { if (n && !wishy(n) && !NOT_NAMES[n] && out.indexOf(n) < 0) out.push(n); };
+    var re = /(姓名|名字|名叫|叫做|名为|名為|小名|乳名|艺名|藝名|英文名|中文名|本名|(?:家人|家属|家屬)(?=\s*(?:[:：]|是)))\s*(?:是|为|為|叫|叫做)?\s*[:：]?\s*((?:[\u4e00-\u9fff]{2,4}(?:\s*[、，,和与與及跟]\s*)?){1,6})/g;
+    while ((m = re.exec(t))) {
+      var any = /小名|乳名|艺名|藝名/.test(m[1]);
+      m[2].split(/\s*[、，,和与與及跟]\s*/).forEach(function (n) {
+        n = n.replace(/[都也是的]+$/, '').slice(0, 4);
+        if (n.length >= 2 && (any || SURNAMES.indexOf(n[0]) >= 0)) push(n.length === 4 && !any && !/^(?:欧阳|歐陽|司马|上官|诸葛)/.test(n) ? n.slice(0, 3) : n);
+      });
+    }
+    re = /(名字|姓名)/g;
+    while ((m = re.exec(t))) {
+      var before = t.slice(Math.max(0, m.index - 5), m.index).replace(/的$/, '');
+      for (var L = 3; L >= 2; L--) {
+        var cand = before.slice(-L);
+        if (cand.length === L && /^[\u4e00-\u9fff]+$/.test(cand) && SURNAMES.indexOf(cand[0]) >= 0) { push(cand); break; }
+      }
+    }
+    (t.match(COMPOUND_SURNAMES) || []).forEach(push);
+    return out;
+  }
   function possibleNames(text, skip) {
     var out = [];
     String(text || '').split(/[\s,，。、；;：:！!？?（）()【】"“”'‘’\-—…·.\/＇]+/).forEach(function (seg) {
@@ -692,14 +724,21 @@
       var fam = familyNames(get), famHits = [], otherHits = [];
       var own = {};
       [get('使用人姓名'), get('会员姓名')].join(' ').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／]+/).forEach(function (x) { if (x) own[x] = true; });
+      // the student's own name, or only the given name (葉宛蓉 → 宛蓉)
+      var selfForms = [];
+      Object.keys(own).forEach(function (n) { if (n.length >= 2) selfForms.push(n); var g = givenName(n); if (g) selfForms.push(g); });
+      // everyone else in this upload (使用人姓名 / 会员姓名 of the other orders)
+      var others = (opts.batchNames || []).filter(function (n) { return !own[n] && n.length >= 2 && WISH_WORDS.indexOf(n) < 0; });
       remarkHeads.forEach(function (h) {
         var txt = get(h);
         if (isBlank(txt)) return;
-        var f = mentionedFamily(txt, fam, ''), skip = {};
+        var f = mentionedFamily(txt, fam.concat(others), ''), skip = {};
         f.forEach(function (n) { skip[n] = true; if (famHits.indexOf(n) < 0 && !own[n]) famHits.push(n); });
-        var p = possibleNames(txt, skip);
+        var p = possibleNames(txt, skip).concat(cuedNames(txt).filter(function (n) { return !skip[n]; }));
         p.forEach(function (n) { if (otherHits.indexOf(n) < 0 && famHits.indexOf(n) < 0) otherHits.push(n); });
-        if (f.length || p.length) redCell(h);
+        var me = selfForms.filter(function (n) { return txt.indexOf(n) >= 0; });
+        me.forEach(function (n) { if (otherHits.indexOf(n) < 0) otherHits.push(n); own[n] = true; });
+        if (f.length || p.length || me.length) redCell(h);
       });
       if (famHits.length) add({ kind: 'family', level: 'high', text: '备注提到家人姓名（' + famHits.join('、') + '）— 已标红' });
       var selfHits = otherHits.filter(function (n) { return own[n]; });
@@ -1023,13 +1062,16 @@
     });
     var map = {};
     groups.forEach(function (g) { g.members.forEach(function (m) { map[orderNo14(m.id)] = g; }); });
-    return { groups: groups, byNo: map };
+    var allNames = [];
+    orders.forEach(function (o) { o.names.forEach(function (n) { if (allNames.indexOf(n) < 0) allNames.push(n); }); });
+    return { groups: groups, byNo: map, names: allNames };
   }
 
   async function processFiles(files, options) {
     var opts = Object.assign({}, DEFAULTS, options || {});
     var out = [];
     opts.families = await scanFamilies(files);
+    opts.batchNames = opts.families.names;
     out.families = opts.families.groups;
     for (var i = 0; i < files.length; i++) {
       try { out.push(await processFile(files[i], opts)); }
