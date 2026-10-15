@@ -519,10 +519,18 @@
     var range = dataRowRange(ws, header);
     var C = header.cols;
     tool = toolFromSheet(ws, range, C) || toolName(file.name);
-    result.tool = tool;
+    // one sheet can hold several products (天祥手表 + 天富手表 + 鸿运手表 …): each one gets its own file
+    var products = [];
+    if (C['商品标题']) for (var pr = range.first; pr <= range.last; pr++) {
+      var pn = productName(cellText(ws.getRow(pr).getCell(C['商品标题'])));
+      if (pn && products.indexOf(pn) < 0) products.push(pn);
+    }
+    var multi = products.length > 1;
+    result.tool = multi ? products.join('、') : tool;
     var isWatch = /手表/.test(tool) || !!C['刻名字'];
     var isNaming = !!(C['新名字姓氏'] && C['父亲名字']);
-    var splitBrand = isWatch && opts.splitWatchBrands.some(function (b) { return b && tool.indexOf(b) >= 0; });
+    var brandSplit = function (t) { return isWatch && opts.splitWatchBrands.some(function (b) { return b && String(t).indexOf(b) >= 0; }); };
+    var splitBrand = multi ? products.some(brandSplit) : brandSplit(tool);
 
     var made = parseDate(opts.date) || parseDate(todayStr());
 
@@ -560,7 +568,7 @@
       var o = byOrder[key];
       if (!o) {
         o = byOrder[key] = { key: key, seq: get('序号'), person: get('使用人姓名'), title: get('商品标题'),
-          rows: [], flags: [], urgent: false, newborn: false, gender: '', changes: 0 };
+          rows: [], flags: [], urgent: false, newborn: false, gender: '', changes: 0, product: productName(get('商品标题')) || tool };
         orderList.push(o);
       }
       o.rows.push(r);
@@ -757,6 +765,12 @@
       if (isWatch && C['刻名字'] && isBlank(get('刻名字'))) {
         add({ kind: 'engrave', level: 'high', text: '刻名字为空 — 请查新名字是否已下来' });
       }
+      // 刻名字 is an order number instead of a name → ask the service centre
+      if (C['刻名字'] && /[A-Za-z]?\d{8,}/.test(squash(get('刻名字')))) {
+        redCell('刻名字');
+        add({ kind: 'engrave-no', level: 'high', problem: true, who: '服务中心', text: '刻名字写的是订单号（' + get('刻名字').trim() + '）— 和服务中心确认',
+          copy: get('订单编号').trim() + ' ' + (get('使用人姓名').trim() || get('会员姓名').trim()) + ' ' + get('商品标题').trim() + '，刻名字：' + get('刻名字').trim() + '，这个要和服务中心确认' });
+      }
 
       // 加急 words (加急 / 急 / 快 …) → red + own file; dates in 备注: within a month → 加急, later/earlier → red only.
       var hits = urgentHits([get('备注'), get('总备注')], opts.urgentWords);
@@ -908,9 +922,11 @@
       if (o.problem) tags.push('有问题');
       if (o.urgent) tags.push('加急');
       if (o.newborn) tags.push('新生儿');
-      if (splitBrand && !o.problem) tags.push(o.gender || '款式未知');
+      var sb = brandSplit(multi ? o.product : tool);
+      if (sb && !o.problem) tags.push(o.gender || '款式未知');
+      if (multi) tags.unshift(o.product);
       var k = tags.join('|');
-      var gp0 = groups[k] = groups[k] || { tags: tags, urgent: o.urgent, newborn: o.newborn, problem: o.problem, rows: [], count: 0, genders: {}, persons: {} };
+      var gp0 = groups[k] = groups[k] || { tags: tags, urgent: o.urgent, newborn: o.newborn, problem: o.problem, rows: [], count: 0, genders: {}, persons: {}, product: multi ? o.product : tool, sb: sb };
       // 名正言顺: every student has two identical rows; add the copy when only one came in.
       var rows = isNaming && o.rows.length === 1 ? [o.rows[0], o.rows[0]] : o.rows;
       if (rows.length !== o.rows.length) gp0.changed = true;
@@ -925,21 +941,23 @@
     var keys = Object.keys(groups).sort(function (a, b) { return rank(a) - rank(b) || a.localeCompare(b); });
     for (var i = 0; i < keys.length; i++) {
       var gp = groups[keys[i]], buf;
-      // 新生儿名正言顺 is due back in 7 days, not a month
+      // 新生儿名正言顺 is due back in 7 days, not a month; a product in a mixed sheet keeps its own 回传 rule
       var back7 = isNaming && gp.newborn;
-      if (keys.length === 1 && !gp.changed && !back7) buf = processed;
+      var gBack = back7 ? addDays(made, 7) : returnRule(gp.product).calc(made);
+      var restamp = fmtDate(gBack) !== fmtDate(back);
+      if (keys.length === 1 && !gp.changed && !restamp) buf = processed;
       else {
         var sub = await load(processed);
         var sws = sub.worksheets[0];
         if (keys.length > 1 || gp.changed) keepRows(sws, range, gp.rows, C['序号'], gp.seqs);
-        if (back7) stampFooter(sws, range.first, made, addDays(made, 7), opts.reviewer || 'martin');
+        if (restamp) stampFooter(sws, range.first, made, gBack, opts.reviewer || 'martin');
         buf = await sub.xlsx.writeBuffer();
       }
       var gs = Object.keys(gp.genders);
-      var gender = splitBrand && gs.length === 1 && gs[0] !== '-' ? gs[0] : ''; // only 天威 / 天富 carry 男款 / 女款
+      var gender = gp.sb && gs.length === 1 && gs[0] !== '-' ? gs[0] : ''; // only 天威 / 天富 carry 男款 / 女款
       var ps = Object.keys(gp.persons);
       var person = ps.length === 1 ? ps[0] : '';
-      result.outputs.push({ back: fmtDate(back7 ? addDays(made, 7) : back), name: outName(tool, gender, gp.urgent, opts.date || todayStr(), gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
+      result.outputs.push({ back: fmtDate(gBack), name: outName(gp.product, gender, gp.urgent, opts.date || todayStr(), gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
     }
     return result;
   }
