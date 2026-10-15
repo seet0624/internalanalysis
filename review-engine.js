@@ -711,6 +711,18 @@
 
       // 曾用名、原来的名字、后来改名为…（「这次改名字希望…」说的是这次起名，不算）
       var OLDNAME = /曾用名|原名|旧名|舊名|以前的名字|以前名字|改名前|原[来來本]的?名字?|本名|(?:后来|後來|已经|已經|之前|曾经|曾經|曾|有)改(?:过|過|了)?.{0,3}名|改名(?:为|為|成|叫|做)|改(?:过|過|了).{0,3}名|更名/;
+      // 备注 / 总备注 说到名册展示（简体 / 繁体）→ red
+      var SCRIPT = /简体|簡體|简體|繁体|繁體|名册展示|名冊展示/;
+      if (remarkHeads.some(function (h) { return SCRIPT.test(get(h)); })) {
+        redRemarksMatching(function (x) { return SCRIPT.test(x); });
+        add({ kind: 'scriptnote', level: 'mid', text: '备注提到简体 / 繁体（名册展示）— 已标红' });
+      }
+      // 总备注 说到名字（姓名、改名、名字……）→ red
+      if (remarkHeads.indexOf('总备注') >= 0 && /名字|姓名|改名|更名|名册|名冊|曾用名|原名/.test(get('总备注'))) {
+        redCell('总备注');
+        add({ kind: 'namenote', level: 'mid', text: '总备注提到名字 — 已标红' });
+      }
+
       // 要求保留某个字 / 名（例如：尽量保留"诗"这个名）→ red so the expert sees it
       var KEEP = /(保留|保持|沿用|不要改|不改|不换)[^，。；;\n]{0,10}(字|名)|(字|名)[^，。；;\n]{0,6}(保留|不要改|不改|不换)/;
       if (KEEP.test(remarks)) {
@@ -765,11 +777,18 @@
       }
       if (far.length) add({ kind: 'date', level: 'mid', text: '备注有日期（' + far.join('、') + '）不在一个月内 — 只标红，不加急' });
 
+      // 使用人姓名 still says 新生儿 (no real name yet) → red, and the order is a 新生儿 order
+      if (/新生儿|新生兒|宝宝|寶寶/.test(get('使用人姓名'))) {
+        redCell('使用人姓名');
+        if (!o.newborn) { o.newborn = true; add({ kind: 'newborn', level: 'high', text: '使用人姓名写「' + get('使用人姓名').trim() + '」（还没有名字）— 已标红，新生儿单独开文件' }); }
+        else add({ kind: 'newborn-name', level: 'mid', text: '使用人姓名写「' + get('使用人姓名').trim() + '」（还没有名字）— 已标红' });
+      }
+
       // 新生儿: born within one year before the processing date
       var bd = parseBirthday(get('公历生日'));
       if (bd) {
         var bdT = Date.UTC(bd.y, bd.m - 1, bd.d), madeT = Date.UTC(made.y, made.m - 1, made.d), yearAgo = Date.UTC(made.y - 1, made.m - 1, made.d);
-        if (bdT > yearAgo && bdT <= madeT) { o.newborn = true; add({ kind: 'newborn', level: 'high', text: '新生儿（' + get('公历生日').trim() + '，未满一岁）— 单独开文件' }); }
+        if (bdT > yearAgo && bdT <= madeT && !o.newborn) { o.newborn = true; add({ kind: 'newborn', level: 'high', text: '新生儿（' + get('公历生日').trim() + '，未满一岁）— 单独开文件' }); }
       }
 
       // gender for split watches
@@ -819,7 +838,8 @@
               add({ kind: 'surname-rz', level: 'mid', text: chk.text + ' — 备注有认祖归宗，姓氏已标红给专家' });
             } else ask(chk.text + '，备注没有认祖归宗', '下单者');
           }
-          var ok2 = surnameOwnKind(sn, get('使用人姓名'));
+          // 使用人姓名 is only 新生儿 / 宝宝 (no name yet): nothing to compare the surname with
+          var ok2 = /新生儿|新生兒|宝宝|寶寶/.test(get('使用人姓名')) ? { kind: null } : surnameOwnKind(sn, get('使用人姓名'));
           if (ok2.kind === 'variant') {
             redCell('新名字姓氏'); keepRed = true;
             add({ kind: 'surname-variant', level: 'mid', text: '姓氏简繁体不同（新名字姓氏「' + sn + '」/ 使用人姓名「' + ok2.own + '」）— 已标红' });
@@ -905,18 +925,21 @@
     var keys = Object.keys(groups).sort(function (a, b) { return rank(a) - rank(b) || a.localeCompare(b); });
     for (var i = 0; i < keys.length; i++) {
       var gp = groups[keys[i]], buf;
-      if (keys.length === 1 && !gp.changed) buf = processed;
+      // 新生儿名正言顺 is due back in 7 days, not a month
+      var back7 = isNaming && gp.newborn;
+      if (keys.length === 1 && !gp.changed && !back7) buf = processed;
       else {
         var sub = await load(processed);
         var sws = sub.worksheets[0];
-        keepRows(sws, range, gp.rows, C['序号'], gp.seqs);
+        if (keys.length > 1 || gp.changed) keepRows(sws, range, gp.rows, C['序号'], gp.seqs);
+        if (back7) stampFooter(sws, range.first, made, addDays(made, 7), opts.reviewer || 'martin');
         buf = await sub.xlsx.writeBuffer();
       }
       var gs = Object.keys(gp.genders);
       var gender = splitBrand && gs.length === 1 && gs[0] !== '-' ? gs[0] : ''; // only 天威 / 天富 carry 男款 / 女款
       var ps = Object.keys(gp.persons);
       var person = ps.length === 1 ? ps[0] : '';
-      result.outputs.push({ name: outName(tool, gender, gp.urgent, opts.date || todayStr(), gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
+      result.outputs.push({ back: fmtDate(back7 ? addDays(made, 7) : back), name: outName(tool, gender, gp.urgent, opts.date || todayStr(), gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
     }
     return result;
   }
