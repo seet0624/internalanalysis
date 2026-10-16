@@ -258,6 +258,7 @@ tr.on td{background:var(--sel)}
 .go{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px}
 
 .rules-box{display:flex;flex-direction:column;gap:14px}
+.rules-box{--rb-surface:var(--surface);--rb-sunk:var(--sunk);--rb-ink:var(--ink);--rb-muted:var(--muted);--rb-line:var(--line);--rb-line-soft:var(--line-soft);--rb-accent:var(--accent);--rb-red:var(--crit);--rb-red-bg:var(--crit-bg);--rb-red-ink:var(--crit-ink);--rb-warn:var(--warn);--rb-warn-bg:var(--warn-bg);--rb-orange:var(--orange);--rb-blue:var(--blue);--rb-blue-bg:var(--blue-bg);--rb-blue-ink:var(--blue-ink);--rb-ok:var(--ok);--rb-ok-bg:var(--ok-bg);gap:20px}
 .rules-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
 .rule-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:12px;align-items:start}
 .rule-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
@@ -482,113 +483,171 @@ tr.on td{background:var(--sel)}
     return !q || (it.o.person + ' ' + it.o.key + ' ' + it.r.tool).indexOf(q) >= 0;
   }
 
-  // ---------- 审核规则手册: one source for the cards on the page, the preview and the downloaded file ----------
-  // [[…]] = red keyword, {{…}} = bold
-  var RULE_SECTIONS = [
-    { id: 'red', t: '标红原则', c: '#B3261E', bg: '#FBE9E7', items: [
-      '只改{{字体颜色}}，不动位置、大小、合并格；红色一律是[[红字]]，不涂底色',
-      '原文件里涂了底色的格子，一律改成[[红字]]',
-      '每一格都可以在资料里「设红字」或「取消红字」，你的选择优先',
-      '自己在网页里改过的格子，保存后自动变[[红字]]'
+  // ---------- 审核规则手册: flow diagram + tables + two timelines (same markup on the page, in the preview and in the downloaded file) ----------
+  var TAG = { red: ['红字', 'red'], urgent: ['加急', 'urg'], problem: ['有问题', 'prob'], choice: ['由你选', 'choice'] };
+  var RB_FLOW = [
+    { q: '要问人？或你按了「标为有问题」？', d: '先问能不能做、换购没原单号、生肖不对、姓氏要问、刻名字是单号', to: '有问题文件', toD: '另一个 zip，先别发专家', tone: 'prob' },
+    { q: '加急？', d: '备注 / 总备注有加急字眼，或一个月内的日期', to: '特殊加急', toD: '不进 zip，一个个下载', tone: 'urg' },
+    { q: '新生儿？', d: '未满一岁，或使用人姓名写「新生儿」', to: '新生儿文件', toD: '名正言顺回传 +7 天', tone: 'baby' }
+  ];
+  var RB_RED = [
+    { g: '备注 / 总备注', rows: [
+      ['备注 / 总备注', '有人名：家人、学员本人（只写名也算）、这次上传的其他学员', ['red'], '「女儿陈小美」「宛蓉服务中心」'],
+      ['备注 / 总备注', '曾用名、原来的名字、后来改名；总备注说到名字', ['red'], '「原来的名字林（佩）如」'],
+      ['备注 / 总备注', '别的订单号、出生时间、起名要求、要保留某个字、提到简体 / 繁体', ['red'], '「出生时间：0300am」「名字少笔画」'],
+      ['备注 / 总备注', '加急字眼，或一个月内的日期（「效果快」这类祝福不算）', ['red', 'urgent'], '「请加急」「10 月 20 日前要」'],
+      ['备注 / 总备注', '一个月以后的日期', ['red'], '「明年 3 月」'],
+      ['备注', '繁体或子时的单，备注只写祝福语', ['choice'], '「五福临门，越来越好」'],
+      ['订单状态备注', '有任何内容', ['red'], '—'],
+      ['总备注', '和备注一字不差', '清空总备注', '—']
     ] },
-    { id: 'remark', t: '备注 / 总备注', c: '#B3261E', bg: '#FBE9E7', items: [
-      '有[[人名]]：家人姓名、学员本人（只写名也算，例如「宛蓉」）、这次上传里其他学员、「姓名：…」「小名叫…」「…的名字」、复姓（欧阳…）',
-      '有[[曾用名 / 原名 / 原来的名字 / 后来改名]]',
-      '有[[别的订单号]]（原订单号、家人的单）',
-      '写了[[出生时间]]（例如 出生时间：0300am）— 和出生时间栏核对',
-      '有[[起名要求]]（少笔画、同音、好写、不要用某个字）或要求[[保留某个字]]',
-      '提到[[简体 / 繁体]]（名册展示），或总备注说到[[名字]]',
-      '有[[日期]]：一个月内当{{特殊加急}}；超过一个月只红字',
-      '有[[加急 / 急 / 快点]]（「效果快」「赶快好起来」这类祝福不算）→ 特殊加急',
-      '{{订单状态备注}}有内容 → [[红字]]',
-      '总备注和备注{{一字不差}} → 清空总备注',
-      '名册展示繁体或子时的单，备注只写祝福语 → {{由你选}}要不要标红（可一起选）'
+    { g: '名正言顺', rows: [
+      ['名册展示', '繁体', ['red'], '—'],
+      ['是否双胞胎', '双胞胎 / 三胞胎；老大父亲生日也红，老二母亲生日也红，老三两个都红', ['red'], '「老二」→ 母亲生日红'],
+      ['新名字姓氏', '和使用人姓名的姓简繁不同，或换了姓（一样就不红）', ['red'], '「陳」对「陈」'],
+      ['新名字姓氏', '和父亲不同：备注有认祖归宗 → 红字；没有 → 问下单者', ['red', 'problem'], '—'],
+      ['父亲 / 母亲名字', '两个一样', ['red', 'problem'], '—'],
+      ['生肖', '按立春算不对（见 ④）', ['problem'], '1988-02-01 填龙，应为兔'],
+      ['使用人姓名', '写「新生儿」（还没有名字）', ['red'], '有名字（陈小茹）就不红'],
+      ['每位学员', '两行一样的，只有一行会自动补一行', '自动补', '—']
     ] },
-    { id: 'naming', t: '名正言顺', c: '#0E6B66', bg: '#E3F0EE', items: [
-      '每位学员{{两行}}一样的，只有一行会自动补一行',
-      '名册展示[[繁体]] → 红字',
-      '[[双胞胎 / 三胞胎]] → 红字；老大父亲生日也红，老二母亲生日也红，老三父母生日都红',
-      '新名字姓氏和使用人姓名的姓{{一样不红}}；[[简繁体不同]]或[[学员更换姓氏]] → 红字',
-      '姓氏和父亲不同：备注有{{认祖归宗}} → 红字给专家；没有 → {{问下单者}}',
-      '父亲名字和母亲名字一样 → [[红字]]，问下单者',
-      '[[生肖]]按立春核对（2 月 4 日前算前一年；当天看出生时间；不详算当年），对不上 → 先问下单者，再问督导',
-      '使用人姓名写[[新生儿]]（还没有名字）→ 红字；已经有名字就不红'
-    ] },
-    { id: 'zishi', t: '子时', c: '#7A4300', bg: '#FFF1DC', items: [
-      '{{前子时}} 23:00–23:59：公历生日要加一天',
-      '{{后子时}} 00:00–00:59：不用加一天',
-      '「是否子时」写是 → 时间栏[[红字]]；备注写了子时 / 加一天才红',
-      '时间是子时却写「否」，或写「是」但时间不是子时 → {{问下单者}}'
-    ] },
-    { id: 'product', t: '手表与其他产品', c: '#234D78', bg: '#E8F0F8', items: [
-      '一个表里有几种产品（例如天祥、天富、鸿运手表）→ 每种产品{{各开一个文件}}',
-      '只有{{天威、天富手表}}分男款、女款文件',
-      '刻名字为空 → 提醒查新名字是否下来',
-      '刻名字写的是[[订单号]] → 有问题，话术：订单编号 学员 商品，刻名字：…，这个要和服务中心确认',
-      '刻名字是订单号时：去系统查那张单，选好了名字就在待办里{{填入新名字}}（红字，自动回到普通文件）；还没下来就写[[刻新名字]]',
-      '海外单有{{天解手表、天泽手表、福运戒指、天恒手表}} → 先问能不能做，当有问题',
-      '{{换购}}单：原订单编号有填就没问题，空的 → 有问题，和服务中心确认',
-      '套餐 / 赠品（例如 健康套餐-赠品（名正言顺命名））→ 文件名用括号里的工具名'
-    ] },
-    { id: 'family', t: '家人订单', c: '#234D78', bg: '#E8F0F8', items: [
-      '父母、兄弟姐妹、子女、备注等任何一栏写了这次上传里另一单的{{订单号或姓名}} → 同一家',
-      '同一家{{整行涂同一个颜色}}，不同家不同颜色（蓝、绿、黄、橙、紫…）'
-    ] },
-    { id: 'files', t: '分文件与文件名', c: '#0E6B66', bg: '#E3F0EE', items: [
-      '分成：{{没问题}}、{{特殊加急}}、{{新生儿}}（未满一岁）、{{有问题}}（要问人、你标的）',
-      '普通：工具名称 +（男款 / 女款）+ 技术单 + 日期 +（单数）+ H，例：天富手表（女款）技术单 8.10.2026（2）H',
-      '特殊加急：只有一位学员 → 许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H；多位 → 名正言顺技术单（特殊加急）9.10.2026（2）H',
-      '新生儿：新生儿名正言顺技术单 14.10.2026（1）H',
-      '有问题：…技术单（有问题）日期（单数）H，学员名规则同上',
-      '{{H}} 代表海外：上传的文件或 zip 有 H，下载的也有 H',
-      '下载：没问题的打包成 技术单 日期（全部单数）H.zip；特殊加急{{不放进 zip}}，一个个下载；有问题的另一个 zip'
-    ] },
-    { id: 'footer', t: '页脚与回传时间', c: '#7A4300', bg: '#FFF1DC', items: [
-      '制表时间：今天',
-      '回传时间：{{名正言顺 +1 个月}}；{{新生儿名正言顺 +7 天}}；{{九合牌、吊坠 +7 天}}；其他工具 {{+10 天}}',
-      '下载前有确认页：日期、审核人、国内 / 海外，还有没决定的事会提醒'
+    { g: '手表与其他产品', rows: [
+      ['刻名字', '写的是订单号 → 查系统，填新名字或写「刻新名字」', ['red', 'problem'], '「D26091579248141」'],
+      ['刻名字', '空的', '提醒查新名字', '—'],
+      ['商品标题', '一个表里有几种产品', '各开一个文件', '天祥、天富、鸿运手表'],
+      ['商品标题', '天威、天富手表', '分男款 / 女款文件', '—'],
+      ['商品标题', '套餐 / 赠品', '用括号里的工具名', '健康套餐-赠品（名正言顺命名）'],
+      ['父母 / 兄弟姐妹 / 子女 / 备注', '写了这次上传里另一单的订单号或姓名', '家人：整行同色', '—']
     ] }
   ];
-  function ruleText(s) { return esc(s).replace(/\[\[(.+?)\]\]/g, '<b class="r">$1</b>').replace(/\{\{(.+?)\}\}/g, '<b>$1</b>'); }
-  function ruleCount() { return RULE_SECTIONS.reduce(function (n, s) { return n + s.items.length; }, 0); }
+  var RB_ASK = [
+    ['海外单有天解 / 天泽手表、福运戒指、天恒手表', '先问能不能做', 'A2609… 叶婉容 福运戒指（男款），这个需确认能不能做？'],
+    ['换购单，原订单编号是空的', '服务中心', '…，换购的都需要提供原订单号，这个需和服务中心确认'],
+    ['手表刻名字写的是订单号', '服务中心 / 查系统', '…，刻名字：D2609…，这个要和服务中心确认'],
+    ['生肖对不上', '下单者 → 督导', '—'],
+    ['姓氏和父亲不同、没写认祖归宗；父母同名；子时对不上', '下单者', '—']
+  ];
+  var RB_NAMES = [
+    ['普通', '工具 +（男 / 女款）+ 技术单 + 日期 +（单数）+ H', '天富手表（女款）技术单 14.10.2026（2）H'],
+    ['特殊加急', '一位学员时名字放最前；（特殊加急）在技术单后', '许思涵九合平衡牌技术单（特殊加急）14.10.2026（1）H'],
+    ['新生儿', '新生儿放最前', '新生儿名正言顺技术单 14.10.2026（1）H'],
+    ['有问题', '（有问题）在技术单后', '周子平鸿运手表技术单（有问题）14.10.2026（1）H'],
+    ['打包', '单数 = 全部工具加起来；特殊加急不放进 zip', '技术单 14.10.2026（44）H.zip']
+  ];
+  var RB_BACK = [['名正言顺', '+1 个月', '14.11.2026'], ['新生儿名正言顺', '+7 天', '21.10.2026'], ['九合牌、吊坠', '+7 天', '21.10.2026'], ['手表、手链、戒指和其他工具', '+10 天', '24.10.2026']];
+  var ARROW_R = '<svg width="80" height="12" viewBox="0 0 80 12" aria-hidden="true"><path d="M2 6h70M66 1l7 5-7 5" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  var ARROW_D = '<svg width="12" height="28" viewBox="0 0 12 28" aria-hidden="true"><path d="M6 2v20M1 17l5 7 5-7" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+  function rbTags(t) { return typeof t === 'string' ? '<span class="rb-plain">' + esc(t) + '</span>' : '<span class="rb-tags">' + t.map(function (k) { return '<span class="rb-tag ' + TAG[k][1] + '">' + TAG[k][0] + '</span>'; }).join('') + '</span>'; }
+  function rbTable(cols, rows, minW) {
+    return '<div class="rb-scroll"><table class="rb-t" style="min-width:' + minW + 'px"><thead><tr>' + cols.map(function (c) { return '<th scope="col"' + (c[1] ? ' style="width:' + c[1] + 'px"' : '') + '>' + c[0] + '</th>'; }).join('') + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+  function rulesBody(forDoc) {
+    var nav = [['rb-flow', '① 每单去哪个文件'], ['rb-red', '② 标红速查表'], ['rb-zishi', '③ 子时'], ['rb-lichun', '④ 生肖与立春'], ['rb-ask', '⑤ 要问谁'], ['rb-names', '⑥ 文件名'], ['rb-back', '⑦ 回传时间']];
+    var h = '<nav class="rb-nav" aria-label="规则目录">' + nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + '</a>'; }).join('') + '</nav>';
+    h += '<div class="rb-principles"><div><b>只改字体颜色</b><span>不动位置、大小、合并格</span></div><div><b>红色一律是<em>红字</em></b><span>原文件涂底色的格子也改成红字</span></div><div><b>你的选择优先</b><span>每格都能手动设红字或取消</span></div></div>';
+    // ① flow
+    h += '<section class="rb-sec" id="rb-flow"><h3>① 每一单会进哪个文件</h3><p class="rb-lead">从上往下问，<b>第一个答「是」就停</b>，进那个文件。</p><figure class="rb-flow" role="img" aria-label="依次判断：要问人或标为有问题进有问题文件；否则加急进特殊加急；否则新生儿进新生儿文件；都不是进没问题 zip">';
+    RB_FLOW.forEach(function (f, i) {
+      h += '<div class="rb-row"><div class="rb-q"><b>' + esc(f.q) + '</b><span>' + esc(f.d) + '</span></div><div class="rb-yes ' + f.tone + '">是' + ARROW_R + '</div><div class="rb-out ' + f.tone + '"><b>' + esc(f.to) + '</b><span>' + esc(f.toD) + '</span></div></div>' +
+        '<div class="rb-no">' + ARROW_D + '否</div>';
+    });
+    h += '<div class="rb-out ok rb-last"><b>没问题</b><span>全部打包成一个 zip</span></div></figure>' +
+      '<p class="rb-note">另外：同一个表里有几种产品（天祥、天富、鸿运…）各开一个文件；天威、天富手表再分男款 / 女款。</p></section>';
+    // ② red table
+    var rows = RB_RED.map(function (g) {
+      return '<tr class="rb-group"><th scope="rowgroup" colspan="4">' + esc(g.g) + '</th></tr>' + g.rows.map(function (r) {
+        return '<tr><td class="rb-cell">' + esc(r[0]) + '</td><td>' + esc(r[1]) + '</td><td>' + rbTags(r[2]) + '</td><td class="rb-ex">' + esc(r[3]) + '</td></tr>';
+      }).join('');
+    }).join('');
+    h += '<section class="rb-sec" id="rb-red"><div class="rb-head"><div><h3>② 标红速查表</h3><p class="rb-lead">按「看哪一格」找，右边就是网页会怎么做。</p></div>' + rbTags(['red', 'urgent', 'problem', 'choice']) + '</div>' +
+      rbTable([['看哪一格', 140], ['什么情况'], ['结果', 160], ['例子', 230]], rows, 760) + '</section>';
+    // ③ ④ timelines
+    h += '<div class="rb-two"><section class="rb-sec" id="rb-zishi"><h3>③ 子时</h3><p class="rb-lead">晚上 11 点到凌晨 1 点，过了半夜才换日期。</p>' +
+      '<figure class="rb-fig" role="img" aria-label="23:00 到 23:59 是前子时，生日加一天；00:00 到 00:59 是后子时，不用加"><div class="rb-scale4"><span>22:00</span><span>23:00</span><span><b>00:00 换日期</b></span><span>01:00</span></div>' +
+      '<div class="rb-bar4"><div></div><div class="urg"><b>前子时</b><span>生日 +1 天</span></div><div class="ok mid"><b>后子时</b><span>不用加</span></div><div></div></div>' +
+      '<figcaption>23:00–23:59 生日加一天；00:00–00:59 本来就是新的一天，不加。</figcaption></figure>' +
+      '<ul class="rb-ul"><li>「是否子时」写是 → 时间栏<b class="rb-r">红字</b></li><li>时间是子时却写否，或写是但时间不对 → <b>问下单者</b></li></ul></section>' +
+      '<section class="rb-sec" id="rb-lichun"><h3>④ 生肖看立春，不看元旦</h3><p class="rb-lead">立春大约在 2 月 4 日，过了立春才换生肖。</p>' +
+      '<figure class="rb-fig" role="img" aria-label="2 月 3 日以前算前一年生肖，2 月 4 日看出生时间，2 月 5 日以后算当年生肖"><div class="rb-bar3"><div><b>1 月 1 日 – 2 月 3 日</b><span>算<b>前一年</b>的生肖</span></div><div class="urg"><b>2 月 4 日</b><span>看出生时间</span></div><div class="ok"><b>2 月 5 日以后</b><span>算<b>当年</b>的生肖</span></div></div>' +
+      '<figcaption>例：1988 年 2 月 1 日出生 → 还没立春，属<b>兔</b>，不是龙。时间不详 → 算当年。</figcaption></figure>' +
+      '<ul class="rb-ul"><li>对不上 → 先问下单者，没问题再问督导</li><li>立春前出生、填的生肖已经对 → 不红</li></ul></section></div>';
+    // ⑤ ask
+    h += '<section class="rb-sec" id="rb-ask"><h3>⑤ 要问谁</h3><p class="rb-lead">这些单会先放「有问题」，话术网页已经写好，一键复制。</p>' +
+      rbTable([['情况'], ['问谁', 160], ['话术（例）']], RB_ASK.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td><b>' + esc(r[1]) + '</b></td><td class="rb-ex">' + esc(r[2]) + '</td></tr>'; }).join(''), 720) + '</section>';
+    // ⑥ names
+    h += '<section class="rb-sec" id="rb-names"><h3>⑥ 文件名</h3><p class="rb-lead">H = 海外：上传的文件或 zip 有 H，下载的也有 H。</p>' +
+      rbTable([['文件', 120], ['格式'], ['例子']], RB_NAMES.map(function (r) { return '<tr><td><b>' + esc(r[0]) + '</b></td><td class="rb-ex">' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>'; }).join(''), 720) + '</section>';
+    // ⑦ back
+    h += '<section class="rb-sec" id="rb-back"><h3>⑦ 页脚与回传时间</h3><p class="rb-lead">审核人写当天的审核人，制表时间 = 今天。下面的例子以 14.10.2026 制表。</p>' +
+      rbTable([['工具'], ['回传', 140], ['例', 180]], RB_BACK.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td><b>' + esc(r[1]) + '</b></td><td>' + esc(r[2]) + '</td></tr>'; }).join(''), 520) + '</section>';
+    return h;
+  }
+  // shared look; the page passes its theme tokens, the downloaded file fixed light colours
+  function rulesCss(scope) {
+    var s = scope;
+    return s + ' .rb-nav{display:flex;flex-wrap:wrap;gap:8px}' +
+      s + ' .rb-nav a{padding:6px 14px;border-radius:999px;background:var(--rb-surface);border:1px solid var(--rb-line);text-decoration:none;color:var(--rb-ink);font-size:14px}' +
+      s + ' .rb-principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px}' +
+      s + ' .rb-principles div{background:var(--rb-surface);border:1px solid var(--rb-line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column}' +
+      s + ' .rb-principles span{color:var(--rb-muted);font-size:14px}' + s + ' .rb-principles em{font-style:normal;color:var(--rb-red)}' +
+      s + ' .rb-sec{background:var(--rb-surface);border:1px solid var(--rb-line);border-radius:18px;padding:22px 24px;display:flex;flex-direction:column;gap:12px;scroll-margin-top:16px;min-width:0}' +
+      s + ' .rb-sec h3{margin:0;font-size:20px;line-height:1.35}' + s + ' .rb-lead{margin:2px 0 0;color:var(--rb-muted)}' + s + ' .rb-sec>h3+.rb-lead{margin-top:-8px}' +
+      s + ' .rb-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px}' +
+      s + ' .rb-flow{margin:0;display:flex;flex-direction:column;max-width:860px}' +
+      s + ' .rb-row{display:flex;align-items:center}' +
+      s + ' .rb-q{flex:1 1 0;min-width:0;border:2px solid var(--rb-ink);border-radius:12px;padding:12px 16px;background:var(--rb-sunk);display:flex;flex-direction:column}' +
+      s + ' .rb-q span,' + s + ' .rb-out span{font-size:13px}' + s + ' .rb-q span{color:var(--rb-muted)}' +
+      s + ' .rb-yes{width:96px;flex:none;display:flex;flex-direction:column;align-items:center;font-size:13px;font-weight:700}' +
+      s + ' .rb-out{width:230px;flex:none;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column}' +
+      s + ' .rb-last{width:320px}' +
+      s + ' .rb-no{display:flex;align-items:center;gap:8px;padding:4px 0 4px 40px;color:var(--rb-muted);font-size:13px}' +
+      s + ' .rb-yes.prob{color:var(--rb-red)}' + s + ' .rb-out.prob{background:var(--rb-red-bg);color:var(--rb-red-ink)}' +
+      s + ' .rb-yes.urg{color:var(--rb-orange)}' + s + ' .rb-out.urg{background:var(--rb-warn-bg);color:var(--rb-warn)}' +
+      s + ' .rb-yes.baby{color:var(--rb-blue)}' + s + ' .rb-out.baby{background:var(--rb-blue-bg);color:var(--rb-blue-ink)}' +
+      s + ' .rb-out.ok{background:var(--rb-ok-bg);color:var(--rb-ok)}' +
+      s + ' .rb-note{margin:0;font-size:13px;color:var(--rb-muted)}' +
+      s + ' .rb-scroll{overflow-x:auto;position:relative}' +
+      s + ' .rb-t{width:100%;border-collapse:collapse;font-size:14px}' +
+      s + ' .rb-t thead th{text-align:left;background:var(--rb-sunk);padding:10px 12px;font-weight:700}' +
+      s + ' .rb-t td,' + s + ' .rb-t th{text-align:left!important;padding:10px 12px!important;width:auto}' + s + ' .rb-t td{border-bottom:1px solid var(--rb-line-soft);border-top:0;vertical-align:top}' +
+      s + ' .rb-t .rb-group th{text-align:left;padding:16px 12px 6px;font-size:13px;color:var(--rb-accent);border-bottom:2px solid var(--rb-accent)}' +
+      s + ' .rb-cell,' + s + ' .rb-ex{color:var(--rb-muted)}' + s + ' .rb-plain{color:var(--rb-muted)}' +
+      s + ' .rb-tags{display:inline-flex;flex-wrap:wrap;gap:4px}' +
+      s + ' .rb-tag{padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}' +
+      s + ' .rb-tag.red{background:var(--rb-red-bg);color:var(--rb-red-ink)}' + s + ' .rb-tag.urg{background:var(--rb-warn-bg);color:var(--rb-warn)}' +
+      s + ' .rb-tag.prob{background:var(--rb-ink);color:var(--rb-surface)}' + s + ' .rb-tag.choice{background:var(--rb-blue-bg);color:var(--rb-blue-ink)}' +
+      s + ' .rb-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(440px,100%),1fr));gap:20px}' +
+      s + ' .rb-fig{margin:0;display:flex;flex-direction:column;gap:8px}' +
+      s + ' .rb-fig figcaption{font-size:13px;color:var(--rb-muted)}' +
+      s + ' .rb-scale4{display:grid;grid-template-columns:repeat(4,1fr);font-size:12px;color:var(--rb-muted)}' +
+      s + ' .rb-bar4,' + s + ' .rb-bar3{display:grid;border-radius:10px;overflow:hidden;border:1px solid var(--rb-line)}' +
+      s + ' .rb-bar4{grid-template-columns:repeat(4,1fr);min-height:56px}' + s + ' .rb-bar3{grid-template-columns:2fr 1fr 2fr;min-height:64px}' +
+      s + ' .rb-bar4>div,' + s + ' .rb-bar3>div{background:var(--rb-sunk);display:flex;flex-direction:column;justify-content:center;padding:6px 10px;font-size:14px;min-width:0}' +
+      s + ' .rb-bar4 span,' + s + ' .rb-bar3 span{font-size:12px}' +
+      s + ' .rb-bar4 .urg,' + s + ' .rb-bar3 .urg{background:var(--rb-warn-bg);color:var(--rb-warn);border-left:2px solid var(--rb-orange)}' +
+      s + ' .rb-bar3 .urg{border-right:2px solid var(--rb-orange)}' +
+      s + ' .rb-bar4 .ok,' + s + ' .rb-bar3 .ok{background:var(--rb-ok-bg);color:var(--rb-ok)}' + s + ' .rb-bar4 .mid{border-left:3px solid var(--rb-ink)}' +
+      s + ' .rb-ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}' + s + ' .rb-r{color:var(--rb-red)}' +
+      '@media (max-width:640px){' + s + ' .rb-row{flex-wrap:wrap;gap:6px}' + s + ' .rb-yes{width:auto;flex-direction:row;gap:6px}' + s + ' .rb-yes svg{width:40px}' + s + ' .rb-out,' + s + ' .rb-last{width:100%}' + s + ' .rb-sec{padding:18px 16px}}';
+  }
+  var RB_LIGHT = '--rb-surface:#FFFFFF;--rb-sunk:#F4F3EF;--rb-ink:#1D2125;--rb-muted:#55544E;--rb-line:#E3E1DA;--rb-line-soft:#ECEAE3;--rb-accent:#0E6B66;--rb-red:#B3261E;--rb-red-bg:#FBE9E7;--rb-red-ink:#8C1D18;--rb-warn:#7A4300;--rb-warn-bg:#FFF1DC;--rb-orange:#C26A00;--rb-blue:#3A6EA5;--rb-blue-bg:#E8F0F8;--rb-blue-ink:#234D78;--rb-ok:#2C6A37;--rb-ok-bg:#E6F2E8';
   // A standalone, print-ready document (A4) — opens in any browser, 打印 → 另存为 PDF works too.
   function rulesDoc() {
-    var today = E.todayStr(), n = 0;
-    var css = '*{box-sizing:border-box}body{margin:0;background:#F4F3EF;color:#1D2125;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.7}' +
-      '.page{max-width:820px;margin:0 auto;padding:40px 28px 56px}' +
-      '.cover{background:#0E6B66;color:#fff;border-radius:18px;padding:32px 32px 28px;margin-bottom:24px}' +
-      '.cover h1{margin:0 0 6px;font-size:30px;letter-spacing:.04em}.cover p{margin:0;opacity:.9}' +
-      '.meta{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:18px;font-size:13px}.meta span{background:rgba(255,255,255,.16);border-radius:999px;padding:3px 12px}' +
-      '.toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:0 0 24px}' +
-      '.toc a{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #E3E1DA;border-radius:10px;padding:8px 12px;color:#1D2125;text-decoration:none;font-weight:700;font-size:13px}' +
-      '.toc i{width:10px;height:10px;border-radius:3px;display:inline-block}' +
-      'section{background:#fff;border:1px solid #E3E1DA;border-radius:16px;padding:20px 24px;margin-bottom:16px;break-inside:avoid}' +
-      'h2{margin:0 0 12px;font-size:18px;display:flex;align-items:center;gap:10px}h2 .no{font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px}' +
-      'ol{margin:0;padding:0;list-style:none;counter-reset:r}li{counter-increment:r;position:relative;padding:7px 0 7px 38px;border-top:1px solid #F0EEE8}li:first-child{border-top:0}' +
-      'li::before{content:counter(r);position:absolute;left:0;top:8px;width:24px;height:24px;border-radius:50%;background:#F4F3EF;color:#55544E;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}' +
-      'b.r{color:#B3261E}.foot{text-align:center;color:#6B6A64;font-size:12px;margin-top:20px}' +
-      '@page{size:A4;margin:14mm}@media print{body{background:#fff}.page{padding:0}.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}section{border-color:#ccc}}';
-    var body = '<div class="page"><div class="cover"><h1>技术单审核规则</h1><p>上传技术单 → 自动标红、分文件、写好文件名和页脚 → 转发给专家</p>' +
-      '<div class="meta"><span>' + RULE_SECTIONS.length + ' 个部分 · ' + ruleCount() + ' 条规则</span><span>更新日期 ' + esc(today) + '</span><span>审核人 ' + esc(state.set.reviewer || 'martin') + '</span></div></div>' +
-      '<nav class="toc">' + RULE_SECTIONS.map(function (s, i) { return '<a href="#' + s.id + '"><i style="background:' + s.c + '"></i>' + (i + 1) + '. ' + esc(s.t) + '</a>'; }).join('') + '</nav>' +
-      RULE_SECTIONS.map(function (s, i) {
-        return '<section id="' + s.id + '"><h2><span class="no" style="background:' + s.bg + ';color:' + s.c + '">第 ' + (i + 1) + ' 部分</span>' + esc(s.t) + '</h2><ol>' +
-          s.items.map(function (x) { return '<li>' + ruleText(x) + '</li>'; }).join('') + '</ol></section>';
-      }).join('') + '<div class="foot">技术单审核台 · 所有处理都在你的电脑里完成</div></div>';
+    var today = E.todayStr();
+    var css = ':root{' + RB_LIGHT + '}*{box-sizing:border-box}body{margin:0;background:#F4F3EF;color:#1D2125;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.65}' +
+      '.page{max-width:1040px;margin:0 auto;padding:36px 24px 56px;display:flex;flex-direction:column;gap:22px}' +
+      '.cover{display:flex;flex-direction:column;gap:6px}.cover small{font-size:13px;color:#0E6B66;font-weight:700;letter-spacing:.08em}.cover h1{margin:0;font-size:32px}.cover p{margin:0;color:#55544E}' +
+      rulesCss('.page') + '@page{size:A4;margin:12mm}@media print{body{background:#fff}.page{padding:0;max-width:none}.rb-nav{display:none}.rb-sec{break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
     return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>技术单审核规则 ' + esc(today) + '</title>' +
-      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap"><style>' + css + '</style></head><body>' + body + '</body></html>';
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap"><style>' + css + '</style></head><body><div class="page">' +
+      '<div class="cover"><small>技术单审核台 · 更新日期 ' + esc(today) + '</small><h1>审核规则手册</h1><p>先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红。</p></div>' +
+      rulesBody(true) + '</div></body></html>';
   }
   function rulesCards() {
-    return '<section class="rules-box" aria-labelledby="rules-h"><div class="rules-head"><div><h2 id="rules-h" style="font-size:18px">审核规则手册</h2>' +
-      '<p class="small" style="font-size:14px;margin-top:2px">' + RULE_SECTIONS.length + ' 个部分 · ' + ruleCount() + ' 条规则，网页就是按这些规则审核的</p></div>' +
-      '<div class="acts"><button type="button" class="btn" data-rules-preview>' + ICON.eye + '预览</button><button type="button" class="btn primary" data-rules-dl>' + ICON.dl + '下载规则</button></div></div>' +
-      '<div class="rule-grid">' + RULE_SECTIONS.map(function (s, i) {
-        var open = state.rulesOpen === s.id;
-        return '<article class="rule-card"><button type="button" class="rule-top" data-rule-open="' + s.id + '" aria-expanded="' + open + '">' +
-          '<span class="rule-no" style="background:' + s.bg + ';color:' + s.c + '">' + (i + 1) + '</span><span class="rule-t">' + esc(s.t) + '</span><span class="rule-n">' + s.items.length + ' 条</span></button>' +
-          '<ul class="rule-list">' + (open ? s.items : s.items.slice(0, 2)).map(function (x) { return '<li>' + ruleText(x) + '</li>'; }).join('') + '</ul>' +
-          (s.items.length > 2 ? '<button type="button" class="btn link" data-rule-open="' + s.id + '">' + (open ? '收起' : '看全部 ' + s.items.length + ' 条') + '</button>' : '') + '</article>';
-      }).join('') + '</div></section>';
+    return '<section class="rules-box" aria-labelledby="rules-h"><div class="rules-head"><div><h2 id="rules-h" style="font-size:24px">审核规则手册</h2>' +
+      '<p class="small" style="font-size:14px;margin-top:2px">先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红。</p></div>' +
+      '<div class="acts"><button type="button" class="btn" data-rules-preview>' + ICON.eye + '预览 / 打印</button><button type="button" class="btn primary" data-rules-dl>' + ICON.dl + '下载规则</button></div></div>' +
+      rulesBody(false) + '</section>';
   }
   function rulesPreview() {
     if (!state.rulesPreview) return '';
@@ -598,6 +657,7 @@ tr.on td{background:var(--sel)}
   }
 
   // ---------- render ----------
+  (function () { var st = document.createElement('style'); st.textContent = rulesCss('.rules-box'); document.head.appendChild(st); })();
   function render() {
     renderTop();
     var v = state.results ? state.view : 'upload';
