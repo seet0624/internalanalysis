@@ -229,6 +229,8 @@ tr.on td{background:var(--sel)}
 @media (min-width:720px){.dock-in{padding-inline:24px}}
 .dock .sum{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px}
 .dock .w{color:var(--bar-warn)}
+.eng{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--sunk)}
+.eng-in{min-height:40px;padding:0 12px;border:1px solid var(--field);border-radius:8px;background:var(--surface);font-size:15px;flex:1 1 180px;min-width:0;max-width:260px}
 .bulk{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:12px 18px;background:var(--warn-bg);border-color:transparent;color:var(--warn)}
 @media (max-width:600px){.dock .sum span:not(.w){display:none}.dock-in{flex-wrap:nowrap}.dock .btn{min-height:44px}.steps .step{padding:0 10px}}
 .dock .btn{background:var(--bar-ink);color:var(--bar);border-color:var(--bar-ink);font-weight:700;min-height:48px}
@@ -523,6 +525,7 @@ tr.on td{background:var(--sel)}
       '只有{{天威、天富手表}}分男款、女款文件',
       '刻名字为空 → 提醒查新名字是否下来',
       '刻名字写的是[[订单号]] → 有问题，话术：订单编号 学员 商品，刻名字：…，这个要和服务中心确认',
+      '刻名字是订单号时：去系统查那张单，选好了名字就在待办里{{填入新名字}}（红字，自动回到普通文件）；还没下来就写[[刻新名字]]',
       '海外单有{{天解手表、天泽手表、福运戒指、天恒手表}} → 先问能不能做，当有问题',
       '{{换购}}单：原订单编号有填就没问题，空的 → 有问题，和服务中心确认',
       '套餐 / 赠品（例如 健康套餐-赠品（名正言顺命名））→ 文件名用括号里的工具名'
@@ -735,6 +738,16 @@ tr.on td{background:var(--sel)}
         '<button type="button" class="btn small red-out pick-red" data-red="' + esc(it.mk) + '" data-h="' + esc(t.f.pending.h) + '" data-v="1" aria-pressed="' + (t.decided && t.f.pending.on) + '">标红</button>' +
         '<button type="button" class="btn small pick-on" data-red="' + esc(it.mk) + '" data-h="' + esc(t.f.pending.h) + '" data-v="0" aria-pressed="' + (t.decided && !t.f.pending.on) + '">不标红</button>' +
         '<button type="button" class="btn link" data-open="' + esc(it.mk) + '">看全部资料</button></div>';
+    } else if (t.kind === 'engrave-no') {
+      // 刻名字 holds an order number: look that order up in the system, then type the name here (saved in red),
+      // or write 刻新名字 when the new name is not out yet
+      h += t.flags.map(function (f) { return '<div class="why">' + esc(f.text) + '</div>' + (f.copy ? '<div class="copy"><code>' + esc(f.copy) + '</code><button type="button" class="btn small" data-copytext="' + esc(f.copy) + '">复制话术</button></div>' : ''); }).join('') +
+        '<div class="eng"><span class="small">去系统查这个订单号：选好了名字就填在这里；还没下来就按「刻新名字」。填好的会是红字，这单自动回到普通文件。</span>' +
+        '<div class="acts"><label class="vh" for="eng-' + esc(o.key) + '">查到的新名字</label><input id="eng-' + esc(o.key) + '" class="eng-in" data-eng-in="' + esc(it.mk) + '" type="text" placeholder="输入查到的新名字" autocomplete="off">' +
+        '<button type="button" class="btn small primary" data-eng="' + esc(it.mk) + '">填入刻名字</button>' +
+        '<button type="button" class="btn small" data-eng-new="' + esc(it.mk) + '">新名字还没下来 → 刻新名字</button></div>' +
+        '<div class="acts"><button type="button" class="btn small red-out pick-red" data-prob="' + esc(it.mk) + '" data-v="1" aria-pressed="' + (t.decided && !t.ok) + '">还在查，放有问题文件</button>' +
+        '<button type="button" class="btn link" data-open="' + esc(it.mk) + '">看全部资料</button></div></div>';
     } else {
       h += t.flags.map(function (f) { return '<div class="why">' + esc(f.text) + '</div>' + (f.copy ? '<div class="copy"><code>' + esc(f.copy) + '</code><button type="button" class="btn small" data-copytext="' + esc(f.copy) + '">复制话术</button></div>' : ''); }).join('');
       var okOn = t.decided && t.ok, badOn = t.decided && !t.ok;
@@ -880,6 +893,15 @@ tr.on td{background:var(--sel)}
     };
     try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
   }
+  // 刻名字 was an order number: write the looked-up name (or 刻新名字) into the cell as a red edit and re-check
+  function fillEngrave(mk, fixed) {
+    var inp = document.querySelector('[data-eng-in="' + CSS.escape(mk) + '"]');
+    var v = fixed || (inp ? inp.value.trim() : '');
+    if (!v) { toast('请先输入查到的新名字'); if (inp) inp.focus(); return; }
+    state.edits[mk] = Object.assign({}, state.edits[mk] || {}, { '刻名字': v });
+    delete state.problems[mk];
+    run().then(function (ok) { if (ok) toast(fixed ? '刻名字已写「刻新名字」（红字）' : '刻名字已改成「' + v + '」（红字），这单回到普通文件'); });
+  }
   // 审核人 changed right on the download page: re-run so every file carries the new name, stay on this page
   function saveReviewer() {
     var v = (state.set.reviewer || '').trim();
@@ -937,6 +959,7 @@ tr.on td{background:var(--sel)}
     if ('rulesClose' in d) { state.rulesPreview = false; render(); var pb = document.querySelector('[data-rules-preview]'); if (pb) pb.focus(); return; }
     if ('rulesDl' in d) { save('技术单审核规则 ' + E.todayStr() + '.html', new Blob([rulesDoc()], { type: 'text/html' })); return; }
     if (d.ruleOpen) { state.rulesOpen = state.rulesOpen === d.ruleOpen ? null : d.ruleOpen; render(); return; }
+    if (d.eng || d.engNew) { fillEngrave(d.eng || d.engNew, d.engNew ? '刻新名字' : null); return; }
     if ('editrev' in d) { state.editRev = true; render(); var ri = $('dl-rev'); if (ri) { ri.focus(); ri.select(); } return; }
     if ('cancelrev' in d) { state.editRev = false; state.set.reviewer = state.reviewer; render(); return; }
     if ('saverev' in d) { saveReviewer(); return; }
@@ -948,6 +971,7 @@ tr.on td{background:var(--sel)}
   });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && state.rulesPreview) { state.rulesPreview = false; render(); return; }
+    if (e.key === 'Enter' && e.target && e.target.dataset && e.target.dataset.engIn) { e.preventDefault(); fillEngrave(e.target.dataset.engIn); return; }
     if (e.key === 'Enter' && e.target && e.target.id === 'dl-rev') { e.preventDefault(); saveReviewer(); }
     if (e.key === 'Escape' && e.target && e.target.id === 'dl-rev') { state.editRev = false; state.set.reviewer = state.reviewer; render(); }
   });

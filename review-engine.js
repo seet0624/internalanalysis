@@ -804,6 +804,11 @@
       if (isWatch && C['刻名字'] && isBlank(get('刻名字'))) {
         add({ kind: 'engrave', level: 'high', text: '刻名字为空 — 请查新名字是否已下来' });
       }
+      // 刻名字 says 刻新名字: the new name is not out yet — remind, nothing to ask
+      if (C['刻名字'] && /刻新名字/.test(get('刻名字'))) {
+        redCell('刻名字');
+        add({ kind: 'engrave-new', level: 'mid', text: '刻名字写「刻新名字」— 新名字还没下来，已标红' });
+      }
       // 刻名字 is an order number instead of a name → ask the service centre
       if (C['刻名字'] && /[A-Za-z]?\d{8,}/.test(squash(get('刻名字')))) {
         redCell('刻名字');
