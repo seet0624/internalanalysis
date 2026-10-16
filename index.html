@@ -729,7 +729,7 @@ tr.on td{background:var(--sel)}
   function todoCard(t) {
     var it = t.it, o = it.o, sw = famOf(o);
     var h = '<article class="card todo' + (t.decided ? ' decided' : '') + '"><div class="todo-h"><span class="tag ' + (t.type === 'pending' ? 'warn' : 'crit') + '">' + esc(t.label) + '</span>' +
-      '<span class="nm">' + (sw ? '<span class="sw" style="background:' + sw.group.css + ';margin-right:6px"></span>' : '') + esc(o.person) + '</span><span class="meta">' + esc(it.r.tool) + ' · ' + esc(o.key) + ' · 序号 ' + esc(o.seq) + '</span></div>';
+      '<span class="nm">' + (sw ? '<span class="sw" style="background:' + sw.group.css + ';margin-right:6px"></span>' : '') + esc(o.person) + '</span><span class="meta">' + esc(o.title || it.r.tool) + ' · ' + esc(o.key) + ' · 序号 ' + esc(o.seq) + '</span></div>';
     if (t.type === 'pending') {
       var val = (o.fields.filter(function (x) { return x.h === t.f.pending.h; })[0] || {}).value || '';
       var why = /子时/.test(t.f.text) ? '这单是子时' : '名册展示是繁体';
@@ -791,7 +791,7 @@ tr.on td{background:var(--sel)}
     var o = it.o, mk = it.mk, st = statusOf(o), fg = famOf(o);
     var h = '<aside class="card detail" id="detail" aria-label="订单详情"><div class="detail-h"><div class="row"><div class="nm">' + (fg ? '<span class="sw" style="background:' + fg.group.css + '"></span>' : '') + esc(o.person) + '</div>' +
       '<button type="button" class="x" data-close aria-label="关闭详情">' + ICON.x + '</button></div>' +
-      '<div class="small" style="font-size:14px">' + esc(it.r.tool) + ' · ' + esc(o.key) + ' · 序号 ' + esc(o.seq) + '</div>' +
+      '<div class="small" style="font-size:14px">' + esc(o.title || it.r.tool) + ' · ' + esc(o.key) + ' · 序号 ' + esc(o.seq) + '</div>' +
       '<div class="acts" style="gap:6px"><span class="tag ' + (st.c === 'orange' ? 'warn' : st.c) + '">' + st.t + '</span>' + (fg ? '<span class="tag blue">家人第' + fg.group.n + '组 ' + esc(fg.group.label) + '</span>' : '') + '</div></div>' +
       '<div class="tabs" role="tablist" aria-label="详情分页">' +
         '<button type="button" class="tab" role="tab" data-tab="fields" aria-selected="' + (state.tab === 'fields') + '">资料</button>' +
