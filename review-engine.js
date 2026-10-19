@@ -514,6 +514,8 @@
   function outName(tool, gender, urgent, date, count, person, problem, newborn, overseas) {
     // 许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H — normal files keep a space: 九合平衡牌技术单 9.10.2026（2）H
     // 新生儿 goes in front: 新生儿名正言顺技术单 14.10.2026（1）H
+    // a plain 新生儿 file never carries a student name or （特殊加急）: 新生儿名正言顺技术单 19.10.2026（1）H
+    if (newborn && !problem) { urgent = false; person = ''; }
     var tags = (urgent ? '（特殊加急）' : '') + (problem ? '（有问题）' : '');
     return (newborn ? '新生儿' : '') + ((urgent || problem) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
       '（' + count + '）' + (overseas ? 'H' : '') + '.xlsx';
@@ -964,13 +966,15 @@
     orderList.forEach(function (o) {
       var tags = [];
       if (o.problem) tags.push('有问题');
-      if (o.urgent) tags.push('加急');
+      // 新生儿 (not 有问题) always share one 新生儿 file, urgent or not
+      var babyOnly = o.newborn && !o.problem;
+      if (o.urgent && !babyOnly) tags.push('加急');
       if (o.newborn) tags.push('新生儿');
       var sb = brandSplit(multi ? o.product : tool);
       if (sb && !o.problem) tags.push(o.gender || '款式未知');
       if (multi) tags.unshift(o.product);
       var k = tags.join('|');
-      var gp0 = groups[k] = groups[k] || { tags: tags, urgent: o.urgent, newborn: o.newborn, problem: o.problem, rows: [], count: 0, genders: {}, persons: {}, product: multi ? o.product : tool, sb: sb };
+      var gp0 = groups[k] = groups[k] || { tags: tags, urgent: o.urgent && !babyOnly, newborn: o.newborn, problem: o.problem, rows: [], count: 0, genders: {}, persons: {}, product: multi ? o.product : tool, sb: sb };
       // 名正言顺: every student has two identical rows; add the copy when only one came in.
       var rows = isNaming && o.rows.length === 1 ? [o.rows[0], o.rows[0]] : o.rows;
       if (rows.length !== o.rows.length) gp0.changed = true;

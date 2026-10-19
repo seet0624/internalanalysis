@@ -448,7 +448,7 @@ tr.on td{background:var(--sel)}
   function findItem(mk) { return items().filter(function (it) { return it.mk === mk; })[0] || null; }
   function famOf(o) { return o.flags.filter(function (f) { return f.group; })[0] || null; }
   function statusOf(o) {
-    return o.problem ? { t: '有问题', c: 'crit', d: 'var(--crit)' } : o.urgent ? { t: '特殊加急', c: 'orange', d: 'var(--orange)' } : o.newborn ? { t: '新生儿', c: 'blue', d: 'var(--blue)' } : { t: '没问题', c: 'ok', d: 'var(--ok)' };
+    return o.problem ? { t: '有问题', c: 'crit', d: 'var(--crit)' } : o.newborn ? { t: '新生儿', c: 'blue', d: 'var(--blue)' } : o.urgent ? { t: '特殊加急', c: 'orange', d: 'var(--orange)' } : { t: '没问题', c: 'ok', d: 'var(--ok)' };
   }
   var PROB_LABEL = { product: '先问能不能做', exchange: '换购要原单号', ask: '要问下单者', zodiac: '要问下单者', 'engrave-no': '刻名字要确认' };
   var OK_LABEL = { product: '可以做，放回普通文件', exchange: '已有原单号，放回普通文件', ask: '已问过，没问题', zodiac: '已问过，没问题', 'engrave-no': '已确认，放回普通文件' };
@@ -472,7 +472,7 @@ tr.on td{background:var(--sel)}
   var FILTERS = [
     { k: 'all', t: '全部订单', test: function () { return true; } },
     { k: 'problem', t: '有问题', dot: 'var(--crit)', test: function (o) { return o.problem; } },
-    { k: 'urgent', t: '特殊加急', dot: 'var(--orange)', test: function (o) { return o.urgent && !o.problem; } },
+    { k: 'urgent', t: '特殊加急', dot: 'var(--orange)', test: function (o) { return o.urgent && !o.problem && !o.newborn; } },
     { k: 'newborn', t: '新生儿', dot: 'var(--blue)', test: function (o) { return o.newborn && !o.problem; } },
     { k: 'family', t: '家人订单', fam: true, test: function (o) { return !!famOf(o); } },
     { k: 'attention', t: '要留意', dot: 'var(--warn)', test: function (o) { return o.flags.some(function (f) { return ATTENTION[f.kind] && f.level === 'high' || f.kind === 'zishi'; }); } },
@@ -487,8 +487,8 @@ tr.on td{background:var(--sel)}
   var TAG = { red: ['红字', 'red'], urgent: ['加急', 'urg'], problem: ['有问题', 'prob'], choice: ['由你选', 'choice'] };
   var RB_FLOW = [
     { q: '要问人？或你按了「标为有问题」？', d: '先问能不能做、换购没原单号、生肖不对、姓氏要问、刻名字是单号', to: '有问题文件', toD: '另一个 zip，先别发专家', tone: 'prob' },
-    { q: '加急？', d: '备注 / 总备注有加急字眼，或一个月内的日期', to: '特殊加急', toD: '不进 zip，一个个下载', tone: 'urg' },
-    { q: '新生儿？', d: '未满一岁，或使用人姓名写「新生儿」', to: '新生儿文件', toD: '名正言顺回传 +7 天', tone: 'baby' }
+    { q: '新生儿？', d: '未满一岁，或使用人姓名写「新生儿」（加急的新生儿也算这里）', to: '新生儿文件', toD: '不写学员名；名正言顺回传 +7 天', tone: 'baby' },
+    { q: '加急？', d: '备注 / 总备注有加急字眼，或一个月内的日期', to: '特殊加急', toD: '不进 zip，一个个下载', tone: 'urg' }
   ];
   var RB_RED = [
     { g: '备注 / 总备注', rows: [
@@ -530,7 +530,7 @@ tr.on td{background:var(--sel)}
   var RB_NAMES = [
     ['普通', '工具 +（男 / 女款）+ 技术单 + 日期 +（单数）+ H', '天富手表（女款）技术单 14.10.2026（2）H'],
     ['特殊加急', '一位学员时名字放最前；（特殊加急）在技术单后', '许思涵九合平衡牌技术单（特殊加急）14.10.2026（1）H'],
-    ['新生儿', '新生儿放最前', '新生儿名正言顺技术单 14.10.2026（1）H'],
+    ['新生儿', '新生儿放最前；不写学员名、不写（特殊加急），加急的新生儿也放这里', '新生儿名正言顺技术单 14.10.2026（1）H'],
     ['有问题', '（有问题）在技术单后', '周子平鸿运手表技术单（有问题）14.10.2026（1）H'],
     ['打包', '单数 = 全部工具加起来；特殊加急不放进 zip', '技术单 14.10.2026（44）H.zip']
   ];
@@ -546,7 +546,7 @@ tr.on td{background:var(--sel)}
     var h = '<nav class="rb-nav" aria-label="规则目录">' + nav.map(function (n) { return '<a href="#' + n[0] + '">' + n[1] + '</a>'; }).join('') + '</nav>';
     h += '<div class="rb-principles"><div><b>只改字体颜色</b><span>不动位置、大小、合并格</span></div><div><b>红色一律是<em>红字</em></b><span>原文件涂底色的格子也改成红字</span></div><div><b>你的选择优先</b><span>每格都能手动设红字或取消</span></div></div>';
     // ① flow
-    h += '<section class="rb-sec" id="rb-flow"><h3>① 每一单会进哪个文件</h3><p class="rb-lead">从上往下问，<b>第一个答「是」就停</b>，进那个文件。</p><figure class="rb-flow" role="img" aria-label="依次判断：要问人或标为有问题进有问题文件；否则加急进特殊加急；否则新生儿进新生儿文件；都不是进没问题 zip">';
+    h += '<section class="rb-sec" id="rb-flow"><h3>① 每一单会进哪个文件</h3><p class="rb-lead">从上往下问，<b>第一个答「是」就停</b>，进那个文件。</p><figure class="rb-flow" role="img" aria-label="依次判断：要问人或标为有问题进有问题文件；否则新生儿进新生儿文件；否则加急进特殊加急；都不是进没问题 zip">';
     RB_FLOW.forEach(function (f, i) {
       h += '<div class="rb-row"><div class="rb-q"><b>' + esc(f.q) + '</b><span>' + esc(f.d) + '</span></div><div class="rb-yes ' + f.tone + '">是' + ARROW_R + '</div><div class="rb-out ' + f.tone + '"><b>' + esc(f.to) + '</b><span>' + esc(f.toD) + '</span></div></div>' +
         '<div class="rb-no">' + ARROW_D + '否</div>';
