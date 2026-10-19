@@ -514,8 +514,9 @@
   function outName(tool, gender, urgent, date, count, person, problem, newborn, overseas) {
     // 许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H — normal files keep a space: 九合平衡牌技术单 9.10.2026（2）H
     // 新生儿 goes in front: 新生儿名正言顺技术单 14.10.2026（1）H
-    // a plain 新生儿 file never carries a student name or （特殊加急）: 新生儿名正言顺技术单 19.10.2026（1）H
-    if (newborn && !problem) { urgent = false; person = ''; }
+    // 新生儿 files never carry a student name (it is only 姓 + 新生儿), and a plain one never （特殊加急）:
+    // 新生儿名正言顺技术单 19.10.2026（1）H / 新生儿名正言顺技术单（有问题）19.10.2026（1）H
+    if (newborn) { person = ''; if (!problem) urgent = false; }
     var tags = (urgent ? '（特殊加急）' : '') + (problem ? '（有问题）' : '');
     return (newborn ? '新生儿' : '') + ((urgent || problem) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
       '（' + count + '）' + (overseas ? 'H' : '') + '.xlsx';
