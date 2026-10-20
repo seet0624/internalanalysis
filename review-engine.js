@@ -511,6 +511,15 @@
   // [学员（加急且只有一位时）] + 工具名称 + （女款/男款, only when the file holds one gender） + 技术单 + 日期 + （单数）[（特殊加急）]H
   // H = 海外: the uploaded file (or the zip it came in) ends in H → outputs keep H, otherwise no H.
   function isOverseasName(name) { return /(^|[^A-Za-z])H[\s_）)\]】]*\.(xlsx|zip)$/i.test(String(name || '')); }
+  // The date written in an uploaded file's name (技术单_2026-10-14_H / 名正言顺技术单 13.10.2026) → "14.10.2026"
+  function dateFromName(name) {
+    var t = String(name || ''), m, d, mo, y;
+    if ((m = t.match(/(20\d{2})[-._年](\d{1,2})[-._月](\d{1,2})/))) { y = +m[1]; mo = +m[2]; d = +m[3]; }
+    else if ((m = t.match(/(?:^|[^\d])(\d{1,2})[.\-](\d{1,2})[.\-](20\d{2})(?!\d)/))) { d = +m[1]; mo = +m[2]; y = +m[3]; }
+    else if ((m = t.match(/(?:^|[^\d])(20\d{2})(\d{2})(\d{2})(?!\d)/))) { y = +m[1]; mo = +m[2]; d = +m[3]; }
+    else return null;
+    return mo >= 1 && mo <= 12 && d >= 1 && d <= 31 ? d + '.' + mo + '.' + y : null;
+  }
   function outName(tool, gender, urgent, date, count, person, problem, newborn, overseas) {
     // 许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H — normal files keep a space: 九合平衡牌技术单 9.10.2026（2）H
     // 新生儿 goes in front: 新生儿名正言顺技术单 14.10.2026（1）H
@@ -568,6 +577,9 @@
     var splitBrand = multi ? products.some(brandSplit) : brandSplit(tool);
 
     var made = parseDate(opts.date) || parseDate(todayStr());
+    // file names keep the date the uploaded file (or its zip) already carries; the footer uses 制表日期
+    var nameDate = file.nameDate || dateFromName(file.name) || opts.date || todayStr();
+    result.nameDate = nameDate;
 
     // Reviewer edits (opts.edits["file|订单编号"] = {表头: 新值}) go in first, in red, so every check sees them.
     var reds = opts.reds || {};
@@ -1006,7 +1018,7 @@
       var gender = gp.sb && gs.length === 1 && gs[0] !== '-' ? gs[0] : ''; // only 天威 / 天富 carry 男款 / 女款
       var ps = Object.keys(gp.persons);
       var person = ps.length === 1 ? ps[0] : '';
-      result.outputs.push({ back: fmtDate(gBack), name: outName(gp.product, gender, gp.urgent, opts.date || todayStr(), gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
+      result.outputs.push({ back: fmtDate(gBack), nameDate: nameDate, name: outName(gp.product, gender, gp.urgent, nameDate, gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
     }
     return result;
   }
@@ -1090,5 +1102,5 @@
     return out;
   }
 
-  return { processFiles: processFiles, DEFAULTS: DEFAULTS, todayStr: todayStr, isOverseasName: isOverseasName, _mentionedFamily: mentionedFamily, _zodiacFor: zodiacFor, _surnameVsOwn: surnameVsOwn, _surnameCheck: surnameCheck, _ziShi: ziShi };
+  return { processFiles: processFiles, DEFAULTS: DEFAULTS, todayStr: todayStr, isOverseasName: isOverseasName, dateFromName: dateFromName, _mentionedFamily: mentionedFamily, _zodiacFor: zodiacFor, _surnameVsOwn: surnameVsOwn, _surnameCheck: surnameCheck, _ziShi: ziShi };
 });

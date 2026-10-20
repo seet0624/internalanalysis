@@ -386,10 +386,10 @@ tr.on td{background:var(--sel)}
         var names = Object.keys(zip.files).filter(function (n) { return /\.xlsx$/i.test(n) && !/(^|\/)(__MACOSX|~\$)/.test(n); });
         if (!names.length) state.seen.push('（zip 里：' + Object.keys(zip.files).join('、') + '）');
         // H on the zip (海外) carries over to every sheet inside it
-        var zipH = E.isOverseasName(f.name);
+        var zipH = E.isOverseasName(f.name), zipDate = E.dateFromName(f.name);
         for (var j = 0; j < names.length; j++) {
           var en = names[j].split('/').pop();
-          out.push({ name: en, overseas: zipH || E.isOverseasName(en), buffer: await zip.files[names[j]].async('arraybuffer') });
+          out.push({ name: en, overseas: zipH || E.isOverseasName(en), nameDate: E.dateFromName(en) || zipDate, buffer: await zip.files[names[j]].async('arraybuffer') });
         }
       } else if (/\.xlsx$/i.test(f.name)) out.push({ name: f.name, buffer: buf });
     }
@@ -433,7 +433,16 @@ tr.on td{background:var(--sel)}
   // the zip carries H only when every file in it is 海外
   function outZipName(problem, n, outs) {
     var h = outs && outs.length && outs.every(function (o) { return o.overseas; });
-    return (problem ? '有问题技术单 ' : '技术单 ') + state.date + '（' + n + '）' + (h ? 'H' : '') + '.zip';
+    return (problem ? '有问题技术单 ' : '技术单 ') + nameDateOf(outs) + '（' + n + '）' + (h ? 'H' : '') + '.zip';
+  }
+  // the date in the file names: the uploaded files' own date when they all agree
+  function nameDateOf(outs) {
+    var ds = (outs || []).map(function (o) { return o.nameDate; }).filter(Boolean);
+    return ds.length && ds.every(function (d) { return d === ds[0]; }) ? ds[0] : state.date;
+  }
+  function nameDatesText(outs) {
+    var ds = {}; (outs || []).forEach(function (o) { if (o.nameDate) ds[o.nameDate] = true; });
+    return Object.keys(ds).join('、') || state.date;
   }
   function regionOf(outs) {
     if (!outs.length) return '—';
@@ -575,7 +584,7 @@ tr.on td{background:var(--sel)}
     h += '<section class="rb-sec" id="rb-ask"><h3>⑤ 要问谁</h3><p class="rb-lead">这些单会先放「有问题」，话术网页已经写好，一键复制。</p>' +
       rbTable([['情况'], ['问谁', 160], ['话术（例）']], RB_ASK.map(function (r) { return '<tr><td>' + esc(r[0]) + '</td><td><b>' + esc(r[1]) + '</b></td><td class="rb-ex">' + esc(r[2]) + '</td></tr>'; }).join(''), 720) + '</section>';
     // ⑥ names
-    h += '<section class="rb-sec" id="rb-names"><h3>⑥ 文件名</h3><p class="rb-lead">H = 海外：上传的文件或 zip 有 H，下载的也有 H。</p>' +
+    h += '<section class="rb-sec" id="rb-names"><h3>⑥ 文件名</h3><p class="rb-lead"><b>日期跟上传的文件名</b>（例如「技术单 2026-10-14 H.zip」→ 14.10.2026），不会改成今天；H = 海外：上传的文件或 zip 有 H，下载的也有 H。</p>' +
       rbTable([['文件', 120], ['格式'], ['例子']], RB_NAMES.map(function (r) { return '<tr><td><b>' + esc(r[0]) + '</b></td><td class="rb-ex">' + esc(r[1]) + '</td><td>' + esc(r[2]) + '</td></tr>'; }).join(''), 720) + '</section>';
     // ⑦ back
     h += '<section class="rb-sec" id="rb-back"><h3>⑦ 页脚与回传时间</h3><p class="rb-lead">审核人写当天的审核人，制表时间 = 今天。下面的例子以 14.10.2026 制表。</p>' +
@@ -680,9 +689,9 @@ tr.on td{background:var(--sel)}
   function settingsCard() {
     var hasRes = !!state.results;
     return '<section class="card pad" aria-labelledby="set-h" style="display:flex;flex-direction:column;gap:16px">' +
-      '<div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px"><h2 id="set-h" style="font-size:17px">今日设置</h2><span class="small">会写进每个文件的页脚，下载前会再让你确认一次</span></div>' +
+      '<div style="display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px"><h2 id="set-h" style="font-size:17px">今日设置</h2><span class="small">文件名的日期跟上传的文件走，不会改；这里的日期写在页脚</span></div>' +
       '<div class="fgrid">' +
-        '<div class="field"><label for="f-date">制表日期（日.月.年）</label><input id="f-date" data-set="date" type="text" inputmode="numeric" value="' + esc(state.set.date) + '"></div>' +
+        '<div class="field"><label for="f-date">制表日期（页脚用，日.月.年）</label><input id="f-date" data-set="date" type="text" inputmode="numeric" value="' + esc(state.set.date) + '"></div>' +
         '<div class="field"><label for="f-reviewer">审核人</label><input id="f-reviewer" data-set="reviewer" type="text" value="' + esc(state.set.reviewer) + '"></div>' +
         '<div class="field"><span class="lbl">国内 / 海外</span><div class="ro">' + ICON.globe + (hasRes ? esc(regionOf(allOutputs())) : '自动（看文件名的 H）') + '</div></div>' +
       '</div>' +
@@ -895,7 +904,8 @@ tr.on td{background:var(--sel)}
     var h = '<div class="page"><div class="narrow" style="max-width:880px;gap:20px">' +
       '<div style="display:flex;flex-direction:column;gap:4px"><h1 style="font-size:28px">下载前确认一下</h1><p class="lead" style="font-size:15px">这三项会写进每个文件，审核人每天可能不同，请看清楚。</p></div>' +
       '<section class="card facts" aria-label="页脚资料">' +
-        '<div class="fact"><span class="k">制表日期</span><span class="v">' + esc(state.date) + '</span></div>' +
+        '<div class="fact"><span class="k">文件名日期（跟上传的文件）</span><span class="v">' + esc(nameDatesText(outs)) + '</span></div>' +
+        '<div class="fact"><span class="k">制表日期（写在页脚）</span><span class="v">' + esc(state.date) + '</span></div>' +
         (state.editRev
           ? '<div class="fact"><label class="k" for="dl-rev">审核人（改好按「确定」，文件会马上更新）</label><div class="acts" style="margin-top:4px"><input id="dl-rev" class="inline-in" data-set="reviewer" type="text" value="' + esc(state.set.reviewer) + '" autocomplete="off">' +
             '<button type="button" class="btn small primary" data-saverev>确定</button><button type="button" class="btn small" data-cancelrev>取消</button></div></div>'
