@@ -65,6 +65,7 @@ p{margin:0}
 .btn.primary{border-color:var(--accent);background:var(--accent);color:var(--on-accent);font-weight:700}
 .btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 .btn.danger{color:var(--crit)}
+.btn.urg{color:var(--orange)}
 .btn.small{min-height:36px;padding:0 12px;font-size:14px;border-radius:8px}
 .btn.link{border:0;background:transparent;color:var(--accent);padding:0 6px;min-height:36px}
 .btn[disabled]{opacity:.5;cursor:default}
@@ -219,7 +220,7 @@ tr.on td{background:var(--sel)}
 .fam{margin-top:12px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px;background:var(--sunk);border-radius:10px;padding:10px 12px}
 .fam .rel{color:var(--muted)}
 .fam .hit{color:var(--crit);font-weight:700}
-.detail-f{margin-top:auto;padding:12px 18px;border-top:1px solid var(--line-soft);display:flex;flex-wrap:wrap;gap:8px}
+.detail-f{margin-top:auto;padding:12px 18px;border-top:1px solid var(--line-soft);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .detail-f .btn{flex:1 1 130px}
 .detail-empty{padding:28px 20px;color:var(--muted);text-align:center}
 
@@ -321,7 +322,7 @@ tr.on td{background:var(--sel)}
     try { localStorage.setItem('tsr-theme', next); } catch (e) {}
   });
   var state = {
-    inputs: [], results: null, problems: {}, edits: {}, reds: {},
+    inputs: [], results: null, problems: {}, urgents: {}, edits: {}, reds: {},
     view: 'upload', filter: 'todo', sel: null, tab: 'fields', allFields: false, q: '', openFiles: {},
     pick: { good: true, urgent: true, bad: false }, busy: false, error: '',
     set: { date: E.todayStr(), reviewer: E.DEFAULTS.reviewer, brands: E.DEFAULTS.splitWatchBrands.join('，'), askfirst: E.DEFAULTS.askFirstProducts.join('，'), urgent: E.DEFAULTS.urgentWords.join('，') }
@@ -407,7 +408,7 @@ tr.on td{background:var(--sel)}
     try {
       state.date = date;
       state.reviewer = state.set.reviewer.trim() || 'martin';
-      state.results = await E.processFiles(state.inputs, { problems: state.problems, edits: state.edits, reds: state.reds, askFirstProducts: list(state.set.askfirst), date: date, reviewer: state.reviewer, splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
+      state.results = await E.processFiles(state.inputs, { problems: state.problems, urgents: state.urgents, edits: state.edits, reds: state.reds, askFirstProducts: list(state.set.askfirst), date: date, reviewer: state.reviewer, splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
     } catch (e) { state.error = '审核失败：' + (e && e.message || e); }
     state.busy = false;
     render();
@@ -497,7 +498,7 @@ tr.on td{background:var(--sel)}
   var RB_FLOW = [
     { q: '要问人？或你按了「标为有问题」？', d: '先问能不能做、换购没原单号、生肖不对、姓氏要问、刻名字是单号', to: '有问题文件', toD: '另一个 zip，先别发专家', tone: 'prob' },
     { q: '新生儿？', d: '未满一岁，或使用人姓名写「新生儿」（加急的新生儿也算这里）', to: '新生儿文件', toD: '不写学员名；名正言顺回传 +7 天', tone: 'baby' },
-    { q: '加急？', d: '备注 / 总备注有加急字眼，或一个月内的日期', to: '特殊加急', toD: '不进 zip，一个个下载', tone: 'urg' }
+    { q: '加急？', d: '备注 / 总备注有加急字眼，或一个月内的日期；你也可以按「设为特殊加急 / 不加急」自己决定', to: '特殊加急', toD: '不进 zip，一个个下载', tone: 'urg' }
   ];
   var RB_RED = [
     { g: '备注 / 总备注', rows: [
@@ -884,6 +885,8 @@ tr.on td{background:var(--sel)}
     h += '</div><div class="detail-f">' +
       (state.tab === 'fields' ? '<button type="button" class="btn primary" data-save="' + esc(mk) + '">保存修改</button>' : '') +
       '<button type="button" class="btn danger" data-mark="' + esc(mk) + '" aria-pressed="' + !!o.problem + '">' + (o.problem ? '取消有问题' : '标为有问题') + '</button>' +
+      (o.newborn ? '' : '<button type="button" class="btn urg" data-urg="' + esc(mk) + '" data-auto="' + (o.autoUrgent ? 1 : 0) + '" aria-pressed="' + !!o.urgent + '">' + (o.urgent ? '不加急，放回普通文件' : '设为特殊加急') + '</button>') +
+      (has(state.urgents, mk) ? '<span class="small">已手动' + (o.urgent ? '设为加急' : '取消加急') + '（原本' + (o.autoUrgent ? '是' : '不是') + '加急）</span>' : '') +
       (state.edits[mk] ? '<button type="button" class="btn" data-undo="' + esc(mk) + '">还原修改</button>' : '') +
       (state.reds[mk] ? '<button type="button" class="btn" data-unred="' + esc(mk) + '">还原手动红字</button>' : '') +
       '</div></aside>';
@@ -1022,6 +1025,13 @@ tr.on td{background:var(--sel)}
     if (d.undo) { delete state.edits[d.undo]; run(); return; }
     if (d.unred) { delete state.reds[d.unred]; run(); return; }
     if (d.mark) { state.problems[d.mark] = b.getAttribute('aria-pressed') !== 'true'; run(); return; }
+    if (d.urg) {
+      var on = b.getAttribute('aria-pressed') !== 'true';
+      // back to what the rules said → no manual choice left
+      if (on === (d.auto === '1')) delete state.urgents[d.urg]; else state.urgents[d.urg] = on;
+      run().then(function (ok) { if (ok) toast(on ? '已设为特殊加急，单独开文件' : '已取消加急，放回普通文件'); });
+      return;
+    }
     if (d.copytext) { copyText(d.copytext, b); return; }
     if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; save(o.name, new Blob([o.buffer])); return; }
     if ('godl' in d) { downloadAll(); return; }
@@ -1035,7 +1045,7 @@ tr.on td{background:var(--sel)}
     if ('saverev' in d) { saveReviewer(); return; }
     if ('rerun' in d) { run().then(function (ok) { if (ok) go('review'); }); return; }
     if ('reset' in d) {
-      state.inputs = []; state.results = null; state.problems = {}; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {};
+      state.inputs = []; state.results = null; state.problems = {}; state.urgents = {}; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {};
       go('upload'); return;
     }
   });

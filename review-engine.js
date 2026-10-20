@@ -956,14 +956,17 @@
       if (first) o.fields.forEach(function (f) { var c = cell(f.h); f.red = !!(c && isRedCell(c)); f.manual = Object.prototype.hasOwnProperty.call(choice, f.h) ? !!choice[f.h] : null; });
     }
     // 有问题: automatic from flags, the reviewer's own choice (opts.problems) wins.
-    var marks = opts.problems || {};
+    var marks = opts.problems || {}, urgs = opts.urgents || {};
     orderList.forEach(function (o) {
       o.autoProblem = o.flags.some(function (f) { return f.problem; });
       var mk = file.name + '|' + o.key;
       o.problem = Object.prototype.hasOwnProperty.call(marks, mk) ? !!marks[mk] : o.autoProblem;
+      // 加急 / 不加急: the reviewer's button (opts.urgents) wins over the 加急 words and dates
+      o.autoUrgent = !!o.urgent;
+      if (Object.prototype.hasOwnProperty.call(urgs, mk)) o.urgent = !!urgs[mk];
     });
     result.orders = orderList.map(function (o) {
-      return { key: o.key, seq: o.seq, person: o.person, title: o.title, flags: o.flags, urgent: o.urgent, gender: o.gender,
+      return { key: o.key, seq: o.seq, person: o.person, title: o.title, flags: o.flags, urgent: o.urgent, autoUrgent: o.autoUrgent, gender: o.gender,
         autoProblem: o.autoProblem, problem: o.problem, newborn: !!o.newborn, family: o.family || null, fields: o.fields || [] };
     });
     result.isWatch = isWatch; result.splitBrand = splitBrand;
