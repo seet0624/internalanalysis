@@ -742,8 +742,8 @@
       // the student's own name, or only the given name (葉宛蓉 → 宛蓉)
       var selfForms = [];
       Object.keys(own).forEach(function (n) { if (n.length >= 2) selfForms.push(n); var g = givenName(n); if (g) selfForms.push(g); });
-      // everyone else in this upload (使用人姓名 / 会员姓名 of the other orders)
-      var others = (opts.batchNames || []).filter(function (n) { return !own[n] && n.length >= 2 && WISH_WORDS.indexOf(n) < 0; });
+      // everyone else in the same file (使用人姓名 / 会员姓名 of the other orders)
+      var others = ((opts.fileFamily || {}).names || []).filter(function (n) { return !own[n] && n.length >= 2 && WISH_WORDS.indexOf(n) < 0; });
       remarkHeads.forEach(function (h) {
         var txt = get(h);
         if (isBlank(txt)) return;
@@ -925,7 +925,7 @@
       }
 
       // 家人订单 → the family's colour on 订单编号 / 使用人姓名
-      var fg = opts.families && opts.families.byNo[orderNo14(get('订单编号'))];
+      var fg = ((opts.fileFamily || {}).byNo || {})[orderNo14(get('订单编号'))];
       if (fg) {
         // the whole row of the table (序号 … last header column), like a hand-coloured sheet
         var lastCol = Math.max.apply(null, Object.keys(C).map(function (h) { return C[h]; }));
@@ -1041,9 +1041,11 @@
       .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x); });
   }
   var SELF_COLS = /^(序号|订单时间|订单编号|原订单编号|原訂單編號|会员编号|会员姓名|服务中心编号|商品标题|加工序号|产品配置编号|股东名称|新名字姓氏|使用人姓名|新名|新名拼音|名册展示|配置人|审核人|性别|生肖|公历生日|农历时辰|是否子时|是否双胞胎|数字|颜色|刻名字)$/;
+  // 家人订单只在同一个文件里找：每个文件单独审核，不跟别的工具的单连起来
   async function scanFamilies(files) {
-    var orders = [], byNo = {};
+    var groups = [], byFile = [];
     for (var i = 0; i < files.length; i++) {
+      var orders = [], byNo = {};
       try {
         var wb = await load(files[i].buffer), ws = wb.worksheets[0], header = findHeader(ws);
         if (!header) continue;
@@ -1059,44 +1061,46 @@
             text: Object.keys(C).filter(function (h) { return !SELF_COLS.test(h); }).map(g).join('\n') };
           byNo[no] = o; orders.push(o);
         }
-      } catch (e) { /* the file is reported by processFile */ }
-    }
-    var parent = {};
-    var find = function (x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
-    var join = function (a, b) { a = find(a); b = find(b); if (a !== b) parent[b] = a; };
-    orders.forEach(function (o) { parent[o.no] = o.no; });
-    orders.forEach(function (o) {
-      (o.text.match(/\d{14}/g) || []).forEach(function (n) { if (n !== o.no && byNo[n]) join(o.no, n); });
-      orders.forEach(function (p) {
-        if (p === o) return;
-        if (p.names.some(function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; })) join(o.no, p.no);
+      } catch (e) { continue; /* the file is reported by processFile */ }
+      var parent = {};
+      var find = function (x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
+      var join = function (a, b) { a = find(a); b = find(b); if (a !== b) parent[b] = a; };
+      orders.forEach(function (o) { parent[o.no] = o.no; });
+      orders.forEach(function (o) {
+        (o.text.match(/\d{14}/g) || []).forEach(function (n) { if (n !== o.no && byNo[n]) join(o.no, n); });
+        orders.forEach(function (p) {
+          if (p === o) return;
+          if (p.names.some(function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; })) join(o.no, p.no);
+        });
       });
-    });
-    var comps = {}, list = [];
-    orders.forEach(function (o) { var k = find(o.no); if (!comps[k]) { comps[k] = []; list.push(comps[k]); } comps[k].push(o); });
-    var groups = list.filter(function (g) { return g.length > 1; }).map(function (g, i) {
-      var count = {};
-      g.forEach(function (o) { var sn = o.surname || o.person.charAt(0); count[sn] = (count[sn] || 0) + 1; });
-      var sns = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; });
-      var col = FAMILY_COLORS[i % FAMILY_COLORS.length];
-      return { n: i + 1, label: sns.join(' / ') + ' 家', color: col.argb, colorName: col.name, css: col.css,
-        members: g.map(function (o) { return { id: o.id, person: o.person, tool: o.tool }; }) };
-    });
-    var map = {};
-    groups.forEach(function (g) { g.members.forEach(function (m) { map[orderNo14(m.id)] = g; }); });
-    var allNames = [];
-    orders.forEach(function (o) { o.names.forEach(function (n) { if (allNames.indexOf(n) < 0) allNames.push(n); }); });
-    return { groups: groups, byNo: map, names: allNames };
+      var comps = {}, list = [];
+      orders.forEach(function (o) { var k = find(o.no); if (!comps[k]) { comps[k] = []; list.push(comps[k]); } comps[k].push(o); });
+      var map = {}, names = [];
+      // colours restart per file: inside one file, each family gets its own colour
+      list.filter(function (g) { return g.length > 1; }).forEach(function (g, k) {
+        var count = {};
+        g.forEach(function (o) { var sn = o.surname || o.person.charAt(0); count[sn] = (count[sn] || 0) + 1; });
+        var sns = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; });
+        var col = FAMILY_COLORS[k % FAMILY_COLORS.length];
+        var grp = { n: groups.length + 1, file: files[i].name, label: sns.join(' / ') + ' 家', color: col.argb, colorName: col.name, css: col.css,
+          members: g.map(function (o) { return { id: o.id, person: o.person, tool: o.tool }; }) };
+        groups.push(grp);
+        grp.members.forEach(function (m) { map[orderNo14(m.id)] = grp; });
+      });
+      orders.forEach(function (o) { o.names.forEach(function (n) { if (names.indexOf(n) < 0) names.push(n); }); });
+      byFile[i] = { byNo: map, names: names };
+    }
+    return { groups: groups, byFile: byFile };
   }
 
   async function processFiles(files, options) {
     var opts = Object.assign({}, DEFAULTS, options || {});
     var out = [];
     opts.families = await scanFamilies(files);
-    opts.batchNames = opts.families.names;
     out.families = opts.families.groups;
     for (var i = 0; i < files.length; i++) {
-      try { out.push(await processFile(files[i], opts)); }
+      // each file is reviewed on its own: only its own family groups and names
+      try { out.push(await processFile(files[i], Object.assign({}, opts, { fileFamily: opts.families.byFile[i] }))); }
       catch (e) { out.push({ name: files[i].name, tool: toolName(files[i].name), orders: [], outputs: [], error: String(e && e.message || e) }); }
     }
     return out;

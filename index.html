@@ -501,7 +501,7 @@ tr.on td{background:var(--sel)}
   ];
   var RB_RED = [
     { g: '备注 / 总备注', rows: [
-      ['备注 / 总备注', '有人名：家人、学员本人（只写名也算）、这次上传的其他学员', ['red'], '「女儿陈小美」「宛蓉服务中心」'],
+      ['备注 / 总备注', '有人名：家人、学员本人（只写名也算）、同一个文件里的其他学员', ['red'], '「女儿陈小美」「宛蓉服务中心」'],
       ['备注 / 总备注', '曾用名、原来的名字、后来改名；总备注说到名字', ['red'], '「原来的名字林（佩）如」'],
       ['备注 / 总备注', '别的订单号、出生时间、起名要求、要保留某个字、提到简体 / 繁体', ['red'], '「出生时间：0300am」「名字少笔画」'],
       ['备注 / 总备注', '加急字眼，或一个月内的日期（「效果快」这类祝福不算）', ['red', 'urgent'], '「请加急」「10 月 20 日前要」'],
@@ -526,7 +526,7 @@ tr.on td{background:var(--sel)}
       ['商品标题', '一个表里有几种产品', '各开一个文件', '天祥、天富、鸿运手表'],
       ['商品标题', '天威、天富手表', '分男款 / 女款文件', '—'],
       ['商品标题', '套餐 / 赠品', '用括号里的工具名', '健康套餐-赠品（名正言顺命名）'],
-      ['父母 / 兄弟姐妹 / 子女 / 备注', '写了这次上传里另一单的订单号或姓名', '家人：整行同色', '—']
+      ['父母 / 兄弟姐妹 / 子女 / 备注', '写了同一个文件里另一单的订单号或姓名（不跟别的工具连）', '家人：整行同色', '—']
     ] }
   ];
   var RB_ASK = [
@@ -774,8 +774,8 @@ tr.on td{background:var(--sel)}
       var rows = all.filter(function (it) { return f.test(it.o) && matchesQ(it); });
       if (f.fam) rows.sort(function (a, b) { return (famOf(a.o).group.n - famOf(b.o).group.n); });
       h += '<div class="main-h"><h2>' + f.t + ' · ' + rows.length + '</h2>' + searchBox() + '</div>';
-      if (f.fam && fam.length) h += '<div class="card pad" style="display:flex;flex-direction:column;gap:8px"><span class="small">父母、兄弟姐妹、子女、备注等任何一栏写了别的单的订单号或姓名，而那张单也在这次上传里 → 同一家。文件里整行涂同一个颜色。</span>' +
-        fam.map(function (g) { return '<div style="display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center"><b style="display:flex;align-items:center;gap:8px"><span class="sw" style="background:' + g.css + '"></span>第' + g.n + '组 ' + esc(g.label) + '（' + g.colorName + '）</b><span class="small">' + g.members.map(function (m) { return esc(m.person) + ' · ' + esc(m.tool); }).join('、') + '</span></div>'; }).join('') + '</div>';
+      if (f.fam && fam.length) h += '<div class="card pad" style="display:flex;flex-direction:column;gap:8px"><span class="small">父母、兄弟姐妹、子女、备注等任何一栏写了别的单的订单号或姓名，而那张单也在同一个文件里 → 同一家，整行涂同一个颜色。每个文件单独审核，不跟别的工具的单连起来。</span>' +
+        fam.map(function (g) { return '<div style="display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center"><b style="display:flex;align-items:center;gap:8px"><span class="sw" style="background:' + g.css + '"></span>第' + g.n + '组 ' + esc(g.label) + '（' + g.colorName + '）</b><span class="small">' + (g.file ? esc(g.file) + '：' : '') + g.members.map(function (m) { return esc(m.person) + ' · ' + esc(m.tool); }).join('、') + '</span></div>'; }).join('') + '</div>';
       h += rows.length ? '<div class="card" style="overflow:hidden">' + orderTable(rows, true) + '</div>' : '<div class="card alldone"><span class="small">没有符合的订单</span></div>';
     }
     h += '</section>';
