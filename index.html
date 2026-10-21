@@ -295,7 +295,7 @@ tr.on td{background:var(--sel)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="review-engine.js?v=73062a1f7f"></script>
+<script src="review-engine.js?v=e41635e849"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -460,8 +460,8 @@ tr.on td{background:var(--sel)}
   function statusOf(o) {
     return o.problem ? { t: '有问题', c: 'crit', d: 'var(--crit)' } : o.newborn ? { t: '新生儿', c: 'blue', d: 'var(--blue)' } : o.urgent ? { t: '特殊加急', c: 'orange', d: 'var(--orange)' } : { t: '没问题', c: 'ok', d: 'var(--ok)' };
   }
-  var PROB_LABEL = { product: '先问能不能做', exchange: '换购要原单号', ask: '要问下单者', zodiac: '要问下单者', 'engrave-no': '刻名字要确认' };
-  var OK_LABEL = { product: '可以做，放回普通文件', exchange: '已有原单号，放回普通文件', ask: '已问过，没问题', zodiac: '已问过，没问题', 'engrave-no': '已确认，放回普通文件' };
+  var PROB_LABEL = { hold: '暂缓 / 暂停', product: '先问能不能做', exchange: '换购要原单号', ask: '要问下单者', zodiac: '要问下单者', 'engrave-no': '刻名字要确认' };
+  var OK_LABEL = { hold: '已恢复，放回普通文件', product: '可以做，放回普通文件', exchange: '已有原单号，放回普通文件', ask: '已问过，没问题', zodiac: '已问过，没问题', 'engrave-no': '已确认，放回普通文件' };
   // Things only the reviewer can decide: orders the rules sent to 有问题, and 备注 that may or may not turn red.
   function todos() {
     var out = [];
@@ -477,7 +477,7 @@ tr.on td{background:var(--sel)}
     });
     return out;
   }
-  var SHORT = { 'engrave-no': '刻名字是单号', zishi: '子时', urgent: '加急', engrave: '刻名字空', family: '家人姓名', name: '人名', zodiac: '生肖', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购没原单号', keepname: '保留字', namewish: '起名要求', orderno: '订单号', trad: '繁体', twin: '双胞胎', status: '状态备注', dup: '总备注已清空', birthnote: '出生时间', oldname: '曾用名', date: '日期', pending: '备注待定', 'surname-change': '换姓', 'surname-variant': '简繁姓', 'surname-rz': '认祖归宗', edited: '已修改', 'status-urgent': '状态备注写加急', selfname: '本人名字', 'zishi-note': '子时？' };
+  var SHORT = { hold: '暂缓/暂停', 'engrave-no': '刻名字是单号', zishi: '子时', urgent: '加急', engrave: '刻名字空', family: '家人姓名', name: '人名', zodiac: '生肖', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购没原单号', keepname: '保留字', namewish: '起名要求', orderno: '订单号', trad: '繁体', twin: '双胞胎', status: '状态备注', dup: '总备注已清空', birthnote: '出生时间', oldname: '曾用名', date: '日期', pending: '备注待定', 'surname-change': '换姓', 'surname-variant': '简繁姓', 'surname-rz': '认祖归宗', edited: '已修改', 'status-urgent': '状态备注写加急', selfname: '本人名字', 'zishi-note': '子时？' };
   var ATTENTION = { engrave: 1, name: 1, family: 1, namewish: 1, keepname: 1, 'status-urgent': 1, zishi: 1, 'surname-rz': 1, twin: 1 };
   var FILTERS = [
     { k: 'all', t: '全部订单', test: function () { return true; } },
@@ -496,7 +496,7 @@ tr.on td{background:var(--sel)}
   // ---------- 审核规则手册: flow diagram + tables + two timelines (same markup on the page, in the preview and in the downloaded file) ----------
   var TAG = { red: ['红字', 'red'], urgent: ['加急', 'urg'], problem: ['有问题', 'prob'], choice: ['由你选', 'choice'] };
   var RB_FLOW = [
-    { q: '要问人？或你按了「标为有问题」？', d: '先问能不能做、换购没原单号、生肖不对、姓氏要问、刻名字是单号', to: '有问题文件', toD: '另一个 zip，先别发专家', tone: 'prob' },
+    { q: '要问人？或你按了「标为有问题」？', d: '暂缓 / 暂停、先问能不能做、换购没原单号、生肖不对、姓氏要问、刻名字是单号', to: '有问题文件', toD: '另一个 zip，先别发专家', tone: 'prob' },
     { q: '新生儿？', d: '未满一岁，或使用人姓名写「新生儿」（加急的新生儿也算这里）', to: '新生儿文件', toD: '不写学员名；名正言顺回传 +7 天', tone: 'baby' },
     { q: '加急？', d: '备注 / 总备注有加急字眼，或一个月内的日期；你也可以按「设为特殊加急 / 不加急」自己决定', to: '特殊加急', toD: '不进 zip，一个个下载', tone: 'urg' }
   ];
@@ -509,6 +509,7 @@ tr.on td{background:var(--sel)}
       ['备注 / 总备注', '一个月以后的日期', ['red'], '「明年 3 月」'],
       ['备注', '繁体或子时的单，备注只写祝福语', ['choice'], '「五福临门，越来越好」'],
       ['订单状态备注', '有任何内容', ['red'], '—'],
+      ['任何一格', '写了暂缓 / 暂停', ['red', 'problem'], '「暂缓制作」「先暂停」'],
       ['总备注', '和备注一字不差', '清空总备注', '—']
     ] },
     { g: '名正言顺', rows: [
@@ -527,7 +528,7 @@ tr.on td{background:var(--sel)}
       ['商品标题', '一个表里有几种产品', '各开一个文件', '天祥、天富、鸿运手表'],
       ['商品标题', '天威、天富手表', '分男款 / 女款文件', '—'],
       ['商品标题', '套餐 / 赠品', '用括号里的工具名', '健康套餐-赠品（名正言顺命名）'],
-      ['父母 / 兄弟姐妹 / 子女 / 备注', '写了同一个文件里另一单的订单号或姓名（不跟别的工具连）', '家人：整行同色', '—']
+      ['父母 / 兄弟姐妹 / 子女 / 备注', '写了同一个文件里另一单的订单号或姓名（不跟别的工具连）', '家人：整行同色，排在一起', '—']
     ] }
   ];
   var RB_ASK = [

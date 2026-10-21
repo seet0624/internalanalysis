@@ -694,6 +694,13 @@
         add({ kind: 'zishi-note', level: 'info', text: '备注里提到子时，但「是否子时」是否，请核对' });
       }
 
+      // 暂缓 / 暂停 anywhere in the order → 有问题: it must not go out to the experts
+      var holdHeads = Object.keys(C).filter(function (h) { return /暂缓|暂停|暫緩|暫停/.test(get(h)); });
+      if (holdHeads.length) {
+        holdHeads.forEach(function (h) { redCell(h); });
+        add({ kind: 'hold', level: 'high', problem: true, who: '服务中心', text: holdHeads.join('、') + ' 写了暂缓 / 暂停 — 已标红，放有问题文件，不导出给专家' });
+      }
+
       // 订单状态备注 asks for 加急: remind only (the file stays where the other rules put it)
       if (/加急|急件|紧急|緊急/.test(get('订单状态备注')) && !urgentHits([get('备注'), get('总备注')], opts.urgentWords).length) {
         add({ kind: 'status-urgent', level: 'high', text: '订单状态备注写了加急 — 请确认要不要放进加急文件（现在还在普通文件）' });
@@ -935,6 +942,7 @@
         }
         var others = fg.members.filter(function (m) { return orderNo14(m.id) !== orderNo14(get('订单编号')); })
           .map(function (m) { return m.person + '（' + m.tool + '）'; });
+        o.famN = fg.n;
         add({ kind: 'famgroup', level: 'info', group: { n: fg.n, label: fg.label, css: fg.css, colorName: fg.colorName },
           text: '家人订单 第' + fg.n + '组 ' + fg.label + '（' + fg.colorName + '）：同组还有 ' + others.join('、') });
       }
@@ -977,9 +985,19 @@
 
     var processed = await wb.xlsx.writeBuffer();
 
+    // 家人订单 sit together (right after the first one of the family), so the expert reads a family in one go
+    var famOrder = [], placed = {};
+    orderList.forEach(function (o) {
+      if (placed[o.key]) return;
+      orderList.forEach(function (p) {
+        if (p === o || (o.famN && p.famN === o.famN)) { if (!placed[p.key]) { placed[p.key] = true; famOrder.push(p); } }
+      });
+    });
+    var reordered = famOrder.some(function (o, i) { return o !== orderList[i]; });
+
     // Partition into output files.
     var groups = {};
-    orderList.forEach(function (o) {
+    famOrder.forEach(function (o) {
       var tags = [];
       if (o.problem) tags.push('有问题');
       // 新生儿 (not 有问题) always share one 新生儿 file, urgent or not
@@ -1009,11 +1027,11 @@
       var back7 = isNaming && gp.newborn;
       var gBack = back7 ? addDays(made, 7) : returnRule(gp.product).calc(made);
       var restamp = fmtDate(gBack) !== fmtDate(back);
-      if (keys.length === 1 && !gp.changed && !restamp) buf = processed;
+      if (keys.length === 1 && !gp.changed && !reordered && !restamp) buf = processed;
       else {
         var sub = await load(processed);
         var sws = sub.worksheets[0];
-        if (keys.length > 1 || gp.changed) keepRows(sws, range, gp.rows, C['序号'], gp.seqs);
+        if (keys.length > 1 || gp.changed || reordered) keepRows(sws, range, gp.rows, C['序号'], gp.seqs);
         if (restamp) stampFooter(sws, range.first, made, gBack, opts.reviewer || 'martin');
         buf = await sub.xlsx.writeBuffer();
       }
