@@ -295,7 +295,7 @@ tr.on td{background:var(--sel)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="review-engine.js?v=aaa9b028a2"></script>
+<script src="review-engine.js?v=ee6f5c762e"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -477,7 +477,7 @@ tr.on td{background:var(--sel)}
     });
     return out;
   }
-  var SHORT = { charform: '字形', hold: '暂缓/暂停', 'engrave-no': '刻名字是单号', zishi: '子时', urgent: '加急', engrave: '刻名字空', family: '家人姓名', name: '人名', zodiac: '生肖', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购没原单号', keepname: '保留字', namewish: '起名要求', orderno: '订单号', trad: '繁体', twin: '双胞胎', status: '状态备注', dup: '总备注已清空', birthnote: '出生时间', oldname: '曾用名', date: '日期', pending: '备注待定', 'surname-change': '换姓', 'surname-variant': '简繁姓', 'surname-rz': '认祖归宗', edited: '已修改', 'status-urgent': '状态备注写加急', selfname: '本人名字', 'zishi-note': '子时？' };
+  var SHORT = { holdsize: '尺寸暂缓', charform: '字形', hold: '暂缓/暂停', 'engrave-no': '刻名字是单号', zishi: '子时', urgent: '加急', engrave: '刻名字空', family: '家人姓名', name: '人名', zodiac: '生肖', ask: '要问人', newborn: '新生儿', product: '先问能不能做', exchange: '换购没原单号', keepname: '保留字', namewish: '起名要求', orderno: '订单号', trad: '繁体', twin: '双胞胎', status: '状态备注', dup: '总备注已清空', birthnote: '出生时间', oldname: '曾用名', date: '日期', pending: '备注待定', 'surname-change': '换姓', 'surname-variant': '简繁姓', 'surname-rz': '认祖归宗', edited: '已修改', 'status-urgent': '状态备注写加急', selfname: '本人名字', 'zishi-note': '子时？' };
   var ATTENTION = { engrave: 1, name: 1, family: 1, namewish: 1, keepname: 1, 'status-urgent': 1, zishi: 1, 'surname-rz': 1, twin: 1 };
   var FILTERS = [
     { k: 'all', t: '全部订单', test: function () { return true; } },
@@ -510,6 +510,7 @@ tr.on td{background:var(--sel)}
       ['备注', '繁体或子时的单，备注只写祝福语', ['choice'], '「五福临门，越来越好」'],
       ['订单状态备注', '有任何内容', ['red'], '—'],
       ['任何一格', '写了暂缓 / 暂停', ['red', 'problem'], '「暂缓制作」「先暂停」'],
+      ['指环尺寸', '写了暂缓（尺寸晚点给）', ['red'], '照常导出，不算有问题'],
       ['总备注', '和备注一字不差', '清空总备注', '—']
     ] },
     { g: '名正言顺', rows: [

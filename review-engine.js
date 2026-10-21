@@ -701,7 +701,11 @@
       var holdHeads = Object.keys(C).filter(function (h) { return /暂缓|暂停|暫緩|暫停/.test(get(h)); });
       if (holdHeads.length) {
         holdHeads.forEach(function (h) { redCell(h); });
-        add({ kind: 'hold', level: 'high', problem: true, who: '服务中心', text: holdHeads.join('、') + ' 写了暂缓 / 暂停 — 已标红，放有问题文件，不导出给专家' });
+        // 戒指尺寸「暂缓」(size sent later) is fine: red only, the order still goes out
+        var SIZE_COL = /尺寸|尺码|尺碼|size|#/i;
+        var holdOrder = holdHeads.filter(function (h) { return !SIZE_COL.test(h); });
+        if (holdOrder.length) add({ kind: 'hold', level: 'high', problem: true, who: '服务中心', text: holdOrder.join('、') + ' 写了暂缓 / 暂停 — 已标红，放有问题文件，不导出给专家' });
+        if (holdOrder.length < holdHeads.length) add({ kind: 'holdsize', level: 'mid', text: holdHeads.filter(function (h) { return SIZE_COL.test(h); }).join('、') + ' 写了暂缓 — 尺寸晚点给，只标红，照常导出' });
       }
 
       // 订单状态备注 asks for 加急: remind only (the file stays where the other rules put it)
