@@ -999,14 +999,18 @@
 
     var processed = await wb.xlsx.writeBuffer();
 
-    // 家人订单 sit together (right after the first one of the family), so the expert reads a family in one go
-    var famOrder = [], placed = {};
-    orderList.forEach(function (o) {
-      if (placed[o.key]) return;
-      orderList.forEach(function (p) {
-        if (p === o || (o.famN && p.famN === o.famN)) { if (!placed[p.key]) { placed[p.key] = true; famOrder.push(p); } }
+    // 家人订单 sit together, and the families one right after another (blue family, then green …) with no
+    // other order in between, starting where the first family order was; the rest keep their order around them
+    var famOrder = [], firstFam = -1;
+    orderList.forEach(function (o, i) { if (o.famN && firstFam < 0) firstFam = i; });
+    if (firstFam >= 0) {
+      var fams = [], byN = {};
+      orderList.forEach(function (o) { if (!o.famN) return; if (!byN[o.famN]) { byN[o.famN] = []; fams.push(byN[o.famN]); } byN[o.famN].push(o); });
+      orderList.forEach(function (o, i) {
+        if (i === firstFam) fams.forEach(function (f) { famOrder.push.apply(famOrder, f); });
+        if (!o.famN) famOrder.push(o);
       });
-    });
+    } else famOrder = orderList.slice();
     var reordered = famOrder.some(function (o, i) { return o !== orderList[i]; });
 
     // Partition into output files.
