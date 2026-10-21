@@ -260,7 +260,7 @@
   var NOT_NAMES = {};
   '曾用名 曾经是 曾经的 华语名 华文名 中文名 英文名 高血压 高血糖 高血脂 金木水 文曲星 文昌星 万事兴 和万事 周岁的 何时能 时辰不 时间不 陈述的 林林总'.split(' ').forEach(function (w) { NOT_NAMES[w] = true; });
   // Words that read like a given name but are wishes (平安、如意 …): never a name on their own.
-  var WISH_WORDS = '平安 健康 幸福 吉祥 如意 富贵 富貴 顺利 順利 美满 美滿 快乐 快樂 安康 和谐 和諧 发达 發達 兴旺 興旺 成功 长寿 長壽 万事 萬事 心想 事成 贵人 貴人 财富 財富 自由 圆满 圓滿 五福 临门 臨門 智慧 学业 學業 事业 事業 开心 開心 欢乐 歡樂 喜乐 喜樂 福气 福氣 好运 好運 美丽 美麗 聪明 聰明 孝顺 孝順 和睦 丰盛 豐盛 荣华 榮華 光明 天下 世界 文化 家庭 家人 一家 平顺 平順 顺遂 順遂 兴隆 興隆 发财 發財 进宝 進寶 吉利 康宁 康寧 安心 欣欣 向荣 向榮 永远 永遠 春风 春風 美好 成长 成長 学习 學習 工作 生意 前途 未来 未來 子孙 子孫 父母 姻缘 姻緣 桃花 正缘 正緣'.split(' ');
+  var WISH_WORDS = '平安 健康 幸福 吉祥 如意 富贵 富貴 顺利 順利 美满 美滿 快乐 快樂 安康 和谐 和諧 发达 發達 兴旺 興旺 成功 长寿 長壽 万事 萬事 心想 事成 贵人 貴人 财富 財富 自由 圆满 圓滿 五福 临门 臨門 智慧 学业 學業 事业 事業 开心 開心 欢乐 歡樂 喜乐 喜樂 福气 福氣 好运 好運 美丽 美麗 聪明 聰明 孝顺 孝順 和睦 丰盛 豐盛 荣华 榮華 光明 天下 世界 文化 家庭 家人 一家 平顺 平順 顺遂 順遂 兴隆 興隆 发财 發財 进宝 進寶 吉利 康宁 康寧 安心 欣欣 向荣 向榮 永远 永遠 春风 春風 美好 成长 成長 学习 學習 工作 生意 前途 未来 未來 子孙 子孫 父母 姻缘 姻緣 桃花 正缘 正緣 关系 關系 關係 关係 人际 人際 沟通 溝通 恩爱 恩愛 夫妻 被动 被動 收入 留住 传承 傳承 奉献 奉獻 捐款 慈善 基金 帮助 幫助 福音 时间 時間 能力 身体 身體 心灵 心靈 健壮 健壯 强壮 強壯'.split(' ');
   var COMPOUND_SURNAMES = /(?:欧阳|歐陽|司马|司馬|上官|诸葛|諸葛|东方|東方|皇甫|慕容|令狐|尉迟|尉遲|公孙|公孫|夏侯|长孙|長孫|司徒|宇文|端木|爱新觉罗|愛新覺羅)[\u4e00-\u9fff]{1,2}/g;
   function givenName(full) {
     var n = String(full || '').trim(), m = n.match(/^(?:欧阳|歐陽|司马|司馬|上官|诸葛|諸葛|东方|東方|皇甫|慕容|令狐|尉迟|尉遲|公孙|公孫|夏侯|长孙|長孫|司徒|宇文|端木)/);
@@ -291,10 +291,15 @@
     (t.match(COMPOUND_SURNAMES) || []).forEach(push);
     return out;
   }
+  // 關系好 / 學習強 / 溝通佳: a wish word, or 「…好 / 強 / 佳」 at the end, reads as a wish, not a name
+  function wishPhrase(n) {
+    for (var i = 0; i < n.length - 1; i++) if (WISH_WORDS.indexOf(n.substr(i, 2)) >= 0) return true;
+    return /[好强強佳棒]$/.test(n);
+  }
   function possibleNames(text, skip) {
     var out = [];
     String(text || '').split(/[\s,，。、；;：:！!？?（）()【】"“”'‘’\-—…·.\/＇]+/).forEach(function (seg) {
-      if (/^[\u4e00-\u9fff]{3}$/.test(seg) && SURNAMES.indexOf(seg[0]) >= 0 && !skip[seg] && !NOT_NAMES[seg] && out.indexOf(seg) < 0) out.push(seg);
+      if (/^[\u4e00-\u9fff]{3}$/.test(seg) && SURNAMES.indexOf(seg[0]) >= 0 && !skip[seg] && !NOT_NAMES[seg] && out.indexOf(seg) < 0 && !wishPhrase(seg)) out.push(seg);
     });
     return out;
   }
