@@ -410,19 +410,22 @@
     var base = Date.UTC(made.y, made.m - 1, made.d);
     var nm = made.m === 12 ? Date.UTC(made.y + 1, 0, made.d) : Date.UTC(made.y, made.m, made.d);
     var monthDays = Math.round((nm - base) / 864e5);
-    var push = function (y, mo, d, txt) {
+    var push = function (y, mo, d, txt, at) {
       if (mo < 1 || mo > 12 || d < 1 || d > 31 || y < 1900 || y > 2100) return;
-      out.push({ text: txt.trim(), days: Math.round((Date.UTC(y, mo - 1, d) - base) / 864e5), monthDays: monthDays });
+      // 预产日期 / 出生日期 next to the date: a birth, not a deadline
+      var ctx = s.slice(Math.max(0, at - 8), at + txt.length + 8);
+      out.push({ text: txt.trim(), days: Math.round((Date.UTC(y, mo - 1, d) - base) / 864e5), monthDays: monthDays,
+        birth: /预产|預產|产期|產期|出生|生日|出世|诞生|誕生|生于|生於/.test(ctx) });
     };
     var used = [];
     var re1 = /(\d{4})\s*[年\-\/.]\s*(\d{1,2})\s*[月\-\/.]\s*(\d{1,2})\s*[日号號]?/g;
-    while ((m = re1.exec(s))) { push(+m[1], +m[2], +m[3], m[0]); used.push([m.index, m.index + m[0].length]); }
+    while ((m = re1.exec(s))) { push(+m[1], +m[2], +m[3], m[0], m.index); used.push([m.index, m.index + m[0].length]); }
     var re2 = /(\d{1,2})[\-\/.](\d{1,2})[\-\/.](\d{4})/g;
-    while ((m = re2.exec(s))) { push(+m[3], +m[2], +m[1], m[0]); used.push([m.index, m.index + m[0].length]); }
+    while ((m = re2.exec(s))) { push(+m[3], +m[2], +m[1], m[0], m.index); used.push([m.index, m.index + m[0].length]); }
     var re3 = /(\d{1,2})\s*月\s*(\d{1,2})\s*[日号號]/g;
     while ((m = re3.exec(s))) {
       var at = m.index, inside = used.some(function (u) { return at >= u[0] && at < u[1]; });
-      if (!inside) push(made.y, +m[1], +m[2], m[0]);
+      if (!inside) push(made.y, +m[1], +m[2], m[0], at);
     }
     return out;
   }
@@ -786,6 +789,12 @@
         redRemarksMatching(function (x) { return SCRIPT.test(x); });
         add({ kind: 'scriptnote', level: 'mid', text: '备注提到简体 / 繁体（名册展示）— 已标红' });
       }
+      // 备注 / 总备注 说到某个字怎么写（「宮崎」的「崎」字请用右上方为「立」的字形）→ red
+      var CHARFORM = /字形|字型|写法|寫法|异体|異體|部首|已用字|的\s*[「『“"‘']?(?![名数數文汉漢打识識写寫十])[\u4e00-\u9fff][」』”"’']?\s*字(?![母幕])|这个字|這個字|那个字|那個字|哪个字|哪個字/;
+      if (remarkHeads.some(function (h) { return CHARFORM.test(get(h)); })) {
+        redRemarksMatching(function (x) { return CHARFORM.test(x); });
+        add({ kind: 'charform', level: 'mid', text: '备注说到某个字的写法 / 字形 — 已标红，提醒专家' });
+      }
       // 总备注 说到名字（姓名、改名、名字……）→ red
       if (remarkHeads.indexOf('总备注') >= 0 && /名字|姓名|改名|更名|名册|名冊|曾用名|原名/.test(get('总备注'))) {
         redCell('总备注');
@@ -844,17 +853,18 @@
         var u = urgentHits([get(h)], opts.urgentWords);
         if (u.length) redCell(h);
       });
-      var near = [], far = [];
+      var near = [], far = [], births = [];
       remarkHeads.forEach(function (h) {
         var ds = datesIn(get(h), made);
         if (!ds.length) return;
         redCell(h);
-        ds.forEach(function (d) { (d.days >= 0 && d.days <= d.monthDays ? near : far).push(d.text); });
+        ds.forEach(function (d) { (d.birth ? births : d.days >= 0 && d.days <= d.monthDays ? near : far).push(d.text); });
       });
       if (hits.length || near.length) {
         o.urgent = true;
         add({ kind: 'urgent', level: 'high', text: '加急（' + hits.concat(near.map(function (x) { return x + ' 在一个月内'; })).join('、') + '）— 已标红，单独开文件' });
       }
+      if (births.length) add({ kind: 'date', level: 'mid', text: '备注有预产 / 出生日期（' + births.join('、') + '）— 只标红，不加急' });
       if (far.length) add({ kind: 'date', level: 'mid', text: '备注有日期（' + far.join('、') + '）不在一个月内 — 只标红，不加急' });
 
       // 使用人姓名 still says 新生儿 (no real name yet) → red, and the order is a 新生儿 order
@@ -1057,6 +1067,14 @@
     return !!c && FAMILY_COLORS.some(function (x) { return x.argb === String(c).toUpperCase(); });
   }
   function orderNo14(x) { var m = String(x || '').match(/\d{14}/); return m ? m[0] : ''; }
+  // names in 父亲名字 / 母亲名字 / 兄弟姐妹 / 子女: "兄弟姐妹:林鼎伦 （名正言顺订单号：A…）;伴侣:NIL" → 林鼎伦
+  // (3+ characters only: a 2-character name is too easily part of ordinary words)
+  var REL_LABELS = /现用名|現用名|曾用名|原来的名字|原來的名字|原名|现名|現名|旧名|舊名|本名|全名|名字|姓名|兄弟姐妹|兄弟|姐妹|伴侣|伴侶|配偶|子女|父亲|父親|母亲|母親|哥哥|姐姐|弟弟|妹妹|儿子|兒子|女儿|女兒|丈夫|妻子|名正言顺|订单号|訂單號|订单|訂單/g;
+  var REL_NONAME = /不详|不詳|没有|沒有|未知|暂无|暫無|已故|过世|過世|离婚|離婚|单亲|單親/;
+  function relNames(s) {
+    return (String(s || '').replace(/[（(][^）)]*[）)]/g, ' ').replace(REL_LABELS, ' ').match(/[\u4e00-\u9fff]+/g) || [])
+      .filter(function (x) { return x.length >= 3 && x.length <= 4 && !REL_NONAME.test(x); });
+  }
   function ownNames(s) {
     return String(s || '').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／,，、]+/).map(function (x) { return x.trim(); })
       .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x); });
@@ -1078,6 +1096,7 @@
           var snm = (g('新名字姓氏').match(/[\u4e00-\u9fff]/) || [])[0];
           var o = { no: no, id: g('订单编号').trim(), surname: snm || '', person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool,
             names: ownNames(g('使用人姓名')).concat(ownNames(g('会员姓名'))),
+            rel: relNames([g('父亲名字'), g('母亲名字'), g('兄弟姐妹'), g('子女')].join(' ')),
             // every column can carry a relative (父亲名字 / 母亲名字 / 兄弟姐妹 / 子女 / 备注 …), except the order's own identity
             text: Object.keys(C).filter(function (h) { return !SELF_COLS.test(h); }).map(g).join('\n') };
           byNo[no] = o; orders.push(o);
@@ -1092,6 +1111,8 @@
         orders.forEach(function (p) {
           if (p === o) return;
           if (p.names.some(function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; })) join(o.no, p.no);
+          // a parent / sibling / child of p is named in o (same parents, or 总备注 listing the relatives) → one family
+          else if (p.rel.some(function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; })) join(o.no, p.no);
         });
       });
       var comps = {}, list = [];
