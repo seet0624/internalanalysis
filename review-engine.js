@@ -572,6 +572,8 @@
     // (a re-uploaded output is already called "许舒涵九合平衡牌技术单（特殊加急）…" or "天富手表（男款）技术单…")
     var tool = null;
     var overseas = file.overseas != null ? !!file.overseas : isOverseasName(file.name);
+    // 国内 / 海外 picked by the reviewer wins over the H in the file name
+    if (opts.region === 'overseas') overseas = true; else if (opts.region === 'domestic') overseas = false;
     var result = { name: file.name, tool: tool, orders: [], outputs: [], error: null, overseas: overseas };
     if (!header) { result.error = '找不到表头（序号）'; return result; }
     var range = dataRowRange(ws, header);
