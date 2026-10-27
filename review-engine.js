@@ -3,9 +3,12 @@
  * Works in the browser (window.ExcelJS) and in Node (require('exceljs')). */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory(require('exceljs'), require('jszip'));
-  else root.ReviewEngine = factory(root.ExcelJS, root.JSZip);
-})(typeof self !== 'undefined' ? self : this, function (ExcelJS, JSZip) {
+  // the browser looks the libraries up when a file is read, not when this script loads:
+  // a slow or failed CDN (then a fallback copy) must not leave the engine without ExcelJS for good
+  else root.ReviewEngine = factory(function () { return root.ExcelJS; }, function () { return root.JSZip; });
+})(typeof self !== 'undefined' ? self : this, function (getExcelJS, getJSZip) {
   'use strict';
+  if (typeof getExcelJS !== 'function') { var xl0 = getExcelJS, zp0 = getJSZip; getExcelJS = function () { return xl0; }; getJSZip = function () { return zp0; }; }
 
   var RED = 'FFFF0000';
 
@@ -542,6 +545,7 @@
   // Some exports write document properties without their namespace prefix (<lastModifiedBy>),
   // which ExcelJS refuses. Add the prefix before reading; the sheet itself is untouched.
   async function sanitize(buffer) {
+    var JSZip = getJSZip();
     if (!JSZip) return buffer;
     var zip = await JSZip.loadAsync(buffer);
     var core = zip.file('docProps/core.xml');
@@ -553,6 +557,8 @@
     return zip.generateAsync({ type: 'arraybuffer' });
   }
   async function load(buffer) {
+    var ExcelJS = getExcelJS();
+    if (!ExcelJS) throw new Error('读 Excel 的组件没有载入（网络慢或被挡），请按 Ctrl+F5 重新整理页面再上传');
     var wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await sanitize(buffer));
     return wb;

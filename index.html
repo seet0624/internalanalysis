@@ -295,7 +295,12 @@ tr.on td{background:var(--sel)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="review-engine.js?v=62e4a524d9"></script>
+<script>
+// cdnjs slow or blocked → load the same versions from jsdelivr instead
+if (!window.ExcelJS) document.write('<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>');
+if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
+</script>
+<script src="review-engine.js?v=62e0b37def"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -415,6 +420,10 @@ tr.on td{background:var(--sel)}
     return !state.error;
   }
   async function addFiles(fl) {
+    if (!window.ExcelJS || !window.JSZip) {
+      state.error = '读 Excel 的组件还没载入（网络慢或被挡）。请按 Ctrl+F5（Mac 按 Cmd+Shift+R）重新整理页面，再上传一次。';
+      state.view = 'upload'; render(); return;
+    }
     try {
       var got = await readInputs(Array.prototype.slice.call(fl || []));
       var by = {};
