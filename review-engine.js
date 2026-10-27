@@ -592,7 +592,8 @@
 
     var made = parseDate(opts.date) || parseDate(todayStr());
     // file names keep the date the uploaded file (or its zip) already carries; the footer uses 制表日期
-    var nameDate = file.nameDate || dateFromName(file.name) || opts.date || todayStr();
+    // opts.nameDate: the reviewer typed a date for the file names on the download page (wins over the uploaded name)
+    var nameDate = opts.nameDate || file.nameDate || dateFromName(file.name) || opts.date || todayStr();
     result.nameDate = nameDate;
 
     // Reviewer edits (opts.edits["file|订单编号"] = {表头: 新值}) go in first, in red, so every check sees them.

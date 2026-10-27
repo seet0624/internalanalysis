@@ -300,7 +300,7 @@ tr.on td{background:var(--sel)}
 if (!window.ExcelJS) document.write('<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>');
 if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
 </script>
-<script src="review-engine.js?v=62e0b37def"></script>
+<script src="review-engine.js?v=e869dea549"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -330,7 +330,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     inputs: [], results: null, problems: {}, urgents: {}, edits: {}, reds: {},
     view: 'upload', filter: 'todo', sel: null, tab: 'fields', allFields: false, q: '', openFiles: {},
     pick: { good: true, urgent: true, bad: false }, busy: false, error: '',
-    set: { date: E.todayStr(), reviewer: E.DEFAULTS.reviewer, brands: E.DEFAULTS.splitWatchBrands.join('，'), askfirst: E.DEFAULTS.askFirstProducts.join('，'), urgent: E.DEFAULTS.urgentWords.join('，') }
+    set: { date: E.todayStr(), reviewer: E.DEFAULTS.reviewer, brands: E.DEFAULTS.splitWatchBrands.join('，'), askfirst: E.DEFAULTS.askFirstProducts.join('，'), urgent: E.DEFAULTS.urgentWords.join('，'), nameDate: '' }
   };
   var downloadsP = window.claude && window.claude.use ? window.claude.use('downloads').catch(function () { return null; }) : Promise.resolve(null);
 
@@ -413,7 +413,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     try {
       state.date = date;
       state.reviewer = state.set.reviewer.trim() || 'martin';
-      state.results = await E.processFiles(state.inputs, { problems: state.problems, urgents: state.urgents, edits: state.edits, reds: state.reds, askFirstProducts: list(state.set.askfirst), date: date, reviewer: state.reviewer, splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
+      state.results = await E.processFiles(state.inputs, { problems: state.problems, urgents: state.urgents, edits: state.edits, reds: state.reds, askFirstProducts: list(state.set.askfirst), date: date, reviewer: state.reviewer, nameDate: state.nameDate || '', splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
     } catch (e) { state.error = '审核失败：' + (e && e.message || e); }
     state.busy = false;
     render();
@@ -918,7 +918,12 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var h = '<div class="page"><div class="narrow" style="max-width:880px;gap:20px">' +
       '<div style="display:flex;flex-direction:column;gap:4px"><h1 style="font-size:28px">下载前确认一下</h1><p class="lead" style="font-size:15px">这三项会写进每个文件，审核人每天可能不同，请看清楚。</p></div>' +
       '<section class="card facts" aria-label="页脚资料">' +
-        '<div class="fact"><span class="k">文件名日期（跟上传的文件）</span><span class="v">' + esc(nameDatesText(outs)) + '</span></div>' +
+        (state.editND
+          ? '<div class="fact"><label class="k" for="dl-nd">文件名日期（日.月.年，改好按「确定」）</label><div class="acts" style="margin-top:4px"><input id="dl-nd" class="inline-in" data-set="nameDate" type="text" inputmode="numeric" value="' + esc(state.set.nameDate) + '" autocomplete="off">' +
+            '<button type="button" class="btn small primary" data-savend>确定</button><button type="button" class="btn small" data-cancelnd>取消</button></div></div>'
+          : '<div class="fact"><span class="k">文件名日期（' + (state.nameDate ? '你改的' : '跟上传的文件') + '）</span><span class="v">' + esc(nameDatesText(outs)) + '</span>' +
+            '<div class="acts" style="gap:12px"><button type="button" class="btn link" style="padding:0" data-editnd>改日期</button>' +
+            (state.nameDate ? '<button type="button" class="btn link" style="padding:0" data-resetnd>改回跟文件</button>' : '') + '</div></div>') +
         '<div class="fact"><span class="k">制表日期（写在页脚）</span><span class="v">' + esc(state.date) + '</span></div>' +
         (state.editRev
           ? '<div class="fact"><label class="k" for="dl-rev">审核人（改好按「确定」，文件会马上更新）</label><div class="acts" style="margin-top:4px"><input id="dl-rev" class="inline-in" data-set="reviewer" type="text" value="' + esc(state.set.reviewer) + '" autocomplete="off">' +
@@ -993,6 +998,13 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     state.set.reviewer = v; state.editRev = false;
     run().then(function (ok) { if (ok) toast('审核人已改成 ' + v + '，所有文件已更新'); });
   }
+  // 文件名日期 changed on the download page: every file / zip name takes it, footers stay as they are
+  function saveNameDate() {
+    var v = normDate(state.set.nameDate);
+    if (!/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(v)) { toast('日期请写成 日.月.年，例如 ' + E.todayStr()); var ni = $('dl-nd'); if (ni) ni.focus(); return; }
+    state.set.nameDate = v; state.nameDate = v; state.editND = false;
+    run().then(function (ok) { if (ok) toast('文件名日期已改成 ' + v + '，所有文件已更新'); });
+  }
   function go(view, focusId) {
     state.view = view; render(); window.scrollTo(0, 0);
     if (focusId && $(focusId)) $(focusId).focus();
@@ -1061,9 +1073,13 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if ('editrev' in d) { state.editRev = true; render(); var ri = $('dl-rev'); if (ri) { ri.focus(); ri.select(); } return; }
     if ('cancelrev' in d) { state.editRev = false; state.set.reviewer = state.reviewer; render(); return; }
     if ('saverev' in d) { saveReviewer(); return; }
+    if ('editnd' in d) { state.editND = true; state.set.nameDate = state.nameDate || nameDatesText(allOutputs()).split('、')[0]; render(); var ni = $('dl-nd'); if (ni) { ni.focus(); ni.select(); } return; }
+    if ('cancelnd' in d) { state.editND = false; render(); return; }
+    if ('savend' in d) { saveNameDate(); return; }
+    if ('resetnd' in d) { state.nameDate = ''; state.set.nameDate = ''; run().then(function (ok) { if (ok) toast('文件名日期改回跟上传的文件'); }); return; }
     if ('rerun' in d) { run().then(function (ok) { if (ok) go('review'); }); return; }
     if ('reset' in d) {
-      state.inputs = []; state.results = null; state.problems = {}; state.urgents = {}; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {};
+      state.inputs = []; state.results = null; state.problems = {}; state.urgents = {}; state.nameDate = ''; state.set.nameDate = ''; state.editND = false; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {};
       go('upload'); return;
     }
   });
@@ -1071,6 +1087,8 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (e.key === 'Escape' && state.rulesPreview) { state.rulesPreview = false; render(); return; }
     if (e.key === 'Enter' && e.target && e.target.dataset && e.target.dataset.engIn) { e.preventDefault(); fillEngrave(e.target.dataset.engIn); return; }
     if (e.key === 'Enter' && e.target && e.target.id === 'dl-rev') { e.preventDefault(); saveReviewer(); }
+    if (e.key === 'Enter' && e.target && e.target.id === 'dl-nd') { e.preventDefault(); saveNameDate(); }
+    if (e.key === 'Escape' && e.target && e.target.id === 'dl-nd') { state.editND = false; render(); }
     if (e.key === 'Escape' && e.target && e.target.id === 'dl-rev') { state.editRev = false; state.set.reviewer = state.reviewer; render(); }
   });
   document.addEventListener('input', function (e) {
