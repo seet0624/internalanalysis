@@ -31,9 +31,9 @@ const TYPES = {
   '.woff2': 'font/woff2'
 };
 
-// 网页每次打开都先问一下有没有新版（改了马上看得到）；组件、图片缓存一天
-function cacheFor(ext) {
-  return ext === '.html' ? 'no-cache' : 'public, max-age=86400';
+// vendor/ 里的组件不会改，缓存一天；其他文件（网页、公司名单）每次先问有没有新版，改了马上看得到
+function cacheFor(key) {
+  return key.startsWith('vendor/') ? 'public, max-age=86400' : 'no-cache';
 }
 
 const skipped = [];
@@ -56,8 +56,8 @@ async function listSite(dir) {
 
 const files = (await listSite(ROOT)).sort();
 const plan = files.map((full) => {
-  const ext = extname(full).toLowerCase();
-  return { full, key: relative(ROOT, full).split(sep).join('/'), type: TYPES[ext], cache: cacheFor(ext) };
+  const key = relative(ROOT, full).split(sep).join('/');
+  return { full, key, type: TYPES[extname(full).toLowerCase()], cache: cacheFor(key) };
 });
 if (skipped.length) console.log('不上传（不是网页文件）：' + skipped.join('、'));
 
