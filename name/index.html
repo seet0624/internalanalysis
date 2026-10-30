@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>名字审核 · 名正言顺</title>
-<meta name="theme-color" content="#0E0F12">
+<meta name="theme-color" content="#F4F3EF">
 <script src="../vendor/exceljs.min.js"></script>
 <script src="../vendor/jszip.min.js"></script>
 <script>
@@ -14,27 +14,29 @@ if(!window.JSZip) document.write('<script src="https://cdnjs.cloudflare.com/ajax
 </script>
 <style>
 :root{
-  --bg:#0E0F12; --bg2:#111216; --panel:#16181D; --panel2:#1B1D23; --line:#262A31; --line2:#2E323A;
-  --ink:#ECE9E2; --ink2:#C9C4B8; --muted:#9A968C; --gold:#D4AF6A; --gold2:#E8C98A;
-  --pri-bg:#D4AF6A; --pri-ink:#1A1407;
-  --bad:#F0616E; --bad-bg:rgba(240,97,110,.14); --bad-line:rgba(240,97,110,.45); --bad-solid-ink:#1A0A0C;
-  --warn:#E8A54B; --warn-bg:rgba(232,165,75,.14); --warn-line:rgba(232,165,75,.45); --warn-solid-ink:#1E1302;
-  --ok:#5CC28F; --ok-bg:rgba(92,194,143,.14);
-  --clash-bg:rgba(240,97,110,.2); --clash-ink:#FFD9DD; --clash-sub:#F7A6AE; --soft-bg:rgba(232,165,75,.18);
-  --sel:#1F2229; --sel-line:#4A4128; --shadow:0 18px 50px rgba(0,0,0,.45);
-  --sans:'Noto Sans SC',-apple-system,'PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  --bg:#121518; --bg2:#151A1D; --panel:#1B1F23; --panel2:#20252A; --line:#2D3338; --line2:#3A4147;
+  --ink:#E9EBEC; --ink2:#C5CACE; --muted:#A3A8AD; --gold:#4FB3AC; --gold2:#6CC4BD;
+  --pri-bg:#4FB3AC; --pri-ink:#0B1615;
+  --accent-soft:#17312F; --accent-ink:#8FD6CF; --hl:rgba(79,179,172,.3);
+  --bad:#FF8A80; --bad-bg:#3A1C1A; --bad-line:rgba(255,138,128,.45); --bad-solid-ink:#1A0A0C;
+  --warn:#F2B866; --warn-bg:#33270F; --warn-line:rgba(242,184,102,.45); --warn-solid-ink:#1E1302;
+  --ok:#7FCC8C; --ok-bg:#183020;
+  --clash-bg:#3A1C1A; --clash-ink:#FFD9DD; --clash-sub:#FFB3AB; --soft-bg:#33270F;
+  --sel:#17312F; --sel-line:#2F6F6A; --shadow:0 18px 50px rgba(0,0,0,.45);
+  --sans:'PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
   --serif-tc:'Noto Serif TC','Noto Serif SC','Songti TC','PMingLiU','MingLiU','SimSun',serif;
   --serif-sc:'Noto Serif SC','Noto Serif TC','Songti SC','SimSun',serif;
 }
 body.light{
-  --bg:#F6F2EA; --bg2:#EFEAE0; --panel:#FFFFFF; --panel2:#F8F5EF; --line:#E4DED2; --line2:#DCD5C6;
-  --ink:#1C1A16; --ink2:#3D3930; --muted:#66604F; --gold:#84652A; --gold2:#5E4818;
-  --pri-bg:#1C1A16; --pri-ink:#F6F2EA;
-  --bad:#B3261E; --bad-bg:#FBEAE8; --bad-line:#E8B4AE; --bad-solid-ink:#FFFFFF;
-  --warn:#9A5600; --warn-bg:#FCF1E1; --warn-line:#E7C99A; --warn-solid-ink:#FFFFFF;
-  --ok:#2D7A4E; --ok-bg:#E7F3EC;
-  --clash-bg:#FBEAE8; --clash-ink:#8C1D16; --clash-sub:#8C1D16; --soft-bg:#FCF1E1;
-  --sel:#FFFFFF; --sel-line:#C9AE74; --shadow:0 18px 50px rgba(60,45,20,.16);
+  --bg:#F4F3EF; --bg2:#FFFFFF; --panel:#FFFFFF; --panel2:#F9F8F5; --line:#E3E1DA; --line2:#D6D3CA;
+  --ink:#1D2125; --ink2:#3A3F44; --muted:#55544E; --gold:#0E6B66; --gold2:#0B5753;
+  --pri-bg:#0E6B66; --pri-ink:#FFFFFF;
+  --accent-soft:#E3F0EE; --accent-ink:#0B4F4B; --hl:#CDE6E3;
+  --bad:#B3261E; --bad-bg:#FBE9E7; --bad-line:#EBB8B2; --bad-solid-ink:#FFFFFF;
+  --warn:#7A4300; --warn-bg:#FFF1DC; --warn-line:#E7C99A; --warn-solid-ink:#FFFFFF;
+  --ok:#2C6A37; --ok-bg:#E6F2E8;
+  --clash-bg:#FBE9E7; --clash-ink:#8C1D18; --clash-sub:#8C1D18; --soft-bg:#FFF1DC;
+  --sel:#EEF6F5; --sel-line:#9ECFCA; --shadow:0 18px 50px rgba(29,33,37,.12);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
@@ -50,7 +52,7 @@ svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-widt
 header.top{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--bg2);position:relative;z-index:40}
 .brand{display:flex;align-items:center;gap:10px;margin-right:4px}
 .logo{width:32px;height:32px;border-radius:8px;background:var(--gold);color:var(--pri-ink);display:flex;align-items:center;justify-content:center;font-family:var(--serif-tc);font-weight:700;font-size:17px}
-body.light .logo{background:var(--ink);color:#E9D3A0}
+
 .brand b{font-size:15px;letter-spacing:.5px}
 .brand .home{font-size:13px;color:var(--muted);text-decoration:none;padding:6px 2px}
 .brand .home:hover{color:var(--gold)}
@@ -93,12 +95,11 @@ kbd{font-family:inherit;font-size:11px;color:var(--muted);border:1px solid var(-
 .welcome{flex:1;overflow:auto;padding:36px 20px 48px}
 .home{max-width:1040px;margin:0 auto}
 .dropcard{text-align:center;border:1.5px dashed var(--sel-line);border-radius:20px;padding:38px 32px 34px;background:var(--panel);transition:.2s;margin-bottom:28px;cursor:pointer}
-.dropcard .dicon{width:68px;height:68px;border-radius:18px;background:rgba(212,175,106,.12);color:var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.dropcard .dicon{width:68px;height:68px;border-radius:18px;background:var(--accent-soft);color:var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
 .dropcard .dicon svg.i{width:32px;height:32px;stroke-width:1.6}
 .dropcard.over{border-color:var(--gold);background:var(--panel2)}
 .dropcard .big{font-family:var(--serif-tc);font-size:40px;font-weight:700;color:var(--gold);letter-spacing:6px;margin-bottom:8px}
-.dropcard h2{margin:0;font-family:var(--serif-tc);font-weight:700;font-size:30px;letter-spacing:6px;color:var(--gold2)}
-body:not(.light) .dropcard h2{color:#E9D3A0}
+.dropcard h2{margin:0;font-weight:700;font-size:24px;color:var(--ink)}
 .dropcard p{margin:0;color:var(--muted);font-size:13px}
 .dropcard p{margin-top:6px!important}
 .dropcard .btn.pri{margin-top:22px;min-height:48px;padding:0 28px;font-size:15px}
@@ -220,8 +221,7 @@ body.light .qtabs button.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.
 .notes.clamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
 .notes ol{margin:0;padding-left:18px;white-space:normal}
 .linkbtn{background:none;border:0;color:var(--gold);font-size:12px;padding:4px 0;margin-top:4px}
-mark.shl{background:rgba(212,175,106,.35);color:inherit;border-radius:3px;padding:0 2px}
-body.light mark.shl{background:#F1DFB2}
+mark.shl{background:var(--hl);color:inherit;border-radius:3px;padding:0 2px}
 .emptymain{color:var(--muted);text-align:center;padding:80px 20px}
 
 /* ---------- popover / modal / help ---------- */
@@ -293,7 +293,6 @@ textarea{width:100%;background:var(--bg);border:1px solid var(--line2);border-ra
 .itabs{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:16px;max-width:520px}
 .itabs button{flex:1;border:0;border-radius:9px;min-height:40px;font-size:14px;background:transparent;color:var(--muted)}
 .itabs button.on{background:var(--line2);color:var(--gold2);font-weight:700}
-body:not(.light) .itabs button.on{color:#E9D3A0}
 body.light .itabs button.on{background:var(--bg2)}
 .ipanel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 28px}
 .guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px}
@@ -305,7 +304,7 @@ body.light .itabs button.on{background:var(--bg2)}
 .ih{font-size:12px;color:var(--gold);letter-spacing:1.5px;font-weight:700;margin-bottom:12px}
 .kgrid{margin:0;display:grid;grid-template-columns:96px 1fr;row-gap:12px;font-size:13px}
 .kgrid dd{margin:0;color:var(--ink2)}
-.tip{margin-top:22px;background:rgba(212,175,106,.08);border:1px solid var(--sel-line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--ink2)}
+.tip{margin-top:22px;background:var(--sel);border:1px solid var(--sel-line);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--ink2)}
 .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
 .tcol{border:1px solid var(--line2);border-radius:12px;padding:16px 18px}
 .tcol.must{border-color:var(--bad-line)} .tcol.check{border-color:var(--warn-line)}
@@ -317,14 +316,13 @@ body.light .itabs button.on{background:var(--bg2)}
 .rtop{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-bottom:18px;color:var(--muted);font-size:13px}
 .rchips{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;color:var(--muted)}
 .rchip{border:1px solid var(--sel-line);color:var(--gold);background:transparent;border-radius:99px;padding:2px 10px;font-size:12px}
-body:not(.light) .rchip{color:#E9D3A0}
 .rchip.off{border-color:var(--line2);color:var(--muted);text-decoration:line-through}
 .rchip:hover{border-color:var(--gold)}
 .log{display:flex;flex-direction:column;gap:22px}
 .lrow{display:flex;gap:20px;flex-wrap:wrap}
 .lrow+.lrow{border-top:1px solid var(--line);padding-top:22px}
 .lrow .ld{flex:none;width:110px;font-weight:700}
-.lrow .new{display:inline-block;margin-top:4px;background:rgba(212,175,106,.14);color:var(--gold);border-radius:99px;padding:0 9px;font-size:11px;font-weight:400}
+.lrow .new{display:inline-block;margin-top:4px;background:var(--accent-soft);color:var(--accent-ink);border-radius:99px;padding:0 9px;font-size:11px;font-weight:400}
 .lrow .lb{flex:1;min-width:240px}
 .lrow .lt{font-weight:500;margin-bottom:6px}
 .lrow ul{margin:0;padding-left:18px;color:var(--ink2);font-size:13px;display:flex;flex-direction:column;gap:4px}
@@ -360,7 +358,7 @@ body:not(.light) .rchip{color:#E9D3A0}
 @media print{ header.top,.queue,.tools,.keys{display:none} body{overflow:visible;height:auto;display:block} .app,.main{display:block;overflow:visible} }
 </style>
 </head>
-<body>
+<body class="light">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -1316,6 +1314,12 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-10-30', title:'搬进审核系统，换成跟首页一样的样式', items:[
+    '名字审核搬进「审核系统」，左上角「审核系统」可以回首页',
+    '配色换成跟首页、技术单审核台一样的暖白底、深青色；默认浅色，右上角可以切深色',
+    '国内网络可直接打开：不用 Google 字体，Excel / zip 组件放在本站',
+    '换了网址，订单库和判定存在浏览器里不会自动带过来：旧网址按「… → 存档」导出，新网址「还原存档」'
+  ]},
   {date:'2026-10-29', title:'名册要繁体：新名自动转繁体', items:[
     '名册展示写了「繁体」（含「简体和繁体」）的学员，新名自动改成繁体，姓氏不动；不再算「必须改」',
     '下载的原装、有问题、上传三份文件里的新名都换成繁体',
@@ -1361,7 +1365,7 @@ function infoHtml(tab){
       ['看左边学员队列','<span style="color:var(--bad)">红点</span> 必须改（不能上传）· <span style="color:var(--warn)">橙点</span> 请你确认 · <span style="color:var(--ok)">绿点</span> 通过。默认问题排前面。'],
       ['中间看两个新名和要处理的事','撞到的字会标红。点任何一个字看读音、粤语、简繁，喇叭键听整个名字。「试改名字」可以当场试别的名。'],
       ['右边看家人和要求','「关联编号」里标「待补」的，去系统查到名字就直接填在旁边，按 Enter 马上重新比对。'],
-      ['勾「已复核」，再下载结果','需要就手动改判定。右上金色「下载结果」会给你「有问题」和「干净·可上传」两份。']];
+      ['勾「已复核」，再下载结果','需要就手动改判定。右上「下载结果」会给你「有问题」和「干净·可上传」两份。']];
     h+='<div class="guide"><ol class="steps">'+steps.map(function(st,i){ return '<li><span class="n">'+(i+1)+'</span><span><b>'+st[0]+'</b><span class="d">'+st[1]+'</span></span></li>'; }).join('')+'</ol>'+
       '<div><div class="ih">快捷键</div><dl class="kgrid">'+
       '<dt>'+kb('J')+' '+kb('K')+'</dt><dd>下一位 / 上一位</dd><dt>'+kb('空格')+'</dt><dd>标记已复核，并跳到下一位</dd><dt>'+kb('N')+'</dt><dd>跳到下一个「必须改」</dd>'+
@@ -1473,7 +1477,7 @@ document.addEventListener('keydown',function(e){ var tg=e.target, tn=tg.tagName;
 });
 
 /* init */
-(function(){ var th=load('mzys_theme','dark'); if(th==='light')document.body.classList.add('light'); lang=load('mzys_lang','cn');
+(function(){ var th=load('mzys_theme','light'); document.body.classList.toggle('light', th!=='dark'); lang=load('mzys_lang','cn');
   var sd=load('mzys_db',{}); for(var k in sd)importedDB[k]=sd[k]; document.getElementById('dbCount').textContent=Object.keys(sd).length;
   document.getElementById('verChip').textContent=CHANGELOG[0].date+' 版';
   try{ window._DB=buildOrderDB([], importedDB); }catch(e){ window._DB=Object.assign({},importedDB); }
