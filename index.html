@@ -4,20 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>审核总部</title>
-<meta name="description" content="公司总部：审核部门、Claude 部门和设施一目了然，点员工就能开始工作。">
+<meta name="description" content="3D 公司总部：客服部、各部门、设施和员工，员工会自己走动，点员工就能开始工作。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect x='1' y='1' width='26' height='26' rx='7' fill='%230E6B66'/%3E%3Cpath d='M8 14.5l4 4 8-9' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
-/* 总部首页：上面是 3D 公司，下面是组织架构。颜色跟两个审核工具同一套（暖白底、深青色） */
+/* 整个网站就是一间 3D 公司；所有控件浮在上面。颜色跟两个审核工具同一套（暖白、深青色） */
 :root{
-  --bg:#F4F3EF; --surface:#FFFFFF; --sunk:#EDEBE5; --ink:#1D2125; --muted:#55544E; --faint:#6B6A64; --line:#E3E1DA; --field:#D6D3CA;
-  --accent:#0E6B66; --accent-hover:#0B5753; --accent-soft:#E3F0EE; --accent-ink:#0B4F4B; --on-accent:#FFFFFF; --gold:#A87D25;
-  --shadow:0 1px 2px rgba(29,33,37,.06),0 8px 24px rgba(29,33,37,.08);
-  --sans:'PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
-  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --ink:#1D2125; --muted:#55544E; --faint:#6B6A64; --line:rgba(29,33,37,.10); --field:#D6D3CA; --sunk:#F1EFEA;
+  --accent:#0E6B66; --accent-hover:#0B5753; --accent-soft:#E3F0EE; --accent-ink:#0B4F4B; --on-accent:#FFFFFF;
+  --glass:rgba(255,255,255,.84); --shadow:0 1px 2px rgba(29,33,37,.06),0 12px 32px rgba(29,33,37,.12);
+  --sans:'PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif; --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
-html{background:var(--bg)}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:#ECE9E2;color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1,h2,h3{margin:0;line-height:1.3;text-wrap:balance}
@@ -25,280 +24,317 @@ p{margin:0}
 button{font:inherit;color:inherit;cursor:pointer}
 [hidden]{display:none!important}
 
-.top{background:var(--surface);border-bottom:1px solid var(--line)}
-.top-in{max-width:1360px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:12px}
-@media (min-width:720px){.top-in{padding:14px 24px}}
-.co{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;min-width:0}
-.co-name{border:0;background:none;padding:4px 6px;border-radius:8px;font-weight:700;font-size:18px;display:inline-flex;align-items:center;gap:6px;max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.co-name:hover{background:var(--sunk)}
-.co-name svg{flex:none;color:var(--faint)}
-.top-r{margin-left:auto;color:var(--muted);font-size:14px;white-space:nowrap}
-
-main{max-width:1360px;margin:0 auto;padding:24px 16px 64px}
-@media (min-width:720px){main{padding:32px 24px 80px}}
-
-.hero{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:18px}
-.hero h1{font-size:28px}
-.hero p{color:var(--muted);margin-top:4px}
-.kpis{display:flex;flex-wrap:wrap;gap:8px}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 14px;min-width:96px}
-.kpi b{display:block;font-size:22px;line-height:1.2;font-variant-numeric:tabular-nums}
-.kpi span{font-size:13px;color:var(--muted)}
-
-/* ---------- 3D 公司 ---------- */
-.stage-wrap{position:relative;display:grid;grid-template-columns:1fr;gap:16px}
-@media (min-width:1080px){.stage-wrap{grid-template-columns:1fr 340px}}
-.stage{position:relative;height:clamp(420px,64vh,720px);border-radius:20px;overflow:hidden;border:1px solid var(--line);
-  background:radial-gradient(120% 90% at 30% 10%,#FFFFFF 0%,#F1EFE9 55%,#E7E4DC 100%);box-shadow:var(--shadow);touch-action:none}
+/* ---------- 3D 舞台 ---------- */
+.stage{position:fixed;inset:0;background:radial-gradient(120% 90% at 25% 0%,#FFFFFF 0%,#F2EFE8 45%,#E2DED4 100%);touch-action:none}
 .stage canvas{display:block;cursor:grab}
 .stage canvas:active{cursor:grabbing}
 .hq-labels{position:absolute;inset:0;pointer-events:none}
-.hq-sign{pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);
-  background:rgba(255,255,255,.94);box-shadow:0 2px 8px rgba(29,33,37,.10);font-size:13px;font-weight:700;white-space:nowrap}
-.hq-sign i{width:8px;height:8px;border-radius:50%;flex:none}
-.hq-sign small{font-size:11px;font-weight:500;color:var(--faint);background:var(--sunk);border-radius:999px;padding:0 6px}
-.hq-sign:hover,.hq-sign.is-sel{border-color:var(--accent);color:var(--accent-ink)}
-.hq-sign-planned{border-style:dashed;color:var(--faint);background:rgba(255,255,255,.7)}
+.hq-room,.hq-sign{pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);
+  background:rgba(255,255,255,.93);box-shadow:0 2px 10px rgba(29,33,37,.10);font-size:13px;font-weight:700;white-space:nowrap}
+.hq-room i,.hq-sign i{width:8px;height:8px;border-radius:50%;flex:none}
+.hq-room small,.hq-sign small{font-size:11px;font-weight:500;color:var(--faint);background:var(--sunk);border-radius:999px;padding:0 6px}
+.hq-room:hover,.hq-sign:hover,.hq-room.is-sel,.hq-sign.is-sel{border-color:var(--accent);color:var(--accent-ink)}
+.hq-room-main{font-size:15px;padding:6px 14px;background:var(--accent);color:#FFFFFF;border-color:transparent}
+.hq-room-main small{background:rgba(255,255,255,.2);color:#FFFFFF}
+.hq-room-main:hover,.hq-room-main.is-sel{color:#FFFFFF;box-shadow:0 0 0 3px var(--accent-soft)}
+.hq-room-boss{border-color:#E2CF9F;background:#FFF9EC}
+.hq-room-boss small{background:#F6E7C4;color:#7A5A12}
+.hq-room-planned,.hq-sign-planned{border-style:dashed;color:var(--faint);background:rgba(255,255,255,.75)}
+.hq-sign{font-size:12px;padding:3px 9px}
 .hq-tag{pointer-events:none;opacity:0;display:inline-flex;flex-direction:column;align-items:center;padding:4px 9px 5px;border-radius:10px;border:1px solid var(--line);
-  background:#FFFFFF;box-shadow:0 2px 8px rgba(29,33,37,.12);font-size:12px;line-height:1.3;white-space:nowrap;transition:opacity .15s}
+  background:#FFFFFF;box-shadow:0 2px 10px rgba(29,33,37,.14);font-size:12px;line-height:1.3;white-space:nowrap;transition:opacity .15s}
 .hq-tag-name{font-weight:700;font-size:13px}
 .hq-tag-role{color:var(--muted)}
 .hq-tag-stat{margin-top:2px;font-size:11px;color:var(--accent-ink);background:var(--accent-soft);border-radius:999px;padding:0 6px}
+.hq-tag-doing{font-size:11px;color:#7A4300}
+.hq-tag-doing:empty{display:none}
 .hq-near .hq-tag,.hq-tag.is-hover,.hq-tag.is-sel{opacity:1;pointer-events:auto}
 .hq-tag.is-sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),0 4px 12px rgba(29,33,37,.16)}
-.hq-sign-boss{border-color:#E2CF9F;background:#FFF9EC}
-.hq-sign-boss small{background:#F6E7C4;color:#7A5A12}
-@media (max-width:719px){.st-ui.st-tl{display:none}.hq-sign{font-size:11px;padding:2px 7px;gap:4px}.hq-sign small{display:none}.hq-sign-boss small{display:inline}}
+.hq-plan .hq-room{font-size:14px}
+.hq-plan .hq-sign{font-size:13px}
 
-.st-ui{position:absolute;display:flex;gap:6px;z-index:2}
-.st-tl{top:12px;left:12px;flex-wrap:wrap;max-width:calc(100% - 140px)}
-.st-tr{top:12px;right:12px}
-.st-b{bottom:12px;left:12px;right:12px;justify-content:center;pointer-events:none}
-.legend{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--muted)}
+/* ---------- 浮在上面的控件 ---------- */
+.hud{position:fixed;z-index:5}
+.card{background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow);border-radius:18px}
+.brand{top:16px;left:16px;padding:12px 16px;display:flex;flex-direction:column;gap:2px;max-width:min(420px,calc(100vw - 32px))}
+.brand-row{display:flex;align-items:center;gap:10px}
+.co-name{border:0;background:none;padding:2px 4px;margin-left:-4px;border-radius:8px;font-weight:700;font-size:18px;display:inline-flex;align-items:center;gap:6px;min-width:0}
+.co-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co-name:hover{background:rgba(29,33,37,.06)}
+.co-name svg{flex:none;color:var(--faint)}
+.greet{font-size:14px;color:var(--muted)}
+.live-line{font-size:13px;color:var(--faint);display:flex;flex-wrap:wrap;gap:4px 12px}
+.live-line b{color:var(--ink);font-variant-numeric:tabular-nums}
+.dot-live{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2EB872;margin-right:5px;box-shadow:0 0 0 3px rgba(46,184,114,.18);vertical-align:1px}
+
+.tools{top:16px;right:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100vw - 32px)}
+.seg{display:inline-flex;padding:4px;gap:2px;border-radius:14px}
+.seg button{border:0;background:transparent;border-radius:10px;min-height:36px;padding:0 14px;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#FFFFFF}
+.ibtn{width:44px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.7);display:inline-flex;align-items:center;justify-content:center}
+.ibtn:hover{color:var(--accent)}
+.tbtn{min-height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.7);display:inline-flex;align-items:center;gap:8px;padding:0 14px;font-weight:500}
+.tbtn:hover{color:var(--accent)}
+
+.legend{left:16px;bottom:16px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);max-width:calc(100vw - 32px)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
 .legend i{width:8px;height:8px;border-radius:50%}
-.ibtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.94);display:inline-flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(29,33,37,.08)}
-.ibtn:hover{border-color:var(--accent);color:var(--accent)}
-.hint{background:rgba(29,33,37,.72);color:#FFFFFF;border-radius:999px;padding:4px 12px;font-size:12px}
-.nogl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
+.hint{left:50%;bottom:16px;transform:translateX(-50%);background:rgba(29,33,37,.72);color:#FFFFFF;border-radius:999px;padding:5px 14px;font-size:12px;white-space:nowrap;pointer-events:none}
 
 /* ---------- 详细资料 ---------- */
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:14px;align-self:start}
-@media (min-width:1080px){.panel{position:sticky;top:16px;min-height:320px}}
-.panel .crumb{font-size:13px;color:var(--faint);display:flex;align-items:center;gap:6px}
-.panel .crumb i{width:8px;height:8px;border-radius:50%}
-.panel h2{font-size:22px;display:flex;align-items:center;gap:10px}
-.avatar{width:44px;height:44px;border-radius:14px;flex:none;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:18px;font-weight:700}
-.panel .role{color:var(--muted);font-size:14px;font-weight:500}
-.panel .duty{color:var(--ink)}
+.panel{top:84px;right:16px;width:360px;max-height:calc(100vh - 100px);overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.panel .x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:10px;border:0;background:transparent;color:var(--faint);display:inline-flex;align-items:center;justify-content:center}
+.panel .x:hover{background:rgba(29,33,37,.06);color:var(--ink)}
+.crumb{font-size:13px;color:var(--faint);display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-right:32px}
+.crumb i{width:8px;height:8px;border-radius:50%}
+.panel h2{font-size:22px;display:flex;align-items:center;gap:12px}
+.avatar{width:46px;height:46px;border-radius:14px;flex:none;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:19px;font-weight:700}
+.role{display:block;color:var(--muted);font-size:14px;font-weight:500}
+.live{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
 .badge{display:inline-block;font-size:12px;font-weight:500;border-radius:999px;padding:1px 8px;background:var(--sunk);color:var(--muted)}
 .badge.site{background:var(--accent-soft);color:var(--accent-ink)}
 .badge.claude{background:#FFF1DC;color:#7A4300}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--field);background:var(--surface);font-weight:500;text-decoration:none;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--field);background:#FFFFFF;font-weight:500;text-decoration:none;color:var(--ink)}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .btn.pri:hover{background:var(--accent-hover);color:var(--on-accent)}
-.cmd{display:flex;align-items:center;gap:8px;background:var(--sunk);border-radius:12px;padding:8px 8px 8px 12px}
+.cmd{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 12px}
 .cmd code{flex:1;min-width:0;font-family:var(--mono);font-size:13px;overflow-wrap:anywhere;user-select:all}
 .cmd .btn{min-height:36px;padding:0 12px;font-size:13px}
 .note{font-size:13px;color:var(--faint)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:13px;background:#FFFFFF;border:1px solid var(--line);border-radius:999px;padding:2px 10px}
 .mini{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
-.mini button{width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:baseline}
+.mini button{width:100%;text-align:left;border:1px solid var(--line);background:rgba(255,255,255,.75);border-radius:12px;padding:8px 10px;display:flex;gap:10px;align-items:center}
 .mini button:hover{border-color:var(--accent)}
+.mini .d{width:28px;height:28px;border-radius:9px;flex:none;color:#FFFFFF;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
 .mini b{font-size:14px}
-.mini span{font-size:13px;color:var(--muted)}
-.empty-p{color:var(--muted)}
+.mini span.s{font-size:13px;color:var(--muted)}
 
-/* ---------- 组织架构 ---------- */
-.org{margin-top:40px}
-.org-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:14px}
-.org-h h2{font-size:22px}
-.org-h p{color:var(--muted);font-size:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-.dept{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
-.dept::before{content:"";position:absolute;left:0;top:0;right:0;height:4px;background:var(--c)}
-.dept.planned{border-style:dashed;background:transparent}
-.dept.planned::before{display:none}
-.dept-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.dept-h h3{font-size:17px}
-.dept p{color:var(--muted);font-size:14px}
-.people{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.people button{width:100%;text-align:left;border:0;background:var(--sunk);border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center}
-.people button:hover{background:var(--accent-soft)}
-.people .dot{grid-row:span 2;width:30px;height:30px;border-radius:10px;background:var(--c);color:#FFFFFF;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
-.people b{font-size:14px}
-.people span{font-size:13px;color:var(--muted)}
-.dept .btn{align-self:flex-start;margin-top:auto}
-.foot{margin-top:28px;color:var(--faint);font-size:13px;display:flex;flex-direction:column;gap:4px}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;border-radius:999px;padding:8px 16px;font-size:14px;z-index:20}
+/* ---------- 组织架构（抽屉） ---------- */
+.drawer{top:0;left:0;bottom:0;width:380px;max-width:92vw;border-radius:0 20px 20px 0;padding:20px;overflow:auto;transform:translateX(-102%);transition:transform .25s ease;display:flex;flex-direction:column;gap:18px}
+.drawer.open{transform:none}
+.drawer h2{font-size:20px}
+.drawer h3{font-size:14px;color:var(--faint);font-weight:500;margin-bottom:8px}
+.drawer-h{display:flex;align-items:center;justify-content:space-between}
+.grp{display:flex;flex-direction:column;gap:6px}
+.grp-h{display:flex;align-items:center;gap:8px;margin-top:6px}
+.grp-h b{font-size:15px}
+.credit{font-size:12px;color:var(--faint);margin-top:auto}
+.scrim{position:fixed;inset:0;z-index:4;background:rgba(29,33,37,.18)}
+.toast{position:fixed;left:50%;bottom:60px;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;border-radius:999px;padding:8px 16px;font-size:14px;z-index:20}
+.nogl{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.drawer{transition:none}}
+
+/* ---------- 手机 ---------- */
+@media (max-width:719px){
+  .brand{top:10px;left:10px;right:10px;max-width:none;padding:10px 12px}
+  .greet{display:none}
+  .tools{top:auto;bottom:12px;right:10px;left:10px;justify-content:space-between}
+  .legend,.hint,#zin,#zout{display:none}
+  .panel{top:auto;bottom:70px;left:10px;right:10px;width:auto;max-height:52vh}
+  .hq-room,.hq-sign{font-size:11px;padding:2px 7px;gap:4px}
+  .hq-room small,.hq-sign small{display:none}
+  .hq-room-boss small,.hq-room-main small{display:inline}
+}
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
 </head>
 <body>
 
-<div class="top"><div class="top-in">
-  <div class="co">
+<main class="stage" id="stage" aria-label="3D 公司：拖动旋转、缩放，点员工、部门或房间看详细资料"></main>
+
+<header class="hud card brand">
+  <div class="brand-row">
     <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7" fill="#0E6B66"/><path d="M8 14.5l4 4 8-9" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <button type="button" class="co-name" id="coName" title="改公司名称"><span id="coText"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
   </div>
-  <div class="top-r" id="today"></div>
-</div></div>
+  <div class="greet" id="greet"></div>
+  <div class="live-line" id="liveLine" aria-live="off"></div>
+</header>
 
-<main>
-  <div class="hero">
-    <div>
-      <h1 id="greet">老板好</h1>
-      <p>点员工就能把工作交给他。审核工具在浏览器里处理，文件不会上传到任何服务器。</p>
-    </div>
-    <div class="kpis" id="kpis"></div>
+<div class="hud tools">
+  <div class="seg card" role="group" aria-label="视角">
+    <button type="button" id="m3d" aria-pressed="true">3D</button>
+    <button type="button" id="mplan" aria-pressed="false">平面图</button>
   </div>
+  <button type="button" class="ibtn card" id="zin" aria-label="放大" title="放大"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button type="button" class="ibtn card" id="zout" aria-label="缩小" title="缩小"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+  <button type="button" class="ibtn card" id="home" aria-label="回到全景" title="回到全景"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9"/><path d="M3 4v5h5"/></svg></button>
+  <button type="button" class="tbtn card" id="orgBtn" aria-expanded="false" aria-controls="drawer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-2h12v2"/></svg>组织架构</button>
+</div>
 
-  <div class="stage-wrap">
-    <section class="stage" id="stage" aria-label="3D 公司：可以拖动旋转、滚轮缩放，点员工看详细资料">
-      <div class="st-ui st-tl" aria-hidden="true">
-        <span class="legend"><i style="background:#0E6B66"></i>网站里的员工</span>
-        <span class="legend"><i style="background:#C26A00"></i>Claude 里的员工</span>
-        <span class="legend"><i style="background:#55544E"></i>设施（连接器）</span>
-      </div>
-      <div class="st-ui st-tr">
-        <button type="button" class="ibtn" id="zin" aria-label="放大" title="放大"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-        <button type="button" class="ibtn" id="zout" aria-label="缩小" title="缩小"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
-        <button type="button" class="ibtn" id="home" aria-label="回到全景" title="回到全景"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9"/><path d="M3 4v5h5"/></svg></button>
-      </div>
-      <div class="st-ui st-b"><span class="hint">拖动旋转 · 缩放看员工 · 点员工看详细资料</span></div>
-    </section>
-    <aside class="panel" id="panel" aria-live="polite"></aside>
-  </div>
+<div class="hud card legend" aria-hidden="true">
+  <span><i style="background:#0E6B66"></i>网站里的员工</span>
+  <span><i style="background:#C26A00"></i>Claude 里的员工</span>
+  <span><i style="background:#55544E"></i>设施（连接器）</span>
+</div>
+<div class="hud hint" id="hint">拖动旋转 · 缩放看员工 · 点员工、部门、房间看详细资料</div>
 
-  <section class="org" aria-labelledby="orgTitle">
-    <div class="org-h">
-      <h2 id="orgTitle">组织架构</h2>
-      <p>名单在 <code>hq/company.js</code>，加部门、加员工改那里就好</p>
-    </div>
-    <div class="grid" id="org"></div>
-  </section>
+<aside class="hud card panel" id="panel" aria-live="polite" hidden></aside>
 
-  <div class="foot">
-    <span>国内网络可直接打开：字体用电脑自带的，3D、Excel、zip 组件都放在本站，不依赖外网。</span>
-    <span>Claude 里的员工要在 Claude 里用指令叫它们；连接器在 claude.ai「设置 → 连接器」里连接。</span>
-  </div>
-</main>
+<div class="scrim" id="scrim" hidden></div>
+<nav class="hud card drawer" id="drawer" aria-label="组织架构" aria-hidden="true"></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="hq/company.js"></script>
 <script type="module">
 const C = window.COMPANY;
 const KIND = { site: '网站', claude: 'Claude', planned: '筹备中' };
-const BOSS_COLOR = '#C99A3B', CONN_COLOR = '#55544E';
+const BOSS_COLOR = '#C99A3B', FAC_COLOR = '#55544E';
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+const initial = (s) => esc(String(s).slice(-1));
+const enterName = (g) => '进入' + g.name.replace(/(组|部)$/, '');
 
 // 名字审核的订单库笔数（同一个网站，读得到）
 const stats = {};
 try { const db = JSON.parse(ls.get('mzys_db') || '{}'); const n = Object.keys(db).length; if (n) stats.nameDb = '订单库 ' + n + ' 笔'; } catch (e) {}
 
+// ---------- 名单整理 ----------
+const main = C.departments.find((d) => d.main);
+const others = C.departments.filter((d) => !d.main);
+const groups = [...(main ? main.teams : []), ...others];           // 有员工的小组 / 部门
+const groupById = Object.fromEntries(groups.map((g) => [g.id, g]));
+const working = groups.filter((g) => g.kind !== 'planned');
+const staff = working.reduce((n, g) => n + g.agents.length, 0);
+const connectors = C.facilities.reduce((n, f) => n + f.connectors.length, 0);
+const AMENITY = {
+  pantry: { name: '茶水间', place: '茶水间', duty: '咖啡机、冰箱、微波炉、饮水机、两张小圆桌。员工累了会来这里泡咖啡、吃点心。' },
+  wc: { name: '洗手间', place: '洗手间', duty: '男女各一间，每间两个隔间、一排洗手台。' },
+  lobby: { name: '前台大厅', place: '前台大厅', duty: '公司大门进来就是这里：公司名称墙、前台、访客等候区。' },
+  lounge: { name: '休息区', place: '休息区', duty: '沙发、懒骨头、手足球台、书架。员工会来这里放空、聊天。' }
+};
+
 // ---------- 顶部 ----------
 const coName = () => ls.get('hq-company') || C.name;
 function paintName() { $('coText').textContent = coName(); document.title = coName(); }
 paintName();
+const now = new Date(), h = now.getHours();
+$('greet').textContent = (h < 5 ? '夜深了' : h < 12 ? '早上好' : h < 18 ? '下午好' : '晚上好') + '，' + C.boss.title + ' · ' + (now.getMonth() + 1) + ' 月 ' + now.getDate() + ' 日 星期' + '日一二三四五六'[now.getDay()];
+
+// ---------- 详细资料 ----------
+let office = null, current = null;
+function find(id) {
+  if (id === 'boss') return { type: 'boss' };
+  const [t, a, b] = id.split('/');
+  if (t === 'fac') return { type: 'fac', fac: C.facilities.find((f) => f.id === a) };
+  if (t === 'room') return { type: 'room', key: a, room: AMENITY[a] };
+  if (t === 'dept' && a === 'cs') return { type: 'main' };
+  if (t === 'dept' || t === 'team') return groupById[a] ? { type: 'group', g: groupById[a] } : null;
+  if (t === 'agent') { const g = groupById[a]; return g ? { type: 'agent', g, agent: g.agents[+b] } : null; }
+  return null;
+}
+const crumb = (color, text, badge) => `<div class="crumb"><i style="background:${color}"></i>${text}${badge ? ` <span class="badge ${badge}">${KIND[badge]}</span>` : ''}</div>`;
+const close = '<button type="button" class="x" id="closePanel" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+const agentRow = (g, k) => { const a = g.agents[k]; return `<li><button type="button" data-sel="agent/${g.id}/${k}"><span class="d" style="background:${g.color}">${initial(a.name)}</span><span><b>${esc(a.name)}</b> <span class="s">${esc(a.role)}</span></span></button></li>`; };
+const groupRow = (g) => `<li><button type="button" data-sel="${main && main.teams.includes(g) ? 'team' : 'dept'}/${g.id}"><span class="d" style="background:${g.color}">${initial(g.name.replace(/(组|部)$/, ''))}</span><span><b>${esc(g.name)}</b> <span class="s">${g.kind === 'planned' ? '筹备中' : g.agents.length + ' 人 · ' + KIND[g.kind]}</span></span></button></li>`;
+
+function renderPanel(id) {
+  const p = $('panel');
+  current = id;
+  const it = id && find(id);
+  if (!it) { p.hidden = true; return; }
+  let h = '';
+  if (it.type === 'boss') {
+    h = crumb(BOSS_COLOR, '老板办公室') + `<h2><span class="avatar" style="background:${BOSS_COLOR}">${initial(C.boss.title)}</span><span>${esc(C.boss.title)}（${esc(C.boss.name)}）</span></h2>
+      <p>${esc(C.boss.duty)}</p><p class="note">现在有 ${working.length} 个小组 / 部门、${staff} 位员工、${C.facilities.length} 间设施（${connectors} 个连接器）。</p>
+      <ul class="mini">${groups.map(groupRow).join('')}</ul>`;
+  } else if (it.type === 'main') {
+    h = crumb(main.color, '主要办公区') + `<h2>${esc(main.name)}</h2><p>${esc(main.summary)}</p><ul class="mini">${main.teams.map(groupRow).join('')}</ul>`;
+  } else if (it.type === 'group') {
+    const g = it.g;
+    const act = g.kind === 'site' ? `<a class="btn pri" href="${esc(g.href)}">${enterName(g)}</a>`
+      : g.kind === 'claude' ? '<p class="note">这个小组在 Claude 里上班：点员工复制指令，贴到 Claude 里再说要做什么。</p>'
+      : '<p class="note">以后加的功能会坐这里。在 <code>hq/company.js</code> 把它改成 <code>kind: \'site\'</code>、填上网址和员工就会出现。</p>';
+    h = crumb(g.color, main && main.teams.includes(g) ? esc(main.name) : '部门', g.kind) + `<h2>${esc(g.name)}</h2><p>${esc(g.summary)}</p>
+      ${g.agents.length ? `<ul class="mini">${g.agents.map((_, k) => agentRow(g, k)).join('')}</ul>` : ''}${act}`;
+  } else if (it.type === 'agent') {
+    const g = it.g, a = it.agent;
+    const stat = a.stat && stats[a.stat] ? `<p class="note">${esc(stats[a.stat])}</p>` : '';
+    const act = g.kind === 'site'
+      ? `<a class="btn pri" href="${esc(g.href)}">交给${esc(a.name)} · ${enterName(g)}</a>`
+      : `<div class="cmd"><code>/${esc(a.skill)}</code><button type="button" class="btn" data-copy="/${esc(a.skill)}">复制</button></div>
+         <p class="note">在 Claude（claude.ai 或 Claude Code）输入这个指令，后面接着说要${esc(a.name)}做什么。</p>`;
+    h = crumb(g.color, esc(g.name), g.kind) + `<h2><span class="avatar" style="background:${g.color}">${initial(a.name)}</span><span>${esc(a.name)}<span class="role">${esc(a.role)}</span></span></h2>
+      <p class="live"><span class="dot-live"></span><span data-live></span></p><p>${esc(a.duty)}</p>${stat}${act}`;
+  } else if (it.type === 'fac') {
+    const f = it.fac;
+    h = crumb(FAC_COLOR, '设施 · 连接器') + `<h2><span class="avatar" style="background:${FAC_COLOR}">${initial(f.room)}</span><span>${esc(f.room)}<span class="role">${f.connectors.length} 个连接器</span></span></h2>
+      <p>${esc(f.duty)}</p><div class="chips">${f.connectors.map((n) => `<span class="chip">${esc(n)}</span>`).join('')}</div>
+      <p class="live"><span class="dot-live"></span><span data-live></span></p>
+      <p class="note">连接器在 claude.ai「设置 → 连接器」里管理；连好以后，Claude 里的员工就能用这间${esc(f.room)}。</p>`;
+  } else if (it.type === 'room') {
+    h = crumb(FAC_COLOR, '公司环境') + `<h2>${esc(it.room.name)}</h2><p>${esc(it.room.duty)}</p><p class="live"><span class="dot-live"></span><span data-live></span></p>`;
+  }
+  p.innerHTML = close + h;
+  p.hidden = false;
+  refreshLive();
+}
+const PLACE_OF = { 'fac/meeting': '会议室', 'fac/files': '档案室', 'fac/mail': '收发室', 'fac/studio': '设计工作室', 'fac/media': '影音室', 'fac/server': '机房' };
+function refreshLive() {
+  const el = document.querySelector('#panel [data-live]');
+  if (el && office && current) {
+    const it = find(current);
+    if (it && it.type === 'agent') el.textContent = '现在：' + (office.status(current) || '工作中');
+    else {
+      const place = it && it.type === 'room' ? it.room.place : PLACE_OF[current];
+      const who = place ? office.occupants(place) : [];
+      el.textContent = who.length ? '现在在这里：' + who.join('、') : '现在没有人';
+    }
+  }
+  if (office) $('liveLine').innerHTML = `<span><span class="dot-live"></span><b>${staff}</b> 位员工 · <b>${staff - office.away()}</b> 位在座位上</span><span><b>${connectors}</b> 个连接器</span>`;
+}
+setInterval(refreshLive, 1000);
+
+// ---------- 组织架构 ----------
+$('drawer').innerHTML = `<div class="drawer-h"><h2>组织架构</h2><button type="button" class="ibtn" id="closeDrawer" aria-label="关闭组织架构"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <section><h3>老板</h3><ul class="mini"><li><button type="button" data-sel="boss"><span class="d" style="background:${BOSS_COLOR}">${initial(C.boss.title)}</span><span><b>${esc(C.boss.title)}（${esc(C.boss.name)}）</b> <span class="s">老板办公室</span></span></button></li></ul></section>
+  ${main ? `<section><h3>${esc(main.name)} · 主要办公区</h3><div class="grp">${main.teams.map((g) => `<div class="grp-h"><i style="width:8px;height:8px;border-radius:50%;background:${g.color}"></i><b>${esc(g.name)}</b><span class="badge ${g.kind}">${KIND[g.kind]}</span></div>
+    ${g.agents.length ? `<ul class="mini">${g.agents.map((_, k) => agentRow(g, k)).join('')}</ul>` : `<ul class="mini">${groupRow(g)}</ul>`}`).join('')}</div></section>` : ''}
+  <section><h3>其他部门</h3><ul class="mini">${others.map(groupRow).join('')}</ul></section>
+  <section><h3>设施（连接器）</h3><ul class="mini">${C.facilities.map((f) => `<li><button type="button" data-sel="fac/${f.id}"><span class="d" style="background:${FAC_COLOR}">${initial(f.room)}</span><span><b>${esc(f.room)}</b> <span class="s">${esc(f.connectors.join('、'))}</span></span></button></li>`).join('')}</ul></section>
+  <section><h3>公司环境</h3><ul class="mini">${Object.entries(AMENITY).map(([k, r]) => `<li><button type="button" data-sel="room/${k}"><span class="d" style="background:${FAC_COLOR}">${initial(r.name)}</span><b>${esc(r.name)}</b></button></li>`).join('')}</ul></section>
+  <p class="credit">墙上的画来自 Unsplash：${(C.art || []).map((a) => esc(a.by)).join('、')}。载不到时会换成程序画的抽象画。</p>`;
+function drawer(open) {
+  $('drawer').classList.toggle('open', open);
+  $('drawer').setAttribute('aria-hidden', String(!open));
+  $('orgBtn').setAttribute('aria-expanded', String(open));
+  $('scrim').hidden = !open;
+  if (open) $('closeDrawer').focus();
+}
+$('orgBtn').addEventListener('click', () => drawer(!$('drawer').classList.contains('open')));
+$('scrim').addEventListener('click', () => drawer(false));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if ($('drawer').classList.contains('open')) drawer(false); else if (!$('panel').hidden) { renderPanel(null); if (office) office.reset(); } } });
+
+// ---------- 3D ----------
+try {
+  const { mountOffice } = await import('./hq/office.js');
+  office = mountOffice($('stage'), C, { stats, companyName: coName(), onSelect: (id) => renderPanel(id) });
+} catch (e) {
+  console.error(e);
+  document.body.insertAdjacentHTML('beforeend', '<div class="nogl"><p>这台电脑显示不了 3D 公司。<br>按右上角「组织架构」一样可以用。</p></div>');
+  drawer(true);
+}
+refreshLive();
+
 $('coName').addEventListener('click', () => {
   const v = window.prompt('公司名称', coName());
   if (v === null) return;
   ls.set('hq-company', v.trim() || C.name); paintName();
+  if (office) office.setCompanyName(coName());
 });
-const now = new Date(), h = now.getHours();
-$('greet').textContent = (h < 5 ? '夜深了' : h < 12 ? '早上好' : h < 18 ? '下午好' : '晚上好') + '，' + (C.boss.title || '老板');
-$('today').textContent = now.getFullYear() + ' 年 ' + (now.getMonth() + 1) + ' 月 ' + now.getDate() + ' 日 · 星期' + '日一二三四五六'[now.getDay()];
-
-const working = C.departments.filter((d) => d.kind !== 'planned');
-const people = working.reduce((n, d) => n + d.agents.length, 0);
-$('kpis').innerHTML = [[working.length, '个部门'], [people, '位员工'], [C.connectors.length, '个设施']]
-  .map(([n, t]) => `<div class="kpi"><b>${n}</b><span>${t}</span></div>`).join('');
-
-// ---------- 查名单 ----------
-function find(id) {
-  if (id === 'boss') return { type: 'boss' };
-  const [t, a, b] = id.split('/');
-  if (t === 'conn') return { type: 'conn', conn: C.connectors[+a] };
-  const dept = C.departments.find((d) => d.id === a);
-  if (!dept) return null;
-  if (t === 'dept') return { type: 'dept', dept };
-  return { type: 'agent', dept, agent: dept.agents[+b], index: +b };
+function setMode(m) {
+  $('m3d').setAttribute('aria-pressed', String(m === '3d')); $('mplan').setAttribute('aria-pressed', String(m === 'plan'));
+  $('hint').textContent = m === 'plan' ? '平面图 · 拖动平移 · 缩放看细节 · 点房间看详细资料' : '拖动旋转 · 缩放看员工 · 点员工、部门、房间看详细资料';
+  if (office) office.setMode(m);
 }
-const cmd = (skill) => '/' + skill;
-const initial = (s) => esc(String(s).slice(-1));
-
-// ---------- 详细资料 ----------
-function renderPanel(id) {
-  const p = $('panel');
-  const it = id && find(id);
-  if (!it) {
-    p.innerHTML = `<div class="crumb">${esc(coName())}</div><h2>欢迎回来</h2>
-      <p class="empty-p">在左边的公司里点一位员工、一间部门或设施，这里会显示他负责什么、怎么把工作交给他。</p>
-      <ul class="mini">${working.filter((d) => d.kind === 'site').map((d) => `<li><button type="button" data-sel="dept/${d.id}"><b>${esc(d.name)}</b><span>${esc(d.summary)}</span></button></li>`).join('')}</ul>`;
-    return;
-  }
-  if (it.type === 'boss') {
-    p.innerHTML = `<div class="crumb"><i style="background:${BOSS_COLOR}"></i>老板办公室</div>
-      <h2><span class="avatar" style="background:${BOSS_COLOR}">${initial(C.boss.title)}</span><span>${esc(C.boss.title)}（${esc(C.boss.name)}）</span></h2>
-      <p class="duty">${esc(C.boss.duty)}</p>
-      <p class="note">现在有 ${working.length} 个部门、${people} 位员工、${C.connectors.length} 个设施。</p>
-      <ul class="mini">${working.map((d) => `<li><button type="button" data-sel="dept/${d.id}"><b>${esc(d.name)}</b><span>${d.agents.length} 位 · ${KIND[d.kind]}</span></button></li>`).join('')}</ul>`;
-  } else if (it.type === 'conn') {
-    const cn = it.conn;
-    p.innerHTML = `<div class="crumb"><i style="background:${CONN_COLOR}"></i>设施 · 连接器</div>
-      <h2><span class="avatar" style="background:${CONN_COLOR}">${initial(cn.room)}</span><span>${esc(cn.room)}<br><span class="role">${esc(cn.name)}</span></span></h2>
-      <p class="duty">${esc(cn.duty)}</p>
-      <p class="note">在 claude.ai「设置 → 连接器」里连接 ${esc(cn.name)}，连好后 Claude 里的员工就能用这间${esc(cn.room)}。</p>`;
-  } else if (it.type === 'dept') {
-    const d = it.dept;
-    const act = d.kind === 'site' ? `<a class="btn pri" href="${esc(d.href)}">进入${esc(d.name.replace(/部$/, ''))}</a>`
-      : d.kind === 'claude' ? `<p class="note">这个部门在 Claude 里上班：点员工复制指令，贴到 Claude 里再说要做什么。</p>` : '';
-    p.innerHTML = `<div class="crumb"><i style="background:${d.color}"></i>部门 <span class="badge ${d.kind}">${KIND[d.kind]}</span></div>
-      <h2>${esc(d.name)}</h2><p class="duty">${esc(d.summary)}</p>
-      ${d.agents.length ? `<ul class="mini">${d.agents.map((a, k) => `<li><button type="button" data-sel="agent/${d.id}/${k}"><b>${esc(a.name)}</b><span>${esc(a.role)}</span></button></li>`).join('')}</ul>` : ''}
-      ${act}`;
-  } else {
-    const d = it.dept, a = it.agent;
-    const stat = a.stat && stats[a.stat] ? `<p class="note">${esc(stats[a.stat])}</p>` : '';
-    const act = d.kind === 'site'
-      ? `<a class="btn pri" href="${esc(d.href)}">交给${esc(a.name)} · 进入${esc(d.name.replace(/部$/, ''))}</a>`
-      : `<div class="cmd"><code>${esc(cmd(a.skill))}</code><button type="button" class="btn" data-copy="${esc(cmd(a.skill))}">复制</button></div>
-         <p class="note">在 Claude（claude.ai 或 Claude Code）输入这个指令，后面接着说要${esc(a.name)}做什么。</p>`;
-    p.innerHTML = `<div class="crumb"><i style="background:${d.color}"></i>${esc(d.name)} <span class="badge ${d.kind}">${KIND[d.kind]}</span></div>
-      <h2><span class="avatar" style="background:${d.color}">${initial(a.name)}</span><span>${esc(a.name)}<br><span class="role">${esc(a.role)}</span></span></h2>
-      <p class="duty">${esc(a.duty)}</p>${stat}${act}`;
-  }
-}
-
-// ---------- 组织架构 ----------
-$('org').innerHTML = C.departments.map((d) => {
-  const ppl = d.agents.map((a, k) => `<li><button type="button" data-sel="agent/${d.id}/${k}"><span class="dot">${initial(a.name)}</span><b>${esc(a.name)} · ${esc(a.role)}</b><span>${esc(a.duty)}</span></button></li>`).join('');
-  const act = d.kind === 'site' ? `<a class="btn pri" href="${esc(d.href)}">进入${esc(d.name.replace(/部$/, ''))}</a>` : '';
-  return `<article class="dept ${d.kind}" style="--c:${d.color}"><div class="dept-h"><h3>${esc(d.name)}</h3><span class="badge ${d.kind}">${KIND[d.kind]}</span></div>
-    <p>${esc(d.summary)}</p>${ppl ? `<ul class="people">${ppl}</ul>` : ''}${act}</article>`;
-}).join('') + `<article class="dept" style="--c:${CONN_COLOR}"><div class="dept-h"><h3>公司设施</h3><span class="badge">连接器</span></div>
-  <p>Claude 里的员工做事时会用到的工具。</p><ul class="people">${C.connectors.map((cn, i) => `<li><button type="button" data-sel="conn/${i}"><span class="dot">${initial(cn.room)}</span><b>${esc(cn.room)} · ${esc(cn.name)}</b><span>${esc(cn.duty)}</span></button></li>`).join('')}</ul></article>`;
-
-// ---------- 3D ----------
-let office = null;
-function choose(id, fromList) {
-  renderPanel(id);
-  if (office && fromList) office.select(id);
-  if (fromList && window.matchMedia('(max-width:1079px)').matches) $('panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  else if (fromList) $('stage').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-try {
-  const { mountOffice } = await import('./hq/office.js');
-  office = mountOffice($('stage'), C, { stats, onSelect: (id) => renderPanel(id) });
-} catch (e) {
-  console.error(e);
-  $('stage').insertAdjacentHTML('beforeend', '<div class="nogl"><p>这台电脑显示不了 3D 公司。<br>下面的「组织架构」一样可以用。</p></div>');
-}
+$('m3d').addEventListener('click', () => setMode('3d'));
+$('mplan').addEventListener('click', () => setMode('plan'));
 $('zin').addEventListener('click', () => office && office.zoom(1.25));
 $('zout').addEventListener('click', () => office && office.zoom(0.8));
 $('home').addEventListener('click', () => { if (office) office.reset(); renderPanel(null); });
-renderPanel(null);
 
 // ---------- 点选、复制 ----------
 function toast(t) { const el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 1800); }
@@ -308,8 +344,10 @@ async function copy(text) {
   toast('已复制 ' + text);
 }
 document.addEventListener('click', (e) => {
-  const s = e.target.closest('[data-sel]'); if (s) { choose(s.dataset.sel, true); return; }
-  const c = e.target.closest('[data-copy]'); if (c) copy(c.dataset.copy);
+  const s = e.target.closest('[data-sel]');
+  if (s) { renderPanel(s.dataset.sel); if (office) office.select(s.dataset.sel); if (s.closest('#drawer') && window.innerWidth < 1100) drawer(false); return; }
+  const c = e.target.closest('[data-copy]'); if (c) { copy(c.dataset.copy); return; }
+  if (e.target.closest('#closePanel')) { renderPanel(null); if (office) office.reset(); }
 });
 </script>
 </body>
