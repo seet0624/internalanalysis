@@ -38,7 +38,8 @@ const ACT = {
   visit: { fix: { social: 10 }, icon: '💬', need: 'social' },
   lobby: { fix: { social: 5 }, icon: '👋', need: 'social' },
   lounge: { fix: { fun: 12, social: 3, energy: 3 }, icon: '🎮', need: 'fun' },
-  printer: { fix: {}, icon: '🖨️' }, mail: { fix: {}, icon: '📦' }, files: { fix: {}, icon: '🗂️' }
+  printer: { fix: {}, icon: '🖨️' }, mail: { fix: {}, icon: '📦' }, files: { fix: {}, icon: '🗂️' },
+  flow: { fix: { social: 3 }, icon: '📁' }   // 交接资料（真实事件）
 };
 const FOR_NEED = { energy: ['coffee', 'coffee', 'water'], hunger: ['pantry'], bladder: ['wc', 'wc', 'wash'], social: ['visit', 'meeting', 'lobby', 'visit'], fun: ['lounge'] };
 const ERRANDS = ['printer', 'mail', 'files', 'visit'];
@@ -662,6 +663,30 @@ export function mountOffice(container, company, opts = {}) {
   // 走廊只有 2 格宽，植物放在走廊尽头的角落，不挡路
   [[-15.6, 15.5], [11.6, -4.6], [23.5, -5.6]].forEach(([x, z]) => plant(x, z, 0.7));
 
+  // ---------- 办公室氛围：植物墙、四色吊灯、大厅圆地毯 ----------
+  {
+    const g = statics;
+    // 大厅西边的植物墙（面向大厅）
+    box(0.16, 2.2, 4.6, mat('#2F5A35'), -13.82, 1.12, 13.3); blockRect(-13.95, 11.0, -13.7, 15.6);
+    for (let i = 0; i < 46; i++) {
+      const z = 11.2 + (i * 0.37) % 4.3, y = 0.25 + ((i * 0.61) % 2.0);
+      sph(0.12 + (i % 3) * 0.04, i % 2 ? M.leaf : M.leaf2, -13.7, y, z, g, 0.8);
+    }
+    // 四色吊灯
+    const shades = ['#4E86E8', '#E2574C', '#F2B940', '#3FA45B'];
+    const lampMat = new THREE.MeshStandardMaterial({ color: '#FFF4D6', emissive: '#FFE7B0', emissiveIntensity: 1.4 });
+    const pendant = (x, z, k, y = 2.25) => {
+      cyl(0.008, 0.008, 0.6, M.dark, x, y + 0.45, z, g, 6);
+      cyl(0.06, 0.26, 0.24, colorMat(shades[k % 4]), x, y, z, g, 24);
+      const bulb = new THREE.Mesh(new THREE.CircleGeometry(0.2, 20), lampMat); bulb.rotation.x = Math.PI / 2; bulb.position.set(x, y - 0.121, z); scene.add(bulb);
+    };
+    pendant(17.3, -10.8, 0); pendant(21.3, -10.8, 1);
+    [-10, -8, -6].forEach((x, k) => pendant(x, -11.6, k + 2));
+    pendant(-18.5, -11.9, 3, 2.4);
+    // 大厅彩色圆地毯
+    [[-6.5, 14.2, '#E8EEF8'], [3.6, 14.4, '#FBEFD6']].forEach(([x, z, c]) => { const r = new THREE.Mesh(new THREE.CircleGeometry(1.4, 40), mat(c)); r.rotation.x = -Math.PI / 2; r.position.set(x, 0.026, z); r.receiveShadow = true; scene.add(r); });
+  }
+
   // ---------- 合并静态物件 ----------
   const mergedBy = new Map();
   {
@@ -753,71 +778,181 @@ export function mountOffice(container, company, opts = {}) {
     return out;
   }
 
-  // ---------- 人物 ----------
-  const SKIN = ['#F1D3B8', '#E2B48E', '#C68D63', '#8F5B3B', '#F4DCC6'];
-  const HAIR = ['#2A211C', '#3B2A20', '#1E1E1E', '#6B4A2E', '#9A7350', '#4A3A30'];
-  const PANTS = ['#2B2F36', '#3C4654', '#4A4036', '#2F3B33'];
+  // ---------- 人物：有关节、五官、发型、服装 ----------
+  const SKIN = ['#F1D3B8', '#E2B48E', '#C68D63', '#8F5B3B', '#F4DCC6', '#D9A47E'];
+  const HAIR = ['#2A211C', '#3B2A20', '#1E1E1E', '#6B4A2E', '#9A7350', '#4A3A30', '#2F2A28'];
+  const PANTS = ['#2B2F36', '#3C4654', '#4A4036', '#2F3B33', '#5A6370', '#7A6A58'];
+  const SHOES = ['#1E1E1E', '#F2F2F2', '#6B4A2E', '#3A3F44'];
+  const HAIR_STYLES = ['short', 'long', 'bob', 'bun', 'pony', 'buzz', 'curly'];
+  const OUTFITS = ['shirt', 'hoodie', 'blazer', 'polo', 'dress', 'cardigan'];
+  const VC = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7 });   // 头、手、鞋这些合成一块的部件
   const pickMeshes = [];
-  function makePerson(color, seed, id, scale = 1) {
+  // 把几个小零件合成一块（每块自带颜色），一个人少画很多次
+  function mergeParts(parts) {
+    const geos = parts.map(([geo, hex, pos, rot, scl]) => {
+      const g = (geo.index ? geo.toNonIndexed() : geo).clone();
+      const m = new THREE.Matrix4().compose(new THREE.Vector3(...(pos || [0, 0, 0])), new THREE.Quaternion().setFromEuler(new THREE.Euler(...(rot || [0, 0, 0]))), new THREE.Vector3(...(scl || [1, 1, 1])));
+      g.applyMatrix4(m);
+      const c = new THREE.Color(hex), n = g.attributes.position.count, col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      return g;
+    });
+    return mergeGeometries(geos, false);
+  }
+  const shade = (hex, k) => '#' + new THREE.Color(hex).multiplyScalar(k).getHexString();
+  const sphG = (r, ws = 16, hs = 12, ...rest) => new THREE.SphereGeometry(r, ws, hs, ...rest);
+  // 每位员工的长相：名单里有 look 就用，没有就按序号固定挑一组（每次打开都一样）
+  function lookFor(seed, color, given) {
+    const pick = (arr, k) => arr[(seed * k + 3) % arr.length];
+    const base = new THREE.Color(color);
+    const tone = (seed % 3 === 0) ? base.clone().lerp(new THREE.Color('#FFFFFF'), 0.1) : (seed % 3 === 1) ? base.clone().multiplyScalar(0.82) : base;
+    return Object.assign({
+      skin: pick(SKIN, 7), hair: pick(HAIR_STYLES, 5), hairColor: pick(HAIR, 3), outfit: pick(OUTFITS, 11),
+      top: '#' + tone.getHexString(), pants: pick(PANTS, 13), shoes: pick(SHOES, 17), glasses: seed % 4 === 1, height: 0.94 + ((seed * 37) % 11) / 100
+    }, given || {});
+  }
+  function makePerson(look, id) {
+    const L = look;
     const root = new THREE.Group();
     const body = new THREE.Group(); root.add(body);
-    const shirt = mat(color, { roughness: 0.7 });
-    const skin = colorMat(SKIN[seed % SKIN.length]), hair = colorMat(HAIR[(seed * 7) % HAIR.length]), pants = colorMat(PANTS[(seed * 3) % PANTS.length]);
-    const torso = new THREE.Mesh(new RoundedBoxGeometry(0.44, 0.56, 0.26, 2, 0.1), shirt); torso.position.y = 1.12;
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.08, 10), skin); neck.position.y = 1.43;
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.19, 22, 16), skin); head.position.y = 1.62;
-    const hairM = new THREE.Mesh(new THREE.SphereGeometry(0.2, 22, 12, 0, Math.PI * 2, 0, Math.PI * (seed % 3 === 0 ? 0.62 : 0.5)), hair); hairM.position.y = 1.64; hairM.rotation.x = -0.25;
-    body.add(torso, neck, head, hairM);
-    const limb = (r, len, m) => { const p = new THREE.Group(); const c = new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 4, 10), m); c.position.y = -len / 2 - r * 0.6; c.castShadow = true; p.add(c); return { p, c }; };
-    const armL = limb(0.06, 0.42, shirt), armR = limb(0.06, 0.42, shirt), legL = limb(0.085, 0.5, pants), legR = limb(0.085, 0.5, pants);
-    armL.p.position.set(-0.29, 1.36, 0); armR.p.position.set(0.29, 1.36, 0);
-    legL.p.position.set(-0.11, 0.82, 0); legR.p.position.set(0.11, 0.82, 0);
-    body.add(armL.p, armR.p, legL.p, legR.p);
-    [torso, head, hairM, neck].forEach((m) => { m.castShadow = true; });
-    [torso, head, hairM, armL.c, armR.c, legL.c, legR.c].forEach((m) => { m.userData.pick = id; pickMeshes.push(m); });
-    root.scale.setScalar(scale);
-    scene.add(root);
+    const top = L.outfit === 'blazer' ? shade(L.top, 0.55) : L.top;          // 西装外套颜色深一点
+    const shirt = mat(top, { roughness: 0.75 });
+    const legColor = L.outfit === 'dress' ? shade(L.skin, 0.92) : L.pants;
+    // 躯干（发光用这块材质）
+    const torso = new THREE.Mesh(new RoundedBoxGeometry(0.4, 0.56, 0.24, 2, 0.09), shirt); torso.position.y = 1.2;
+    // 衣服细节、腰带、臀部
+    const extras = [[new THREE.BoxGeometry(0.38, 0.16, 0.24), L.pants, [0, 0.9, 0]], [new THREE.BoxGeometry(0.39, 0.035, 0.245), '#2A2A2A', [0, 0.98, 0]]];
+    if (L.outfit === 'blazer') extras.push([new THREE.BoxGeometry(0.1, 0.34, 0.012), '#F4F4F2', [0, 1.3, 0.122]], [new THREE.BoxGeometry(0.035, 0.26, 0.014), L.top, [0, 1.27, 0.128]]);
+    if (L.outfit === 'cardigan') extras.push([new THREE.BoxGeometry(0.12, 0.5, 0.012), '#F1EDE4', [0, 1.2, 0.122]]);
+    if (L.outfit === 'hoodie') extras.push([new THREE.TorusGeometry(0.12, 0.05, 8, 16), shade(top, 0.85), [0, 1.47, -0.07], [Math.PI / 2.4, 0, 0]], [new THREE.BoxGeometry(0.22, 0.1, 0.02), shade(top, 0.85), [0, 1.04, 0.122]]);
+    if (L.outfit === 'polo') extras.push([new THREE.BoxGeometry(0.2, 0.05, 0.05), shade(top, 0.9), [0, 1.47, 0.08]], [new THREE.BoxGeometry(0.03, 0.12, 0.012), shade(top, 0.8), [0, 1.4, 0.122]]);
+    if (L.outfit === 'shirt') extras.push([new THREE.BoxGeometry(0.015, 0.42, 0.012), shade(top, 0.8), [0, 1.22, 0.122]]);
+    if (L.outfit === 'dress') extras.push([new THREE.CylinderGeometry(0.2, 0.3, 0.42, 16, 1, true), top, [0, 0.78, 0]]);
+    const extra = new THREE.Mesh(mergeParts(extras), VC);
+    // 头：头型、耳朵、鼻子、眼睛、眉毛、嘴、发型、眼镜
+    const S = L.skin, H = L.hairColor;
+    const head = [
+      [new THREE.CylinderGeometry(0.05, 0.055, 0.1, 10), S, [0, -0.02, 0]],
+      [sphG(0.165, 20, 16), S, [0, 0.17, 0], null, [1, 1.12, 1.05]],
+      [sphG(0.035, 8, 6), S, [-0.165, 0.16, 0]], [sphG(0.035, 8, 6), S, [0.165, 0.16, 0]],
+      [sphG(0.026, 8, 6), shade(S, 0.92), [0, 0.15, 0.172]],
+      [sphG(0.03, 10, 8), '#FFFFFF', [-0.06, 0.2, 0.145], null, [1, 1, 0.5]], [sphG(0.03, 10, 8), '#FFFFFF', [0.06, 0.2, 0.145], null, [1, 1, 0.5]],
+      [sphG(0.017, 8, 6), '#2A1E18', [-0.06, 0.2, 0.161]], [sphG(0.017, 8, 6), '#2A1E18', [0.06, 0.2, 0.161]],
+      [new THREE.BoxGeometry(0.065, 0.013, 0.012), H, [-0.06, 0.25, 0.158], [0, 0, 0.08]], [new THREE.BoxGeometry(0.065, 0.013, 0.012), H, [0.06, 0.25, 0.158], [0, 0, -0.08]],
+      [new THREE.BoxGeometry(0.06, 0.012, 0.01), '#9C4A3F', [0, 0.095, 0.165]]
+    ];
+    const cap = (th) => [sphG(0.176, 20, 12, 0, Math.PI * 2, 0, Math.PI * th), H, [0, 0.19, -0.01], [-0.18, 0, 0], [1, 1.08, 1.1]];
+    if (L.hair === 'buzz') head.push(cap(0.42));
+    else head.push(cap(0.55));
+    if (L.hair === 'long') head.push([new RoundedBoxGeometry(0.33, 0.4, 0.12, 2, 0.05), H, [0, 0.06, -0.11]]);
+    if (L.hair === 'bob') head.push([new RoundedBoxGeometry(0.37, 0.22, 0.26, 2, 0.08), H, [0, 0.13, -0.05]]);
+    if (L.hair === 'bun') head.push([sphG(0.075, 12, 10), H, [0, 0.34, -0.1]]);
+    if (L.hair === 'pony') head.push([new THREE.CapsuleGeometry(0.045, 0.2, 4, 8), H, [0, 0.1, -0.2], [0.35, 0, 0]]);
+    if (L.hair === 'curly') for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; head.push([sphG(0.06, 8, 6), H, [Math.cos(a) * 0.12, 0.3 + Math.sin(i * 2) * 0.02, Math.sin(a) * 0.12 - 0.02]]); }
+    if (L.glasses) head.push([new THREE.TorusGeometry(0.04, 0.007, 6, 16), '#222222', [-0.06, 0.2, 0.172]], [new THREE.TorusGeometry(0.04, 0.007, 6, 16), '#222222', [0.06, 0.2, 0.172]], [new THREE.BoxGeometry(0.04, 0.008, 0.008), '#222222', [0, 0.205, 0.175]]);
+    const headG = new THREE.Group(); headG.position.y = 1.5;
+    const headM = new THREE.Mesh(mergeParts(head), VC); headG.add(headM);
+    body.add(torso, extra, headG);
+    // 手脚：大腿 + 小腿（膝盖）、上臂 + 前臂（手肘）
+    function leg(x) {
+      const hip = new THREE.Group(); hip.position.set(x, 0.88, 0);
+      const thigh = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.3, 4, 10), colorMat(legColor)); thigh.position.y = -0.2; hip.add(thigh);
+      const knee = new THREE.Group(); knee.position.y = -0.42; hip.add(knee);
+      const shin = new THREE.Mesh(mergeParts([[new THREE.CapsuleGeometry(0.065, 0.3, 4, 10), legColor, [0, -0.19, 0]], [new RoundedBoxGeometry(0.11, 0.08, 0.24, 2, 0.03), L.shoes, [0, -0.41, 0.04]]]), VC);
+      knee.add(shin);
+      return { hip, knee, thigh, shin };
+    }
+    function arm(x) {
+      const sh = new THREE.Group(); sh.position.set(x, 1.42, 0);
+      const upper = new THREE.Mesh(new THREE.CapsuleGeometry(0.055, 0.22, 4, 10), shirt); upper.position.y = -0.15; sh.add(upper);
+      const elbow = new THREE.Group(); elbow.position.y = -0.31; sh.add(elbow);
+      const fore = new THREE.Mesh(mergeParts([[new THREE.CapsuleGeometry(0.048, 0.2, 4, 10), top, [0, -0.13, 0]], [sphG(0.05, 10, 8), S, [0, -0.29, 0.01]]]), VC);
+      elbow.add(fore);
+      return { sh, elbow, upper, fore };
+    }
+    const lL = leg(-0.1), lR = leg(0.1), aL = arm(-0.255), aR = arm(0.255);
+    body.add(lL.hip, lR.hip, aL.sh, aR.sh);
+    [torso, extra, headM, lL.thigh, lR.thigh, lL.shin, lR.shin, aL.upper, aR.upper, aL.fore, aR.fore].forEach((m) => { m.castShadow = true; });
+    [torso, headM, extra, lL.thigh, lR.thigh, lL.shin, lR.shin, aL.upper, aR.upper].forEach((m) => { m.userData.pick = id; pickMeshes.push(m); });
+    // 手上拿的：咖啡杯、资料夹
     const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.11, 12), colorMat('#FFFFFF'));
-    cup.position.set(0, -0.62, 0.06); cup.visible = false; armR.p.add(cup);
-    return { root, body, armL: armL.p, armR: armR.p, legL: legL.p, legR: legR.p, shirt, cup };
+    cup.position.set(0, -0.32, 0.06); cup.visible = false; aR.elbow.add(cup);
+    const folder = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.32, 0.025), colorMat(L.top));
+    folder.position.set(0, -0.3, 0.1); folder.rotation.x = -0.3; folder.visible = false; aR.elbow.add(folder);
+    root.scale.setScalar(L.height || 1);
+    scene.add(root);
+    return { root, body, head: headG, torso, legL: lL.hip, legR: lR.hip, kneeL: lL.knee, kneeR: lR.knee, armL: aL.sh, armR: aR.sh, elbowL: aL.elbow, elbowR: aR.elbow, shirt, cup, folder };
   }
-  function poseSit(p, t, typing) {
-    p.body.position.y = -0.34;
-    p.legL.rotation.x = p.legR.rotation.x = -Math.PI / 2 + 0.05;
-    const k = typing && !REDUCED ? Math.sin(t * 9) * 0.06 : 0;
-    p.armL.rotation.x = -1.0 + k; p.armR.rotation.x = -1.0 - k;
-    p.armL.rotation.z = 0.12; p.armR.rotation.z = -0.12;
+  function holdPose(p) {
+    if (p.folder.visible || p.cup.visible) { p.armR.rotation.x = -0.45; p.elbowR.rotation.x = -1.2; }
   }
-  function poseStand(p) { p.body.position.y = 0; p.legL.rotation.x = p.legR.rotation.x = 0; p.armL.rotation.x = p.armR.rotation.x = 0; p.armL.rotation.z = 0.06; p.armR.rotation.z = -0.06; }
+  function poseSit(p, t, typing, phase = 0) {
+    p.body.position.y = -0.33;
+    p.legL.rotation.x = p.legR.rotation.x = -Math.PI / 2 + 0.06;
+    p.kneeL.rotation.x = p.kneeR.rotation.x = Math.PI / 2 - 0.06;
+    const k = typing && !REDUCED ? Math.sin(t * 9 + phase) * 0.08 : 0;
+    p.armL.rotation.x = p.armR.rotation.x = -0.55;
+    p.elbowL.rotation.x = -0.95 + k; p.elbowR.rotation.x = -0.95 - k;
+    p.armL.rotation.z = 0.1; p.armR.rotation.z = -0.1;
+    if (!REDUCED) { p.head.rotation.y = Math.sin(t * 0.3 + phase) * 0.22; p.torso.scale.y = 1 + Math.sin(t * 1.6 + phase) * 0.012; }
+    holdPose(p);
+  }
+  function poseStand(p, t = 0, phase = 0) {
+    p.body.position.y = 0;
+    p.legL.rotation.x = p.legR.rotation.x = 0; p.kneeL.rotation.x = p.kneeR.rotation.x = 0;
+    p.armL.rotation.x = p.armR.rotation.x = 0; p.elbowL.rotation.x = p.elbowR.rotation.x = -0.12;
+    p.armL.rotation.z = 0.06; p.armR.rotation.z = -0.06;
+    if (!REDUCED) { p.head.rotation.y = Math.sin(t * 0.5 + phase) * 0.3; p.torso.scale.y = 1 + Math.sin(t * 1.6 + phase) * 0.012; }
+    holdPose(p);
+  }
   function poseWalk(p, phase) {
     const s = Math.sin(phase);
-    p.body.position.y = Math.abs(Math.cos(phase)) * 0.05;
-    p.legL.rotation.x = s * 0.55; p.legR.rotation.x = -s * 0.55;
-    p.armL.rotation.x = -s * 0.45; p.armR.rotation.x = s * 0.45;
+    p.body.position.y = Math.abs(Math.cos(phase)) * 0.04;
+    p.legL.rotation.x = s * 0.5; p.legR.rotation.x = -s * 0.5;
+    p.kneeL.rotation.x = 0.75 * Math.max(0, s); p.kneeR.rotation.x = 0.75 * Math.max(0, -s);
+    p.armL.rotation.x = -s * 0.4; p.armR.rotation.x = s * 0.4;
+    p.elbowL.rotation.x = p.elbowR.rotation.x = -0.3;
     p.armL.rotation.z = 0.06; p.armR.rotation.z = -0.06;
+    p.head.rotation.y = 0; p.torso.scale.y = 1;
+    holdPose(p);
   }
 
   const agents = [];
+  const TRAITS = ['细心', '温和', '认真', '直爽', '外向', '幽默'];
   people.forEach((pp, n) => {
     const id = `agent/${pp.group.id}/${pp.index}`;
-    const person = makePerson(pp.color, n * 5 + 3, id);
+    const look = lookFor(n * 5 + 3, pp.color, pp.agent.look);
+    const person = makePerson(look, id);
     person.root.position.copy(pp.seat); person.root.rotation.y = pp.face;
     const stat = pp.agent.stat && stats[pp.agent.stat] ? `<span class="hq-tag-stat">${esc(stats[pp.agent.stat])}</span>` : '';
     const tag = label(`<span class="hq-tag-name">${esc(pp.agent.name)}<span class="hq-tag-mood"></span></span><span class="hq-tag-role">${esc(pp.agent.role)}</span>${stat}<span class="hq-tag-doing"></span>`, 'hq-tag', id, `${pp.group.name} ${pp.agent.name}，${pp.agent.role}`, false);
-    tag.position.set(0, 2.1, 0); person.root.add(tag);
+    tag.position.set(0, 2.15, 0); person.root.add(tag);
     const bubble = document.createElement('div'); bubble.className = 'hq-bubble'; bubble.hidden = true;
-    const bo = new CSS2DObject(bubble); bo.position.set(0, 2.75, 0); person.root.add(bo);
+    const bo = new CSS2DObject(bubble); bo.position.set(0, 2.8, 0); person.root.add(bo);
     const needs = {}, mult = {};
     NEEDS.forEach((nd) => { needs[nd.key] = rand(n < 6 ? 30 : 55, 100); mult[nd.key] = rand(0.75, 1.3); });
-    const a = { id, name: pp.agent.name, person, seat: pp.seat.clone(), face: pp.face, state: 'sit', timer: rand(1, 6), path: null, k: 0, phase: Math.random() * 6, spot: null, back: false, away: false, doing: '工作中', tag: tag.element, bubble, bubbleT: 0, chatT: 0, needs, mult, cupT: 0 };
+    const a = { id, key: id.slice(6), group: pp.group, name: pp.agent.name, trait: pp.agent.trait || TRAITS[(n * 7) % TRAITS.length], color: pp.color, person, seat: pp.seat.clone(), face: pp.face, state: 'sit', timer: rand(1, 6), path: null, k: 0, phase: Math.random() * 6, spot: null, back: false, away: false, doing: '工作中', tag: tag.element, bubble, bubbleT: 0, chatT: 0, needs, mult, cupT: 0, flow: false };
     agents.push(a);
     register(id, { el: tag.element, pos: pp.seat.clone(), mats: [person.shirt], color: pp.color, agent: a });
   });
+  const agentByKey = (k) => agents.find((a) => a.key === k) || null;
 
-  // 老板：坐在大桌后面，面向全公司
-  const bossP = makePerson(BOSS_COLOR, 11, 'boss', 1.08);
+  // 关系：同组的人比较熟；每次交接、聊天都更熟一点
+  const rel = new Map();
+  const relKey = (a, b) => [a.id, b.id].sort().join('|');
+  agents.forEach((a, i) => agents.forEach((b, j) => { if (j > i) rel.set(relKey(a, b), (a.group === b.group ? 45 : 18) + ((i * 13 + j * 7) % 20)); }));
+  function bond(a, b, d = 2) { if (!a || !b || a === b) return; const k = relKey(a, b); rel.set(k, Math.min(100, (rel.get(k) || 20) + d)); }
+  function closest(a, n = 2) {
+    return agents.filter((b) => b !== a).map((b) => ({ name: b.name, value: Math.round(rel.get(relKey(a, b)) || 0) })).sort((x, y) => y.value - x.value).slice(0, n);
+  }
+
+  // 老板：穿西装，坐在大桌后面，面向全公司
+  const bossP = makePerson(lookFor(11, '#2F3640', { outfit: 'blazer', top: '#C99A3B', hair: 'short', hairColor: '#2A211C', glasses: false, height: 1.06, skin: '#E2B48E' }), 'boss');
   bossP.root.position.copy(bossSeat); bossP.root.rotation.y = 0;
-  const tie = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.36, 0.03), colorMat('#8C1D18')); tie.position.set(0, 1.1, 0.14); bossP.body.add(tie);
+  const bossBubble = document.createElement('div'); bossBubble.className = 'hq-bubble'; bossBubble.hidden = true;
+  { const o = new CSS2DObject(bossBubble); o.position.set(0, 2.8, 0); bossP.root.add(o); }
+  const boss = { name: (company.boss && company.boss.title) || '老板', bubble: bossBubble, bubbleT: 0, color: BOSS_COLOR };
   Object.assign(items.get('boss'), { mats: [bossP.shirt], color: BOSS_COLOR, pos: bossSeat.clone() });
 
   // ---------- 员工的一天：需求、心情，自己决定去做什么 ----------
@@ -894,11 +1029,11 @@ export function mountOffice(container, company, opts = {}) {
     });
     if (a.cupT > 0) { a.cupT -= gmin; if (a.cupT <= 0) p.cup.visible = false; }
     if (a.state === 'sit') {
-      poseSit(p, t + a.phase, true);
+      poseSit(p, t, true, a.phase);
       a.timer -= dt;
       if (a.timer <= 0) {
         a.timer = rand(3, 8);
-        if (away >= MAX_AWAY || REDUCED || a.host) return;
+        if (away >= MAX_AWAY || REDUCED || a.host || a.flow) return;
         const kind = decide(a);
         if (kind) go(a, kind);
       }
@@ -907,7 +1042,6 @@ export function mountOffice(container, company, opts = {}) {
       const dx = target.x - pos.x, dz = target.z - pos.z, dist = Math.hypot(dx, dz);
       a.phase += dt * 8;
       poseWalk(p, a.phase);
-      if (p.cup.visible) p.armR.rotation.x = -1.1;
       if (dist > 1e-4) {
         let diff = Math.atan2(dx, dz) - p.root.rotation.y; diff = Math.atan2(Math.sin(diff), Math.cos(diff));
         p.root.rotation.y += diff * Math.min(1, dt * 10);
@@ -916,17 +1050,20 @@ export function mountOffice(container, company, opts = {}) {
       if (dist <= step) { pos.x = target.x; pos.z = target.z; a.k++; } else { pos.x += dx / dist * step; pos.z += dz / dist * step; }
       if (a.k >= a.path.length) {
         if (a.back) sitDown(a);
-        else { a.state = 'stay'; a.timer = rand(4, 12); p.root.rotation.y = a.spot.facing; setDoing(a, a.spot.doing); a.chatT = 0; }
+        else { a.state = 'stay'; a.timer = rand(4, 12); p.root.rotation.y = a.spot.facing; setDoing(a, a.spot.doing); a.chatT = 0; if (a.spot.onArrive) a.spot.onArrive(); }
       }
     } else if (a.state === 'stay') {
-      if (a.spot.sit) poseSit(p, t, false); else { poseStand(p); if (!REDUCED) p.armR.rotation.x = -0.6 + Math.sin(t * 2 + a.phase) * 0.15; }
+      if (a.flow) { poseStand(p, t, a.phase); return; }   // 交接中：交接流程决定什么时候回去
+      if (a.spot.sit) poseSit(p, t, false, a.phase); else { poseStand(p, t, a.phase); if (!REDUCED && !p.cup.visible) p.armR.rotation.x = -0.6 + Math.sin(t * 2 + a.phase) * 0.15; }
       // 找同事讨论：两个人轮流冒对话
       if (a.kind === 'visit' || a.kind === 'meeting' || a.kind === 'lobby') {
         a.chatT -= dt;
         if (a.chatT <= 0) {
           a.chatT = rand(2.5, 4);
-          const who = a.spot.host && Math.random() < 0.5 ? a.spot.host : a;
-          showBubble(who, pickOf(CHATS), 2.4, true);
+          const host = a.spot.host, who = host && Math.random() < 0.5 ? host : a, line = pickOf(CHATS);
+          showBubble(who, line, 2.4, true);
+          if (host) bond(a, host, 1);
+          if (Math.random() < 0.3) feed({ kind: 'chat', from: who.name, fromColor: who.color, to: host ? (who === host ? a.name : host.name) : '', text: line, team: who.group.id });
         }
       }
       a.timer -= gmin;
@@ -940,12 +1077,84 @@ export function mountOffice(container, company, opts = {}) {
   function moodTags() { agents.forEach((a) => { const m = mood(a); a.tag.querySelector('.hq-tag-mood').textContent = ' ' + m.emoji; }); }
   moodTags();
 
+  // ---------- 交接资料：审核工具的真实事件 → 员工照流程走去交资料、对话 ----------
+  let simT = 0;                          // 游戏秒（暂停时不走）
+  const timers = [];
+  function later(gsec, fn) { timers.push({ at: simT + gsec, fn }); }
+  function tickTimers() { for (let i = timers.length - 1; i >= 0; i--) if (timers[i].at <= simT) { const f = timers[i].fn; timers.splice(i, 1); f(); } }
+  function feed(entry) { (opts.onFeed || (() => {}))(Object.assign({ t: Date.now(), game: clockText() }, entry)); }
+  function say(who, text, secs = 3.6) { who.bubble.textContent = text; who.bubble.hidden = false; who.bubbleT = secs; who.bubble.classList.add('is-speech'); }
+  const flows = company.workflows || {};
+  const jobs = []; let job = null;
+  // when：'ask>0' 或 'ask+askFirst>0'
+  const cond = (expr, d) => { if (!expr) return true; const m = String(expr).match(/^([a-zA-Z+]+)\s*>\s*(\d+)$/); if (!m) return true; return m[1].split('+').reduce((n, k) => n + (+d[k] || 0), 0) > +m[2]; };
+  const fill = (tpl, d) => String(tpl).replace(/\{(\w+)\}/g, (_, k) => (d[k] != null ? d[k] : '—'));
+  function runEvent(evt) {
+    const steps = (flows[evt.tool + '.' + evt.kind] || []).filter((st) => cond(st.when, evt));
+    if (!steps.length) return false;
+    jobs.push({ evt, steps, i: 0 });
+    if (!job) nextJob();
+    return true;
+  }
+  function nextJob() { job = jobs.shift() || null; if (job) doStep(); }
+  function doStep() {
+    const st = job && job.steps[job.i];
+    if (!st) { nextJob(); return; }
+    const d = job.evt, A = agentByKey(st.from);
+    const next = () => { job.i++; doStep(); };
+    if (!A) { next(); return; }
+    const text = fill(st.say, d), reply = st.reply ? fill(st.reply, d) : '';
+    const B = st.to && st.to !== 'boss' && !String(st.to).startsWith('place:') ? agentByKey(st.to) : null;
+    const tag = { tool: d.tool, demo: !!d.demo, team: A.group.id };
+    const post = (from, to, msg) => feed(Object.assign({ kind: 'work', from: from.name, fromColor: from.color, to, text: msg }, tag));
+    const begin = () => {
+      if (!st.to) { say(A, text); post(A, '', text); later(3.6, next); return; }
+      let pos, facing, place, toName;
+      if (B) { pos = B.seat.clone().add(new THREE.Vector3(Math.cos(B.face), 0, -Math.sin(B.face)).multiplyScalar(0.8)); facing = Math.atan2(B.seat.x - pos.x, B.seat.z - pos.z); place = B.name + '那边'; toName = B.name; B.host = A; }
+      else if (st.to === 'boss') { pos = new THREE.Vector3(bossSeat.x + 0.4, 0, bossSeat.z + 2.0); facing = Math.PI; place = '老板办公室'; toName = boss.name; }
+      else { const sp = spots.find((x) => x.kind === String(st.to).slice(6)); if (!sp) { next(); return; } pos = sp.pos.clone(); facing = sp.facing; place = sp.place; toName = ''; }
+      release(A);
+      if (!startWalk(A, pos, false)) { if (B) B.host = null; say(A, text); post(A, toName, text); later(3.6, next); return; }
+      A.flow = true; A.kind = 'flow'; A.person.folder.visible = true;
+      if (!A.away) { A.away = true; away++; }
+      setDoing(A, (toName ? '拿资料去' : '去') + place);
+      showBubble(A, '📁', 2.5);
+      A.spot = {
+        pos, facing, sit: false, place, taken: true, doing: toName ? '交资料给' + toName : '在' + place + '查资料',
+        onArrive: () => {
+          say(A, text); post(A, toName, text);
+          const replier = B || (st.to === 'boss' ? boss : null);
+          if (reply && replier) later(2.2, () => { say(replier, reply); post(replier, A.name, reply); });
+          if (B) bond(A, B, 3);
+          later(reply ? 4.8 : 3.4, () => { A.person.folder.visible = false; A.flow = false; if (B) B.host = null; goBack(A); next(); });
+        }
+      };
+    };
+    // 交接的两个人都要在座位上才开始（在外面的先叫回来）
+    const ready = () => A.state === 'sit' && (!B || B.state === 'sit');
+    [A, B].forEach((x) => { if (x && x.state !== 'sit' && !x.back && !x.flow) goBack(x); });
+    if (ready()) begin(); else { const wait = () => { if (ready()) begin(); else later(0.5, wait); }; later(0.5, wait); }
+  }
+
+  // ---------- 账号权限：国内客服只看客服部 ----------
+  const role = opts.role || 'boss';
+  const csTeamIds = new Set((cs.teams || []).map((t) => t.id));
+  function locked(id) {
+    if (role === 'boss' || !id) return false;
+    if (id === 'boss') return true;
+    if (id.startsWith('dept/')) return id !== 'dept/cs';
+    if (id.startsWith('agent/')) return !csTeamIds.has(id.split('/')[1]);
+    return false;
+  }
+  items.forEach((it, id) => { if (locked(id) && it.el) { it.el.classList.add('hq-locked'); if (!it.agent) it.el.insertAdjacentHTML('beforeend', '<small>🔒 老板才能看</small>'); } });
+
   // 选中员工脚下的圈
   const ring = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 40), new THREE.MeshBasicMaterial({ color: '#2EB872', transparent: true, opacity: 0.85, depthWrite: false }));
   ring.rotation.x = -Math.PI / 2; ring.visible = false; scene.add(ring);
 
   // ---------- 游戏时钟、天色 ----------
   let gameMin = 9 * 60, day = 1, speed = 1;
+  function clockText() { return String(Math.floor(gameMin / 60)).padStart(2, '0') + ':' + String(Math.floor(gameMin % 60)).padStart(2, '0'); }
   const SKY_DAY = new THREE.Color('#FFFFFF'), SKY_EVE = new THREE.Color('#F4CFA6'), SUN_DAY = new THREE.Color('#FFF4E2'), SUN_EVE = new THREE.Color('#FFB46B');
   function applyDaylight() {
     const h = gameMin / 60, ang = THREE.MathUtils.clamp((h - 6) / 15, 0, 1) * Math.PI, up = Math.sin(ang);
@@ -1079,13 +1288,14 @@ export function mountOffice(container, company, opts = {}) {
       const step = Math.min(left, 0.1) * speed;   // 游戏秒
       if (!step) break;
       const gmin = step;                           // 1 倍速：真实 1 秒 = 游戏 1 分钟
-      gameMin += gmin;
+      gameMin += gmin; simT += step;
       if (gameMin >= 20 * 60) { gameMin = 8 * 60; day++; }
       agents.forEach((a) => updateAgent(a, step, gmin, t));
+      tickTimers();
     }
-    agents.forEach((a) => { if (a.bubbleT > 0) { a.bubbleT -= real; if (a.bubbleT <= 0) a.bubble.hidden = true; } });
+    [...agents, boss].forEach((a) => { if (a.bubbleT > 0) { a.bubbleT -= real; if (a.bubbleT <= 0) a.bubble.hidden = true; } });
     if ((moodTick += real) > 2) { moodTick = 0; moodTags(); applyDaylight(); }
-    poseSit(bossP, t, true);
+    poseSit(bossP, t, true, 0.7);
     const sel = selected && items.get(selected);
     ring.visible = !!(sel && sel.agent);
     if (ring.visible) { ring.position.set(sel.agent.person.root.position.x, 0.05, sel.agent.person.root.position.z); if (!REDUCED) ring.scale.setScalar(1 + Math.sin(t * 4) * 0.08); }
@@ -1121,19 +1331,23 @@ export function mountOffice(container, company, opts = {}) {
     agentInfo: (id) => {
       const it = items.get(id); if (!it || !it.agent) return null;
       const a = it.agent;
-      return { doing: a.doing, why: a.why || '', host: !!a.host, state: a.state, mood: mood(a), needs: NEEDS.map((nd) => ({ key: nd.key, label: nd.label, value: Math.round(a.needs[nd.key]) })), busy: a.state !== 'sit' };
+      return { doing: a.doing, why: a.why || '', host: !!a.host, state: a.state, trait: a.trait, friends: closest(a), mood: mood(a), needs: NEEDS.map((nd) => ({ key: nd.key, label: nd.label, value: Math.round(a.needs[nd.key]) })), busy: a.state !== 'sit' };
     },
     // 叫员工去做某件事：kind 是 coffee / pantry / wc / meeting / lounge / back
     command: (id, kind) => {
       const it = items.get(id); if (!it || !it.agent) return false;
       const a = it.agent;
-      if (kind === 'back') { if (a.state === 'sit') return true; goBack(a); return true; }
-      if (a.host) return false;
+      if (kind === 'back') { if (a.state === 'sit' || a.flow) return a.state === 'sit'; goBack(a); return true; }
+      if (a.host || a.flow) return false;
       // 那边没位子就去差不多的地方
       const alt = { coffee: ['water', 'pantry'], pantry: ['coffee'], wc: ['wash'], meeting: ['visit', 'lobby'], lounge: ['lobby', 'pantry'] };
       return [kind, ...(alt[kind] || [])].some((k) => go(a, k));
     },
-    clock: () => ({ day, text: String(Math.floor(gameMin / 60)).padStart(2, '0') + ':' + String(Math.floor(gameMin % 60)).padStart(2, '0'), speed }),
+    clock: () => ({ day, text: clockText(), speed }),
+    // 审核工具的事件（或示范）→ 员工照 company.workflows 交接；没有对应流程回传 false
+    runEvent,
+    busy: () => !!job || jobs.length > 0,
+    locked,
     setSpeed: (v) => { speed = v; },
     setWalls: (low) => {
       const k = low ? 0.12 : 1;

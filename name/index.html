@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>名字审核 · 名正言顺</title>
+<script src="../hq/auth.js"></script>
+<script src="../hq/bus.js"></script>
 <meta name="theme-color" content="#F4F3EF">
 <script src="../vendor/exceljs.min.js"></script>
 <script src="../vendor/jszip.min.js"></script>
@@ -881,7 +883,16 @@ async function loadWithBuffers(fileList){ var start=parsedFiles.length;
     parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
   }catch(e){ alert('读「'+f.name+'」出错：'+e.message); } }
   if(parsedFiles.length>start){ activeFile=start; curSid=null; queueFilter='all'; }
-  rebuild(); }
+  rebuild();
+  if(parsedFiles.length>start) reportToHQ('loaded'); }
+
+// 告诉审核总部：几位学员、几位必须改……（3D 公司里的名字审核组会照着交接）
+function reportToHQ(kind){ if(!window.HQBus)return;
+  var stu=0, must=0, check=0, trad=0;
+  parsedFiles.forEach(function(x){ (x.audit&&x.audit.results||[]).forEach(function(r){ stu++; var t=issuesOf(r).map(function(i){return i.tier;});
+    if(t.indexOf('must')>=0)must++; else if(t.indexOf('check')>=0)check++;
+    if((r.rows||[]).some(function(rw){return rw.tradTo;}))trad++; }); });
+  window.HQBus.emit({ tool:'name', kind:kind, files:parsedFiles.length, students:stu, must:must, check:check, trad:trad, db:Object.keys(window._DB||{}).length }); }
 
 function rebuild(){ var savedDB=load('mzys_db',{}); for(var k in savedDB)importedDB[k]=savedDB[k];
   var db=buildOrderDB(parsedFiles.map(function(x){return x.parsed;}), importedDB); window._DB=db;

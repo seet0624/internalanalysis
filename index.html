@@ -173,6 +173,45 @@ button{cursor:pointer}
 @media (prefers-reduced-motion: reduce){.drawer,.hq-tag,[data-tip]::after,.needs dd i{transition:none}}
 
 /* ---------- 手机 ---------- */
+/* ---------- 登入 ---------- */
+.login{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(120% 90% at 25% 0%,#FFFFFF 0%,#EEEBE4 60%,#E2DED4 100%)}
+.login form{width:min(380px,100%);padding:28px;display:flex;flex-direction:column;gap:16px}
+.login h1{font-size:24px;display:flex;align-items:center;gap:10px}
+.login p{color:var(--muted);font-size:14px}
+.login label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500}
+.login input{min-height:44px;border:1px solid var(--field);border-radius:12px;padding:0 12px;font-size:16px;background:#FFFFFF}
+.login input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.login .err{color:var(--bad);font-size:14px;min-height:20px}
+.acct{font-size:13px;color:var(--faint);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.acct button{border:0;background:none;color:var(--accent);font-size:13px;padding:8px 4px;min-height:32px;text-decoration:underline}
+/* ---------- 公司对话 ---------- */
+.feed{left:16px;bottom:84px;width:380px;max-height:min(46vh,460px);display:flex;flex-direction:column;overflow:hidden}
+.feed-h{display:flex;align-items:center;gap:8px;padding:12px 12px 8px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.feed-h h2{font-size:16px;flex:1}
+.feed-h .seg{padding:2px;gap:2px;box-shadow:none;border:1px solid var(--line);border-radius:12px}
+.feed-h .seg button{min-height:32px;min-width:0;padding:0 10px;font-size:13px;border-radius:10px}
+.feed ol{list-style:none;margin:0;padding:8px 12px 12px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.fi{display:grid;grid-template-columns:10px 1fr;gap:10px;align-items:start}
+.fi-dot{width:10px;height:10px;border-radius:50%;margin-top:6px}
+.fi-h{font-size:13px;color:var(--faint)}
+.fi-h b{color:var(--ink);font-weight:500}
+.fi p{font-size:14px;line-height:1.45}
+.fi.work p{color:var(--ink)}
+.fi.chat p{color:var(--muted)}
+.tag-demo{font-size:12px;color:#7A4300;margin-left:4px}
+.tag-data{font-size:12px;color:var(--accent-ink);margin-left:4px}
+.feed-empty{padding:16px;font-size:14px;color:var(--muted);display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.badge-n{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--bad);color:#FFFFFF;font-size:12px;font-weight:700}
+.badge-n:empty{display:none}
+.hq-locked{opacity:.75}
+.lock-note{display:flex;gap:8px;align-items:center;background:var(--sunk);border-radius:12px;padding:12px;font-size:14px;color:var(--muted)}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--sunk);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+@media (min-width:1100px){.feed.closed{display:none}}
+@media (max-width:1099px){.feed{display:none}.feed.open{display:flex}}
+
 @media (max-width:719px){
   .brand{top:8px;left:8px;right:8px;max-width:none;padding:8px 12px}
   .greet{display:none}
@@ -180,11 +219,14 @@ button{cursor:pointer}
   .game{left:8px;right:8px;bottom:68px;justify-content:space-between}
   .hint,#zin,#zout,.walls .wl{display:none}
   .panel{top:auto;bottom:136px;left:8px;right:8px;width:auto;max-height:46vh}
+  .feed{left:8px;right:8px;bottom:136px;width:auto;max-height:46vh;z-index:6}
   .hq-room,.hq-sign{font-size:12px;padding:2px 8px;gap:4px}
   .hq-room small,.hq-sign small{display:none}
   .hq-room-boss small,.hq-room-main small{display:inline}
 }
 </style>
+<script src="hq/auth.js" data-page="hq"></script>
+<script src="hq/bus.js"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
 </head>
 <body>
@@ -202,9 +244,11 @@ button{cursor:pointer}
   </div>
   <div class="greet" id="greet"></div>
   <div class="live-line" id="liveLine"></div>
+  <div class="acct" id="acct"></div>
 </header>
 
 <div class="hud tools">
+  <button type="button" class="tbtn card" id="feedBtn" aria-expanded="false" aria-controls="feed"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>看对话<span class="badge-n" id="feedBadge"></span></button>
   <div class="seg card" role="group" aria-label="视角">
     <button type="button" id="m3d" aria-pressed="true">3D</button>
     <button type="button" id="mplan" aria-pressed="false">平面图</button>
@@ -228,6 +272,27 @@ button{cursor:pointer}
 <div class="hud hint" id="hint">拖动旋转 · 缩放看员工 · 点员工看心情和需求</div>
 
 <aside class="hud card panel" id="panel" aria-labelledby="panelTitle" hidden></aside>
+<section class="hud card feed" id="feed" aria-labelledby="feedTitle">
+  <div class="feed-h">
+    <h2 id="feedTitle">公司对话</h2>
+    <div class="seg" role="group" aria-label="对话种类">
+      <button type="button" data-ff="all" aria-pressed="true">全部</button>
+      <button type="button" data-ff="work" aria-pressed="false">交接</button>
+      <button type="button" data-ff="chat" aria-pressed="false">闲聊</button>
+    </div>
+  </div>
+  <ol id="feedList" aria-live="off"></ol>
+</section>
+<div class="login" id="login" hidden>
+  <form class="card" id="loginForm" autocomplete="on">
+    <h1><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7" fill="#0E6B66"/><path d="M8 14.5l4 4 8-9" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>登入审核总部</h1>
+    <p id="loginMsg">用公司给你的账号登入。</p>
+    <label>账号<input id="loginId" name="username" autocomplete="username" required></label>
+    <label>密码<input id="loginPass" name="password" type="password" autocomplete="current-password" required></label>
+    <div class="err" id="loginErr" role="alert"></div>
+    <button type="submit" class="btn pri">登入</button>
+  </form>
+</div>
 <div class="vh" id="announce" role="status" aria-live="polite"></div>
 
 <div class="scrim" id="scrim" hidden></div>
@@ -244,6 +309,26 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const ls = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
 const initial = (s) => esc(String(s).slice(-1));
 const enterName = (g) => '进入' + g.name.replace(/(组|部)$/, '');
+
+// ---------- 登入 ----------
+const params = new URLSearchParams(location.search);
+// 从别的页面被带回来登入的，登入后回去那一页
+function goNext(sess) { const nx = params.get('next'); if (nx && HQAuth.can(nx, sess)) { location.replace(HQAuth.root + nx); return true; } return false; }
+const SESSION = HQAuth.session() || await new Promise((resolve) => {
+  const box = $('login'); box.hidden = false; $('skeleton').hidden = true;
+  if (params.get('next')) $('loginMsg').textContent = '请先登入，登入后会带你回刚才的页面。';
+  $('loginId').focus();
+  $('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const sess = HQAuth.login($('loginId').value, $('loginPass').value);
+    if (!sess) { $('loginErr').textContent = '账号或密码不对，请再试一次'; $('loginPass').select(); return; }
+    box.hidden = true; $('skeleton').hidden = false; resolve(sess);
+  });
+});
+if (goNext(SESSION)) await new Promise(() => {});
+const ROLE = SESSION.role;
+$('acct').innerHTML = `<span>${esc(SESSION.id)} · ${esc(SESSION.name)}</span><button type="button" id="logout">登出</button>`;
+$('logout').addEventListener('click', () => { HQAuth.logout(); location.href = location.pathname; });
 
 // 名字审核的订单库笔数（同一个网站，读得到）
 const stats = {};
@@ -289,16 +374,43 @@ const closeBtn = '<button type="button" class="x" id="closePanel" aria-label="�
 const agentRow = (g, k) => { const a = g.agents[k]; return `<li><button type="button" data-sel="agent/${g.id}/${k}"><span class="d" style="background:${g.color}" aria-hidden="true">${initial(a.name)}</span><span><b>${esc(a.name)}</b> <span class="s">${esc(a.role)}</span></span></button></li>`; };
 const groupRow = (g) => `<li><button type="button" data-sel="${main && main.teams.includes(g) ? 'team' : 'dept'}/${g.id}"><span class="d" style="background:${g.color}" aria-hidden="true">${initial(g.name.replace(/(组|部)$/, ''))}</span><span><b>${esc(g.name)}</b> <span class="s">${g.kind === 'planned' ? '筹备中' : g.agents.length + ' 人 · ' + KIND[g.kind]}</span></span></button></li>`;
 
+// ---------- 审核纪录（这台电脑的浏览器里） ----------
+const events = () => HQBus.list();
+const sameDay = (t) => new Date(t).toDateString() === new Date().toDateString();
+const hhmm = (t) => { const d = new Date(t); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+function eventLine(e) {
+  if (e.tool === 'tech') return e.kind === 'downloaded' ? `技术单下载：${e.orders} 张` : `技术单 ${e.files} 个文件、${e.orders} 张：有问题 ${e.problem}、加急 ${e.urgent}、新生儿 ${e.newborn}、要问下单者 ${e.ask}`;
+  if (e.tool === 'name') return `名册 ${e.files} 份、${e.students} 位学员：必须改 ${e.must}、请确认 ${e.check}、转繁体 ${e.trad}`;
+  return e.tool + ' ' + e.kind;
+}
+const TOOL_OF = { tech: 'tech', name: 'name' };
+function bossBoard() {
+  const today = events().filter((e) => sameDay(e.t));
+  const tp = today.filter((e) => e.tool === 'tech' && e.kind === 'processed'), np = today.filter((e) => e.tool === 'name' && e.kind === 'loaded');
+  const sum = (arr, k) => arr.reduce((n, e) => n + (+e[k] || 0), 0);
+  const recent = events().slice(-5).reverse();
+  return `<p class="sub">今天全公司（这台电脑的纪录）</p>
+    <div class="stat-row"><div class="stat"><b>${sum(tp, 'orders')}</b><span>技术单 · 有问题 ${sum(tp, 'problem')}</span></div><div class="stat"><b>${sum(np, 'students')}</b><span>名册学员 · 要改 ${sum(np, 'must')}</span></div></div>
+    ${recent.length ? `<ul class="plain-list" style="columns:1">${recent.map((e) => `<li>${hhmm(e.t)} ${esc(e.who || '')}：${esc(eventLine(e))}</li>`).join('')}</ul>` : '<p class="note">还没有审核纪录。客服在名字审核、技术单审核处理文件后，这里会出现。</p>'}`;
+}
+const libraryRows = () => (C.library || []).filter((l) => HQAuth.can(l.href)).map((l) => `<li><a class="btn" style="width:100%;justify-content:flex-start;text-align:left;height:auto;padding:8px 12px" href="${esc(l.href)}"><span><b style="display:block;font-weight:500">${esc(l.title)}</b><span class="s" style="font-size:13px;color:var(--muted)">${esc(l.desc)}</span></span></a></li>`).join('');
+
 function renderPanel(id, focus) {
   const p = $('panel');
   current = id;
   const it = id && find(id);
   if (!it) { p.hidden = true; return; }
   let h = '', title = '';
+  if (office && office.locked(id)) {
+    title = it.type === 'boss' ? '老板办公室' : it.agent ? it.agent.name : it.g ? it.g.name : '';
+    p.innerHTML = closeBtn + crumb(FAC_COLOR, '没有权限') + `<h2 id="panelTitle" tabindex="-1">${esc(title)}</h2><p class="lock-note">🔒 这里要老板账号才能看。你现在用的是「${esc(SESSION.name)}」账号。</p>`;
+    p.hidden = false; $('announce').textContent = '没有权限：' + title; if (focus) $('panelTitle').focus();
+    return;
+  }
   if (it.type === 'boss') {
     title = `${C.boss.title}（${C.boss.name}）`;
     h = crumb(BOSS_COLOR, '老板办公室') + `<h2 id="panelTitle" tabindex="-1"><span class="avatar" style="background:${BOSS_COLOR}" aria-hidden="true">${initial(C.boss.title)}</span><span>${esc(title)}</span></h2>
-      <p>${esc(C.boss.duty)}</p><p class="note">现在有 ${working.length} 个小组 / 部门、${staff} 位员工、${C.facilities.length} 间设施（${connectors} 个连接器）。</p>
+      <p>${esc(C.boss.duty)}</p>${bossBoard()}<p class="note">现在有 ${working.length} 个小组 / 部门、${staff} 位员工、${C.facilities.length} 间设施（${connectors} 个连接器）。</p>
       <ul class="mini">${groups.map(groupRow).join('')}</ul>`;
   } else if (it.type === 'main') {
     title = main.name;
@@ -308,7 +420,9 @@ function renderPanel(id, focus) {
     const act = g.kind === 'site' ? `<a class="btn pri" href="${esc(g.href)}">${enterName(g)}</a>`
       : g.kind === 'claude' ? '<p class="note">这个小组在 Claude 里上班：点员工复制指令，贴到 Claude 里再说要做什么。</p>'
       : '<p class="note">以后加的功能会坐这里。在 <code>hq/company.js</code> 把它改成 <code>kind: \'site\'</code>、填上网址和员工就会出现。</p>';
-    h = crumb(g.color, main && main.teams.includes(g) ? esc(main.name) : '部门', g.kind) + `<h2 id="panelTitle" tabindex="-1">${esc(g.name)}</h2><p>${esc(g.summary)}</p>
+    const last = TOOL_OF[g.id] ? events().filter((e) => e.tool === TOOL_OF[g.id]).slice(-1)[0] : null;
+    const lastP = TOOL_OF[g.id] ? `<p class="live"><span class="dot-live" aria-hidden="true"></span><span>${last ? '最近一次（' + hhmm(last.t) + '）：' + esc(eventLine(last)) : '这台电脑还没有审核纪录'}</span></p>` : '';
+    h = crumb(g.color, main && main.teams.includes(g) ? esc(main.name) : '部门', g.kind) + `<h2 id="panelTitle" tabindex="-1">${esc(g.name)}</h2><p>${esc(g.summary)}</p>${lastP}
       ${g.agents.length ? `<ul class="mini">${g.agents.map((_, k) => agentRow(g, k)).join('')}</ul>` : ''}${act}`;
   } else if (it.type === 'agent') {
     const g = it.g, a = it.agent; title = a.name;
@@ -320,6 +434,7 @@ function renderPanel(id, focus) {
     h = crumb(g.color, esc(g.name), g.kind) + `<h2 id="panelTitle" tabindex="-1"><span class="avatar" style="background:${g.color}" aria-hidden="true">${initial(a.name)}</span><span>${esc(a.name)}<span class="role">${esc(a.role)}</span></span></h2>
       <p class="live"><span class="dot-live" aria-hidden="true"></span><span data-live></span></p>
       <div class="mood" data-mood></div>
+      <p class="note" data-friends></p>
       <dl class="needs" data-needs></dl>
       <p class="sub">叫${esc(a.name)}去</p>
       <div class="cmds">${COMMANDS.map(([k, t]) => `<button type="button" data-cmd="${k}">${t}</button>`).join('')}</div>
@@ -328,6 +443,7 @@ function renderPanel(id, focus) {
     const f = it.fac; title = f.room;
     h = crumb(FAC_COLOR, '设施 · 连接器') + `<h2 id="panelTitle" tabindex="-1"><span class="avatar" style="background:${FAC_COLOR}" aria-hidden="true">${initial(f.room)}</span><span>${esc(f.room)}<span class="role">${f.connectors.length} 个连接器</span></span></h2>
       <p>${esc(f.duty)}</p><ul class="plain-list">${f.connectors.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
+      ${f.id === 'files' && libraryRows() ? `<p class="sub">资料库（员工遇到问题会来这里查）</p><ul class="mini">${libraryRows()}</ul>` : ''}
       <p class="live"><span class="dot-live" aria-hidden="true"></span><span data-live></span></p>
       <p class="note">连接器在 claude.ai「设置 → 连接器」里管理；连好以后，Claude 里的员工就能用这间${esc(f.room)}。</p>`;
   } else if (it.type === 'room') {
@@ -351,7 +467,8 @@ function refreshLive() {
       const info = office.agentInfo(current);
       if (info) {
         el.textContent = '现在：' + info.doing;
-        p.querySelector('[data-mood]').innerHTML = `心情 <b>${info.mood.emoji} ${info.mood.label}</b>`;
+        p.querySelector('[data-mood]').innerHTML = `心情 <b>${info.mood.emoji} ${info.mood.label}</b> · 性格 <b>${esc(info.trait)}</b>`;
+        p.querySelector('[data-friends]').textContent = '最熟的同事：' + info.friends.map((f) => `${f.name}（${f.value}）`).join('、');
         const dl = p.querySelector('[data-needs]');
         if (!dl.children.length) dl.innerHTML = info.needs.map((n) => `<dt>${n.label}</dt><dd><i data-n="${n.key}"></i></dd><span class="v" data-v="${n.key}"></span>`).join('');
         info.needs.forEach((n) => { const bar = dl.querySelector(`[data-n="${n.key}"]`); bar.style.transform = `scaleX(${n.value / 100})`; bar.style.background = barColor(n.value); dl.querySelector(`[data-v="${n.key}"]`).textContent = n.value; });
@@ -371,10 +488,11 @@ setInterval(refreshLive, 1000);
 // ---------- 组织架构 ----------
 $('drawer').innerHTML = `<div class="drawer-h"><h2>组织架构</h2><button type="button" class="ibtn" id="closeDrawer" aria-label="关闭组织架构" data-tip="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="legend"><span><i style="background:#0E6B66"></i>网站里的员工：点了进入审核工具</span><span><i style="background:#C26A00"></i>Claude 里的员工：点了复制指令</span><span><i style="background:${FAC_COLOR}"></i>设施：里面放连接器</span></div>
-  <section><h3>老板</h3><ul class="mini"><li><button type="button" data-sel="boss"><span class="d" style="background:${BOSS_COLOR}" aria-hidden="true">${initial(C.boss.title)}</span><span><b>${esc(C.boss.title)}（${esc(C.boss.name)}）</b> <span class="s">老板办公室</span></span></button></li></ul></section>
+  <section><h3>老板${ROLE === 'boss' ? '' : ' · 🔒'}</h3><ul class="mini"><li><button type="button" data-sel="boss"><span class="d" style="background:${BOSS_COLOR}" aria-hidden="true">${initial(C.boss.title)}</span><span><b>${esc(C.boss.title)}（${esc(C.boss.name)}）</b> <span class="s">老板办公室</span></span></button></li></ul></section>
   ${main ? `<section><h3>${esc(main.name)} · 主要办公区</h3><div class="grp">${main.teams.map((g) => `<div class="grp-h"><i style="width:8px;height:8px;border-radius:50%;background:${g.color}"></i><b>${esc(g.name)}</b><span class="kind ${g.kind}">· ${KIND[g.kind]}</span></div>
     ${g.agents.length ? `<ul class="mini">${g.agents.map((_, k) => agentRow(g, k)).join('')}</ul>` : `<ul class="mini">${groupRow(g)}</ul>`}`).join('')}</div></section>` : ''}
-  <section><h3>其他部门</h3><ul class="mini">${others.map(groupRow).join('')}</ul></section>
+  <section><h3>其他部门${ROLE === 'boss' ? '' : ' · 🔒 老板才能看'}</h3><ul class="mini">${others.map(groupRow).join('')}</ul></section>
+  ${libraryRows() ? `<section><h3>资料库</h3><ul class="mini">${libraryRows()}</ul></section>` : ''}
   <section><h3>设施（连接器）</h3><ul class="mini">${C.facilities.map((f) => `<li><button type="button" data-sel="fac/${f.id}"><span class="d" style="background:${FAC_COLOR}" aria-hidden="true">${initial(f.room)}</span><span><b>${esc(f.room)}</b> <span class="s">${esc(f.connectors.join('、'))}</span></span></button></li>`).join('')}</ul></section>
   <section><h3>公司环境</h3><ul class="mini">${Object.entries(AMENITY).map(([k, r]) => `<li><button type="button" data-sel="room/${k}"><span class="d" style="background:${FAC_COLOR}" aria-hidden="true">${initial(r.name)}</span><b>${esc(r.name)}</b></button></li>`).join('')}</ul></section>
   <p class="credit">墙上的画来自 Unsplash：${(C.art || []).map((a) => esc(a.by)).join('、')}。载不到时会换成程序画的抽象画。</p>`;
@@ -405,10 +523,55 @@ document.addEventListener('keydown', (e) => {
   else if (!$('panel').hidden) { renderPanel(null); if (office) office.reset(); }
 });
 
+// ---------- 公司对话 ----------
+const FEED_KEY = 'hq-feed', csTeams = new Set(main ? main.teams.map((t) => t.id) : []);
+let feedList = (() => { try { return JSON.parse(localStorage.getItem(FEED_KEY) || '[]'); } catch (e) { return []; } })();
+let feedFilter = 'all', unread = 0;
+const canSeeFeed = (f) => ROLE === 'boss' || csTeams.has(f.team);
+function feedItem(f) {
+  return `<li class="fi ${f.kind}"><span class="fi-dot" style="background:${esc(f.fromColor || '#8E949A')}" aria-hidden="true"></span><div><div class="fi-h"><b>${esc(f.from)}</b>${f.to ? ' → ' + esc(f.to) : ''} · ${esc(f.game || '')}${f.kind === 'work' ? '<span class="tag-data">资料交接</span>' : ''}${f.demo ? '<span class="tag-demo">示范</span>' : ''}</div><p>${esc(f.text)}</p></div></li>`;
+}
+function renderFeed() {
+  const list = feedList.filter(canSeeFeed).filter((f) => feedFilter === 'all' || f.kind === feedFilter).slice(-120);
+  $('feedList').innerHTML = list.length ? list.map(feedItem).join('') : `<li class="feed-empty"><span>${events().length ? '员工交接、聊天的内容会出现在这里。' : '还没有审核纪录。客服在「名字审核」「技术单审核」处理文件后，员工会照流程交接，对话会出现在这里。'}</span><button type="button" class="btn" id="demoBtn">播放一次示范</button></li>`;
+  $('feedList').scrollTop = $('feedList').scrollHeight;
+}
+function addFeed(f) {
+  if (!canSeeFeed(f)) return;
+  feedList.push(f); feedList = feedList.slice(-300);
+  try { localStorage.setItem(FEED_KEY, JSON.stringify(feedList)); } catch (e) {}
+  if (!feedShown()) { unread++; $('feedBadge').textContent = unread > 99 ? '99+' : String(unread); }
+  if (feedFilter === 'all' || f.kind === feedFilter) {
+    const empty = $('feedList').querySelector('.feed-empty'); if (empty) empty.remove();
+    $('feedList').insertAdjacentHTML('beforeend', feedItem(f));
+    while ($('feedList').children.length > 120) $('feedList').firstElementChild.remove();
+    $('feedList').scrollTop = $('feedList').scrollHeight;
+  }
+}
+document.querySelectorAll('[data-ff]').forEach((b) => b.addEventListener('click', () => {
+  feedFilter = b.dataset.ff;
+  document.querySelectorAll('[data-ff]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  renderFeed();
+}));
+const feedShown = () => window.innerWidth >= 1100 ? !$('feed').classList.contains('closed') : $('feed').classList.contains('open');
+$('feedBtn').setAttribute('aria-expanded', String(feedShown()));
+$('feedBtn').addEventListener('click', () => {
+  $('feed').classList.toggle(window.innerWidth >= 1100 ? 'closed' : 'open');
+  $('feedBtn').setAttribute('aria-expanded', String(feedShown()));
+  if (feedShown()) { unread = 0; $('feedBadge').textContent = ''; renderFeed(); }
+});
+// 示范：数字是示范用的，对话里会标「示范」
+function playDemo() {
+  if (!office) return;
+  office.runEvent({ tool: 'tech', kind: 'processed', demo: true, files: 2, orders: 36, problem: 4, urgent: 3, newborn: 1, ask: 2, askFirst: 1 });
+  office.runEvent({ tool: 'name', kind: 'loaded', demo: true, files: 1, students: 18, must: 3, check: 2, trad: 5, db: 120 });
+  toast('开始示范：员工会照流程交接（数字是示范用的）');
+}
+
 // ---------- 3D ----------
 try {
   const { mountOffice } = await import('./hq/office.js');
-  office = mountOffice($('stage'), C, { stats, companyName: coName(), onSelect: (id) => renderPanel(id) });
+  office = mountOffice($('stage'), C, { stats, role: ROLE, companyName: coName(), onSelect: (id) => renderPanel(id), onFeed: addFeed });
   if (new URLSearchParams(location.search).has('debug')) window.hqOffice = office;   // 网址加 ?debug 可以在主控台看 3D 状态
 } catch (e) {
   console.error(e);
@@ -417,6 +580,19 @@ try {
 }
 $('skeleton').hidden = true;
 refreshLive();
+renderFeed();
+
+// ---------- 审核事件 → 员工交接 ----------
+// 国内客服只看客服部用的工具；老板看全部
+const relevant = (e) => ROLE === 'boss' || e.tool === 'tech' || e.tool === 'name';
+const seenKey = 'hq-seen-' + SESSION.id;
+if (office) {
+  const lastSeen = +ls.get(seenKey) || 0;
+  const unseen = events().filter((e) => e.t > lastSeen && relevant(e)).slice(-4);   // 上次之后的新纪录，最多补演 4 笔
+  unseen.forEach((e) => office.runEvent(e));
+  const all = events(); if (all.length) ls.set(seenKey, String(all[all.length - 1].t));
+  HQBus.on((e) => { if (!relevant(e)) return; office.runEvent(e); ls.set(seenKey, String(e.t)); if (current) renderPanel(current); });
+}
 
 // 公司名称：在原位置改，按 Enter 保存、Esc 取消
 function editName(on, save) {
@@ -469,6 +645,7 @@ document.addEventListener('click', (e) => {
     return;
   }
   const c = e.target.closest('[data-copy]'); if (c) { copy(c.dataset.copy); return; }
+  if (e.target.closest('#demoBtn')) { playDemo(); return; }
   const k = e.target.closest('[data-cmd]');
   if (k && office && current) {
     const name = find(current).agent.name;
