@@ -1247,10 +1247,11 @@ var SUP={info:load('mzys_sup_info',{}),list:load('mzys_sup_list',{}),center:load
 function saveSup(){ store('mzys_sup_info',SUP.info); store('mzys_sup_list',SUP.list); store('mzys_sup_center',SUP.center); store('mzys_sup_shops',SUP.shops); store('mzys_sup_shops_meta',SUP.shopsMeta); }
 function supKey(r){ return String(r.order||('序'+r.sid)).toUpperCase(); }
 function kvOf(r){ var m={}; ((r.rows[0].detail||{}).all||[]).forEach(function(kv){ if(!(kv[0] in m))m[kv[0]]=kv[1]; }); return m; }
-function supOf(r){ var v=SUP.info[supKey(r)]||{}, code=kvOf(r)['服务中心编号']||'', sh=(code&&SUP.shops[code])||null;
-  var sup=v.sup||(sh&&sh[2])||'', l=SUP.list[sup]||{};
-  return {code:code, sup:sup, branch:v.branch||(sh&&sh[1])||l.branch||'', shop:v.shop||(sh&&sh[0])||'', group:l.group||'',
-    auto:!!sh&&!v.sup&&!v.shop&&!v.branch, inShops:!!sh, edited:!!(v.sup||v.shop||v.branch)}; }
+// 先看手填的，再看店铺资料（店铺表），店铺表里没有就用以前导入的督导文件里同一个店铺编号填过的
+function supOf(r){ var v=SUP.info[supKey(r)]||{}, code=kvOf(r)['服务中心编号']||'', sh=(code&&SUP.shops[code])||null, old=(!sh&&code&&SUP.center[code])||null;
+  var sup=v.sup||(sh&&sh[2])||(old&&old.sup)||'', l=SUP.list[sup]||{};
+  return {code:code, sup:sup, branch:v.branch||(sh&&sh[1])||l.branch||'', shop:v.shop||(sh&&sh[0])||(old&&old.shop)||'', group:l.group||'',
+    auto:!!(sh||old)&&!v.sup&&!v.shop&&!v.branch, src:sh?'店铺资料':(old?'以前的督导文件':''), inShops:!!(sh||old), edited:!!(v.sup||v.shop||v.branch)}; }
 function supRows(x){ return x.audit.results.filter(function(r){ return !r.problem; }); }
 function setSup(r,field,val){ if(field==='group'){ var sp=supOf(r).sup; if(sp){ (SUP.list[sp]||(SUP.list[sp]={})).group=String(val||'').trim(); saveSup(); } return; }
   var k=supKey(r), v=SUP.info[k]||(SUP.info[k]={}); v[field]=String(val||'').trim();
@@ -1261,7 +1262,7 @@ function setSup(r,field,val){ if(field==='group'){ var sp=supOf(r).sup; if(sp){ 
 function supMissing(x){ return supRows(x).filter(function(r){ var s=supOf(r); return !s.sup||!s.shop||!s.group; }); }
 function supHtml(r){ var x=parsedFiles[activeFile]; if(!x||x.overseas)return ''; var s=supOf(r), code=kvOf(r)['服务中心编号']||'';
   var body=r.problem?'<p class="supnote" style="margin:0">这位现在是「有问题」，不会放进督导文件。</p>':
-    (s.sup||s.shop?'<p class="supnote" style="margin:0 0 6px">'+(s.auto?'从店铺资料自动带出':(s.edited?'手动填 / 改过':''))+(s.group?'':'<span style="color:var(--warn)">　还没填这位督导的群</span>')+'</p><dl class="kv"><dt>店铺编号</dt><dd>'+esc(code||'—')+'</dd><dt>督导</dt><dd>'+esc(s.sup||'—')+'</dd><dt>分公司</dt><dd>'+esc(s.branch||'—')+'</dd><dt>店铺名称</dt><dd>'+esc(s.shop||'—')+'</dd><dt>群</dt><dd>'+esc(s.group||'—')+'</dd></dl>':'<p class="supnote" style="margin:0;color:var(--warn)">还没填督导 / 店铺'+(code?'（店铺编号 '+esc(code)+'）':'')+'</p>');
+    (s.sup||s.shop?'<p class="supnote" style="margin:0 0 6px">'+(s.auto?'从'+s.src+'自动带出':(s.edited?'手动填 / 改过':''))+(s.group?'':'<span style="color:var(--warn)">　还没填这位督导的群</span>')+'</p><dl class="kv"><dt>店铺编号</dt><dd>'+esc(code||'—')+'</dd><dt>督导</dt><dd>'+esc(s.sup||'—')+'</dd><dt>分公司</dt><dd>'+esc(s.branch||'—')+'</dd><dt>店铺名称</dt><dd>'+esc(s.shop||'—')+'</dd><dt>群</dt><dd>'+esc(s.group||'—')+'</dd></dl>':'<p class="supnote" style="margin:0;color:var(--warn)">还没填督导 / 店铺'+(code?'（店铺编号 '+esc(code)+'）':'')+'</p>');
   return '<section><h3>督导（国内）</h3>'+body+'<button type="button" class="btn sm" id="supOpen" style="margin-top:10px">打开督导表（批量填）</button></section>'; }
 function bindSup(main,r){ var b=main.querySelector('#supOpen'); if(b)b.onclick=function(){ openSupTable(r); }; }
 // 督导表：所有「通过」的学员一张表，同一个店铺编号（服务中心编号）排在一起；勾几位、上面填一次就全部更新
@@ -1276,8 +1277,8 @@ function openSupTable(focusR){ var x=parsedFiles[activeFile]; if(!x)return;
     var sups=Object.keys(SUP.list), shops={}; for(var k in SUP.info){ if(SUP.info[k].shop)shops[SUP.info[k].shop]=1; }
     var miss=supMissing(x).length, nSel=Object.keys(checked).length, meta=SUP.shopsMeta;
     var supsHere={}; rows.forEach(function(r){ var s=supOf(r); if(s.sup){ var e=supsHere[s.sup]||(supsHere[s.sup]={n:0,branch:s.branch}); e.n++; } });
-    var noShop=rows.filter(function(r){ return !supOf(r).inShops; }).length;
-    var shopBar='<div class="supbulk" style="grid-template-columns:1fr auto;'+(meta?'':'border-color:var(--warn);')+'"><div>'+(meta?'<b>店铺资料</b>：'+meta.count+' 家店（'+esc(meta.date)+' 导入「'+esc(meta.file)+'」）。店铺编号对上了，督导 / 分公司 / 店铺名称会自动带出。'+(noShop?'<br><span style="color:var(--warn)">有 '+noShop+' 位的店铺编号在店铺资料里找不到，要手填，或者导入新的店铺资料。</span>':''):'<b style="color:var(--warn)">还没导入店铺资料</b>：导入系统导出的店铺表（.xls / .xlsx），督导、分公司、店铺名称就能按店铺编号自动带出。')+'</div>'+
+    var noShop=rows.filter(function(r){ return !supOf(r).inShops; }).length, nOld=Object.keys(SUP.center).length;
+    var shopBar='<div class="supbulk" style="grid-template-columns:1fr auto;'+(meta?'':'border-color:var(--warn);')+'"><div>'+(meta?'<b>店铺资料</b>：'+meta.count+' 家店（'+esc(meta.date)+' 导入「'+esc(meta.file)+'」）。店铺编号对上了，督导 / 分公司 / 店铺名称会自动带出。'+(noShop?'<br><span style="color:var(--warn)">有 '+noShop+' 位的店铺编号在店铺资料里找不到，要手填，或者导入新的店铺资料。</span>':''):'<b style="color:var(--warn)">还没导入店铺资料</b>：'+(nOld?'现在只能用以前导入的督导文件里那 '+nOld+' 个店铺编号带出'+(noShop?'，这份有 <b>'+noShop+' 位</b>的店铺编号不在里面':'')+'。':'')+'导入系统导出的<b>店铺表</b>（.xls / .xlsx，有「店铺编号」「督导」栏的那份），所有店铺编号的督导、分公司、店铺名称就能自动带出。')+'</div>'+
       '<button type="button" class="btn'+(meta?'':' pri')+'" id="shopImp">'+(meta?'更新店铺资料':'导入店铺资料')+'</button></div>';
     var supKeys=Object.keys(supsHere);
     var grpBar=supKeys.length?'<div class="desc" style="margin:4px 0 6px"><b>督导 → 群</b>（每位督导填一次，这位督导的学员全部更新）</div><div class="suptblwrap2" style="border:1px solid var(--line);border-radius:10px;margin-bottom:12px;max-height:22vh;overflow:auto"><table class="suptbl"><thead><tr><th>督导</th><th>分公司</th><th>这份有几位</th><th>群</th></tr></thead><tbody>'+
@@ -1286,8 +1287,8 @@ function openSupTable(focusR){ var x=parsedFiles[activeFile]; if(!x)return;
     var trs=order.map(function(c){ var g=groups[c], allOn=g.every(function(r){return checked[supKey(r)];});
       return '<tr class="grp"><td><input type="checkbox" class="grpchk" data-c="'+esc(c)+'"'+(allOn?' checked':'')+' aria-label="勾选店铺编号 '+esc(c)+' 的全部学员"></td><td colspan="8">店铺编号 <b class="code" data-copy="'+esc(c)+'" title="点一下复制">'+esc(c)+'</b>　·　'+g.length+' 位</td></tr>'+
         g.map(function(r){ var s=supOf(r), done=s.sup&&s.shop&&s.group, k=supKey(r), cc=centerOf(r);
-          return '<tr class="'+(done?'done':'miss')+'"><td><input type="checkbox" class="rowchk" data-k="'+esc(k)+'"'+(checked[k]?' checked':'')+' aria-label="勾选 '+esc(shortName(r.disp))+'"></td><td class="st">'+(done?(s.auto?'✓ 自动':(s.edited?'✓ 手填':'✓')):'待填')+'</td>'+
-            '<td class="nm">'+esc(shortName(r.disp)||('序'+r.sid))+'<small>序'+esc(r.sid)+' · '+esc(r.order||'')+'</small></td><td class="code" data-copy="'+esc(cc)+'" title="点一下复制">'+esc(cc||'—')+'</td>'+cell(r,'sup',s.sup)+cell(r,'branch',s.branch)+cell(r,'shop',s.shop)+'<td'+(s.group?'':' style="color:var(--warn)"')+'>'+esc(s.group||(s.sup?'在上面填群':'—'))+'</td></tr>'; }).join(''); }).join('');
+          return '<tr class="'+(done?'done':'miss')+'"><td><input type="checkbox" class="rowchk" data-k="'+esc(k)+'"'+(checked[k]?' checked':'')+' aria-label="勾选 '+esc(shortName(r.disp))+'"></td><td class="st">'+(done?(s.auto?(s.src==='店铺资料'?'✓ 自动':'✓ 旧文件'):(s.edited?'✓ 手填':'✓')):'待填')+'</td>'+
+            '<td class="nm">'+esc(shortName(r.disp)||('序'+r.sid))+'<small>序'+esc(r.sid)+' · '+esc(r.order||'')+'</small></td><td class="code" data-copy="'+esc(cc)+'" title="点一下复制">'+esc(cc||'—')+'</td>'+cell(r,'sup',s.sup)+cell(r,'branch',s.branch)+cell(r,'shop',s.shop)+'<td'+(s.group?'':' style="color:var(--warn)"')+' title="'+esc(s.src?('来源：'+s.src):'')+'">'+esc(s.group||(s.sup?'在上面填群':'—'))+'</td></tr>'; }).join(''); }).join('');
     box.innerHTML='<h3>督导（国内）</h3><div class="desc">只放「通过」的学员，同一个店铺编号排在一起，店铺编号点一下就复制，方便去系统查。店铺资料里有的会自动带出；找不到的 <b>勾选几位 → 在下面填一次 → 「填到勾选的」</b>，就一起更新；表里每一格也可以直接改（手改的优先）。</div>'+shopBar+grpBar+
       '<div class="supbulk"><div><label for="bk_sup">督导</label><input id="bk_sup" list="supList2" autocomplete="off" placeholder="填一次"></div><div><label for="bk_branch">分公司</label><input id="bk_branch" autocomplete="off" placeholder="填了督导会自动带出"></div>'+
       '<div><label for="bk_shop">店铺名称</label><input id="bk_shop" list="shopList2" autocomplete="off" placeholder="例：湖北省襄阳市樊城区（张雪）店铺"></div><div><label for="bk_group">群</label><input id="bk_group" autocomplete="off" placeholder="自动带出"></div>'+
@@ -1360,7 +1361,7 @@ function importSupData(done){ var inp=document.createElement('input'); inp.type=
         SUP.shops=shops; SUP.shopsMeta={date:dateStr(),count:n,file:f.name}; msg.push('店铺资料 '+n+' 家（整份换新）'); }
       else if(hr>=0){ var cs2=c('督导'), cb=c('分公司'), cp=c('店铺名称'), ccode=c('服务中心编号'), cg=c('群')>=0?c('群'):(cs2===0&&H.length>15?15:-1), nS=0;
         for(var r2=hr+1;r2<d.length;r2++){ var sup=g(r2,cs2); if(!sup)continue; var l2=SUP.list[sup]||(nS++,SUP.list[sup]={}); if(g(r2,cb))l2.branch=g(r2,cb); if(g(r2,cg))l2.group=g(r2,cg); if(g(r2,ccode))SUP.center[g(r2,ccode)]={sup:sup,shop:g(r2,cp)}; }
-        msg.push('督导 '+Object.keys(SUP.list).length+' 位（新加 '+nS+' 位）的分公司 / 群'); }
+        msg.push('督导文件：督导 '+Object.keys(SUP.list).length+' 位（新加 '+nS+' 位）的分公司 / 群，店铺编号 '+Object.keys(SUP.center).length+' 个（同一个店铺编号会自动带出督导和店铺）。要全部店铺都能带出，请再导入系统的店铺表'); }
       else { var nG=0; for(var r3=0;r3<d.length;r3++){ var s3=g(r3,1), g3=g(r3,2); if(s3&&g3&&s3!=='督导'){ (SUP.list[s3]||(SUP.list[s3]={})).group=g3; nG++; } } if(nG)msg.push('督导的群 '+nG+' 条'); } });
     saveSup(); renderAll(); if(done)done(); alert(msg.length?('已导入：'+msg.join('；')+'。'):'这份文件里没认出店铺编号 / 督导 栏。'); }
   catch(e){ alert('读文件出错：'+e.message); } }; inp.click(); }
@@ -1499,6 +1500,9 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-10-31', title:'导入旧督导文件也能自动带出', items:[
+    '只导入以前的督导文件时，同一个店铺编号也会自动带出督导和店铺名称（之前只认店铺表）；顺序：手填 > 店铺表 > 旧督导文件',
+    '督导表标出来源：「✓ 自动」是店铺表、「✓ 旧文件」是旧督导文件；还没导店铺表时会说这份有几位找不到']},
   {date:'2026-10-31', title:'自动认出海外 / 国内', items:[
     '学员的「名册展示」有填就算海外（国内单这一栏空着），原文件名有 H 也算；文件卡片上一样可以手动切换']},
   {date:'2026-10-31', title:'督导文件（国内）', items:[
