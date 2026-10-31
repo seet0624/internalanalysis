@@ -201,6 +201,37 @@ body.light .qtabs button.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.
 .fam{margin:0;display:grid;grid-template-columns:62px 1fr;row-gap:8px;column-gap:8px;font-size:13px}
 .fam dt{color:var(--muted);padding-top:4px}
 .fam dd{margin:0;display:flex;flex-wrap:wrap;gap:5px}
+.kv{margin:0;display:grid;grid-template-columns:86px 1fr;row-gap:6px;column-gap:8px;font-size:13px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;word-break:break-all}
+.kv dd.sur{font-size:16px;font-weight:700;color:var(--gold)}
+.allinfo{margin-top:10px;font-size:13px}
+.allinfo summary{cursor:pointer;color:var(--muted)}
+.allinfo .kv{margin-top:8px}
+.modal .box.wide{max-width:1240px}
+.supbulk{display:grid;grid-template-columns:1fr 1fr 2fr 1fr auto;gap:8px;align-items:end;background:var(--accent-soft,var(--panel2));border:1px solid var(--line2);border-radius:12px;padding:12px;margin:12px 0}
+.supbulk label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+.supbulk input,.suptbl input.cell{width:100%;box-sizing:border-box;border:1px solid var(--line2);background:var(--panel);color:var(--ink);border-radius:7px;padding:6px 8px;font-size:13px}
+.suptools{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:13px;margin-bottom:8px}
+.suptools .grow{flex:1}
+.suptbl{width:100%;border-collapse:collapse;font-size:13px}
+.suptbl th{position:sticky;top:0;background:var(--panel);z-index:1;text-align:left;color:var(--muted);font-weight:500;font-size:12px;padding:7px 6px;border-bottom:1px solid var(--line)}
+.suptbl td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+.suptbl tr.grp td{background:var(--panel2);color:var(--muted);font-size:12px;padding:6px}
+.suptbl tr.miss td.st{color:var(--warn);font-weight:700}
+.suptbl tr.done td.st{color:var(--ok)}
+.suptbl td.st{white-space:nowrap}
+.suptbl .nm small{display:block;color:var(--muted)}
+.suptbl .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;white-space:nowrap;cursor:copy}
+.tbtn.sup{border-color:var(--gold);color:var(--gold);font-weight:700}
+.tbtn.sup .lbl{display:inline!important}
+@media (max-width:900px){ .supbulk{grid-template-columns:1fr 1fr} }
+.supf{display:grid;grid-template-columns:62px 1fr;row-gap:7px;column-gap:8px;align-items:center;font-size:13px}
+.supf label{color:var(--muted)}
+.supf input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--line2);background:var(--panel);color:var(--ink);border-radius:7px;padding:6px 8px;font-size:13px}
+.supf input:focus{outline:2px solid var(--gold);outline-offset:-1px}
+.supnote{margin-top:8px;font-size:12px;color:var(--muted)}
+.supnote .linkbtn{font-size:12px;margin:0}
 .tchip{display:inline-flex;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:3px 9px;font-size:14px;cursor:pointer}
 .tchip:hover{border-color:var(--gold)}
 .tchip .c{padding:0 1px;border-radius:4px}
@@ -329,8 +360,10 @@ body.light .itabs button.on{background:var(--bg2)}
 .help .hbox{max-width:960px;max-height:88vh;overflow:auto;padding:22px 24px}
 .help .ipanel{padding:20px 22px}
 /* ---------- medium screens ---------- */
-/* 顶栏工具按钮带文字时要约 1550px 才放得下，再窄就只留图标（鼠标停上去有提示），免得「下载结果」被挤到第二行 */
-@media (max-width:1560px){
+/* 顶栏工具按钮带文字时要约 1750px 才放得下（左上角多了「审核总部」、顶栏多了「督导」），再窄就只留图标（鼠标停上去有提示），免得「下载结果」被挤到第二行 */
+@media (max-width:1520px){ header.top{gap:8px} .verchip{display:none} .searchbox{min-width:140px} }
+@media (max-width:1320px){ .searchbox{min-width:100px!important;flex:1 1 120px!important} .tbtn.sup .lbl{display:none!important} header.top{gap:6px!important} .tbtn{padding:0 8px!important} }
+@media (max-width:1760px){
   .tbtn .lbl{display:none}
   .tbtn{padding:0 10px}
 }
@@ -372,7 +405,8 @@ body.light .itabs button.on{background:var(--bg2)}
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
   <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></symbol>
   <symbol id="i-hash" viewBox="0 0 24 24"><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/></symbol>
-  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+  <symbol id="i-team" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
   <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
   <symbol id="i-report" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
   <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
@@ -394,6 +428,7 @@ body.light .itabs button.on{background:var(--bg2)}
     <button type="button" class="tg" id="redoBtn" data-act="redo" aria-label="重做判定" title="重做判定"><svg class="i"><use href="#i-redo"/></svg></button>
   </div>
   <span class="tsep" data-need-file></span>
+  <button type="button" class="tbtn sup" id="supBtn" data-act="suptable" data-need-file title="督导（国内）：一张表批量填督导、店铺"><svg class="i ic"><use href="#i-team"/></svg><span class="lbl">督导</span><span class="badge-n" id="supBadge"></span></button>
   <button type="button" class="tbtn" id="refsBtn" data-act="refs" data-need-file title="编号核对：备注提到的订单号 / 会员编号"><svg class="i ic"><use href="#i-hash"/></svg><span class="lbl">编号核对</span><span class="badge-n" id="refsBadge"></span></button>
   <button type="button" class="tbtn" data-act="db" title="订单库：订单号 → 新名"><svg class="i ic"><use href="#i-db"/></svg><span class="lbl">订单库</span><span class="cnt" id="dbCount">0</span></button>
   <button type="button" class="tbtn" id="soundBtn" data-act="sound" data-need-file title="发音清单：读起来不好听的新名，给客服"><svg class="i ic"><use href="#i-spk"/></svg><span class="lbl">发音清单</span><span class="badge-n" id="soundBadge"></span></button>
@@ -418,6 +453,9 @@ body.light .itabs button.on{background:var(--bg2)}
       <button type="button" data-act="save">存档（订单库 + 判定 + 规则）</button>
       <button type="button" data-act="load">还原存档</button>
       <hr>
+      <div class="mh">督导（国内）</div>
+      <button type="button" data-act="supimport">导入店铺资料 / 督导名单</button>
+      <hr>
       <button type="button" data-act="lang" id="langBtn">English</button>
     </div>
   </div>
@@ -428,6 +466,7 @@ body.light .itabs button.on{background:var(--bg2)}
       <button type="button" data-act="dlorig">原装文件（只改名）</button>
       <button type="button" data-act="dlbad">只下载「有问题」</button>
       <button type="button" data-act="dlclean">只下载「干净·可上传」</button>
+      <button type="button" data-act="dlsup" id="dlSupBtn">督导文件（国内）</button>
     </div>
   </div>
 </header>
@@ -453,7 +492,7 @@ body.light .itabs button.on{background:var(--bg2)}
         <svg class="i" style="color:var(--muted)"><use href="#i-file"/></svg>
         <label class="sr" for="fileSel">当前文件</label>
         <select id="fileSel"></select>
-        <button type="button" class="hchip" id="hBtn" data-act="overseas" title="国内 / 海外：海外的文件名会加（H），点一下切换"></button>
+        <button type="button" class="hchip" id="hBtn" data-act="overseas" title="国内 / 海外：学员的「名册展示」有填，或原文件名有 H，就算海外（文件名加（H））。点一下手动切换"></button>
         <button type="button" class="addfile" id="addMore" aria-label="再加文件" title="再加文件"><svg class="i"><use href="#i-plus"/></svg></button>
       </div>
       <div class="prog"><span data-i18n="reviewed">已复核</span><div class="bar"><i id="revBar" style="width:0"></i></div><b id="revText">0 / 0</b></div>
@@ -522,7 +561,11 @@ var COMPOUND={}; ['欧阳','歐陽','司马','司馬','上官','诸葛','諸葛'
 
 var CHAR2SYL=null;
 function charSyllables(ch){ if(!CHAR2SYL){CHAR2SYL={};for(var syl in PY){var s=PY[syl];for(var i=0;i<s.length;i++)(CHAR2SYL[s[i]]||(CHAR2SYL[s[i]]=[])).push(syl);}} return CHAR2SYL[ch]||[]; }
-var SURN_SET=null; function isSurname(c){ if(!SURN_SET){SURN_SET={};for(var i=0;i<SURN.length;i++)SURN_SET[SURN[i]]=1;} return !!SURN_SET[c]; }
+var SURN_SET=null; // 新名前面几个字是姓：以「新名字姓氏」栏为准（日本姓「鶴田」、复姓「欧阳」都整段算姓），没写才按常见复姓 / 单姓
+function surLen(neu,sur){ var a=Array.from(String(neu||'')), s=String(sur==null?'':sur).trim();
+  if(s&&Array.from(s).length<a.length&&String(neu).indexOf(s)===0)return Array.from(s).length;
+  if(a.length>=3&&typeof COMPOUND!=='undefined'&&COMPOUND[a[0]+a[1]])return 2; return a.length?1:0; }
+function isSurname(c){ if(!SURN_SET){SURN_SET={};for(var i=0;i<SURN.length;i++)SURN_SET[SURN[i]]=1;} return !!SURN_SET[c]; }
 function norm(c){ return T2S[c]||c; }
 function detone(s){ return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
 function isCjk(c){ return /[\u4e00-\u9fff]/.test(c); }
@@ -625,7 +668,7 @@ function parseFile(data, rowColors){ try{ data=data.map(function(row){ return (r
   groups.forEach(function(grp){ var rows=grp.rows,r0=data[rows[0]]; var ord='';
     for(var t=0;t<rows.length;t++){var o=String(data[rows[t]][cols.order]==null?'':data[rows[t]][cols.order]).trim();if(o){ord=o;break;}}
     grp._order=ord; grp._member=(cols.member>=0?String(r0[cols.member]==null?'':r0[cols.member]).trim():''); grp._disp=String(r0[cols.user]==null?'':r0[cols.user]).trim();
-    grp._givens=rows.map(function(ri){return Array.from(String(data[ri][cols.neu]==null?'':data[ri][cols.neu]).trim()).slice(1).join('');});
+    var sur0=cols.surname>=0?r0[cols.surname]:''; grp._givens=rows.map(function(ri){ var n=String(data[ri][cols.neu]==null?'':data[ri][cols.neu]).trim(); return Array.from(n).slice(surLen(n,sur0)).join(''); });
     grp._fullnames=rows.map(function(ri){return String(data[ri][cols.neu]==null?'':data[ri][cols.neu]).trim();});
     grp._fam=familyMembers(r0,cols);
     var c0=(rowColors||[])[rows[0]]||''; grp._color=(c0&&rows.every(function(ri){return (rowColors[ri]||'')===c0;}))?c0:'';
@@ -681,11 +724,12 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
         } }
     var needEyes=noteNeedsEyes(notesAll);
 
-    function fg(p){ var n=p[1]; if(p[3])return n; if(n.length>=3&&COMPOUND[n.slice(0,2)])return n.slice(2); if(n.length>=2&&isSurname(n[0]))return n.slice(1); return n; }
+    var grpSur=String(cols.surname>=0&&r0[cols.surname]!=null?r0[cols.surname]:'').trim();
+    function fg(p){ var n=p[1]; if(p[3])return n; if(grpSur&&n.indexOf(grpSur)===0&&n.length>grpSur.length)return n.slice(grpSur.length); if(n.length>=3&&COMPOUND[n.slice(0,2)])return n.slice(2); if(n.length>=2&&isSurname(n[0]))return n.slice(1); return n; }
     var rowData=rows.map(function(ri){ var neu=String(data[ri][cols.neu]==null?'':data[ri][cols.neu]).trim(); var aa=String(data[ri][cols.py]==null?'':data[ri][cols.py]);
-      var surname=Array.from(neu)[0]||''; var given=Array.from(neu).slice(1);
+      var sk=surLen(neu,grpSur); var surname=Array.from(neu).slice(0,sk).join(''); var given=Array.from(neu).slice(sk);
       var toneTokens=aa.split(/\s+/).filter(String); var syl=toneTokens.map(detone).filter(String);
-      if(syl.length===given.length+1){ syl=syl.slice(1); toneTokens=toneTokens.slice(1); }
+      if(sk&&syl.length===given.length+sk){ syl=syl.slice(sk); toneTokens=toneTokens.slice(sk); }
       var pyOk=(given.length>0&&syl.length===given.length);
       var msgs=[],warns=[],hits=[];
       var pyFixed='', pyBad=false; var rawSyl=syl.slice();
@@ -709,7 +753,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
           }
         }
       }
-      function addHit(kind,ni,fc,p){ hits.push({kind:kind,ni:ni,fc:fc,fname:p?p[1]:'',full:p?(p[4]||p[1]):'',member:p?p[0]:'',soft:p?!!p[2]:false}); }
+      function addHit(kind,ni,fc,p){ hits.push({kind:kind,ni:ni,pos:ni-1+sk,fc:fc,fname:p?p[1]:'',full:p?(p[4]||p[1]):'',member:p?p[0]:'',soft:p?!!p[2]:false}); }
       if(RULES.checkClash)given.forEach(function(ch,idx){ var nch=norm(ch); fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ if(norm(cmp[c])===nch){ var m='新名（'+neu+'）和'+p[0]+'（'+p[1]+'）撞字（'+ch+'）'; if(p[2])warns.push('⚠ '+m+'，请确认是否同一家人'); else {msgs.push(m); addHit('撞字',idx+1,cmp[c],p);} break; } } }); });
       if(RULES.checkHomo&&pyOk)given.forEach(function(ch,idx){ var si=syl[idx],nch=norm(ch);
         fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ var fc=cmp[c]; if(norm(fc)===nch)continue;
@@ -726,8 +770,8 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
           warns.push('✓ 名册要繁体：新名「'+neu+'」下载时自动改成「'+tt+'」（'+chg.join('、')+'，姓不动）');
           if(amb.length)warns.push('⚠ 繁体有不只一种写法：'+amb.join('；')+'——已先改成「'+tt+'」，请确认客户要哪个'); } } }
             var sound=[];
-      if(RULES.checkBadHomo){ var fullSyl=[]; Array.from(neu).forEach(function(ch,i){ if(i===0){ var s0=charSyllables(ch); fullSyl.push(s0.length?s0[0]:''); } else { var gi=i-1; fullSyl.push(pyOk?syl[gi]:(charSyllables(ch)[0]||'')); } });
-        var seqFull=fullSyl.filter(Boolean).join(' '); var seqGiven=(pyOk?syl.join(' '):Array.from(neu).slice(1).map(function(c){return charSyllables(c)[0]||'';}).filter(Boolean).join(' '));
+      if(RULES.checkBadHomo){ var fullSyl=[]; Array.from(neu).forEach(function(ch,i){ if(i<sk){ var s0=charSyllables(ch); fullSyl.push(s0.length?s0[0]:''); } else { var gi=i-sk; fullSyl.push(pyOk?syl[gi]:(charSyllables(ch)[0]||'')); } });
+        var seqFull=fullSyl.filter(Boolean).join(' '); var seqGiven=(pyOk?syl.join(' '):Array.from(neu).slice(sk).map(function(c){return charSyllables(c)[0]||'';}).filter(Boolean).join(' '));
         for(var bk in BADHOMO){ if(seqFull===bk||seqFull.indexOf(bk)>=0||seqGiven===bk){ warns.push('发音提醒：新名（'+neu+'）连姓念「'+seqFull+'」，听起来像「'+BADHOMO[bk]+'」——不卡上传，已记进「发音清单」给客服'); sound.push({kind:'不雅谐音',read:seqFull,like:BADHOMO[bk]}); break; } } }
       if(RULES.checkZodiac){ var zt=zodiacOf(cols.zod>=0?r0[cols.zod]:''); if(zt&&ZODIAC[zt]){ var av=ZODIAC[zt].avoid, lk=ZODIAC[zt].like;
         given.forEach(function(ch,idx){ var rs=radsOf(ch); if(!rs)return; var bad=[],good=[];
@@ -744,11 +788,11 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
         if(rawSyl&&rawSyl[idx]&&cands.indexOf(rawSyl[idx])<0)cands.push(rawSyl[idx]);
         for(var q=0;q<cands.length;q++){ if(tb.avoidSyl[cands[q]]){ var mm='新名（'+neu+'）用了客户不要的读音「'+cands[q]+'」（'+ch+'）——禁忌栏/备注指明不要这个音';
           if(msgs.indexOf(mm)<0){ msgs.push(mm); addHit('禁音',idx+1,ch,null); } break; } } }); }
-      if(Array.from(neu).length!==3)warns.push('⚠ 新名是 '+Array.from(neu).length+' 个字（一般3字）');
+      if(given.length!==2)warns.push('⚠ 新名的名字部分是 '+given.length+' 个字（不算姓「'+surname+'」，一般 2 个字）');
       function uniq(a){var o=[],s={};a.forEach(function(x){if(!s[x]){s[x]=1;o.push(x);}});return o;}
       var tones=pyOk?given.map(function(ch,idx){return {ch:ch,syl:syl[idx],toned:(toneTokens[idx]||syl[idx])};}):[];
       return {row:ri,neu:neu,surname:surname,py:syl.join(' '),pyToned:toneTokens.join(' '),given:given.join(''),tones:tones,hits:hits,msgs:uniq(msgs),warns:uniq(warns),sound:sound,tradTo:tradTo,
-        detail:{father:String(r0[cols.father]==null?'':r0[cols.father]),mother:String(r0[cols.mother]==null?'':r0[cols.mother]),sib:String(r0[cols.sib]==null?'':r0[cols.sib]),kids:String(r0[cols.kids]==null?'':r0[cols.kids]),taboo:String(r0[cols.taboo]==null?'':r0[cols.taboo]),disp:String(data[ri][cols.disp]==null?'':data[ri][cols.disp]),note1:String(r0[cols.note1]==null?'':r0[cols.note1]),note2:String(r0[cols.note2]==null?'':r0[cols.note2]),status:String(cols.status>=0&&r0[cols.status]!=null?r0[cols.status]:''),zod:String(cols.zod>=0&&r0[cols.zod]!=null?r0[cols.zod]:'')}}; });
+        detail:{all:(pf.header||[]).map(function(h,i){ return [String(h||'').trim(), String(data[ri][i]==null?'':data[ri][i]).trim()]; }).filter(function(kv){ return kv[0]&&kv[1]; }),father:String(r0[cols.father]==null?'':r0[cols.father]),mother:String(r0[cols.mother]==null?'':r0[cols.mother]),sib:String(r0[cols.sib]==null?'':r0[cols.sib]),kids:String(r0[cols.kids]==null?'':r0[cols.kids]),taboo:String(r0[cols.taboo]==null?'':r0[cols.taboo]),disp:String(data[ri][cols.disp]==null?'':data[ri][cols.disp]),note1:String(r0[cols.note1]==null?'':r0[cols.note1]),note2:String(r0[cols.note2]==null?'':r0[cols.note2]),status:String(cols.status>=0&&r0[cols.status]!=null?r0[cols.status]:''),zod:String(cols.zod>=0&&r0[cols.zod]!=null?r0[cols.zod]:'')}}; });
 
     if(rowData.length===2&&rowData[0].py&&rowData[0].py===rowData[1].py){ var dup='两个新名拼音完全一样（'+rowData[0].py+'）'; rowData.forEach(function(rd){rd.msgs.push(dup);}); } if(rowData.length===2){ var ga=Array.from(rowData[0].given).map(norm).sort().join(''); var gb=Array.from(rowData[1].given).map(norm).sort().join(''); if(ga&&ga===gb&&rowData[0].given!==rowData[1].given){ var rev='两个新名是同样的字调换顺序（'+rowData[0].given+' / '+rowData[1].given+'），等于没有真正的第二个选择，请重出一个名'; rowData.forEach(function(rd){ if(rd.msgs.indexOf(rev)<0)rd.msgs.push(rev); }); } }
     if(orderProblems.length)rowData.forEach(function(rd){orderProblems.forEach(function(m){if(rd.warns.indexOf(m)<0)rd.warns.push(m);});});
@@ -818,12 +862,15 @@ function tableDateOf(data,fname){
   for(var r=data.length-1;r>=0;r--){ var row=data[r]||[]; for(var c=0;c<row.length;c++){ var t=String(row[c]==null?'':row[c]).trim(); if(t.indexOf('制表时间')!==0)continue;
     var d=asDate(t.replace(/^制表时间\s*[：:]?/,'')); for(var k=c+1;!d&&k<row.length;k++){ if(String(row[k]==null?'':row[k]).trim())d=asDate(row[k]); } if(d)return d; } }
   return asDate(fname)||dateStr(); }
+// 海外单的「名册展示」会填（繁 / 简体和繁体…），国内单这一栏空着；只看学员那几行，表尾的回传时间不算
+function dispFilled(pf){ var c=pf.cols.disp; if(c==null||c<0)return false; return pf.groups.some(function(g){ return g.rows.some(function(ri){ return String((pf.data[ri]||[])[c]==null?'':pf.data[ri][c]).trim()!==''; }); }); }
 function isOverseasName(n){ var b=String(n).replace(/\.(xlsx|xls)$/i,''); return /[（(]\s*H\s*[）)]|(^|[^A-Za-z])H([^A-Za-z]|$)|海外/.test(b); }
 function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.overseas?'（H）':''); }
 function problemCount(x){ return x.audit.results.filter(function(r){return r.problem;}).length; }
 function outName(x,kind){ var b=techBase(x);
   if(kind==='orig')return b+((x.name.match(/\.(xlsx|xls)$/i)||['.xlsx'])[0].toLowerCase());
   if(kind==='bad')return '（有问题）'+b+'（'+problemCount(x)+'）.xlsx';
+  if(kind==='sup')return b+'（督导）.xlsx';
   return b+'（上传）.xlsx'; }
 
 async function loadWithBuffers(fileList){ var start=parsedFiles.length;
@@ -831,7 +878,7 @@ async function loadWithBuffers(fileList){ var start=parsedFiles.length;
   try{ var wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf.slice(0)); var ws=pickSheet(wb); var data=wsTo2D(ws); var loc0=locateHeader(data); var parsed=parseFile(data, loc0?rowColorsOf(ws,loc0.hr,colsFrom(loc0.header).user):[]);
     if(!parsed){ alert('「'+f.name+'」找不到表头（需有「新名」「新名拼音」），略过。'); continue; }
     var om=load('mzys_overseas',{});
-    parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), overseas:(f.name in om)?!!om[f.name]:isOverseasName(f.name)});
+    parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
   }catch(e){ alert('读「'+f.name+'」出错：'+e.message); } }
   if(parsedFiles.length>start){ activeFile=start; curSid=null; queueFilter='all'; }
   rebuild(); }
@@ -852,7 +899,7 @@ function rebuild(){ var savedDB=load('mzys_db',{}); for(var k in savedDB)importe
 /*==== issue model: 必须改 / 请确认 / 参考 ====*/
 var LEAD_RE=/^[\s⚠️✓✔✏•❓❗【]+/;
 function cleanMsg(s){ return String(s).replace(/^\s*\uD83D[\uDD0D\uDD17\uDCCB]\s*/,'').replace(LEAD_RE,'').replace(/】\s*$/,'').trim(); }
-function warnTier(w){ var t=String(w).trim(); if(/^✓/.test(t)||/技术单拼音/.test(t)||/多音字/.test(t)||/新名是\s*\d+\s*个字/.test(t)||/^发音提醒/.test(t))return 'info'; return 'check'; }
+function warnTier(w){ var t=String(w).trim(); if(/^✓/.test(t)||/技术单拼音/.test(t)||/多音字/.test(t)||/新名的名字部分是\s*\d+\s*个字/.test(t)||/^发音提醒/.test(t))return 'info'; return 'check'; }
 function msgTier(m){ return /订单状态备注/.test(m)?'check':'must'; }
 var CLASH_RE=/撞字（|撞谐音[（〔]/;
 var TIER_TXT={must:'必须改',check:'请确认',info:'参考'};
@@ -860,7 +907,7 @@ function famHtml(fname,fc){ var s=String(fname), i=s.indexOf(fc); if(i<0)return 
 function issuesOf(r){ var list=[], seen={};
   function add(tier,key,html,sub,neu,short){ var it=seen[key]; if(it){ if(neu&&it.names.indexOf(neu)<0)it.names.push(neu); return; } it={tier:tier,html:html,sub:sub||'',names:neu?[neu]:[],raw:null,short:short||''}; seen[key]=it; list.push(it); }
   r.rows.forEach(function(rw){
-    rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var nch=Array.from(rw.neu)[h.ni]||h.fc;
+    rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var nch=Array.from(rw.neu)[h.pos]||h.fc;
       add('must','h|'+rw.neu+'|'+h.kind+'|'+h.ni+'|'+h.fname,
         '<b>'+h.kind+'「'+esc(nch)+'」</b>　↔ '+esc(h.member)+' '+famHtml(h.fname,h.fc),
         h.kind==='撞音'?'完全同音同调':'', rw.neu, h.kind+' '+nch+' ↔ '+h.member); seen['h|'+rw.neu+'|'+h.kind+'|'+h.ni+'|'+h.fname].hit=true; });
@@ -926,6 +973,9 @@ function renderToolState(){ var x=parsedFiles[activeFile]; var n=x?refsOf(x).pen
   rb.title=n?('有 '+n+' 个编号要人手查名字'):'编号核对：备注提到的订单号 / 会员编号';
   var ns=soundList().length, sb=document.getElementById('soundBtn'); sb.classList.toggle('hot',ns>0); document.getElementById('soundBadge').textContent=ns?String(ns):'';
   sb.title=ns?('有 '+ns+' 个新名读起来不好听，点开给客服'):'发音清单：读起来不好听的新名，给客服';
+  var sb2=document.getElementById('dlSupBtn'); if(sb2)sb2.style.display=(x&&x.overseas)?'none':'';
+  var sbt=document.getElementById('supBtn'); if(sbt){ var dom=x&&!x.overseas; sbt.style.display=dom?'':'none'; var nm=dom?supMissing(x).length:0;
+    sbt.classList.toggle('hot',nm>0); document.getElementById('supBadge').textContent=nm?String(nm):''; sbt.title=dom?(nm?('还有 '+nm+' 位「通过」的学员没填督导 / 店铺，点开一张表批量填'):'督导（国内）：全部填好了，点开可以改'):''; }
   var hb=document.getElementById('hBtn'); hb.textContent=x&&x.overseas?'海外（H）':'国内'; hb.classList.toggle('on',!!(x&&x.overseas));
   document.getElementById('undoBtn').disabled=!undoStack.length; document.getElementById('redoBtn').disabled=!redoStack.length; }
 function renderAll(){ if(!parsedFiles.length)return; var vis=visibleList();
@@ -938,12 +988,13 @@ function renderActive(){ renderAll(); } function renderTabs(){ renderHeader(); }
 function curResult(){ var x=parsedFiles[activeFile]; if(!x||curSid==null)return null; return x.audit.results.filter(function(r){return String(r.sid)===String(curSid);})[0]||null; }
 function nameCard(rw,idx,iss){ var mine=iss.filter(function(i){ return i.raw&&i.raw.length===1&&i.raw[0]===rw.neu; }); var must=mine.filter(function(i){return i.tier==='must';}).length, chk=mine.filter(function(i){return i.tier==='check';}).length;
   var st=must?'must':(chk?'check':'ok'); var stText=must?(must+' 个必须改'):(chk?(chk+' 个请确认'):'✓ 没检出问题');
+  var sk=Array.from(rw.surname||'').length||1;
   var hs=Array.from(rw.neu).map(function(ch,p){
     if(!/[㐀-鿿豈-﫿]/.test(ch))return '<span class="han" style="cursor:default"><span class="hz">'+esc(ch)+'</span><span class="tn"></span></span>';
-    var hit=rw.hits.filter(function(h){return h.ni===p;})[0]; var cls='han'+(hit?((hit.soft||hit.kind==='禁音'||hit.kind==='撞音软')?' soft':' clash'):'');
-    var tone=p>0?((rw.tones[p-1]&&rw.tones[p-1].toned)||''):surnamePy(ch);
+    var hit=rw.hits.filter(function(h){return h.pos===p;})[0]; var cls='han'+(hit?((hit.soft||hit.kind==='禁音'||hit.kind==='撞音软')?' soft':' clash'):'');
+    var tone=p>=sk?((rw.tones[p-sk]&&rw.tones[p-sk].toned)||''):surnamePy(ch);
     return '<button type="button" class="'+cls+'" data-ch="'+esc(ch)+'" aria-label="「'+esc(ch)+'」的读音与简繁"><span class="hz">'+esc(ch)+'</span><span class="tn">'+esc(tone)+'</span></button>'; }).join('');
-  return '<section class="ncard '+st+'"><div class="nh"><span>新名 '+(idx+1)+'</span><span class="st '+st+'">'+stText+'</span></div><div class="nrow">'+hs+
+  return '<section class="ncard '+st+'"><div class="nh"><span>新名 '+(idx+1)+(rw.surname?'<span class="lbl">　·　姓「'+esc(rw.surname)+'」</span>':'')+'</span><span class="st '+st+'">'+stText+'</span></div><div class="nrow">'+hs+
     '<button type="button" class="spk" data-say="'+esc(rw.neu)+'" aria-label="朗读 '+esc(rw.neu)+'"><svg class="i"><use href="#i-spk"/></svg></button></div></section>'; }
 function issueHtml(it){ return '<div class="iss '+it.tier+'"><span class="tier '+it.tier+'">'+TIER_TXT[it.tier]+'</span><div class="it">'+
   it.names.map(function(n){return '<span class="nt">'+esc(n)+'</span>';}).join('')+it.html+(it.sub?'<span class="sub">'+esc(it.sub)+'</span>':'')+'</div></div>'; }
@@ -977,7 +1028,14 @@ function railHtml(r){ var det=r.rows[0].detail||{};
   var groups=[['父亲','父'],['母亲','母'],['兄弟姐妹','兄弟姐妹'],['伴侣','伴侣'],['子女','子女']], known={}; groups.forEach(function(g){known[g[0]]=1;});
   var by={}; (r._fam||[]).forEach(function(p){ if(JUNK_NAMES[p[1]])return; var k=known[p[0]]?p[0]:'其他'; var a=by[k]||(by[k]=[]); if(a.indexOf(p[1])<0)a.push(p[1]); });
   var fam=groups.concat([['其他','其他比对']]).filter(function(g){return by[g[0]]&&by[g[0]].length;}).map(function(g){ return '<dt>'+g[1]+'</dt><dd>'+by[g[0]].map(chip).join('')+'</dd>'; }).join('');
-  var h='<section><h3>家庭成员</h3>'+(fam?'<dl class="fam">'+fam+'</dl>':'<p class="lbl">技术单没写家人</p>')+'</section>';
+  // 学员资料：姓氏放最前面；其余所有有填的栏位都能展开看
+  var KEY_INFO=['新名字姓氏','使用人姓名','性别','公历生日','生肖','农历时辰','是否子时','是否双胞胎'], allKV=det.all||[], kvMap={}; allKV.forEach(function(kv){ if(!(kv[0] in kvMap))kvMap[kv[0]]=kv[1]; });
+  var surV=kvMap['新名字姓氏']||r.rows[0].surname||'';
+  var keyRows=KEY_INFO.filter(function(k){ return k==='新名字姓氏'?surV:kvMap[k]; }).map(function(k){ var v=k==='新名字姓氏'?surV:kvMap[k]; return '<dt>'+(k==='新名字姓氏'?'姓氏':esc(k))+'</dt><dd'+(k==='新名字姓氏'?' class="sur"':'')+'>'+esc(v)+'</dd>'; }).join('');
+  var h=supHtml(r);
+  h+='<section><h3>学员资料</h3>'+(keyRows?'<dl class="kv">'+keyRows+'</dl>':'<p class="lbl">没有资料</p>')+
+    (allKV.length?'<details class="allinfo"><summary>全部资料（'+allKV.length+' 项）</summary><dl class="kv">'+allKV.map(function(kv){ return '<dt>'+esc(kv[0])+'</dt><dd>'+hlText(esc(kv[1]))+'</dd>'; }).join('')+'</dl></details>':'')+'</section>';
+  h+='<section><h3>家庭成员</h3>'+(fam?'<dl class="fam">'+fam+'</dl>':'<p class="lbl">技术单没写家人</p>')+'</section>';
   var bd=[]; var dispS=String(det.disp||'').trim(); if(dispS){ var trad=dispS.indexOf('繁')>=0; bd.push('<span class="badge'+(trad?' gold':'')+'">名册 '+(trad?'繁体':'简体')+'</span>'); }
   if(String(det.zod||'').trim())bd.push('<span class="badge">生肖 '+esc(String(det.zod).trim())+'</span>');
   var tb=String(det.taboo||'').trim();
@@ -1044,6 +1102,7 @@ function bindMain(main,r){
   main.querySelectorAll('[data-q]').forEach(function(el){ el.onclick=function(){ doSearch(el.getAttribute('data-q')); }; el.onkeydown=function(ev){ if(el.tagName!=='BUTTON'&&(ev.key==='Enter'||ev.key===' ')){ ev.preventDefault(); doSearch(el.getAttribute('data-q')); } }; });
   main.querySelectorAll('.ofillgo').forEach(function(b){ b.onclick=function(){ var inp=b.parentNode.querySelector('.ofill'); fillOrder(b.getAttribute('data-num'), inp?inp.value:''); }; });
   main.querySelectorAll('.ofill').forEach(function(inp){ inp.onkeydown=function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); fillOrder(inp.getAttribute('data-num'), inp.value); } }; });
+  bindSup(main,r);
   var nm=main.querySelector('#notesMore'); if(nm)nm.onclick=function(){ var nb=main.querySelector('#notesBox'); var c=nb.classList.toggle('clamp'); nm.textContent=c?'展开全文':'收起'; };
 }
 function setReviewed(r,val,advance){ r.reviewed=val; saveReviews(); renderHeader(); if(advance&&val){ var vis=visibleList(), i=-1; vis.forEach(function(q,k){ if(String(q.sid)===String(r.sid))i=k; }); if(i>=0&&i<vis.length-1){ selectSid(String(vis[i+1].sid)); toast('序'+r.sid+' 已复核'); return; } }
@@ -1106,11 +1165,11 @@ function doSearch(q){ searchTerm=q||''; queueFilter='all'; var sb=document.getEl
 
 /*==== sandbox recheck ====*/
 function dt(s){ return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
-function fgU(p){ var n=p[1]; if(p[3])return n; if(n.length>=3&&typeof COMPOUND!=='undefined'&&COMPOUND[n.slice(0,2)])return n.slice(2); if(n.length>=2&&isSurname(n[0]))return n.slice(1); return n; }
-function recheck(r,neu,pyStr){ if(!neu)return []; var given=Array.from(neu).slice(1); var syl=pyStr.split(/\s+/).map(dt).filter(Boolean); if(syl.length===given.length+1)syl=syl.slice(1);
+function fgU(p,sur){ var n=p[1]; if(p[3])return n; if(sur&&n.indexOf(sur)===0&&n.length>sur.length)return n.slice(sur.length); if(n.length>=3&&typeof COMPOUND!=='undefined'&&COMPOUND[n.slice(0,2)])return n.slice(2); if(n.length>=2&&isSurname(n[0]))return n.slice(1); return n; }
+function recheck(r,neu,pyStr){ if(!neu)return []; var sur=(r&&r.rows&&r.rows[0]&&r.rows[0].surname)||''; var sk=surLen(neu,sur), given=Array.from(neu).slice(sk); var syl=pyStr.split(/\s+/).map(dt).filter(Boolean); if(syl.length===given.length+sk)syl=syl.slice(sk);
   var out=[]; var fam=(r&&r._fam)||[], tb=(r&&r._tb)||{single:{},combos:[]};
-  given.forEach(function(ch){ var nch=norm(ch); fam.forEach(function(p){ var cmp=fgU(p); for(var c=0;c<cmp.length;c++){ if(norm(cmp[c])===nch){ out.push('撞字：'+ch+' ↔ '+p[0]+'「'+p[1]+'」'+(p[2]?'（疑同家人）':'')); break; } } }); if(tb.single[nch])out.push('用了禁忌/不想用的字：'+ch); });
-  if(syl.length===given.length)given.forEach(function(ch,idx){ var si=syl[idx],nch=norm(ch); fam.forEach(function(p){ var cmp=fgU(p); for(var c=0;c<cmp.length;c++){ var fc=cmp[c]; if(norm(fc)===nch)continue; if(charSyllables(fc).indexOf(si)>=0)out.push('撞音：'+ch+'('+si+') ↔ '+p[0]+'「'+p[1]+'」的'+fc); } }); });
+  given.forEach(function(ch){ var nch=norm(ch); fam.forEach(function(p){ var cmp=fgU(p,sur); for(var c=0;c<cmp.length;c++){ if(norm(cmp[c])===nch){ out.push('撞字：'+ch+' ↔ '+p[0]+'「'+p[1]+'」'+(p[2]?'（疑同家人）':'')); break; } } }); if(tb.single[nch])out.push('用了禁忌/不想用的字：'+ch); });
+  if(syl.length===given.length)given.forEach(function(ch,idx){ var si=syl[idx],nch=norm(ch); fam.forEach(function(p){ var cmp=fgU(p,sur); for(var c=0;c<cmp.length;c++){ var fc=cmp[c]; if(norm(fc)===nch)continue; if(charSyllables(fc).indexOf(si)>=0)out.push('撞音：'+ch+'('+si+') ↔ '+p[0]+'「'+p[1]+'」的'+fc); } }); });
   else out.push('（没填拼音或字数对不上，只查了撞字/禁忌）');
   var u={},o2=[]; out.forEach(function(m){if(!u[m]){u[m]=1;o2.push(m);}}); return o2; }
 
@@ -1181,6 +1240,132 @@ function outNeuByRow(x){ var m={}; x.audit.results.forEach(function(r){ r.rows.f
 function applyTrad(ws,x){ var m=outNeuByRow(x), c=x.audit.cols.neu; if(c<0)return 0; var n=0; for(var ri in m){ ws.getRow(+ri+1).getCell(c+1).value=m[ri]; n++; } return n; }
 async function origBuffer(x){ if(!Object.keys(outNeuByRow(x)).length)return x._buf.slice(0);
   var wb=new ExcelJS.Workbook(); await wb.xlsx.load(x._buf.slice(0)); applyTrad(wb.getWorksheet(x.sheetName)||wb.worksheets[0],x); return await wb.xlsx.writeBuffer(); }
+/*==== 督导文件（国内）：督导 / 分公司 / 店铺 在网页里填，其余从技术单带 ====*/
+// info：订单号 → {sup,branch,shop}；list：督导 → {branch,group}（填过一次就记住）；center：服务中心编号 → 上次填的 {sup,shop}
+// shops：店铺资料（店铺编号 → [店铺名称, 管理分公司, 督导]），从系统导出的店铺表导入，店铺表有更新就再导一次
+var SUP={info:load('mzys_sup_info',{}),list:load('mzys_sup_list',{}),center:load('mzys_sup_center',{}),shops:load('mzys_sup_shops',{}),shopsMeta:load('mzys_sup_shops_meta',null)};
+function saveSup(){ store('mzys_sup_info',SUP.info); store('mzys_sup_list',SUP.list); store('mzys_sup_center',SUP.center); store('mzys_sup_shops',SUP.shops); store('mzys_sup_shops_meta',SUP.shopsMeta); }
+function supKey(r){ return String(r.order||('序'+r.sid)).toUpperCase(); }
+function kvOf(r){ var m={}; ((r.rows[0].detail||{}).all||[]).forEach(function(kv){ if(!(kv[0] in m))m[kv[0]]=kv[1]; }); return m; }
+// 先看手填的，再看店铺资料（店铺表），店铺表里没有就用以前导入的督导文件里同一个店铺编号填过的
+function supOf(r){ var v=SUP.info[supKey(r)]||{}, code=kvOf(r)['服务中心编号']||'', sh=(code&&SUP.shops[code])||null, old=(!sh&&code&&SUP.center[code])||null;
+  var sup=v.sup||(sh&&sh[2])||(old&&old.sup)||'', l=SUP.list[sup]||{};
+  return {code:code, sup:sup, branch:v.branch||(sh&&sh[1])||l.branch||'', shop:v.shop||(sh&&sh[0])||(old&&old.shop)||'', group:l.group||'',
+    auto:!!(sh||old)&&!v.sup&&!v.shop&&!v.branch, src:sh?'店铺资料':(old?'以前的督导文件':''), inShops:!!(sh||old), edited:!!(v.sup||v.shop||v.branch)}; }
+function supRows(x){ return x.audit.results.filter(function(r){ return !r.problem; }); }
+function setSup(r,field,val){ if(field==='group'){ var sp=supOf(r).sup; if(sp){ (SUP.list[sp]||(SUP.list[sp]={})).group=String(val||'').trim(); saveSup(); } return; }
+  var k=supKey(r), v=SUP.info[k]||(SUP.info[k]={}); v[field]=String(val||'').trim();
+  if(field==='sup'&&v.sup&&!v.branch&&SUP.list[v.sup])v.branch=SUP.list[v.sup].branch||'';
+  if(v.sup&&(field==='branch'||field==='group'||field==='sup')){ var l=SUP.list[v.sup]||(SUP.list[v.sup]={}); if(field==='branch'&&v.branch)l.branch=v.branch; if(field==='group')l.group=String(val||'').trim(); if(field==='sup'&&!l.branch&&v.branch)l.branch=v.branch; }
+  var c=kvOf(r)['服务中心编号']; if(c&&(v.sup||v.shop))SUP.center[c]={sup:v.sup||'',shop:v.shop||''};
+  saveSup(); }
+function supMissing(x){ return supRows(x).filter(function(r){ var s=supOf(r); return !s.sup||!s.shop||!s.group; }); }
+function supHtml(r){ var x=parsedFiles[activeFile]; if(!x||x.overseas)return ''; var s=supOf(r), code=kvOf(r)['服务中心编号']||'';
+  var body=r.problem?'<p class="supnote" style="margin:0">这位现在是「有问题」，不会放进督导文件。</p>':
+    (s.sup||s.shop?'<p class="supnote" style="margin:0 0 6px">'+(s.auto?'从'+s.src+'自动带出':(s.edited?'手动填 / 改过':''))+(s.group?'':'<span style="color:var(--warn)">　还没填这位督导的群</span>')+'</p><dl class="kv"><dt>店铺编号</dt><dd>'+esc(code||'—')+'</dd><dt>督导</dt><dd>'+esc(s.sup||'—')+'</dd><dt>分公司</dt><dd>'+esc(s.branch||'—')+'</dd><dt>店铺名称</dt><dd>'+esc(s.shop||'—')+'</dd><dt>群</dt><dd>'+esc(s.group||'—')+'</dd></dl>':'<p class="supnote" style="margin:0;color:var(--warn)">还没填督导 / 店铺'+(code?'（店铺编号 '+esc(code)+'）':'')+'</p>');
+  return '<section><h3>督导（国内）</h3>'+body+'<button type="button" class="btn sm" id="supOpen" style="margin-top:10px">打开督导表（批量填）</button></section>'; }
+function bindSup(main,r){ var b=main.querySelector('#supOpen'); if(b)b.onclick=function(){ openSupTable(r); }; }
+// 督导表：所有「通过」的学员一张表，同一个店铺编号（服务中心编号）排在一起；勾几位、上面填一次就全部更新
+function openSupTable(focusR){ var x=parsedFiles[activeFile]; if(!x)return;
+  if(x.overseas){ alert('督导只给国内的技术单。这份现在是「海外（H）」；如果其实是国内，先在左边文件卡片切成「国内」。'); return; }
+  var rows=supRows(x); if(!rows.length){ alert('这份没有「通过」的学员。'); return; }
+  var checked={}; if(focusR&&!focusR.problem)checked[supKey(focusR)]=1;
+  var box=document.getElementById('modalBox'); box.classList.add('wide');
+  function centerOf(r){ return kvOf(r)['服务中心编号']||''; }
+  function draw(){ var keep=(box.querySelector('.suptblwrap')||{}).scrollTop||0;
+    var groups={}, order=[]; rows.forEach(function(r){ var c=centerOf(r)||'（没写店铺编号）'; if(!groups[c]){ groups[c]=[]; order.push(c); } groups[c].push(r); });
+    var sups=Object.keys(SUP.list), shops={}; for(var k in SUP.info){ if(SUP.info[k].shop)shops[SUP.info[k].shop]=1; }
+    var miss=supMissing(x).length, nSel=Object.keys(checked).length, meta=SUP.shopsMeta;
+    var supsHere={}; rows.forEach(function(r){ var s=supOf(r); if(s.sup){ var e=supsHere[s.sup]||(supsHere[s.sup]={n:0,branch:s.branch}); e.n++; } });
+    var noShop=rows.filter(function(r){ return !supOf(r).inShops; }).length, nOld=Object.keys(SUP.center).length;
+    var shopBar='<div class="supbulk" style="grid-template-columns:1fr auto;'+(meta?'':'border-color:var(--warn);')+'"><div>'+(meta?'<b>店铺资料</b>：'+meta.count+' 家店（'+esc(meta.date)+' 导入「'+esc(meta.file)+'」）。店铺编号对上了，督导 / 分公司 / 店铺名称会自动带出。'+(noShop?'<br><span style="color:var(--warn)">有 '+noShop+' 位的店铺编号在店铺资料里找不到，要手填，或者导入新的店铺资料。</span>':''):'<b style="color:var(--warn)">还没导入店铺资料</b>：'+(nOld?'现在只能用以前导入的督导文件里那 '+nOld+' 个店铺编号带出'+(noShop?'，这份有 <b>'+noShop+' 位</b>的店铺编号不在里面':'')+'。':'')+'导入系统导出的<b>店铺表</b>（.xls / .xlsx，有「店铺编号」「督导」栏的那份），所有店铺编号的督导、分公司、店铺名称就能自动带出。')+'</div>'+
+      '<button type="button" class="btn'+(meta?'':' pri')+'" id="shopImp">'+(meta?'更新店铺资料':'导入店铺资料')+'</button></div>';
+    var supKeys=Object.keys(supsHere);
+    var grpBar=supKeys.length?'<div class="desc" style="margin:4px 0 6px"><b>督导 → 群</b>（每位督导填一次，这位督导的学员全部更新）</div><div class="suptblwrap2" style="border:1px solid var(--line);border-radius:10px;margin-bottom:12px;max-height:22vh;overflow:auto"><table class="suptbl"><thead><tr><th>督导</th><th>分公司</th><th>这份有几位</th><th>群</th></tr></thead><tbody>'+
+      supKeys.map(function(n){ var g=(SUP.list[n]||{}).group||''; return '<tr class="'+(g?'done':'miss')+'"><td>'+esc(n)+'</td><td>'+esc(supsHere[n].branch||'')+'</td><td>'+supsHere[n].n+' 位</td><td><input class="cell grpcell" data-sup="'+esc(n)+'" value="'+esc(g)+'" placeholder="填群名，例：729 / 贵州" aria-label="'+esc(n)+' 的群"></td></tr>'; }).join('')+'</tbody></table></div>':'';
+    function cell(r,f,v){ return '<td><input class="cell" data-k="'+esc(supKey(r))+'" data-f="'+f+'" value="'+esc(v||'')+'"'+(f==='sup'?' list="supList2"':(f==='shop'?' list="shopList2"':''))+' aria-label="'+esc(shortName(r.disp))+' '+f+'"></td>'; }
+    var trs=order.map(function(c){ var g=groups[c], allOn=g.every(function(r){return checked[supKey(r)];});
+      return '<tr class="grp"><td><input type="checkbox" class="grpchk" data-c="'+esc(c)+'"'+(allOn?' checked':'')+' aria-label="勾选店铺编号 '+esc(c)+' 的全部学员"></td><td colspan="8">店铺编号 <b class="code" data-copy="'+esc(c)+'" title="点一下复制">'+esc(c)+'</b>　·　'+g.length+' 位</td></tr>'+
+        g.map(function(r){ var s=supOf(r), done=s.sup&&s.shop&&s.group, k=supKey(r), cc=centerOf(r);
+          return '<tr class="'+(done?'done':'miss')+'"><td><input type="checkbox" class="rowchk" data-k="'+esc(k)+'"'+(checked[k]?' checked':'')+' aria-label="勾选 '+esc(shortName(r.disp))+'"></td><td class="st">'+(done?(s.auto?(s.src==='店铺资料'?'✓ 自动':'✓ 旧文件'):(s.edited?'✓ 手填':'✓')):'待填')+'</td>'+
+            '<td class="nm">'+esc(shortName(r.disp)||('序'+r.sid))+'<small>序'+esc(r.sid)+' · '+esc(r.order||'')+'</small></td><td class="code" data-copy="'+esc(cc)+'" title="点一下复制">'+esc(cc||'—')+'</td>'+cell(r,'sup',s.sup)+cell(r,'branch',s.branch)+cell(r,'shop',s.shop)+'<td'+(s.group?'':' style="color:var(--warn)"')+' title="'+esc(s.src?('来源：'+s.src):'')+'">'+esc(s.group||(s.sup?'在上面填群':'—'))+'</td></tr>'; }).join(''); }).join('');
+    box.innerHTML='<h3>督导（国内）</h3><div class="desc">只放「通过」的学员，同一个店铺编号排在一起，店铺编号点一下就复制，方便去系统查。店铺资料里有的会自动带出；找不到的 <b>勾选几位 → 在下面填一次 → 「填到勾选的」</b>，就一起更新；表里每一格也可以直接改（手改的优先）。</div>'+shopBar+grpBar+
+      '<div class="supbulk"><div><label for="bk_sup">督导</label><input id="bk_sup" list="supList2" autocomplete="off" placeholder="填一次"></div><div><label for="bk_branch">分公司</label><input id="bk_branch" autocomplete="off" placeholder="填了督导会自动带出"></div>'+
+      '<div><label for="bk_shop">店铺名称</label><input id="bk_shop" list="shopList2" autocomplete="off" placeholder="例：湖北省襄阳市樊城区（张雪）店铺"></div><div><label for="bk_group">群</label><input id="bk_group" autocomplete="off" placeholder="自动带出"></div>'+
+      '<button type="button" class="btn pri" id="bkApply"'+(nSel?'':' disabled')+'>填到勾选的 '+nSel+' 位</button></div>'+
+      '<div class="suptools"><label><input type="checkbox" id="supAll"'+(nSel===rows.length?' checked':'')+'> 全选</label><button type="button" class="linkbtn" id="supSelMiss" style="margin:0">只勾还没填的（'+miss+'）</button><button type="button" class="linkbtn" id="supSelNone" style="margin:0">全部不勾</button><span class="grow"></span>'+
+        (miss?'<span style="color:var(--warn);font-weight:700">还有 '+miss+' 位没填</span>':'<span style="color:var(--ok);font-weight:700">✓ '+rows.length+' 位都填好了</span>')+'</div>'+
+      '<div class="suptblwrap" style="max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:10px"><table class="suptbl"><thead><tr><th></th><th>状态</th><th>学员</th><th>店铺编号</th><th>督导</th><th>分公司</th><th>店铺名称</th><th>群</th></tr></thead><tbody>'+trs+'</tbody></table></div>'+
+      '<datalist id="supList2">'+sups.map(function(n){return '<option value="'+esc(n)+'">';}).join('')+'</datalist><datalist id="shopList2">'+Object.keys(shops).map(function(n){return '<option value="'+esc(n)+'">';}).join('')+'</datalist>'+
+      '<div class="mfoot"><button type="button" class="btn" id="supClose">关闭</button><button type="button" class="btn pri" id="supDl">下载督导文件</button></div>';
+    box.querySelector('.suptblwrap').scrollTop=keep; bind(); }
+  function refreshAll(){ renderToolState(); renderStudent(); }
+  function bind(){
+    var bs=box.querySelector('#bk_sup'); bs.onchange=function(){ var l=SUP.list[bs.value.trim()]; if(l){ if(l.branch)box.querySelector('#bk_branch').value=l.branch; if(l.group)box.querySelector('#bk_group').value=l.group; } };
+    box.querySelector('#bkApply').onclick=function(){ var v={}; ['sup','branch','shop','group'].forEach(function(f){ v[f]=box.querySelector('#bk_'+f).value.trim(); });
+      if(!v.sup&&!v.shop&&!v.branch&&!v.group){ alert('先在上面填督导或店铺。'); return; }
+      var n=0; rows.forEach(function(r){ if(!checked[supKey(r)])return; ['sup','branch','shop','group'].forEach(function(f){ if(v[f])setSup(r,f,v[f]); }); n++; });
+      checked={}; draw(); refreshAll(); toast('已填到 '+n+' 位'); };
+    box.querySelectorAll('.rowchk').forEach(function(c){ c.onchange=function(){ var k=c.getAttribute('data-k'); if(c.checked)checked[k]=1; else delete checked[k]; draw(); }; });
+    box.querySelectorAll('.grpchk').forEach(function(c){ c.onchange=function(){ var cc=c.getAttribute('data-c'); rows.forEach(function(r){ if((centerOf(r)||'（没写店铺编号）')!==cc)return; if(c.checked)checked[supKey(r)]=1; else delete checked[supKey(r)]; }); draw(); }; });
+    box.querySelector('#supAll').onchange=function(e){ checked={}; if(e.target.checked)rows.forEach(function(r){ checked[supKey(r)]=1; }); draw(); };
+    box.querySelector('#supSelMiss').onclick=function(){ checked={}; supMissing(x).forEach(function(r){ checked[supKey(r)]=1; }); draw(); };
+    box.querySelector('#supSelNone').onclick=function(){ checked={}; draw(); };
+    box.querySelectorAll('[data-copy]').forEach(function(el){ el.onclick=function(){ var t=el.getAttribute('data-copy'); if(!t)return; function ok(){ toast('已复制 '+t); } if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,function(){ prompt('复制这个店铺编号：',t); }); else prompt('复制这个店铺编号：',t); }; });
+    box.querySelectorAll('input.cell').forEach(function(inp){ inp.onchange=function(){ var k=inp.getAttribute('data-k'), r=rows.filter(function(q){return supKey(q)===k;})[0]; if(!r)return; setSup(r,inp.getAttribute('data-f'),inp.value); draw(); refreshAll(); };
+      inp.onkeydown=function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); inp.blur(); } }; });
+    box.querySelector('#supClose').onclick=function(){ document.getElementById('modal').style.display='none'; box.classList.remove('wide'); };
+    box.querySelector('#supDl').onclick=function(){ downloadSup(); };
+    box.querySelector('#shopImp').onclick=function(){ importSupData(function(){ draw(); refreshAll(); }); };
+    box.querySelectorAll('input.grpcell').forEach(function(inp){ inp.onchange=function(){ var n=inp.getAttribute('data-sup'); (SUP.list[n]||(SUP.list[n]={})).group=inp.value.trim(); saveSup(); draw(); refreshAll(); toast('已更新「'+n+'」的群'); }; inp.onkeydown=function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); inp.blur(); } }; }); }
+  draw(); document.getElementById('modal').style.display='flex'; }
+async function buildSupWorkbook(x){ var wb=new ExcelJS.Workbook(), ws=wb.addWorksheet('命名');
+  var W=[8,12.6,46.2,18.1,16.3,15.3,43.8,6.7,16.7,6.7,9.6,13.4,8,12.8,100.4,12.4,123.9]; W.forEach(function(w,i){ ws.getColumn(i+1).width=w; });
+  var thin={style:'thin'}, box={top:thin,left:thin,bottom:thin,right:thin};
+  var hd=['督导','分公司','店铺名称','服务中心编号','订单','新名字姓氏','姓名','性别','出生日期','生肖','新名字','新名字拼音','',''];
+  var h=ws.getRow(1); h.height=18.75;
+  hd.forEach(function(t,i){ var c=h.getCell(i+1); c.value=t; c.font={name:'宋体',size:14,bold:true}; c.border=box; c.alignment=i<4?{horizontal:'center'}:{horizontal:'center',vertical:'middle',wrapText:true}; });
+  var o1=h.getCell(15); o1.value={formula:'_xlfn.TEXTJOIN(" ",TRUE,E1:N1)',result:hd.slice(4).filter(Boolean).join(' ')}; o1.font={name:'宋体',size:11}; o1.border=box;
+  var p1=h.getCell(16); p1.value='群'; p1.font={name:'宋体',size:11}; p1.border=box; p1.alignment={horizontal:'center'};
+  var data=x.parsed.data, at={}; x.audit.header.forEach(function(t,i){ t=String(t).trim(); if(!(t in at))at[t]=i; });
+  function cell(ri,name){ var i=at[name]; return i==null?'':String((data[ri]||[])[i]==null?'':data[ri][i]).trim(); }
+  var n=1;
+  supRows(x).forEach(function(r){ var ri=r.rows[0].row, s=supOf(r); n++;
+    var names=[]; r.rows.slice(0,2).forEach(function(rw){ names.push(rw.tradTo||rw.neu, cell(rw.row,'新名拼音')); }); while(names.length<4)names.push('');
+    var v=[s.sup,s.branch,s.shop,cell(ri,'服务中心编号'),cell(ri,'订单编号')||r.order||'',cell(ri,'新名字姓氏'),cell(ri,'使用人姓名'),cell(ri,'性别'),cell(ri,'公历生日'),cell(ri,'生肖')].concat(names);
+    var row=ws.getRow(n);
+    v.forEach(function(t,i){ var c=row.getCell(i+1); c.value=t; c.font={name:'宋体',size:11}; c.border=box; c.alignment=i<4?{horizontal:'center'}:{horizontal:'center',vertical:'middle',wrapText:true}; });
+    var joined=v.slice(4).filter(function(t){return t!=='';}).join(' '), k=s.shop.indexOf('（'), shopPart=k>=0?s.shop.slice(k):s.shop;
+    var o=row.getCell(15); o.value={formula:'_xlfn.TEXTJOIN(" ",TRUE,E'+n+':N'+n+')',result:joined}; o.font={name:'宋体',size:11}; o.border=box;
+    var p=row.getCell(16); p.value=s.group; p.font={name:'宋体',size:11}; p.border=box; p.alignment={horizontal:'center'};
+    var q=row.getCell(17); q.value={formula:'O'+n+'&"\n"&IFERROR(MID(C'+n+',FIND("（",C'+n+'),LEN(C'+n+')),C'+n+')&" "&D'+n,result:joined+'\n'+shopPart+' '+v[3]}; q.font={name:'宋体',size:11}; });
+  return wb; }
+async function downloadSup(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile];
+  if(x.overseas){ alert('督导文件只给国内的技术单。这份现在是「海外（H）」，如果其实是国内，先在左边文件卡片切成「国内」。'); return; }
+  var rows=supRows(x); if(!rows.length){ toast('这份没有「通过」的学员'); return; }
+  var miss=supMissing(x);
+  if(miss.length&&!confirm('有 '+miss.length+' 位学员的督导、店铺或群还没填好（'+miss.slice(0,5).map(function(r){return shortName(r.disp)||('序'+r.sid);}).join('、')+(miss.length>5?'……':'')+'）。\n照样下载（那几格空着）？\n（按「取消」，去顶栏「督导」那张表一起填好）'))return;
+  dl(new Blob([await (await buildSupWorkbook(x)).xlsx.writeBuffer()]),outName(x,'sup')); }
+// 读 .xls / .xlsx：SheetJS 只在导入时才载入（本地 vendor 优先，载不到退回 cdnjs）
+function needXLSX(){ return new Promise(function(ok,bad){ if(window.XLSX)return ok(window.XLSX);
+  function add(src,next){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){ window.XLSX?ok(window.XLSX):next(); }; sc.onerror=next; document.head.appendChild(sc); }
+  add('../vendor/xlsx.full.min.js',function(){ add('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',function(){ bad(new Error('读 .xls 的组件载不进来')); }); }); }); }
+// 导入：①系统的店铺表（有「店铺编号」「督导」）→ 整份换新；②旧督导文件（「督导」「分公司」「店铺名称」…P 栏群）；③督导list（B 栏督导、C 栏群）
+function importSupData(done){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.xls,.xlsx'; inp.onchange=async function(){ var f=inp.files[0]; if(!f)return;
+  try{ var X=await needXLSX(), wb=X.read(new Uint8Array(await f.arrayBuffer()),{type:'array'}), msg=[];
+    wb.SheetNames.forEach(function(nm){ var d=X.utils.sheet_to_json(wb.Sheets[nm],{header:1,raw:false,defval:''}), hr=-1, H=[];
+      for(var i=0;i<Math.min(d.length,10);i++){ var row=(d[i]||[]).map(function(t){return String(t).trim();}); if(row.indexOf('督导')>=0){ hr=i; H=row; break; } }
+      var c=function(n){ return H.indexOf(n); }, g=function(r,i){ return i<0?'':String((d[r]||[])[i]==null?'':d[r][i]).trim(); };
+      if(hr>=0&&c('店铺编号')>=0){ var shops={}, n=0, cc=c('店铺编号'), cn=c('店铺名称'), cm=c('管理分公司'), cs=c('服务分公司'), cd=c('督导');
+        for(var r=hr+1;r<d.length;r++){ var code=g(r,cc); if(!code)continue; shops[code]=[g(r,cn),g(r,cm)||g(r,cs),g(r,cd)]; n++; var sp=g(r,cd), br=g(r,cm)||g(r,cs); if(sp&&br){ var l=SUP.list[sp]||(SUP.list[sp]={}); l.branch=br; } }
+        SUP.shops=shops; SUP.shopsMeta={date:dateStr(),count:n,file:f.name}; msg.push('店铺资料 '+n+' 家（整份换新）'); }
+      else if(hr>=0){ var cs2=c('督导'), cb=c('分公司'), cp=c('店铺名称'), ccode=c('服务中心编号'), cg=c('群')>=0?c('群'):(cs2===0&&H.length>15?15:-1), nS=0;
+        for(var r2=hr+1;r2<d.length;r2++){ var sup=g(r2,cs2); if(!sup)continue; var l2=SUP.list[sup]||(nS++,SUP.list[sup]={}); if(g(r2,cb))l2.branch=g(r2,cb); if(g(r2,cg))l2.group=g(r2,cg); if(g(r2,ccode))SUP.center[g(r2,ccode)]={sup:sup,shop:g(r2,cp)}; }
+        msg.push('督导文件：督导 '+Object.keys(SUP.list).length+' 位（新加 '+nS+' 位）的分公司 / 群，店铺编号 '+Object.keys(SUP.center).length+' 个（同一个店铺编号会自动带出督导和店铺）。要全部店铺都能带出，请再导入系统的店铺表'); }
+      else { var nG=0; for(var r3=0;r3<d.length;r3++){ var s3=g(r3,1), g3=g(r3,2); if(s3&&g3&&s3!=='督导'){ (SUP.list[s3]||(SUP.list[s3]={})).group=g3; nG++; } } if(nG)msg.push('督导的群 '+nG+' 条'); } });
+    saveSup(); renderAll(); if(done)done(); alert(msg.length?('已导入：'+msg.join('；')+'。'):'这份文件里没认出店铺编号 / 督导 栏。'); }
+  catch(e){ alert('读文件出错：'+e.message); } }; inp.click(); }
+
 async function buildCleanWorkbook(x){ var au=x.audit, data=x.parsed.data, hd=au.header.map(function(h){return String(h).trim();});
   var src=UPLOAD_COLS.map(function(c){ for(var i=0;i<c[1].length;i++){ var k=hd.indexOf(c[1][i]); if(k>=0)return k; } return -1; });
   var wb=new ExcelJS.Workbook(), ws=wb.addWorksheet('命名');
@@ -1222,6 +1407,7 @@ async function downloadZip(){ if(!parsedFiles.length||typeof JSZip==='undefined'
   folder.file(outName(x,'orig'), await origBuffer(x));
   if(problemCount(x))folder.file(outName(x,'bad'), await (await buildSplitWorkbook(x,true)).xlsx.writeBuffer());
   folder.file(outName(x,'clean'), await (await buildCleanWorkbook(x)).xlsx.writeBuffer());
+  if(!x.overseas&&supRows(x).length)folder.file(outName(x,'sup'), await (await buildSupWorkbook(x)).xlsx.writeBuffer());
   dl(await zip.generateAsync({type:'blob'}), base+'.zip'); }
 function exportCSV(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var lines=['订单号,序号,使用人,新名,原因'];
   x.audit.results.filter(function(r){return r.problem;}).forEach(function(r){ var reasons=r.rows.map(function(rw){return rw.msgs.join('；');}).filter(Boolean).join(' / ');
@@ -1254,10 +1440,10 @@ function exportDB(){ var db=window._DB||{}; var lines=[]; for(var k in db)lines.
 function importDB(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.csv,.txt'; inp.onchange=async function(){ var f=inp.files[0]; if(!f)return; var txt=await f.text(); txt.split(/\r?\n/).forEach(function(line){ var p=line.replace(/^\ufeff/,'').split(','); var k=(p[0]||'').trim().toUpperCase(); if(!k)return; var names=p.slice(1).map(function(s){return s.trim();}).filter(Boolean); if(names.length)importedDB[k]=(importedDB[k]||[]).concat(names); }); saveDB(); rebuild(); document.getElementById('modal').style.display='none'; }; inp.click(); }
 
 /*==== session save/restore ====*/
-function exportSession(){ var s={db:importedDB, verdicts:load('mzys_verdicts',{}), rules:{POLY:RULES.POLY,_extraTaboo:RULES._extraTaboo||[]}}; dl(new Blob([JSON.stringify(s)],{type:'application/json'}),'名字审核_存档_'+dateStr()+'.json'); }
+function exportSession(){ var s={db:importedDB, verdicts:load('mzys_verdicts',{}), sup:{info:SUP.info,list:SUP.list,center:SUP.center,shops:SUP.shops,shopsMeta:SUP.shopsMeta}, rules:{POLY:RULES.POLY,_extraTaboo:RULES._extraTaboo||[]}}; dl(new Blob([JSON.stringify(s)],{type:'application/json'}),'名字审核_存档_'+dateStr()+'.json'); }
 function importSession(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.json'; inp.onchange=async function(){ var f=inp.files[0]; if(!f)return; try{ var s=JSON.parse(await f.text());
-  if(s.db){ importedDB=s.db; saveDB(); } if(s.verdicts)store('mzys_verdicts',s.verdicts); if(s.rules){ if(s.rules.POLY)RULES.POLY=s.rules.POLY; if(s.rules._extraTaboo)RULES._extraTaboo=s.rules._extraTaboo; }
-  alert('存档已还原（订单库＋判定＋规则）。文件请重新拖入，判定会自动套回。'); rebuild(); }catch(e){ alert('读存档失败：'+e.message); } }; inp.click(); }
+  if(s.db){ importedDB=s.db; saveDB(); } if(s.verdicts)store('mzys_verdicts',s.verdicts); if(s.sup){ ['info','list','center','shops','shopsMeta'].forEach(function(k){ if(s.sup[k])SUP[k]=s.sup[k]; }); saveSup(); } if(s.rules){ if(s.rules.POLY)RULES.POLY=s.rules.POLY; if(s.rules._extraTaboo)RULES._extraTaboo=s.rules._extraTaboo; }
+  alert('存档已还原（订单库＋判定＋规则＋督导资料）。文件请重新拖入，判定会自动套回。'); rebuild(); }catch(e){ alert('读存档失败：'+e.message); } }; inp.click(); }
 
 /*==== 发音清单：不卡上传，但要让客服知道 ====*/
 function soundList(){ var out=[]; parsedFiles.forEach(function(x){ x.audit.results.forEach(function(r){ r.rows.forEach(function(rw){ (rw.sound||[]).forEach(function(sd){
@@ -1314,6 +1500,20 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-10-31', title:'导入旧督导文件也能自动带出', items:[
+    '只导入以前的督导文件时，同一个店铺编号也会自动带出督导和店铺名称（之前只认店铺表）；顺序：手填 > 店铺表 > 旧督导文件',
+    '督导表标出来源：「✓ 自动」是店铺表、「✓ 旧文件」是旧督导文件；还没导店铺表时会说这份有几位找不到']},
+  {date:'2026-10-31', title:'自动认出海外 / 国内', items:[
+    '学员的「名册展示」有填就算海外（国内单这一栏空着），原文件名有 H 也算；文件卡片上一样可以手动切换']},
+  {date:'2026-10-31', title:'督导文件（国内）', items:[
+    '国内的技术单可以下载「技术单 日期（名正言顺）（督导）」：一位学员一行，两个新名并排，最后几栏自动拼好可以直接贴给督导',
+    '只放「通过」的学员；顶栏「督导」打开一张表：同一个店铺编号排在一起（点一下复制），勾选几位、填一次就一起更新；表里每格也能直接改',
+    '导入系统的店铺表（.xls / .xlsx）后，按店铺编号自动带出督导、管理分公司、店铺名称；店铺表有更新再导一次就整份换新；群按督导填一次',
+    '「⋯ → 导入店铺资料 / 督导名单」也能导旧的督导文件，把以前的群带进来；存档也会一起存']},
+  {date:'2026-10-31', title:'姓氏按「新名字姓氏」栏 + 右边显示全部资料', items:[
+    '姓和名按「新名字姓氏」栏来分：日本姓「鶴田」、复姓「欧阳」整段算姓，不会再拿姓里的字去跟家人比撞字',
+    '家人名字前面如果是同一个姓（例如爸爸「鶴田浩也」），比对时先去掉这个姓',
+    '名字卡片标出「姓「鶴田」」；右边新增「学员资料」：姓氏、性别、生日、生肖、时辰，下面可展开看这一行的全部资料']},
   {date:'2026-10-30', title:'搬进审核系统，换成跟首页一样的样式', items:[
     '名字审核搬进「审核总部」，左上角「审核总部」可以回首页',
     '配色换成跟首页、技术单审核台一样的暖白底、深青色；默认浅色，右上角可以切深色',
@@ -1403,7 +1603,7 @@ function placeMenu(m){ m.style.left=''; m.style.right=''; m.style.minWidth=''; v
 function toggleMenu(btnId,menuId){ var m=document.getElementById(menuId); var open=!m.classList.contains('open'); closeMenus(); if(open){ m.classList.add('open'); placeMenu(m); document.getElementById(btnId).setAttribute('aria-expanded','true'); var f=m.querySelector('button'); if(f)f.focus(); } }
 window.addEventListener('resize',function(){ document.querySelectorAll('.menu.open').forEach(placeMenu); });
 function anyModalOpen(){ return ['modal','setModal','help'].some(function(id){ return document.getElementById(id).style.display==='flex'; }); }
-function closeModals(){ if(document.getElementById('help').style.display==='flex')store('mzys_seen2',1); ['modal','setModal','help'].forEach(function(id){ document.getElementById(id).style.display='none'; }); }
+function closeModals(){ var mb=document.getElementById('modalBox'); if(mb)mb.classList.remove('wide'); if(document.getElementById('help').style.display==='flex')store('mzys_seen2',1); ['modal','setModal','help'].forEach(function(id){ document.getElementById(id).style.display='none'; }); }
 
 function runAct(a){ var x=parsedFiles[activeFile];
   switch(a){
@@ -1433,6 +1633,9 @@ function runAct(a){ var x=parsedFiles[activeFile];
     case 'overseas': if(x){ x.overseas=!x.overseas; var om=load('mzys_overseas',{}); om[x.name]=x.overseas; store('mzys_overseas',om); renderToolState(); toast(x.overseas?'这份算海外，文件名会加（H）':'这份算国内，文件名不加（H）'); } break;
     case 'dlbad': downloadSplit(true); break;
     case 'dlclean': downloadSplit(false); break;
+    case 'dlsup': downloadSup(); break;
+    case 'suptable': openSupTable(); break;
+    case 'supimport': importSupData(); break;
   } }
 
 /*==== events ====*/

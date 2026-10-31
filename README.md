@@ -7,7 +7,7 @@
 | 网址 | 功能 | 说明 |
 |---|---|---|
 | `/` | 首页 | 3D 公司（可切「平面图」）、详细资料、组织架构。名单在 `hq/company.js` |
-| `name/` | 名字审核组 | 名正言顺名册：核对新名（撞字、撞音、不雅谐音），转繁体，下载结果 |
+| `name/` | 名字审核组 | 名正言顺名册：核对新名（撞字、撞音、不雅谐音），转繁体，下载结果；国内的技术单另外可以下载给督导的文件 |
 | `tech/` | 技术单审核组 | 按规则标红、分文件、改页脚，下载给专家。详见 [`tech/README.md`](tech/README.md) |
 
 每个功能左上角的「审核总部」可以回到首页。
@@ -38,8 +38,9 @@
 
 - 不用 Google 字体，改用电脑自带的中文字体（苹方、微软雅黑、宋体 / 细明体）
 - ExcelJS 4.4.0、JSZip 3.10.1、Three.js 0.170.0 放在 `vendor/`，跟网站一起放，不依赖外网 CDN；Excel / zip 本地文件没载入时才退回 cdnjs / jsdelivr
+- SheetJS 0.18.5（`vendor/xlsx.full.min.js`）只在名字审核「导入店铺资料」时才载入，用来读系统导出的 .xls 店铺表
 - 唯一会连外网的是墙上的画（Unsplash），载不到不影响使用
-- 显示不了 3D 的电脑，首页下面的「组织架构」一样可以用
+- 显示不了 3D 的电脑，右上角「看组织架构」一样可以用
 - 整个网站是静态文件，放到任何能放网页的地方都能用
 
 ## 上线
@@ -57,7 +58,7 @@ hq/office.js        3D 公司：平面图、家具、员工走路（格子寻路
 name/index.html     名字审核
 tech/index.html     技术单审核台（界面）
 tech/review-engine.js  技术单审核规则引擎
-vendor/             ExcelJS、JSZip、three/（Three.js）
+vendor/             ExcelJS、JSZip、SheetJS（读 .xls）、three/（Three.js）
 deploy/             上传到阿里云 OSS 的程序和上线步骤（不会放上网站）
 ```
 
