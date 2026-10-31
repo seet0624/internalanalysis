@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>技术单审核台</title>
+<script src="../hq/auth.js"></script>
+<script src="../hq/bus.js"></script>
 
 <style>
 /* Three steps: 上传 → 处理待办 → 下载. Warm white ground, white cards, deep teal accent. */
@@ -421,6 +423,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     } catch (e) { state.error = '审核失败：' + (e && e.message || e); }
     state.busy = false;
     render();
+    if (!state.error) reportToHQ('processed');
     return !state.error;
   }
   async function addFiles(fl) {
@@ -435,6 +438,22 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       state.inputs = Object.keys(by).map(function (k) { return by[k]; });
       if (await run()) { state.view = 'review'; state.filter = 'todo'; render(); window.scrollTo(0, 0); }
     } catch (e) { state.error = '读取文件失败：' + (e && e.message || e); state.busy = false; render(); }
+  }
+
+  // 告诉审核总部：处理了几张、有问题几张……（3D 公司里的技术单审核组会照着交接）
+  function reportToHQ(kind) {
+    if (!window.HQBus || !state.results) return;
+    var os = items().map(function (it) { return it.o; }), td = todos().filter(function (x) { return x.type === 'problem' && !x.decided; });
+    window.HQBus.emit({
+      tool: 'tech', kind: kind, files: state.results.length, orders: os.length,
+      problem: os.filter(function (o) { return o.problem; }).length,
+      urgent: os.filter(function (o) { return o.urgent && !o.problem; }).length,
+      newborn: os.filter(function (o) { return o.newborn && !o.problem; }).length,
+      ask: td.filter(function (x) { return x.kind === 'ask' || x.kind === 'zodiac'; }).length,
+      askFirst: td.filter(function (x) { return x.kind === 'product'; }).length,
+      pending: todos().filter(function (x) { return x.type === 'pending' && !x.decided; }).length,
+      region: regionOf(allOutputs())
+    });
   }
 
   // ---------- derived data ----------
@@ -977,6 +996,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (state.pick.good && good.length) await buildZip(good, outZipName(false, orderTotal(good), good));
     if (state.pick.urgent) for (var i = 0; i < urg.length; i++) await save(urg[i].name, new Blob([urg[i].buffer]));
     if (state.pick.bad && bad.length) await buildZip(bad, outZipName(true, orderTotal(bad), bad));
+    reportToHQ('downloaded');
   }
   function setRed(mk, h, on) {
     var m = state.reds[mk] = state.reds[mk] || {};

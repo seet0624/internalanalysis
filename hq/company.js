@@ -23,28 +23,28 @@ window.COMPANY = {
           id: 'name', name: '名字审核组', kind: 'site', href: 'name/', color: '#0E6B66',
           summary: '名正言顺名册：逐位学员核对新名，判定没问题 / 有问题；国内单另外可以下载给督导的文件。',
           agents: [
-            { name: '阿名', role: '核名专员', duty: '新名和家人撞字、撞音，连姓念的不雅谐音，逐位标出来。' },
-            { name: '小繁', role: '繁体专员', duty: '名册展示要繁体的学员，新名自动转繁体；有几种写法的字提醒你确认。' },
-            { name: '库管', role: '订单库管理员', duty: '记住「订单号 → 新名」，跨文件比对家人的名字。', stat: 'nameDb' }
+            { name: '阿名', trait: '细心', role: '核名专员', duty: '新名和家人撞字、撞音，连姓念的不雅谐音，逐位标出来。' },
+            { name: '小繁', trait: '温和', role: '繁体专员', duty: '名册展示要繁体的学员，新名自动转繁体；有几种写法的字提醒你确认。' },
+            { name: '库管', trait: '认真', role: '订单库管理员', duty: '记住「订单号 → 新名」，跨文件比对家人的名字。', stat: 'nameDb' }
           ]
         },
         {
           id: 'tech', name: '技术单审核组', kind: 'site', href: 'tech/', color: '#3A6EA5',
           summary: '按审核规则自动标红、分文件、改页脚，下载转发给专家。',
           agents: [
-            { name: '阿技', role: '审单专员', duty: '按规则把要注意的格子标红：子时、备注、暂缓、换购单……' },
-            { name: '小急', role: '分拣员', duty: '把单分进普通、特殊加急、有问题、新生儿文件，家人订单排在一起。' },
-            { name: '阿问', role: '沟通专员', duty: '要问下单者、先问能不能做的单整理成待办，话术一键复制。' }
+            { name: '阿技', trait: '认真', role: '审单专员', duty: '按规则把要注意的格子标红：子时、备注、暂缓、换购单……' },
+            { name: '小急', trait: '直爽', role: '分拣员', duty: '把单分进普通、特殊加急、有问题、新生儿文件，家人订单排在一起。' },
+            { name: '阿问', trait: '外向', role: '沟通专员', duty: '要问下单者、先问能不能做的单整理成待办，话术一键复制。' }
           ]
         },
         {
           id: 'support', name: 'Claude 客服组', kind: 'claude', color: '#C26A00',
           summary: '在 Claude 里帮客服回客人、分工单、写常见问题。',
           agents: [
-            { name: '小回', role: '回复撰写', skill: 'customer-support:draft-response', duty: '按客人的问题起草回复。' },
-            { name: '分拣', role: '工单分拣', skill: 'customer-support:ticket-triage', duty: '看工单内容，分轻重缓急、该给谁处理。' },
-            { name: '小知', role: '知识库编辑', skill: 'customer-support:kb-article', duty: '把常见问题整理成说明文章。' },
-            { name: '阿升', role: '升级处理', skill: 'customer-support:customer-escalation', duty: '处理棘手的客诉，整理要往上报的内容。' }
+            { name: '小回', trait: '温和', role: '回复撰写', skill: 'customer-support:draft-response', duty: '按客人的问题起草回复。' },
+            { name: '分拣', trait: '直爽', role: '工单分拣', skill: 'customer-support:ticket-triage', duty: '看工单内容，分轻重缓急、该给谁处理。' },
+            { name: '小知', trait: '细心', role: '知识库编辑', skill: 'customer-support:kb-article', duty: '把常见问题整理成说明文章。' },
+            { name: '阿升', trait: '外向', role: '升级处理', skill: 'customer-support:customer-escalation', duty: '处理棘手的客诉，整理要往上报的内容。' }
           ]
         },
         { id: 'next', name: '新功能工位', kind: 'planned', color: '#8E949A', summary: '空着的工位，以后加的功能坐这里。', agents: [] }
@@ -112,6 +112,37 @@ window.COMPANY = {
     { id: 'server', room: '机房', kind: 'server', duty: '放程序、上线网站。',
       connectors: ['GitHub', 'Vercel', 'Netlify', 'v0'] }
   ],
+
+  // 资料库：合进来的手册、教程（放在档案室，员工遇到问题会去查）
+  library: [
+    { href: 'handbook/', title: '数易 · 客服业务门户', desc: '客服手册：标准流程、话术库、布告栏速查、改线判定器、服务中心判定器、售后服务培训。' },
+    { href: 'guide/', title: '工具启动教程', desc: '工具怎么启动、怎么用。' },
+    { href: 'docs/dongfang/', title: '东方药林健康商城 · 手机端教程', desc: '登录、下单、订单管理、提现，31 页图文。' },
+    { href: 'numera/', title: 'SHUYI · NUMERA', desc: '数易品牌网站。' }
+  ],
+
+  // 交接流程：审核工具处理完文件（真实事件）→ 员工按顺序走过去交资料、对话。
+  // from / to 写小组 id/序号（例如 'tech/1'），to 也可以是 'boss'（老板办公室）或 'place:files'（去档案室查资料）。
+  // say / reply 里的 {orders} 这类会换成事件里的真实数字；when 写 '数字名>0' 或 'a+b>0'，不成立就跳过这一步。
+  workflows: {
+    'tech.processed': [
+      { from: 'tech/0', say: '收到 {files} 个文件、{orders} 张技术单，开始审' },
+      { from: 'tech/0', to: 'tech/1', say: '审完了：{problem} 张有问题、{urgent} 张特殊加急、{newborn} 张新生儿', reply: '收到，我来分文件' },
+      { from: 'tech/1', to: 'tech/2', when: 'ask+askFirst>0', say: '{ask} 单要问下单者、{askFirst} 单要先问能不能做', reply: '好，我来整理话术' },
+      { from: 'tech/2', to: 'place:files', when: 'ask>0', say: '查一下客服手册里的话术' },
+      { from: 'tech/2', to: 'support/0', when: 'ask>0', say: '帮我起草 {ask} 份给下单者的回复', reply: '交给我，写好给你' },
+      { from: 'tech/1', to: 'boss', say: '技术单审完：{orders} 张，有问题 {problem} 张', reply: '辛苦了' }
+    ],
+    'tech.downloaded': [
+      { from: 'tech/1', to: 'tech/0', say: '文件都下载好了，可以转给专家', reply: '好，我发出去' }
+    ],
+    'name.loaded': [
+      { from: 'name/0', say: '收到 {files} 份名册、{students} 位学员，开始核名' },
+      { from: 'name/0', to: 'name/1', say: '{must} 位必须改、{check} 位请确认', reply: '我看看繁体' },
+      { from: 'name/1', to: 'name/2', when: 'trad>0', say: '{trad} 位转成繁体了，订单库记得更新', reply: '好，订单库现在 {db} 笔' },
+      { from: 'name/2', to: 'boss', say: '名册审完：{students} 位学员，{must} 位要改', reply: '好，记得跟进' }
+    ]
+  },
 
   // 墙上的画（Unsplash，载不到就换成程序画的抽象画）
   art: [
