@@ -470,7 +470,7 @@ body.light .itabs button.on{background:var(--bg2)}
         <svg class="i" style="color:var(--muted)"><use href="#i-file"/></svg>
         <label class="sr" for="fileSel">当前文件</label>
         <select id="fileSel"></select>
-        <button type="button" class="hchip" id="hBtn" data-act="overseas" title="国内 / 海外：海外的文件名会加（H），点一下切换"></button>
+        <button type="button" class="hchip" id="hBtn" data-act="overseas" title="国内 / 海外：学员的「名册展示」有填，或原文件名有 H，就算海外（文件名加（H））。点一下手动切换"></button>
         <button type="button" class="addfile" id="addMore" aria-label="再加文件" title="再加文件"><svg class="i"><use href="#i-plus"/></svg></button>
       </div>
       <div class="prog"><span data-i18n="reviewed">已复核</span><div class="bar"><i id="revBar" style="width:0"></i></div><b id="revText">0 / 0</b></div>
@@ -840,6 +840,8 @@ function tableDateOf(data,fname){
   for(var r=data.length-1;r>=0;r--){ var row=data[r]||[]; for(var c=0;c<row.length;c++){ var t=String(row[c]==null?'':row[c]).trim(); if(t.indexOf('制表时间')!==0)continue;
     var d=asDate(t.replace(/^制表时间\s*[：:]?/,'')); for(var k=c+1;!d&&k<row.length;k++){ if(String(row[k]==null?'':row[k]).trim())d=asDate(row[k]); } if(d)return d; } }
   return asDate(fname)||dateStr(); }
+// 海外单的「名册展示」会填（繁 / 简体和繁体…），国内单这一栏空着；只看学员那几行，表尾的回传时间不算
+function dispFilled(pf){ var c=pf.cols.disp; if(c==null||c<0)return false; return pf.groups.some(function(g){ return g.rows.some(function(ri){ return String((pf.data[ri]||[])[c]==null?'':pf.data[ri][c]).trim()!==''; }); }); }
 function isOverseasName(n){ var b=String(n).replace(/\.(xlsx|xls)$/i,''); return /[（(]\s*H\s*[）)]|(^|[^A-Za-z])H([^A-Za-z]|$)|海外/.test(b); }
 function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.overseas?'（H）':''); }
 function problemCount(x){ return x.audit.results.filter(function(r){return r.problem;}).length; }
@@ -854,7 +856,7 @@ async function loadWithBuffers(fileList){ var start=parsedFiles.length;
   try{ var wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf.slice(0)); var ws=pickSheet(wb); var data=wsTo2D(ws); var loc0=locateHeader(data); var parsed=parseFile(data, loc0?rowColorsOf(ws,loc0.hr,colsFrom(loc0.header).user):[]);
     if(!parsed){ alert('「'+f.name+'」找不到表头（需有「新名」「新名拼音」），略过。'); continue; }
     var om=load('mzys_overseas',{});
-    parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), overseas:(f.name in om)?!!om[f.name]:isOverseasName(f.name)});
+    parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
   }catch(e){ alert('读「'+f.name+'」出错：'+e.message); } }
   if(parsedFiles.length>start){ activeFile=start; curSid=null; queueFilter='all'; }
   rebuild(); }
@@ -1415,6 +1417,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-10-31', title:'自动认出海外 / 国内', items:[
+    '学员的「名册展示」有填就算海外（国内单这一栏空着），原文件名有 H 也算；文件卡片上一样可以手动切换']},
   {date:'2026-10-31', title:'督导文件（国内）', items:[
     '国内的技术单可以下载「技术单 日期（名正言顺）（督导）」：一位学员一行，两个新名并排，最后几栏自动拼好可以直接贴给督导',
     '只放「通过」的学员；督导、分公司、店铺名称、群在每位学员右边「督导（国内）」里填，填过的督导会记住分公司和群',
