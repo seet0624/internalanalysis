@@ -4,136 +4,183 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>审核总部</title>
-<meta name="description" content="3D 公司总部：客服部、各部门、设施和员工，员工会自己走动，点员工就能开始工作。">
+<meta name="description" content="3D 公司总部：客服部、各部门、设施和员工。员工有心情和需求，会自己走动；点员工就能开始工作。">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect x='1' y='1' width='26' height='26' rx='7' fill='%230E6B66'/%3E%3Cpath d='M8 14.5l4 4 8-9' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
-/* 整个网站就是一间 3D 公司；所有控件浮在上面。颜色跟两个审核工具同一套（暖白、深青色） */
+/* 整个网站就是一间 3D 公司；控件浮在上面。颜色跟两个审核工具同一套（暖白、深青色）
+   页面类型：分栏（主画面 = 3D 公司，右边 = 详细资料，左边抽屉 = 组织架构） */
 :root{
-  --ink:#1D2125; --muted:#55544E; --faint:#6B6A64; --line:rgba(29,33,37,.10); --field:#D6D3CA; --sunk:#F1EFEA;
+  --ink:#1D2125; --muted:#55544E; --faint:#6B6A64; --line:rgba(29,33,37,.10); --line-strong:rgba(29,33,37,.16); --field:#D6D3CA; --sunk:#F1EFEA;
   --accent:#0E6B66; --accent-hover:#0B5753; --accent-soft:#E3F0EE; --accent-ink:#0B4F4B; --on-accent:#FFFFFF;
-  --glass:rgba(255,255,255,.84); --shadow:0 1px 2px rgba(29,33,37,.06),0 12px 32px rgba(29,33,37,.12);
+  --good:#2EB872; --warn:#C98A1E; --bad:#D9473C;
+  --surface:#FFFFFF; --shadow:0 1px 2px rgba(29,33,37,.05),0 8px 24px rgba(29,33,37,.07);
   --sans:'PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif; --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --sky:#FFFFFF;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden}
-body{background:#ECE9E2;color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+body{background:#ECE9E2;color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-h1,h2,h3{margin:0;line-height:1.3;text-wrap:balance}
+h1,h2,h3{margin:0;line-height:1.25;text-wrap:balance}
 p{margin:0}
-button{font:inherit;color:inherit;cursor:pointer}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
 [hidden]{display:none!important}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-/* ---------- 3D 舞台 ---------- */
-.stage{position:fixed;inset:0;background:radial-gradient(120% 90% at 25% 0%,#FFFFFF 0%,#F2EFE8 45%,#E2DED4 100%);touch-action:none}
+/* ---------- 3D 舞台（天色跟着游戏时间变） ---------- */
+.stage{position:fixed;inset:0;background:radial-gradient(120% 90% at 25% 0%,var(--sky) 0%,#F2EFE8 45%,#E2DED4 100%);touch-action:none}
 .stage canvas{display:block;cursor:grab}
 .stage canvas:active{cursor:grabbing}
 .hq-labels{position:absolute;inset:0;pointer-events:none}
-.hq-room,.hq-sign{pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);
-  background:rgba(255,255,255,.93);box-shadow:0 2px 10px rgba(29,33,37,.10);font-size:13px;font-weight:700;white-space:nowrap}
+.hq-room,.hq-sign{position:relative;pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line-strong);
+  background:var(--surface);box-shadow:0 1px 4px rgba(29,33,37,.06);font-size:13px;font-weight:700;white-space:nowrap}
+.hq-room::before,.hq-sign::before{content:"";position:absolute;inset:-10px -4px}   /* 点击范围放大到 44px 高，外观不变 */
 .hq-room i,.hq-sign i{width:8px;height:8px;border-radius:50%;flex:none}
-.hq-room small,.hq-sign small{font-size:11px;font-weight:500;color:var(--faint);background:var(--sunk);border-radius:999px;padding:0 6px}
+.hq-room small,.hq-sign small{font-size:12px;font-weight:400;color:var(--faint)}
+.hq-room small::before,.hq-sign small::before{content:"· "}
 .hq-room:hover,.hq-sign:hover,.hq-room.is-sel,.hq-sign.is-sel{border-color:var(--accent);color:var(--accent-ink)}
 .hq-room-main{font-size:15px;padding:6px 14px;background:var(--accent);color:#FFFFFF;border-color:transparent}
-.hq-room-main small{background:rgba(255,255,255,.2);color:#FFFFFF}
+.hq-room-main small{color:rgba(255,255,255,.85)}
 .hq-room-main:hover,.hq-room-main.is-sel{color:#FFFFFF;box-shadow:0 0 0 3px var(--accent-soft)}
 .hq-room-boss{border-color:#E2CF9F;background:#FFF9EC}
-.hq-room-boss small{background:#F6E7C4;color:#7A5A12}
-.hq-room-planned,.hq-sign-planned{border-style:dashed;color:var(--faint);background:rgba(255,255,255,.75)}
+.hq-room-boss small{color:#7A5A12}
+.hq-room-planned,.hq-sign-planned{border-style:dashed;color:var(--faint)}
 .hq-sign{font-size:12px;padding:3px 9px}
-.hq-tag{pointer-events:none;opacity:0;display:inline-flex;flex-direction:column;align-items:center;padding:4px 9px 5px;border-radius:10px;border:1px solid var(--line);
-  background:#FFFFFF;box-shadow:0 2px 10px rgba(29,33,37,.14);font-size:12px;line-height:1.3;white-space:nowrap;transition:opacity .15s}
+.hq-tag{pointer-events:none;opacity:0;display:inline-flex;flex-direction:column;align-items:center;padding:4px 9px 5px;border-radius:10px;border:1px solid var(--line-strong);
+  background:var(--surface);box-shadow:0 1px 4px rgba(29,33,37,.07);font-size:12px;line-height:1.3;white-space:nowrap;transition:opacity .15s ease-out}
 .hq-tag-name{font-weight:700;font-size:13px}
 .hq-tag-role{color:var(--muted)}
-.hq-tag-stat{margin-top:2px;font-size:11px;color:var(--accent-ink);background:var(--accent-soft);border-radius:999px;padding:0 6px}
-.hq-tag-doing{font-size:11px;color:#7A4300}
+.hq-tag-stat{margin-top:2px;font-size:12px;color:var(--accent-ink)}
+.hq-tag-doing{font-size:12px;color:#7A4300}
 .hq-tag-doing:empty{display:none}
 .hq-near .hq-tag,.hq-tag.is-hover,.hq-tag.is-sel{opacity:1;pointer-events:auto}
-.hq-tag.is-sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft),0 4px 12px rgba(29,33,37,.16)}
+.hq-tag.is-sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .hq-plan .hq-room{font-size:14px}
-.hq-plan .hq-sign{font-size:13px}
+/* 头上冒的想法、对话 */
+.hq-bubble{pointer-events:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;padding:2px 8px;font-size:16px;line-height:1.4;box-shadow:0 1px 4px rgba(29,33,37,.07);white-space:nowrap}
+.hq-bubble.is-speech{font-size:12px;padding:4px 10px;max-width:180px;white-space:normal;text-align:center}
 
-/* ---------- 浮在上面的控件 ---------- */
+/* ---------- 浮动卡片 ---------- */
 .hud{position:fixed;z-index:5}
-.card{background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border:1px solid rgba(255,255,255,.7);box-shadow:var(--shadow);border-radius:18px}
-.brand{top:16px;left:16px;padding:12px 16px;display:flex;flex-direction:column;gap:2px;max-width:min(420px,calc(100vw - 32px))}
-.brand-row{display:flex;align-items:center;gap:10px}
-.co-name{border:0;background:none;padding:2px 4px;margin-left:-4px;border-radius:8px;font-weight:700;font-size:18px;display:inline-flex;align-items:center;gap:6px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:16px}
+.brand{top:16px;left:16px;padding:12px 16px;display:flex;flex-direction:column;gap:4px;max-width:min(420px,calc(100vw - 32px))}
+.brand-row{display:flex;align-items:center;gap:8px}
+/* 公司名称：同一个格子里切换显示 / 编辑，版面不跳 */
+.co{display:grid;min-width:0}
+.co > *{grid-area:1/1}
+.co-name{border:0;background:none;padding:4px;margin-left:-4px;border-radius:8px;font-weight:700;font-size:18px;line-height:1.3;display:inline-flex;align-items:center;gap:8px;min-width:0;min-height:44px;text-align:left}
 .co-name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.co-name:hover{background:rgba(29,33,37,.06)}
+.co-name:hover{background:var(--sunk)}
 .co-name svg{flex:none;color:var(--faint)}
+.co-input{font-weight:700;font-size:18px;line-height:1.3;padding:3px 4px;margin-left:-4px;border:1px solid var(--accent);border-radius:8px;min-width:0;width:100%;background:var(--surface);min-height:44px}
 .greet{font-size:14px;color:var(--muted)}
-.live-line{font-size:13px;color:var(--faint);display:flex;flex-wrap:wrap;gap:4px 12px}
-.live-line b{color:var(--ink);font-variant-numeric:tabular-nums}
-.dot-live{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2EB872;margin-right:5px;box-shadow:0 0 0 3px rgba(46,184,114,.18);vertical-align:1px}
+.live-line{font-size:14px;color:var(--faint);display:flex;flex-wrap:wrap;gap:4px 12px}
+.live-line b{color:var(--ink);font-variant-numeric:tabular-nums;font-weight:500}
+.dot-live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--good);margin-right:4px;vertical-align:1px}
 
 .tools{top:16px;right:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100vw - 32px)}
-.seg{display:inline-flex;padding:4px;gap:2px;border-radius:14px}
-.seg button{border:0;background:transparent;border-radius:10px;min-height:36px;padding:0 14px;font-weight:500;color:var(--muted)}
+.seg{display:inline-flex;padding:4px;gap:4px;border-radius:16px}
+.seg button{border:0;background:transparent;border-radius:12px;min-height:44px;min-width:44px;padding:0 12px;font-weight:500;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--ink);color:#FFFFFF}
-.ibtn{width:44px;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.7);display:inline-flex;align-items:center;justify-content:center}
+.seg button:hover:not([aria-pressed="true"]){background:var(--sunk);color:var(--ink)}
+.ibtn{position:relative;width:44px;height:44px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center}
 .ibtn:hover{color:var(--accent)}
-.tbtn{min-height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.7);display:inline-flex;align-items:center;gap:8px;padding:0 14px;font-weight:500}
+.tbtn{min-height:44px;border-radius:14px;display:inline-flex;align-items:center;gap:8px;padding:0 16px;font-weight:500}
 .tbtn:hover{color:var(--accent)}
+/* 图标按钮的提示：滑鼠移上去或键盘停在上面都会出现 */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);background:var(--ink);color:#FFFFFF;font-size:12px;font-weight:500;line-height:1.4;padding:4px 8px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease-out;z-index:10}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1}
+.game [data-tip]::after{top:auto;bottom:calc(100% + 8px)}
 
-.legend{left:16px;bottom:16px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);max-width:calc(100vw - 32px)}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.legend i{width:8px;height:8px;border-radius:50%}
-.hint{left:50%;bottom:16px;transform:translateX(-50%);background:rgba(29,33,37,.72);color:#FFFFFF;border-radius:999px;padding:5px 14px;font-size:12px;white-space:nowrap;pointer-events:none}
+/* 左下：游戏时钟、速度、墙壁 */
+.game{left:16px;bottom:16px;padding:6px 6px 6px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.clock{display:flex;flex-direction:column;line-height:1.2;min-width:72px}
+.clock b{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.clock span{font-size:12px;color:var(--faint)}
+.game .seg{padding:0;box-shadow:none;border:0}
+.game .seg button{padding:0;width:44px}
+.walls{border:1px solid var(--line);background:var(--surface);border-radius:12px;min-height:44px;padding:0 12px;display:inline-flex;align-items:center;gap:8px;font-weight:500;color:var(--muted)}
+.walls[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
+.hint{left:50%;bottom:16px;transform:translateX(-50%);background:rgba(29,33,37,.78);color:#FFFFFF;border-radius:999px;padding:6px 14px;font-size:12px;white-space:nowrap;pointer-events:none}
 
 /* ---------- 详细资料 ---------- */
-.panel{top:84px;right:16px;width:360px;max-height:calc(100vh - 100px);overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
-.panel .x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:10px;border:0;background:transparent;color:var(--faint);display:inline-flex;align-items:center;justify-content:center}
-.panel .x:hover{background:rgba(29,33,37,.06);color:var(--ink)}
-.crumb{font-size:13px;color:var(--faint);display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-right:32px}
+.panel{top:84px;right:16px;width:360px;max-height:calc(100vh - 100px);overflow:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+.panel .x{position:absolute;top:8px;right:8px;width:44px;height:44px;border-radius:12px;border:0;background:transparent;color:var(--faint);display:inline-flex;align-items:center;justify-content:center}
+.panel .x:hover{background:var(--sunk);color:var(--ink)}
+.panel .x::after{left:auto;right:0;transform:none}
+.crumb{font-size:14px;color:var(--faint);display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-right:40px}
 .crumb i{width:8px;height:8px;border-radius:50%}
-.panel h2{font-size:22px;display:flex;align-items:center;gap:12px}
-.avatar{width:46px;height:46px;border-radius:14px;flex:none;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:19px;font-weight:700}
-.role{display:block;color:var(--muted);font-size:14px;font-weight:500}
-.live{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
-.badge{display:inline-block;font-size:12px;font-weight:500;border-radius:999px;padding:1px 8px;background:var(--sunk);color:var(--muted)}
-.badge.site{background:var(--accent-soft);color:var(--accent-ink)}
-.badge.claude{background:#FFF1DC;color:#7A4300}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid var(--field);background:#FFFFFF;font-weight:500;text-decoration:none;color:var(--ink)}
+.kind{font-size:14px;color:var(--faint)}
+.kind.site{color:var(--accent-ink)}
+.kind.claude{color:#7A4300}
+.panel h2{font-size:22px;display:flex;align-items:center;gap:12px;outline:none}
+.avatar{width:48px;height:48px;border-radius:16px;flex:none;display:inline-flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:20px;font-weight:700}
+.role{display:block;color:var(--muted);font-size:14px;font-weight:400}
+.live{display:flex;align-items:center;gap:8px;font-size:14px;background:var(--sunk);border-radius:12px;padding:8px 12px}
+.mood{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.mood b{font-size:16px;color:var(--ink);font-weight:500}
+.needs{display:grid;grid-template-columns:auto 1fr 32px;gap:8px 12px;align-items:center;font-size:14px;margin:0}
+.needs dt{color:var(--muted)}
+.needs dd{margin:0;height:8px;border-radius:999px;background:var(--sunk);overflow:hidden}
+.needs dd i{display:block;height:100%;border-radius:999px;background:var(--good);transform-origin:left;transition:transform .3s ease-out}
+.needs .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--faint)}
+.cmds{display:flex;flex-wrap:wrap;gap:8px}
+.cmds button{min-height:44px;padding:0 12px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);font-size:14px}
+.cmds button:hover{border-color:var(--accent);color:var(--accent-ink)}
+.sub{font-size:14px;color:var(--faint);margin-bottom:-8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--field);background:var(--surface);font-weight:500;text-decoration:none;color:var(--ink)}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .btn.pri:hover{background:var(--accent-hover);color:var(--on-accent)}
-.cmd{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:12px;padding:8px 8px 8px 12px}
-.cmd code{flex:1;min-width:0;font-family:var(--mono);font-size:13px;overflow-wrap:anywhere;user-select:all}
-.cmd .btn{min-height:36px;padding:0 12px;font-size:13px}
-.note{font-size:13px;color:var(--faint)}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-size:13px;background:#FFFFFF;border:1px solid var(--line);border-radius:999px;padding:2px 10px}
-.mini{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
-.mini button{width:100%;text-align:left;border:1px solid var(--line);background:rgba(255,255,255,.75);border-radius:12px;padding:8px 10px;display:flex;gap:10px;align-items:center}
+.cmd{display:flex;align-items:center;gap:8px;background:var(--sunk);border-radius:12px;padding:8px 8px 8px 12px}
+.cmd code{flex:1;min-width:0;font-family:var(--mono);font-size:14px;overflow-wrap:anywhere;user-select:all}
+.cmd .btn{min-height:44px;padding:0 12px;font-size:14px}
+.note{font-size:14px;color:var(--faint)}
+.plain-list{margin:0;padding-left:20px;font-size:14px;color:var(--muted);columns:2;column-gap:24px}
+.mini{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.mini button{width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 12px;min-height:44px;display:flex;gap:12px;align-items:center}
 .mini button:hover{border-color:var(--accent)}
-.mini .d{width:28px;height:28px;border-radius:9px;flex:none;color:#FFFFFF;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
-.mini b{font-size:14px}
-.mini span.s{font-size:13px;color:var(--muted)}
+.mini .d{width:28px;height:28px;border-radius:8px;flex:none;color:#FFFFFF;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.mini b{font-size:15px;font-weight:500}
+.mini span.s{font-size:14px;color:var(--muted)}
 
 /* ---------- 组织架构（抽屉） ---------- */
-.drawer{top:0;left:0;bottom:0;width:380px;max-width:92vw;border-radius:0 20px 20px 0;padding:20px;overflow:auto;transform:translateX(-102%);transition:transform .25s ease;display:flex;flex-direction:column;gap:18px}
+.drawer{top:0;left:0;bottom:0;width:380px;max-width:92vw;border-radius:0 16px 16px 0;padding:20px;overflow:auto;transform:translateX(-102%);transition:transform .3s ease-out;display:flex;flex-direction:column;gap:24px}
 .drawer.open{transform:none}
 .drawer h2{font-size:20px}
 .drawer h3{font-size:14px;color:var(--faint);font-weight:500;margin-bottom:8px}
 .drawer-h{display:flex;align-items:center;justify-content:space-between}
-.grp{display:flex;flex-direction:column;gap:6px}
-.grp-h{display:flex;align-items:center;gap:8px;margin-top:6px}
-.grp-h b{font-size:15px}
+.grp{display:flex;flex-direction:column;gap:8px}
+.grp-h{display:flex;align-items:center;gap:8px;margin-top:8px}
+.grp-h b{font-size:15px;font-weight:500}
+.legend{display:flex;flex-direction:column;gap:4px;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:8px;height:8px;border-radius:50%}
 .credit{font-size:12px;color:var(--faint);margin-top:auto}
 .scrim{position:fixed;inset:0;z-index:4;background:rgba(29,33,37,.18)}
-.toast{position:fixed;left:50%;bottom:60px;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;border-radius:999px;padding:8px 16px;font-size:14px;z-index:20}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;border-radius:999px;padding:8px 16px;font-size:14px;z-index:20}
+
+/* ---------- 载入中：平面图骨架 ---------- */
+.skeleton{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:3;pointer-events:none}
+.skel-plan{width:min(560px,80vw);aspect-ratio:3/2;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(4,1fr);gap:8px;transform:perspective(900px) rotateX(48deg) rotateZ(-30deg)}
+.skel-plan i{background:rgba(29,33,37,.06);border-radius:8px}
+.skel-plan i:nth-child(1){grid-column:span 2}.skel-plan i:nth-child(7){grid-column:span 3;grid-row:span 2}
+.skeleton p{font-size:14px;color:var(--faint)}
 .nogl{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
-@media (prefers-reduced-motion: reduce){.drawer{transition:none}}
+@media (prefers-reduced-motion: reduce){.drawer,.hq-tag,[data-tip]::after,.needs dd i{transition:none}}
 
 /* ---------- 手机 ---------- */
 @media (max-width:719px){
-  .brand{top:10px;left:10px;right:10px;max-width:none;padding:10px 12px}
+  .brand{top:8px;left:8px;right:8px;max-width:none;padding:8px 12px}
   .greet{display:none}
-  .tools{top:auto;bottom:12px;right:10px;left:10px;justify-content:space-between}
-  .legend,.hint,#zin,#zout{display:none}
-  .panel{top:auto;bottom:70px;left:10px;right:10px;width:auto;max-height:52vh}
-  .hq-room,.hq-sign{font-size:11px;padding:2px 7px;gap:4px}
+  .tools{top:auto;bottom:8px;right:8px;left:8px;justify-content:space-between}
+  .game{left:8px;right:8px;bottom:68px;justify-content:space-between}
+  .hint,#zin,#zout,.walls .wl{display:none}
+  .panel{top:auto;bottom:136px;left:8px;right:8px;width:auto;max-height:46vh}
+  .hq-room,.hq-sign{font-size:12px;padding:2px 8px;gap:4px}
   .hq-room small,.hq-sign small{display:none}
   .hq-room-boss small,.hq-room-main small{display:inline}
 }
@@ -143,14 +190,18 @@ button{font:inherit;color:inherit;cursor:pointer}
 <body>
 
 <main class="stage" id="stage" aria-label="3D 公司：拖动旋转、缩放，点员工、部门或房间看详细资料"></main>
+<div class="skeleton" id="skeleton" aria-hidden="true"><div class="skel-plan"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>正在布置办公室…</p></div>
 
 <header class="hud card brand">
   <div class="brand-row">
     <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7" fill="#0E6B66"/><path d="M8 14.5l4 4 8-9" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <button type="button" class="co-name" id="coName" title="改公司名称"><span id="coText"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+    <div class="co">
+      <button type="button" class="co-name" id="coName" aria-label="改公司名称"><span id="coText"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+      <input class="co-input" id="coInput" type="text" maxlength="20" aria-label="公司名称（按 Enter 保存，Esc 取消）" hidden>
+    </div>
   </div>
   <div class="greet" id="greet"></div>
-  <div class="live-line" id="liveLine" aria-live="off"></div>
+  <div class="live-line" id="liveLine"></div>
 </header>
 
 <div class="hud tools">
@@ -158,23 +209,29 @@ button{font:inherit;color:inherit;cursor:pointer}
     <button type="button" id="m3d" aria-pressed="true">3D</button>
     <button type="button" id="mplan" aria-pressed="false">平面图</button>
   </div>
-  <button type="button" class="ibtn card" id="zin" aria-label="放大" title="放大"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-  <button type="button" class="ibtn card" id="zout" aria-label="缩小" title="缩小"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
-  <button type="button" class="ibtn card" id="home" aria-label="回到全景" title="回到全景"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 109-9"/><path d="M3 4v5h5"/></svg></button>
-  <button type="button" class="tbtn card" id="orgBtn" aria-expanded="false" aria-controls="drawer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-2h12v2"/></svg>组织架构</button>
+  <button type="button" class="ibtn card" id="zin" aria-label="放大" data-tip="放大"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button type="button" class="ibtn card" id="zout" aria-label="缩小" data-tip="缩小"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+  <button type="button" class="ibtn card" id="home" aria-label="回到全景" data-tip="回到全景"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 109-9"/><path d="M3 4v5h5"/></svg></button>
+  <button type="button" class="tbtn card" id="orgBtn" aria-expanded="false" aria-controls="drawer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-2h12v2"/></svg>看组织架构</button>
 </div>
 
-<div class="hud card legend" aria-hidden="true">
-  <span><i style="background:#0E6B66"></i>网站里的员工</span>
-  <span><i style="background:#C26A00"></i>Claude 里的员工</span>
-  <span><i style="background:#55544E"></i>设施（连接器）</span>
+<div class="hud card game" role="group" aria-label="游戏时间">
+  <div class="clock"><b id="clockT">09:00</b><span id="clockD">第 1 天</span></div>
+  <div class="seg" role="group" aria-label="速度">
+    <button type="button" data-speed="0" aria-pressed="false" aria-label="暂停" data-tip="暂停"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+    <button type="button" data-speed="1" aria-pressed="true" aria-label="正常速度" data-tip="正常速度">1×</button>
+    <button type="button" data-speed="2" aria-pressed="false" aria-label="两倍速" data-tip="两倍速">2×</button>
+    <button type="button" data-speed="4" aria-pressed="false" aria-label="四倍速" data-tip="四倍速">4×</button>
+  </div>
+  <button type="button" class="walls" id="walls" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V10l7-5 7 5v11"/><path d="M9 21v-6h6v6"/></svg><span class="wl">放低墙壁</span><span class="vh">（切换墙壁高度）</span></button>
 </div>
-<div class="hud hint" id="hint">拖动旋转 · 缩放看员工 · 点员工、部门、房间看详细资料</div>
+<div class="hud hint" id="hint">拖动旋转 · 缩放看员工 · 点员工看心情和需求</div>
 
-<aside class="hud card panel" id="panel" aria-live="polite" hidden></aside>
+<aside class="hud card panel" id="panel" aria-labelledby="panelTitle" hidden></aside>
+<div class="vh" id="announce" role="status" aria-live="polite"></div>
 
 <div class="scrim" id="scrim" hidden></div>
-<nav class="hud card drawer" id="drawer" aria-label="组织架构" aria-hidden="true"></nav>
+<nav class="hud card drawer" id="drawer" aria-label="组织架构" aria-hidden="true" inert></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="hq/company.js"></script>
@@ -195,17 +252,18 @@ try { const db = JSON.parse(ls.get('mzys_db') || '{}'); const n = Object.keys(db
 // ---------- 名单整理 ----------
 const main = C.departments.find((d) => d.main);
 const others = C.departments.filter((d) => !d.main);
-const groups = [...(main ? main.teams : []), ...others];           // 有员工的小组 / 部门
+const groups = [...(main ? main.teams : []), ...others];
 const groupById = Object.fromEntries(groups.map((g) => [g.id, g]));
 const working = groups.filter((g) => g.kind !== 'planned');
 const staff = working.reduce((n, g) => n + g.agents.length, 0);
 const connectors = C.facilities.reduce((n, f) => n + f.connectors.length, 0);
 const AMENITY = {
-  pantry: { name: '茶水间', place: '茶水间', duty: '咖啡机、冰箱、微波炉、饮水机、两张小圆桌。员工累了会来这里泡咖啡、吃点心。' },
+  pantry: { name: '茶水间', place: '茶水间', duty: '咖啡机、冰箱、微波炉、饮水机、两张小圆桌。员工精力或饱足不够时会来这里。' },
   wc: { name: '洗手间', place: '洗手间', duty: '男女各一间，每间两个隔间、一排洗手台。' },
   lobby: { name: '前台大厅', place: '前台大厅', duty: '公司大门进来就是这里：公司名称墙、前台、访客等候区。' },
-  lounge: { name: '休息区', place: '休息区', duty: '沙发、懒骨头、手足球台、书架。员工会来这里放空、聊天。' }
+  lounge: { name: '休息区', place: '休息区', duty: '沙发、懒骨头、手足球台、书架。员工乐趣不够时会来这里。' }
 };
+const COMMANDS = [['coffee', '☕ 去泡咖啡'], ['pantry', '🍪 去吃点心'], ['wc', '🚻 去洗手间'], ['meeting', '📋 去开会'], ['lounge', '🎮 去休息区'], ['back', '↩ 回座位']];
 
 // ---------- 顶部 ----------
 const coName = () => ls.get('hq-company') || C.name;
@@ -226,108 +284,155 @@ function find(id) {
   if (t === 'agent') { const g = groupById[a]; return g ? { type: 'agent', g, agent: g.agents[+b] } : null; }
   return null;
 }
-const crumb = (color, text, badge) => `<div class="crumb"><i style="background:${color}"></i>${text}${badge ? ` <span class="badge ${badge}">${KIND[badge]}</span>` : ''}</div>`;
-const close = '<button type="button" class="x" id="closePanel" aria-label="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
-const agentRow = (g, k) => { const a = g.agents[k]; return `<li><button type="button" data-sel="agent/${g.id}/${k}"><span class="d" style="background:${g.color}">${initial(a.name)}</span><span><b>${esc(a.name)}</b> <span class="s">${esc(a.role)}</span></span></button></li>`; };
-const groupRow = (g) => `<li><button type="button" data-sel="${main && main.teams.includes(g) ? 'team' : 'dept'}/${g.id}"><span class="d" style="background:${g.color}">${initial(g.name.replace(/(组|部)$/, ''))}</span><span><b>${esc(g.name)}</b> <span class="s">${g.kind === 'planned' ? '筹备中' : g.agents.length + ' 人 · ' + KIND[g.kind]}</span></span></button></li>`;
+const crumb = (color, text, kind) => `<div class="crumb"><i style="background:${color}"></i>${text}${kind ? ` <span class="kind ${kind}">· ${KIND[kind]}</span>` : ''}</div>`;
+const closeBtn = '<button type="button" class="x" id="closePanel" aria-label="关闭详细资料" data-tip="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+const agentRow = (g, k) => { const a = g.agents[k]; return `<li><button type="button" data-sel="agent/${g.id}/${k}"><span class="d" style="background:${g.color}" aria-hidden="true">${initial(a.name)}</span><span><b>${esc(a.name)}</b> <span class="s">${esc(a.role)}</span></span></button></li>`; };
+const groupRow = (g) => `<li><button type="button" data-sel="${main && main.teams.includes(g) ? 'team' : 'dept'}/${g.id}"><span class="d" style="background:${g.color}" aria-hidden="true">${initial(g.name.replace(/(组|部)$/, ''))}</span><span><b>${esc(g.name)}</b> <span class="s">${g.kind === 'planned' ? '筹备中' : g.agents.length + ' 人 · ' + KIND[g.kind]}</span></span></button></li>`;
 
-function renderPanel(id) {
+function renderPanel(id, focus) {
   const p = $('panel');
   current = id;
   const it = id && find(id);
   if (!it) { p.hidden = true; return; }
-  let h = '';
+  let h = '', title = '';
   if (it.type === 'boss') {
-    h = crumb(BOSS_COLOR, '老板办公室') + `<h2><span class="avatar" style="background:${BOSS_COLOR}">${initial(C.boss.title)}</span><span>${esc(C.boss.title)}（${esc(C.boss.name)}）</span></h2>
+    title = `${C.boss.title}（${C.boss.name}）`;
+    h = crumb(BOSS_COLOR, '老板办公室') + `<h2 id="panelTitle" tabindex="-1"><span class="avatar" style="background:${BOSS_COLOR}" aria-hidden="true">${initial(C.boss.title)}</span><span>${esc(title)}</span></h2>
       <p>${esc(C.boss.duty)}</p><p class="note">现在有 ${working.length} 个小组 / 部门、${staff} 位员工、${C.facilities.length} 间设施（${connectors} 个连接器）。</p>
       <ul class="mini">${groups.map(groupRow).join('')}</ul>`;
   } else if (it.type === 'main') {
-    h = crumb(main.color, '主要办公区') + `<h2>${esc(main.name)}</h2><p>${esc(main.summary)}</p><ul class="mini">${main.teams.map(groupRow).join('')}</ul>`;
+    title = main.name;
+    h = crumb(main.color, '主要办公区') + `<h2 id="panelTitle" tabindex="-1">${esc(main.name)}</h2><p>${esc(main.summary)}</p><ul class="mini">${main.teams.map(groupRow).join('')}</ul>`;
   } else if (it.type === 'group') {
-    const g = it.g;
+    const g = it.g; title = g.name;
     const act = g.kind === 'site' ? `<a class="btn pri" href="${esc(g.href)}">${enterName(g)}</a>`
       : g.kind === 'claude' ? '<p class="note">这个小组在 Claude 里上班：点员工复制指令，贴到 Claude 里再说要做什么。</p>'
       : '<p class="note">以后加的功能会坐这里。在 <code>hq/company.js</code> 把它改成 <code>kind: \'site\'</code>、填上网址和员工就会出现。</p>';
-    h = crumb(g.color, main && main.teams.includes(g) ? esc(main.name) : '部门', g.kind) + `<h2>${esc(g.name)}</h2><p>${esc(g.summary)}</p>
+    h = crumb(g.color, main && main.teams.includes(g) ? esc(main.name) : '部门', g.kind) + `<h2 id="panelTitle" tabindex="-1">${esc(g.name)}</h2><p>${esc(g.summary)}</p>
       ${g.agents.length ? `<ul class="mini">${g.agents.map((_, k) => agentRow(g, k)).join('')}</ul>` : ''}${act}`;
   } else if (it.type === 'agent') {
-    const g = it.g, a = it.agent;
+    const g = it.g, a = it.agent; title = a.name;
     const stat = a.stat && stats[a.stat] ? `<p class="note">${esc(stats[a.stat])}</p>` : '';
     const act = g.kind === 'site'
       ? `<a class="btn pri" href="${esc(g.href)}">交给${esc(a.name)} · ${enterName(g)}</a>`
-      : `<div class="cmd"><code>/${esc(a.skill)}</code><button type="button" class="btn" data-copy="/${esc(a.skill)}">复制</button></div>
+      : `<div class="cmd"><code>/${esc(a.skill)}</code><button type="button" class="btn" data-copy="/${esc(a.skill)}">复制指令</button></div>
          <p class="note">在 Claude（claude.ai 或 Claude Code）输入这个指令，后面接着说要${esc(a.name)}做什么。</p>`;
-    h = crumb(g.color, esc(g.name), g.kind) + `<h2><span class="avatar" style="background:${g.color}">${initial(a.name)}</span><span>${esc(a.name)}<span class="role">${esc(a.role)}</span></span></h2>
-      <p class="live"><span class="dot-live"></span><span data-live></span></p><p>${esc(a.duty)}</p>${stat}${act}`;
+    h = crumb(g.color, esc(g.name), g.kind) + `<h2 id="panelTitle" tabindex="-1"><span class="avatar" style="background:${g.color}" aria-hidden="true">${initial(a.name)}</span><span>${esc(a.name)}<span class="role">${esc(a.role)}</span></span></h2>
+      <p class="live"><span class="dot-live" aria-hidden="true"></span><span data-live></span></p>
+      <div class="mood" data-mood></div>
+      <dl class="needs" data-needs></dl>
+      <p class="sub">叫${esc(a.name)}去</p>
+      <div class="cmds">${COMMANDS.map(([k, t]) => `<button type="button" data-cmd="${k}">${t}</button>`).join('')}</div>
+      <p>${esc(a.duty)}</p>${stat}${act}`;
   } else if (it.type === 'fac') {
-    const f = it.fac;
-    h = crumb(FAC_COLOR, '设施 · 连接器') + `<h2><span class="avatar" style="background:${FAC_COLOR}">${initial(f.room)}</span><span>${esc(f.room)}<span class="role">${f.connectors.length} 个连接器</span></span></h2>
-      <p>${esc(f.duty)}</p><div class="chips">${f.connectors.map((n) => `<span class="chip">${esc(n)}</span>`).join('')}</div>
-      <p class="live"><span class="dot-live"></span><span data-live></span></p>
+    const f = it.fac; title = f.room;
+    h = crumb(FAC_COLOR, '设施 · 连接器') + `<h2 id="panelTitle" tabindex="-1"><span class="avatar" style="background:${FAC_COLOR}" aria-hidden="true">${initial(f.room)}</span><span>${esc(f.room)}<span class="role">${f.connectors.length} 个连接器</span></span></h2>
+      <p>${esc(f.duty)}</p><ul class="plain-list">${f.connectors.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
+      <p class="live"><span class="dot-live" aria-hidden="true"></span><span data-live></span></p>
       <p class="note">连接器在 claude.ai「设置 → 连接器」里管理；连好以后，Claude 里的员工就能用这间${esc(f.room)}。</p>`;
   } else if (it.type === 'room') {
-    h = crumb(FAC_COLOR, '公司环境') + `<h2>${esc(it.room.name)}</h2><p>${esc(it.room.duty)}</p><p class="live"><span class="dot-live"></span><span data-live></span></p>`;
+    title = it.room.name;
+    h = crumb(FAC_COLOR, '公司环境') + `<h2 id="panelTitle" tabindex="-1">${esc(it.room.name)}</h2><p>${esc(it.room.duty)}</p><p class="live"><span class="dot-live" aria-hidden="true"></span><span data-live></span></p>`;
   }
-  p.innerHTML = close + h;
+  p.innerHTML = closeBtn + h;
   p.hidden = false;
+  $('announce').textContent = '已打开 ' + title;
   refreshLive();
+  if (focus) $('panelTitle').focus();
 }
 const PLACE_OF = { 'fac/meeting': '会议室', 'fac/files': '档案室', 'fac/mail': '收发室', 'fac/studio': '设计工作室', 'fac/media': '影音室', 'fac/server': '机房' };
+const barColor = (v) => v >= 60 ? 'var(--good)' : v >= 30 ? 'var(--warn)' : 'var(--bad)';
 function refreshLive() {
-  const el = document.querySelector('#panel [data-live]');
-  if (el && office && current) {
-    const it = find(current);
-    if (it && it.type === 'agent') el.textContent = '现在：' + (office.status(current) || '工作中');
-    else {
+  if (!office) return;
+  const p = $('panel');
+  if (current && !p.hidden) {
+    const it = find(current), el = p.querySelector('[data-live]');
+    if (it && it.type === 'agent') {
+      const info = office.agentInfo(current);
+      if (info) {
+        el.textContent = '现在：' + info.doing;
+        p.querySelector('[data-mood]').innerHTML = `心情 <b>${info.mood.emoji} ${info.mood.label}</b>`;
+        const dl = p.querySelector('[data-needs]');
+        if (!dl.children.length) dl.innerHTML = info.needs.map((n) => `<dt>${n.label}</dt><dd><i data-n="${n.key}"></i></dd><span class="v" data-v="${n.key}"></span>`).join('');
+        info.needs.forEach((n) => { const bar = dl.querySelector(`[data-n="${n.key}"]`); bar.style.transform = `scaleX(${n.value / 100})`; bar.style.background = barColor(n.value); dl.querySelector(`[data-v="${n.key}"]`).textContent = n.value; });
+      }
+    } else if (el) {
       const place = it && it.type === 'room' ? it.room.place : PLACE_OF[current];
       const who = place ? office.occupants(place) : [];
       el.textContent = who.length ? '现在在这里：' + who.join('、') : '现在没有人';
     }
   }
-  if (office) $('liveLine').innerHTML = `<span><span class="dot-live"></span><b>${staff}</b> 位员工 · <b>${staff - office.away()}</b> 位在座位上</span><span><b>${connectors}</b> 个连接器</span>`;
+  const c = office.clock();
+  $('clockT').textContent = c.text; $('clockD').textContent = '第 ' + c.day + ' 天' + (c.speed ? '' : ' · 暂停');
+  $('liveLine').innerHTML = `<span><span class="dot-live" aria-hidden="true"></span><b>${staff}</b> 位员工 · <b>${staff - office.away()}</b> 位在座位上</span><span><b>${connectors}</b> 个连接器</span>`;
 }
 setInterval(refreshLive, 1000);
 
 // ---------- 组织架构 ----------
-$('drawer').innerHTML = `<div class="drawer-h"><h2>组织架构</h2><button type="button" class="ibtn" id="closeDrawer" aria-label="关闭组织架构"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-  <section><h3>老板</h3><ul class="mini"><li><button type="button" data-sel="boss"><span class="d" style="background:${BOSS_COLOR}">${initial(C.boss.title)}</span><span><b>${esc(C.boss.title)}（${esc(C.boss.name)}）</b> <span class="s">老板办公室</span></span></button></li></ul></section>
-  ${main ? `<section><h3>${esc(main.name)} · 主要办公区</h3><div class="grp">${main.teams.map((g) => `<div class="grp-h"><i style="width:8px;height:8px;border-radius:50%;background:${g.color}"></i><b>${esc(g.name)}</b><span class="badge ${g.kind}">${KIND[g.kind]}</span></div>
+$('drawer').innerHTML = `<div class="drawer-h"><h2>组织架构</h2><button type="button" class="ibtn" id="closeDrawer" aria-label="关闭组织架构" data-tip="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="legend"><span><i style="background:#0E6B66"></i>网站里的员工：点了进入审核工具</span><span><i style="background:#C26A00"></i>Claude 里的员工：点了复制指令</span><span><i style="background:${FAC_COLOR}"></i>设施：里面放连接器</span></div>
+  <section><h3>老板</h3><ul class="mini"><li><button type="button" data-sel="boss"><span class="d" style="background:${BOSS_COLOR}" aria-hidden="true">${initial(C.boss.title)}</span><span><b>${esc(C.boss.title)}（${esc(C.boss.name)}）</b> <span class="s">老板办公室</span></span></button></li></ul></section>
+  ${main ? `<section><h3>${esc(main.name)} · 主要办公区</h3><div class="grp">${main.teams.map((g) => `<div class="grp-h"><i style="width:8px;height:8px;border-radius:50%;background:${g.color}"></i><b>${esc(g.name)}</b><span class="kind ${g.kind}">· ${KIND[g.kind]}</span></div>
     ${g.agents.length ? `<ul class="mini">${g.agents.map((_, k) => agentRow(g, k)).join('')}</ul>` : `<ul class="mini">${groupRow(g)}</ul>`}`).join('')}</div></section>` : ''}
   <section><h3>其他部门</h3><ul class="mini">${others.map(groupRow).join('')}</ul></section>
-  <section><h3>设施（连接器）</h3><ul class="mini">${C.facilities.map((f) => `<li><button type="button" data-sel="fac/${f.id}"><span class="d" style="background:${FAC_COLOR}">${initial(f.room)}</span><span><b>${esc(f.room)}</b> <span class="s">${esc(f.connectors.join('、'))}</span></span></button></li>`).join('')}</ul></section>
-  <section><h3>公司环境</h3><ul class="mini">${Object.entries(AMENITY).map(([k, r]) => `<li><button type="button" data-sel="room/${k}"><span class="d" style="background:${FAC_COLOR}">${initial(r.name)}</span><b>${esc(r.name)}</b></button></li>`).join('')}</ul></section>
+  <section><h3>设施（连接器）</h3><ul class="mini">${C.facilities.map((f) => `<li><button type="button" data-sel="fac/${f.id}"><span class="d" style="background:${FAC_COLOR}" aria-hidden="true">${initial(f.room)}</span><span><b>${esc(f.room)}</b> <span class="s">${esc(f.connectors.join('、'))}</span></span></button></li>`).join('')}</ul></section>
+  <section><h3>公司环境</h3><ul class="mini">${Object.entries(AMENITY).map(([k, r]) => `<li><button type="button" data-sel="room/${k}"><span class="d" style="background:${FAC_COLOR}" aria-hidden="true">${initial(r.name)}</span><b>${esc(r.name)}</b></button></li>`).join('')}</ul></section>
   <p class="credit">墙上的画来自 Unsplash：${(C.art || []).map((a) => esc(a.by)).join('、')}。载不到时会换成程序画的抽象画。</p>`;
+let drawerReturn = null;
 function drawer(open) {
-  $('drawer').classList.toggle('open', open);
-  $('drawer').setAttribute('aria-hidden', String(!open));
+  const d = $('drawer');
+  d.classList.toggle('open', open);
+  d.setAttribute('aria-hidden', String(!open));
+  d.inert = !open;
   $('orgBtn').setAttribute('aria-expanded', String(open));
   $('scrim').hidden = !open;
-  if (open) $('closeDrawer').focus();
+  if (open) { drawerReturn = document.activeElement; $('closeDrawer').focus(); }
+  else if (drawerReturn && document.contains(drawerReturn)) { drawerReturn.focus(); drawerReturn = null; }
 }
+// 抽屉打开时 Tab 只在抽屉里面转
+$('drawer').addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return;
+  const f = [...$('drawer').querySelectorAll('button,a[href]')];
+  if (!f.length) return;
+  if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+  else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+});
 $('orgBtn').addEventListener('click', () => drawer(!$('drawer').classList.contains('open')));
 $('scrim').addEventListener('click', () => drawer(false));
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if ($('drawer').classList.contains('open')) drawer(false); else if (!$('panel').hidden) { renderPanel(null); if (office) office.reset(); } } });
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || e.target === $('coInput')) return;
+  if ($('drawer').classList.contains('open')) drawer(false);
+  else if (!$('panel').hidden) { renderPanel(null); if (office) office.reset(); }
+});
 
 // ---------- 3D ----------
 try {
   const { mountOffice } = await import('./hq/office.js');
   office = mountOffice($('stage'), C, { stats, companyName: coName(), onSelect: (id) => renderPanel(id) });
+  if (new URLSearchParams(location.search).has('debug')) window.hqOffice = office;   // 网址加 ?debug 可以在主控台看 3D 状态
 } catch (e) {
   console.error(e);
-  document.body.insertAdjacentHTML('beforeend', '<div class="nogl"><p>这台电脑显示不了 3D 公司。<br>按右上角「组织架构」一样可以用。</p></div>');
+  document.body.insertAdjacentHTML('beforeend', '<div class="nogl"><p>这台电脑显示不了 3D 公司。<br>按右上角「看组织架构」一样可以用。</p></div>');
   drawer(true);
 }
+$('skeleton').hidden = true;
 refreshLive();
 
-$('coName').addEventListener('click', () => {
-  const v = window.prompt('公司名称', coName());
-  if (v === null) return;
-  ls.set('hq-company', v.trim() || C.name); paintName();
-  if (office) office.setCompanyName(coName());
-});
+// 公司名称：在原位置改，按 Enter 保存、Esc 取消
+function editName(on, save) {
+  const inp = $('coInput');
+  if (on) { inp.value = coName(); inp.hidden = false; $('coName').style.visibility = 'hidden'; inp.focus(); inp.select(); return; }
+  if (save) { ls.set('hq-company', inp.value.trim() || C.name); paintName(); if (office) office.setCompanyName(coName()); }
+  inp.hidden = true; $('coName').style.visibility = ''; $('coName').focus();
+}
+$('coName').addEventListener('click', () => editName(true));
+// 要 preventDefault：不然焦点回到按钮后，同一下 Enter 会再按一次按钮、又打开编辑
+$('coInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); editName(false, true); } else if (e.key === 'Escape') { e.preventDefault(); editName(false, false); } });
+$('coInput').addEventListener('blur', () => { if (!$('coInput').hidden) editName(false, true); });
+
 function setMode(m) {
   $('m3d').setAttribute('aria-pressed', String(m === '3d')); $('mplan').setAttribute('aria-pressed', String(m === 'plan'));
-  $('hint').textContent = m === 'plan' ? '平面图 · 拖动平移 · 缩放看细节 · 点房间看详细资料' : '拖动旋转 · 缩放看员工 · 点员工、部门、房间看详细资料';
+  $('hint').textContent = m === 'plan' ? '平面图 · 拖动平移 · 缩放看细节 · 点房间看详细资料' : '拖动旋转 · 缩放看员工 · 点员工看心情和需求';
   if (office) office.setMode(m);
 }
 $('m3d').addEventListener('click', () => setMode('3d'));
@@ -335,8 +440,19 @@ $('mplan').addEventListener('click', () => setMode('plan'));
 $('zin').addEventListener('click', () => office && office.zoom(1.25));
 $('zout').addEventListener('click', () => office && office.zoom(0.8));
 $('home').addEventListener('click', () => { if (office) office.reset(); renderPanel(null); });
+document.querySelectorAll('[data-speed]').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-speed]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  if (office) office.setSpeed(+b.dataset.speed);
+  refreshLive();
+}));
+$('walls').addEventListener('click', () => {
+  const low = $('walls').getAttribute('aria-pressed') !== 'true';
+  $('walls').setAttribute('aria-pressed', String(low));
+  $('walls').querySelector('.wl').textContent = low ? '升起墙壁' : '放低墙壁';
+  if (office) office.setWalls(low);
+});
 
-// ---------- 点选、复制 ----------
+// ---------- 点选、复制、指挥员工 ----------
 function toast(t) { const el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 1800); }
 async function copy(text) {
   try { await navigator.clipboard.writeText(text); }
@@ -345,8 +461,22 @@ async function copy(text) {
 }
 document.addEventListener('click', (e) => {
   const s = e.target.closest('[data-sel]');
-  if (s) { renderPanel(s.dataset.sel); if (office) office.select(s.dataset.sel); if (s.closest('#drawer') && window.innerWidth < 1100) drawer(false); return; }
+  if (s) {
+    const fromDrawer = !!s.closest('#drawer');
+    if (fromDrawer) { drawerReturn = null; drawer(false); }   // 选了就关，免得挡住游戏列
+    renderPanel(s.dataset.sel, e.detail === 0);   // 键盘按的才把焦点移到资料卡
+    if (office) office.select(s.dataset.sel);
+    return;
+  }
   const c = e.target.closest('[data-copy]'); if (c) { copy(c.dataset.copy); return; }
+  const k = e.target.closest('[data-cmd]');
+  if (k && office && current) {
+    const name = find(current).agent.name;
+    const ok = office.command(current, k.dataset.cmd);
+    toast(ok ? `${name}收到：${k.textContent.replace(/^\S+\s/, '')}` : `${name}现在走不开（正在跟同事讨论，或那边没位子）`);
+    setTimeout(refreshLive, 50);
+    return;
+  }
   if (e.target.closest('#closePanel')) { renderPanel(null); if (office) office.reset(); }
 });
 </script>

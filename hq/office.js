@@ -19,6 +19,31 @@ const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const rand = (a, b) => a + Math.random() * (b - a);
 
+// ---------- 员工的需求（0–100，坐着工作每游戏分钟下降 decay） ----------
+const NEEDS = [
+  { key: 'energy', label: '精力', decay: 0.35 },
+  { key: 'hunger', label: '饱足', decay: 0.25 },
+  { key: 'bladder', label: '如厕', decay: 0.45 },
+  { key: 'social', label: '社交', decay: 0.3 },
+  { key: 'fun', label: '乐趣', decay: 0.3 }
+];
+// 每种去处每游戏分钟补哪些需求、头上冒什么
+const ACT = {
+  coffee: { fix: { energy: 14 }, icon: '☕', need: 'energy' },
+  water: { fix: { energy: 5, bladder: -4 }, icon: '💧', need: 'energy' },
+  pantry: { fix: { hunger: 12, social: 3 }, icon: '🍪', need: 'hunger' },
+  wc: { fix: { bladder: 30 }, icon: '🚻', need: 'bladder' },
+  wash: { fix: { bladder: 10 }, icon: '🧼', need: 'bladder' },
+  meeting: { fix: { social: 7 }, icon: '📋', need: 'social' },
+  visit: { fix: { social: 10 }, icon: '💬', need: 'social' },
+  lobby: { fix: { social: 5 }, icon: '👋', need: 'social' },
+  lounge: { fix: { fun: 12, social: 3, energy: 3 }, icon: '🎮', need: 'fun' },
+  printer: { fix: {}, icon: '🖨️' }, mail: { fix: {}, icon: '📦' }, files: { fix: {}, icon: '🗂️' }
+};
+const FOR_NEED = { energy: ['coffee', 'coffee', 'water'], hunger: ['pantry'], bladder: ['wc', 'wc', 'wash'], social: ['visit', 'meeting', 'lobby', 'visit'], fun: ['lounge'] };
+const ERRANDS = ['printer', 'mail', 'files', 'visit'];
+const CHATS = ['这单要问下单者吗？', '子时这格要标红', '帮我看一下繁体', '家人订单排一起', '这个名字撞音了', '加急单先处理', '新生儿单放前面', 'OK，我来改', '明白！', '午饭吃什么？', '咖啡续杯吗？', '今天单子好多'];
+
 // ---------- 平面图 ----------
 // 房间：门开在哪一边（n 北 / s 南 / e 东 / w 西）、门中心坐标
 const ROOMS = [
@@ -151,7 +176,7 @@ export function mountOffice(container, company, opts = {}) {
 
   // ---------- 渲染器、灯光 ----------
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -166,7 +191,8 @@ export function mountOffice(container, company, opts = {}) {
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environmentIntensity = 0.55;
-  scene.add(new THREE.HemisphereLight('#FFFFFF', '#D9D2C5', 0.9));
+  const hemi = new THREE.HemisphereLight('#FFFFFF', '#D9D2C5', 0.9);
+  scene.add(hemi);
   const sun = new THREE.DirectionalLight('#FFF4E2', 2.4);
   sun.position.set(-26, 46, 30);
   sun.castShadow = true;
@@ -189,6 +215,7 @@ export function mountOffice(container, company, opts = {}) {
 
   // ---------- 静态物件：最后按材质合并，减少绘制次数 ----------
   const statics = new THREE.Group();
+  const glassPanes = [];
   function add(mesh, parent) { mesh.castShadow = true; mesh.receiveShadow = true; (parent || statics).add(mesh); return mesh; }
   function box(w, h, d, m, x, y, z, parent) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); return add(o, parent); }
   function rbox(w, h, d, m, x, y, z, parent, r = 0.05) { const o = new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 2, Math.min(r, w / 2, h / 2, d / 2)), m); o.position.set(x, y, z); return add(o, parent); }
@@ -231,14 +258,14 @@ export function mountOffice(container, company, opts = {}) {
       if (m === M.glass) {
         const gx = horiz ? mid : x0, gz = horiz ? z0 : mid;
         const pane = new THREE.Mesh(new THREE.BoxGeometry(horiz ? len : 0.04, h, horiz ? 0.04 : len), M.glass);
-        pane.position.set(gx, h / 2 + 0.02, gz); pane.renderOrder = 2; scene.add(pane);
+        pane.position.set(gx, h / 2 + 0.02, gz); pane.renderOrder = 2; scene.add(pane); glassPanes.push(pane);
         box(horiz ? len : 0.08, 0.06, horiz ? 0.08 : len, M.frame, gx, h + 0.03, gz);
         box(horiz ? len : 0.08, 0.06, horiz ? 0.08 : len, M.frame, gx, 0.05, gz);
         for (let t = p; t <= q + 1e-6; t += Math.max(len / Math.ceil(len / 2.2), 0.5)) box(0.06, h, 0.06, M.frame, horiz ? t : x0, h / 2, horiz ? z0 : t);
       } else {
         box(horiz ? len : WT, h, horiz ? WT : len, m, horiz ? mid : x0, h / 2 + 0.02, horiz ? z0 : mid);
       }
-      if (horiz) blockRect(p, z0 - WT / 2, q, z0 + WT / 2, 0.2); else blockRect(x0 - WT / 2, p, x0 + WT / 2, q, 0.2);
+      if (horiz) blockRect(p, z0 - WT / 2, q, z0 + WT / 2, 0.1); else blockRect(x0 - WT / 2, p, x0 + WT / 2, q, 0.1);
     });
   }
   const onEdge = (v, e) => Math.abs(v - e) < 1e-6;
@@ -281,9 +308,10 @@ export function mountOffice(container, company, opts = {}) {
 
   // ---------- 标签 ----------
   const items = new Map();  // id → { el, pos, mats, color, agent }
-  function label(html, className, id, ariaLabel) {
+  function label(html, className, id, ariaLabel, focusable = true) {
     const el = document.createElement('button');
     el.type = 'button'; el.className = className; el.innerHTML = html;
+    if (!focusable) el.tabIndex = -1;
     if (ariaLabel) el.setAttribute('aria-label', ariaLabel);
     el.addEventListener('pointerdown', (e) => e.stopPropagation());
     el.addEventListener('click', (e) => { e.stopPropagation(); select(id, true); });
@@ -455,6 +483,8 @@ export function mountOffice(container, company, opts = {}) {
     spot('coffee', 19.6, -14.5, Math.PI, false, '在茶水间泡咖啡', '茶水间');
     spot('coffee', 17.0, -14.5, Math.PI, false, '在茶水间洗杯子', '茶水间');
     spot('coffee', 21.4, -14.5, Math.PI, false, '在茶水间热饭', '茶水间');
+    spot('coffee', 18.3, -14.4, Math.PI, false, '在茶水间排队等咖啡', '茶水间');
+    spot('coffee', 20.6, -14.4, Math.PI, false, '在茶水间泡茶', '茶水间');
     [[17.3, -10.8], [21.3, -10.8]].forEach(([x, z]) => {
       cyl(0.7, 0.7, 0.05, M.white, x, 0.75, z, g, 28); cyl(0.05, 0.25, 0.72, M.leg, x, 0.36, z, g, 12);
       blockRect(x - 0.6, z - 0.6, x + 0.6, z + 0.6, 0);
@@ -629,12 +659,15 @@ export function mountOffice(container, company, opts = {}) {
     const f = (company.facilities || []).find((x) => 'fac/' + x.id === r.pick);
     if (f) roomSign(r, `<i style="background:#55544E"></i>${esc(f.room)}<small>${f.connectors.length} 个连接器</small>`, 'fac/' + f.id, 'hq-room-fac');
   });
-  [[-15, -6], [11, -6], [-15, 9], [11, 9], [18.2, -6]].forEach(([x, z]) => plant(x, z, 0.8));
+  // 走廊只有 2 格宽，植物放在走廊尽头的角落，不挡路
+  [[-15.6, 15.5], [11.6, -4.6], [23.5, -5.6]].forEach(([x, z]) => plant(x, z, 0.7));
 
   // ---------- 合并静态物件 ----------
+  const mergedBy = new Map();
   {
     statics.updateMatrixWorld(true);
     const buckets = new Map();
+    mergedBy.clear();
     statics.traverse((o) => {
       if (!o.isMesh) return;
       // 圆角方块没有 index、其他有：全部转成没有 index 才能合并
@@ -648,7 +681,7 @@ export function mountOffice(container, company, opts = {}) {
       if (!merged) { geos.forEach((geo) => { const x = new THREE.Mesh(geo, m); x.castShadow = x.receiveShadow = true; scene.add(x); }); return; }
       const mesh = new THREE.Mesh(merged, m);
       mesh.castShadow = m !== M.ghost; mesh.receiveShadow = true;
-      scene.add(mesh);
+      scene.add(mesh); mergedBy.set(m, mesh);
       geos.forEach((geo) => geo.dispose());
     });
     statics.traverse((o) => { if (o.isMesh) o.geometry.dispose(); });
@@ -691,10 +724,11 @@ export function mountOffice(container, company, opts = {}) {
     const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let c = 0; for (;;) { const l = c * 2 + 1, r = l + 1; let m = c; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === c) break; [heap[m], heap[c]] = [heap[c], heap[m]]; c = m; } } return top; };
     const h = (i) => { const dx = Math.abs((i % GX) - t[0]), dz = Math.abs(((i / GX) | 0) - t[1]); return Math.max(dx, dz) + 0.414 * Math.min(dx, dz); };
     G[si] = 0; FROM[si] = -1; SEEN[si] = stamp; push(h(si), si);
-    let found = false, guard = 0;
+    let found = false, guard = 0, best = si, bestH = h(si);
     while (heap.length && guard++ < 20000) {
       const [, cur] = pop();
       if (cur === ti) { found = true; break; }
+      const hc = h(cur); if (hc < bestH) { bestH = hc; best = cur; }
       const ci = cur % GX, cj = (cur / GX) | 0;
       for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
         if (!di && !dj) continue;
@@ -706,11 +740,14 @@ export function mountOffice(container, company, opts = {}) {
         SEEN[nx] = stamp; G[nx] = ng; FROM[nx] = cur; push(ng + h(nx), nx);
       }
     }
-    if (!found) return null;
-    const cells = []; for (let c = ti; c !== -1; c = FROM[c]) cells.push(c);
+    // 目的地被沙发、桌子围住（例如坐沙发）：走到最近走得到的地方，再一步坐进去
+    if (!found && bestH > 4) return null;
+    const end = found ? ti : best;
+    const cells = []; for (let c = end; c !== -1; c = FROM[c]) cells.push(c);
     cells.reverse();
     const pts = cells.map((c) => new THREE.Vector3(((c % GX) + 0.5) * CELL - BW / 2, 0, (((c / GX) | 0) + 0.5) * CELL - BD / 2));
-    pts[0] = from.clone(); pts[pts.length - 1] = to.clone();
+    pts[0] = from.clone();
+    if (found) pts[pts.length - 1] = to.clone(); else pts.push(to.clone());
     const out = [pts[0]];
     for (let i = 0; i < pts.length - 1;) { let j = pts.length - 1; while (j > i + 1 && !los(pts[i], pts[j])) j--; out.push(pts[j]); i = j; }
     return out;
@@ -740,7 +777,9 @@ export function mountOffice(container, company, opts = {}) {
     [torso, head, hairM, armL.c, armR.c, legL.c, legR.c].forEach((m) => { m.userData.pick = id; pickMeshes.push(m); });
     root.scale.setScalar(scale);
     scene.add(root);
-    return { root, body, armL: armL.p, armR: armR.p, legL: legL.p, legR: legR.p, shirt };
+    const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.11, 12), colorMat('#FFFFFF'));
+    cup.position.set(0, -0.62, 0.06); cup.visible = false; armR.p.add(cup);
+    return { root, body, armL: armL.p, armR: armR.p, legL: legL.p, legR: legR.p, shirt, cup };
   }
   function poseSit(p, t, typing) {
     p.body.position.y = -0.34;
@@ -764,9 +803,13 @@ export function mountOffice(container, company, opts = {}) {
     const person = makePerson(pp.color, n * 5 + 3, id);
     person.root.position.copy(pp.seat); person.root.rotation.y = pp.face;
     const stat = pp.agent.stat && stats[pp.agent.stat] ? `<span class="hq-tag-stat">${esc(stats[pp.agent.stat])}</span>` : '';
-    const tag = label(`<span class="hq-tag-name">${esc(pp.agent.name)}</span><span class="hq-tag-role">${esc(pp.agent.role)}</span>${stat}<span class="hq-tag-doing"></span>`, 'hq-tag', id, `${pp.group.name} ${pp.agent.name}，${pp.agent.role}`);
+    const tag = label(`<span class="hq-tag-name">${esc(pp.agent.name)}<span class="hq-tag-mood"></span></span><span class="hq-tag-role">${esc(pp.agent.role)}</span>${stat}<span class="hq-tag-doing"></span>`, 'hq-tag', id, `${pp.group.name} ${pp.agent.name}，${pp.agent.role}`, false);
     tag.position.set(0, 2.1, 0); person.root.add(tag);
-    const a = { id, name: pp.agent.name, person, seat: pp.seat.clone(), face: pp.face, state: 'sit', timer: n < 5 ? rand(1, 4) : rand(6, 40), path: null, k: 0, phase: Math.random() * 6, spot: null, back: false, doing: '工作中', tag: tag.element };
+    const bubble = document.createElement('div'); bubble.className = 'hq-bubble'; bubble.hidden = true;
+    const bo = new CSS2DObject(bubble); bo.position.set(0, 2.75, 0); person.root.add(bo);
+    const needs = {}, mult = {};
+    NEEDS.forEach((nd) => { needs[nd.key] = rand(n < 6 ? 30 : 55, 100); mult[nd.key] = rand(0.75, 1.3); });
+    const a = { id, name: pp.agent.name, person, seat: pp.seat.clone(), face: pp.face, state: 'sit', timer: rand(1, 6), path: null, k: 0, phase: Math.random() * 6, spot: null, back: false, away: false, doing: '工作中', tag: tag.element, bubble, bubbleT: 0, chatT: 0, needs, mult, cupT: 0 };
     agents.push(a);
     register(id, { el: tag.element, pos: pp.seat.clone(), mats: [person.shirt], color: pp.color, agent: a });
   });
@@ -777,25 +820,40 @@ export function mountOffice(container, company, opts = {}) {
   const tie = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.36, 0.03), colorMat('#8C1D18')); tie.position.set(0, 1.1, 0.14); bossP.body.add(tie);
   Object.assign(items.get('boss'), { mats: [bossP.shirt], color: BOSS_COLOR, pos: bossSeat.clone() });
 
-  // ---------- 员工的一天 ----------
-  const ACTIVITIES = [['coffee', 0.22], ['pantry', 0.1], ['wc', 0.14], ['wash', 0.04], ['meeting', 0.12], ['visit', 0.14], ['lounge', 0.1], ['lobby', 0.03], ['water', 0.05], ['printer', 0.03], ['mail', 0.02], ['files', 0.01]];
-  const MAX_AWAY = Math.max(2, Math.round(agents.length * 0.3));
+  // ---------- 员工的一天：需求、心情，自己决定去做什么 ----------
   let away = 0;
-  function chooseSpot(a) {
-    let r = Math.random(), kind = 'coffee';
-    for (const [k, w] of ACTIVITIES) { if ((r -= w) <= 0) { kind = k; break; } }
-    if (kind === 'visit') {
-      const mates = agents.filter((b) => b !== a && b.state === 'sit');
-      if (!mates.length) return null;
-      const b = mates[(Math.random() * mates.length) | 0];
-      const pos = b.seat.clone().add(new THREE.Vector3(Math.cos(b.face), 0, -Math.sin(b.face)).multiplyScalar(0.8));
-      if (blocked(...cellOf(pos.x, pos.z))) return null;
-      return { kind, pos, facing: Math.atan2(b.seat.x - pos.x, b.seat.z - pos.z), sit: false, doing: `跟${b.name}讨论工作`, place: b.name + '那边', taken: false };
-    }
-    const free = spots.filter((s) => s.kind === kind && !s.taken);
-    return free.length ? free[(Math.random() * free.length) | 0] : null;
+  const MAX_AWAY = Math.max(3, Math.round(agents.length * 0.35));
+  const pickOf = (arr) => arr[(Math.random() * arr.length) | 0];
+  function mood(a) {
+    const avg = NEEDS.reduce((s2, nd) => s2 + a.needs[nd.key], 0) / NEEDS.length;
+    const m = avg >= 75 ? ['开心', '😄'] : avg >= 55 ? ['不错', '🙂'] : avg >= 35 ? ['有点累', '😐'] : ['心情差', '😣'];
+    return { score: Math.round(avg), label: m[0], emoji: m[1] };
+  }
+  function showBubble(a, text, secs, speech) {
+    a.bubble.textContent = text; a.bubble.hidden = false; a.bubbleT = secs;
+    a.bubble.classList.toggle('is-speech', !!speech);
   }
   function setDoing(a, text) { a.doing = text; a.tag.querySelector('.hq-tag-doing').textContent = text === '工作中' ? '' : text; }
+  function decide(a) {
+    let low = NEEDS[0].key;
+    NEEDS.forEach((nd) => { if (a.needs[nd.key] < a.needs[low]) low = nd.key; });
+    const v = a.needs[low];
+    if (v < 50 && Math.random() < 0.25 + (50 - v) / 40) return pickOf(FOR_NEED[low]);
+    if (Math.random() < 0.05) return pickOf(ERRANDS);
+    return null;
+  }
+  function spotFor(a, kind) {
+    if (kind === 'visit') {
+      const mates = agents.filter((b) => b !== a && b.state === 'sit' && !b.host);
+      if (!mates.length) return null;
+      const b = pickOf(mates);
+      const pos = b.seat.clone().add(new THREE.Vector3(Math.cos(b.face), 0, -Math.sin(b.face)).multiplyScalar(0.8));
+      if (blocked(...cellOf(pos.x, pos.z))) return null;
+      return { kind, pos, facing: Math.atan2(b.seat.x - pos.x, b.seat.z - pos.z), sit: false, doing: `跟${b.name}讨论工作`, place: b.name + '那边', taken: false, host: b };
+    }
+    const free = spots.filter((sp) => sp.kind === kind && !sp.taken);
+    return free.length ? pickOf(free) : null;
+  }
   function startWalk(a, dest, back) {
     const path = findPath(a.person.root.position, dest);
     if (!path || path.length < 2) return false;
@@ -803,25 +861,53 @@ export function mountOffice(container, company, opts = {}) {
     poseStand(a.person);
     return true;
   }
-  function sitDown(a) { const p = a.person; a.state = 'sit'; p.root.rotation.y = a.face; p.root.position.copy(a.seat); a.timer = rand(25, 70); away--; setDoing(a, '工作中'); }
-  function updateAgent(a, dt, t) {
+  function release(a) { if (a.spot) { a.spot.taken = false; if (a.spot.host) a.spot.host.host = null; a.spot = null; } }
+  function go(a, kind) {
+    const sp = spotFor(a, kind);
+    if (!sp) { a.why = kind + '：没位子'; return false; }
+    if (!startWalk(a, sp.pos, false)) { a.why = kind + '：走不到'; return false; }
+    a.why = '';
+    release(a);
+    sp.taken = true; a.spot = sp; a.kind = kind;
+    if (sp.host) sp.host.host = a;
+    if (!a.away) { a.away = true; away++; }
+    setDoing(a, '走去' + sp.place);
+    showBubble(a, ACT[kind].icon, 3);
+    return true;
+  }
+  function goBack(a) {
+    release(a);
+    if (startWalk(a, a.seat, true)) setDoing(a, '回座位'); else sitDown(a);
+  }
+  function sitDown(a) {
+    const p = a.person; a.state = 'sit'; p.root.rotation.y = a.face; p.root.position.copy(a.seat);
+    a.timer = rand(4, 10); if (a.away) { a.away = false; away--; } setDoing(a, '工作中');
+  }
+  // dt：这一步的游戏秒数（已经乘上速度）；gmin：这一步的游戏分钟
+  function updateAgent(a, dt, gmin, t) {
     const p = a.person;
+    const fixing = a.state === 'stay' && a.spot ? ACT[a.kind].fix : null;
+    NEEDS.forEach((nd) => {
+      let v = a.needs[nd.key] - nd.decay * a.mult[nd.key] * gmin * (fixing ? 0.5 : 1);
+      if (fixing && fixing[nd.key]) v += fixing[nd.key] * gmin;
+      a.needs[nd.key] = Math.max(0, Math.min(100, v));
+    });
+    if (a.cupT > 0) { a.cupT -= gmin; if (a.cupT <= 0) p.cup.visible = false; }
     if (a.state === 'sit') {
       poseSit(p, t + a.phase, true);
       a.timer -= dt;
       if (a.timer <= 0) {
-        a.timer = rand(8, 20);
-        if (away >= MAX_AWAY || REDUCED) return;
-        const s = chooseSpot(a);
-        if (!s || !startWalk(a, s.pos, false)) return;
-        s.taken = true; a.spot = s; away++;
-        setDoing(a, '走去' + s.place);
+        a.timer = rand(3, 8);
+        if (away >= MAX_AWAY || REDUCED || a.host) return;
+        const kind = decide(a);
+        if (kind) go(a, kind);
       }
     } else if (a.state === 'walk') {
       const target = a.path[a.k], pos = p.root.position;
       const dx = target.x - pos.x, dz = target.z - pos.z, dist = Math.hypot(dx, dz);
       a.phase += dt * 8;
       poseWalk(p, a.phase);
+      if (p.cup.visible) p.armR.rotation.x = -1.1;
       if (dist > 1e-4) {
         let diff = Math.atan2(dx, dz) - p.root.rotation.y; diff = Math.atan2(Math.sin(diff), Math.cos(diff));
         p.root.rotation.y += diff * Math.min(1, dt * 10);
@@ -830,19 +916,47 @@ export function mountOffice(container, company, opts = {}) {
       if (dist <= step) { pos.x = target.x; pos.z = target.z; a.k++; } else { pos.x += dx / dist * step; pos.z += dz / dist * step; }
       if (a.k >= a.path.length) {
         if (a.back) sitDown(a);
-        else { a.state = 'stay'; a.timer = rand(6, 14); p.root.rotation.y = a.spot.facing; setDoing(a, a.spot.doing); }
+        else { a.state = 'stay'; a.timer = rand(4, 12); p.root.rotation.y = a.spot.facing; setDoing(a, a.spot.doing); a.chatT = 0; }
       }
     } else if (a.state === 'stay') {
       if (a.spot.sit) poseSit(p, t, false); else { poseStand(p); if (!REDUCED) p.armR.rotation.x = -0.6 + Math.sin(t * 2 + a.phase) * 0.15; }
-      a.timer -= dt;
-      if (a.timer <= 0) {
-        const s = a.spot;
-        if (startWalk(a, a.seat, true)) setDoing(a, '回座位');
-        else sitDown(a);
-        s.taken = false; a.spot = null;
+      // 找同事讨论：两个人轮流冒对话
+      if (a.kind === 'visit' || a.kind === 'meeting' || a.kind === 'lobby') {
+        a.chatT -= dt;
+        if (a.chatT <= 0) {
+          a.chatT = rand(2.5, 4);
+          const who = a.spot.host && Math.random() < 0.5 ? a.spot.host : a;
+          showBubble(who, pickOf(CHATS), 2.4, true);
+        }
+      }
+      a.timer -= gmin;
+      const need = ACT[a.kind].need;
+      if (a.timer <= 0 || (need && a.needs[need] >= 95 && a.timer < 8)) {
+        if (a.kind === 'coffee') { p.cup.visible = true; a.cupT = 25; }
+        goBack(a);
       }
     }
   }
+  function moodTags() { agents.forEach((a) => { const m = mood(a); a.tag.querySelector('.hq-tag-mood').textContent = ' ' + m.emoji; }); }
+  moodTags();
+
+  // 选中员工脚下的圈
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 40), new THREE.MeshBasicMaterial({ color: '#2EB872', transparent: true, opacity: 0.85, depthWrite: false }));
+  ring.rotation.x = -Math.PI / 2; ring.visible = false; scene.add(ring);
+
+  // ---------- 游戏时钟、天色 ----------
+  let gameMin = 9 * 60, day = 1, speed = 1;
+  const SKY_DAY = new THREE.Color('#FFFFFF'), SKY_EVE = new THREE.Color('#F4CFA6'), SUN_DAY = new THREE.Color('#FFF4E2'), SUN_EVE = new THREE.Color('#FFB46B');
+  function applyDaylight() {
+    const h = gameMin / 60, ang = THREE.MathUtils.clamp((h - 6) / 15, 0, 1) * Math.PI, up = Math.sin(ang);
+    sun.position.set(-44 * Math.cos(ang), 10 + 40 * up, 30);
+    sun.intensity = 0.9 + 1.6 * up;
+    sun.color.copy(SUN_EVE).lerp(SUN_DAY, Math.min(1, up * 1.3));
+    hemi.intensity = 0.55 + 0.4 * up;
+    const sky = SKY_EVE.clone().lerp(SKY_DAY, Math.min(1, up * 1.2));
+    container.style.setProperty('--sky', '#' + sky.getHexString());
+  }
+  applyDaylight();
 
   // ---------- 镜头 ----------
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 500);
@@ -953,15 +1067,30 @@ export function mountOffice(container, company, opts = {}) {
 
   // ---------- 动画 ----------
   const clock = new THREE.Clock();
-  let visible = true;
+  let visible = true, moodTick = 0;
+  const perf = { on: true, n: 0, t: 0 };
   new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(container);
   function frame() {
     requestAnimationFrame(frame);
     if (!visible || document.hidden) { clock.getDelta(); return; }
     // 员工按真实时间走：画面卡的电脑上也是正常速度（每次最多算 0.1 秒，分几次算完）
     const real = Math.min(clock.getDelta(), 2), t = clock.elapsedTime, dt = Math.min(real, 0.1);
-    for (let left = real; left > 1e-6; left -= 0.1) { const step = Math.min(left, 0.1); agents.forEach((a) => updateAgent(a, step, t)); }
+    for (let left = real; left > 1e-6; left -= 0.1) {
+      const step = Math.min(left, 0.1) * speed;   // 游戏秒
+      if (!step) break;
+      const gmin = step;                           // 1 倍速：真实 1 秒 = 游戏 1 分钟
+      gameMin += gmin;
+      if (gameMin >= 20 * 60) { gameMin = 8 * 60; day++; }
+      agents.forEach((a) => updateAgent(a, step, gmin, t));
+    }
+    agents.forEach((a) => { if (a.bubbleT > 0) { a.bubbleT -= real; if (a.bubbleT <= 0) a.bubble.hidden = true; } });
+    if ((moodTick += real) > 2) { moodTick = 0; moodTags(); applyDaylight(); }
     poseSit(bossP, t, true);
+    const sel = selected && items.get(selected);
+    ring.visible = !!(sel && sel.agent);
+    if (ring.visible) { ring.position.set(sel.agent.person.root.position.x, 0.05, sel.agent.person.root.position.z); if (!REDUCED) ring.scale.setScalar(1 + Math.sin(t * 4) * 0.08); }
+    // 前 4 秒太卡（每秒不到 24 张）就降到 1 倍解析度
+    if (perf.on) { perf.n++; perf.t += real; if (perf.t > 4) { perf.on = false; if (perf.n / perf.t < 24 && renderer.getPixelRatio() > 1) { renderer.setPixelRatio(1); fit(); } } }
     M.led.emissiveIntensity = 0.6 + (Math.sin(t * 6) > 0 ? 0.6 : 0);
     if (fly || follow) {
       const target = fly ? fly.target : follow.person.root.position;
@@ -989,6 +1118,30 @@ export function mountOffice(container, company, opts = {}) {
     reset, setMode,
     zoom: (f) => { fly = null; follow = null; camera.zoom = THREE.MathUtils.clamp(camera.zoom * f, controls.minZoom, controls.maxZoom); camera.updateProjectionMatrix(); },
     status: (id) => { const it = items.get(id); return it && it.agent ? it.agent.doing : null; },
+    agentInfo: (id) => {
+      const it = items.get(id); if (!it || !it.agent) return null;
+      const a = it.agent;
+      return { doing: a.doing, why: a.why || '', host: !!a.host, state: a.state, mood: mood(a), needs: NEEDS.map((nd) => ({ key: nd.key, label: nd.label, value: Math.round(a.needs[nd.key]) })), busy: a.state !== 'sit' };
+    },
+    // 叫员工去做某件事：kind 是 coffee / pantry / wc / meeting / lounge / back
+    command: (id, kind) => {
+      const it = items.get(id); if (!it || !it.agent) return false;
+      const a = it.agent;
+      if (kind === 'back') { if (a.state === 'sit') return true; goBack(a); return true; }
+      if (a.host) return false;
+      // 那边没位子就去差不多的地方
+      const alt = { coffee: ['water', 'pantry'], pantry: ['coffee'], wc: ['wash'], meeting: ['visit', 'lobby'], lounge: ['lobby', 'pantry'] };
+      return [kind, ...(alt[kind] || [])].some((k) => go(a, k));
+    },
+    clock: () => ({ day, text: String(Math.floor(gameMin / 60)).padStart(2, '0') + ':' + String(Math.floor(gameMin % 60)).padStart(2, '0'), speed }),
+    setSpeed: (v) => { speed = v; },
+    setWalls: (low) => {
+      const k = low ? 0.12 : 1;
+      [M.wall, M.frame].forEach((m) => { const mesh = mergedBy.get(m); if (mesh) mesh.scale.y = k; });
+      const w = mergedBy.get(M.window); if (w) w.visible = !low;
+      glassPanes.forEach((g) => { g.visible = !low; });
+    },
+    info: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, pixelRatio: renderer.getPixelRatio() }),
     away: () => away,
     total: () => agents.length,
     occupants: (place) => agents.filter((a) => a.state === 'stay' && a.spot && a.spot.place === place).map((a) => a.name),
