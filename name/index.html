@@ -1516,7 +1516,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
-  {date:'2026-10-31', title:'可以把店铺资料放进网站', items:[
+  {date:'2026-10-31', title:'店铺资料放进网站，不用导入', items:[
+    '网站内置 5092 家店（name/shops.js），国内技术单打开就按店铺编号自动带出督导、管理分公司、店铺名称；已知督导的群也内置',
     '网站如果有 name/shops.js（店铺编号 → 店铺名称、管理分公司、督导，以及督导 → 群），国内技术单打开就按店铺编号自动带出督导，不用每台电脑导入',
     '没有这个文件时照旧：在督导表里导入店铺表；这台电脑导入的店铺表比网站上的优先用']},
   {date:'2026-10-31', title:'导入旧督导文件也能自动带出', items:[

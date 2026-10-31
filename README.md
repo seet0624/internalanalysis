@@ -87,6 +87,7 @@ index.html          首页：3D 公司、详细资料、组织架构
 hq/company.js       公司名单（部门、员工、设施）
 hq/office.js        3D 公司：平面图、家具、员工走路（格子寻路）、镜头
 name/index.html     名字审核
+name/shops.js       名字审核内置的店铺资料：店铺编号 → 店铺名称、管理分公司、督导，以及督导 → 群（负责人 2026-10-31 同意公开；不放联系人 / 电话；有新店铺表就换这个文件）
 tech/index.html     技术单审核台（界面）
 tech/review-engine.js  技术单审核规则引擎
 vendor/             ExcelJS、JSZip、SheetJS（读 .xls）、three/（Three.js）
