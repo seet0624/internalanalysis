@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#F4F3EF">
 <script src="../vendor/exceljs.min.js"></script>
 <script src="../vendor/jszip.min.js"></script>
+<script src="shops.js"></script>
 <script>
 // 本地组件没载入 → 从 cdnjs 载入同一版本
 if(!window.ExcelJS) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"><\/script>');
@@ -1259,9 +1260,12 @@ function saveSup(){ store('mzys_sup_info',SUP.info); store('mzys_sup_list',SUP.l
 function supKey(r){ return String(r.order||('序'+r.sid)).toUpperCase(); }
 function kvOf(r){ var m={}; ((r.rows[0].detail||{}).all||[]).forEach(function(kv){ if(!(kv[0] in m))m[kv[0]]=kv[1]; }); return m; }
 // 先看手填的，再看店铺资料（店铺表），店铺表里没有就用以前导入的督导文件里同一个店铺编号填过的
-function supOf(r){ var v=SUP.info[supKey(r)]||{}, code=kvOf(r)['服务中心编号']||'', sh=(code&&SUP.shops[code])||null, old=(!sh&&code&&SUP.center[code])||null;
+// 网站内置的店铺资料（name/shops.js）；这台电脑另外导入的店铺表比内置的新，就先用导入的
+var BUILTIN=window.SHOP_DATA||{shops:{},groups:{},count:0};
+function shopOf(code){ return code?(SUP.shops[code]||BUILTIN.shops[code]||null):null; }
+function supOf(r){ var v=SUP.info[supKey(r)]||{}, code=kvOf(r)['服务中心编号']||'', sh=shopOf(code), old=(!sh&&code&&SUP.center[code])||null;
   var sup=v.sup||(sh&&sh[2])||(old&&old.sup)||'', l=SUP.list[sup]||{};
-  return {code:code, sup:sup, branch:v.branch||(sh&&sh[1])||l.branch||'', shop:v.shop||(sh&&sh[0])||(old&&old.shop)||'', group:l.group||'',
+  return {code:code, sup:sup, branch:v.branch||(sh&&sh[1])||l.branch||'', shop:v.shop||(sh&&sh[0])||(old&&old.shop)||'', group:l.group||BUILTIN.groups[sup]||'',
     auto:!!(sh||old)&&!v.sup&&!v.shop&&!v.branch, src:sh?'店铺资料':(old?'以前的督导文件':''), inShops:!!(sh||old), edited:!!(v.sup||v.shop||v.branch)}; }
 function supRows(x){ return x.audit.results.filter(function(r){ return !r.problem; }); }
 function setSup(r,field,val){ if(field==='group'){ var sp=supOf(r).sup; if(sp){ (SUP.list[sp]||(SUP.list[sp]={})).group=String(val||'').trim(); saveSup(); } return; }
@@ -1289,11 +1293,12 @@ function openSupTable(focusR){ var x=parsedFiles[activeFile]; if(!x)return;
     var miss=supMissing(x).length, nSel=Object.keys(checked).length, meta=SUP.shopsMeta;
     var supsHere={}; rows.forEach(function(r){ var s=supOf(r); if(s.sup){ var e=supsHere[s.sup]||(supsHere[s.sup]={n:0,branch:s.branch}); e.n++; } });
     var noShop=rows.filter(function(r){ return !supOf(r).inShops; }).length, nOld=Object.keys(SUP.center).length;
-    var shopBar='<div class="supbulk" style="grid-template-columns:1fr auto;'+(meta?'':'border-color:var(--warn);')+'"><div>'+(meta?'<b>店铺资料</b>：'+meta.count+' 家店（'+esc(meta.date)+' 导入「'+esc(meta.file)+'」）。店铺编号对上了，督导 / 分公司 / 店铺名称会自动带出。'+(noShop?'<br><span style="color:var(--warn)">有 '+noShop+' 位的店铺编号在店铺资料里找不到，要手填，或者导入新的店铺资料。</span>':''):'<b style="color:var(--warn)">还没导入店铺资料</b>：'+(nOld?'现在只能用以前导入的督导文件里那 '+nOld+' 个店铺编号带出'+(noShop?'，这份有 <b>'+noShop+' 位</b>的店铺编号不在里面':'')+'。':'')+'导入系统导出的<b>店铺表</b>（.xls / .xlsx，有「店铺编号」「督导」栏的那份），所有店铺编号的督导、分公司、店铺名称就能自动带出。')+'</div>'+
-      '<button type="button" class="btn'+(meta?'':' pri')+'" id="shopImp">'+(meta?'更新店铺资料':'导入店铺资料')+'</button></div>';
+    var hasData=!!(meta||BUILTIN.count), src=[]; if(BUILTIN.count)src.push('网站内置 '+BUILTIN.count+' 家（'+esc(BUILTIN.updated||'')+' 更新）'); if(meta)src.push('这台电脑导入 '+meta.count+' 家（'+esc(meta.date)+'「'+esc(meta.file)+'」，优先用）');
+    var shopBar='<div class="supbulk" style="grid-template-columns:1fr auto;'+(hasData?'':'border-color:var(--warn);')+'"><div>'+(hasData?'<b>店铺资料</b>：'+src.join('；')+'。店铺编号对上了，督导 / 分公司 / 店铺名称会自动带出。'+(noShop?'<br><span style="color:var(--warn)">有 '+noShop+' 位的店铺编号在店铺资料里找不到（可能是新开的店），要手填，或者导入新的店铺表。</span>':''):'<b style="color:var(--warn)">没有店铺资料</b>：导入系统导出的<b>店铺表</b>（.xls / .xlsx），督导、分公司、店铺名称就能按店铺编号自动带出。')+'</div>'+
+      '<button type="button" class="btn'+(hasData?'':' pri')+'" id="shopImp">'+(hasData?'用新的店铺表更新':'导入店铺资料')+'</button></div>';
     var supKeys=Object.keys(supsHere);
     var grpBar=supKeys.length?'<div class="desc" style="margin:4px 0 6px"><b>督导 → 群</b>（每位督导填一次，这位督导的学员全部更新）</div><div class="suptblwrap2" style="border:1px solid var(--line);border-radius:10px;margin-bottom:12px;max-height:22vh;overflow:auto"><table class="suptbl"><thead><tr><th>督导</th><th>分公司</th><th>这份有几位</th><th>群</th></tr></thead><tbody>'+
-      supKeys.map(function(n){ var g=(SUP.list[n]||{}).group||''; return '<tr class="'+(g?'done':'miss')+'"><td>'+esc(n)+'</td><td>'+esc(supsHere[n].branch||'')+'</td><td>'+supsHere[n].n+' 位</td><td><input class="cell grpcell" data-sup="'+esc(n)+'" value="'+esc(g)+'" placeholder="填群名，例：729 / 贵州" aria-label="'+esc(n)+' 的群"></td></tr>'; }).join('')+'</tbody></table></div>':'';
+      supKeys.map(function(n){ var g=(SUP.list[n]||{}).group||BUILTIN.groups[n]||''; return '<tr class="'+(g?'done':'miss')+'"><td>'+esc(n)+'</td><td>'+esc(supsHere[n].branch||'')+'</td><td>'+supsHere[n].n+' 位</td><td><input class="cell grpcell" data-sup="'+esc(n)+'" value="'+esc(g)+'" placeholder="填群名，例：729 / 贵州" aria-label="'+esc(n)+' 的群"></td></tr>'; }).join('')+'</tbody></table></div>':'';
     function cell(r,f,v){ return '<td><input class="cell" data-k="'+esc(supKey(r))+'" data-f="'+f+'" value="'+esc(v||'')+'"'+(f==='sup'?' list="supList2"':(f==='shop'?' list="shopList2"':''))+' aria-label="'+esc(shortName(r.disp))+' '+f+'"></td>'; }
     var trs=order.map(function(c){ var g=groups[c], allOn=g.every(function(r){return checked[supKey(r)];});
       return '<tr class="grp"><td><input type="checkbox" class="grpchk" data-c="'+esc(c)+'"'+(allOn?' checked':'')+' aria-label="勾选店铺编号 '+esc(c)+' 的全部学员"></td><td colspan="8">店铺编号 <b class="code" data-copy="'+esc(c)+'" title="点一下复制">'+esc(c)+'</b>　·　'+g.length+' 位</td></tr>'+
@@ -1511,6 +1516,9 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-10-31', title:'可以把店铺资料放进网站', items:[
+    '网站如果有 name/shops.js（店铺编号 → 店铺名称、管理分公司、督导，以及督导 → 群），国内技术单打开就按店铺编号自动带出督导，不用每台电脑导入',
+    '没有这个文件时照旧：在督导表里导入店铺表；这台电脑导入的店铺表比网站上的优先用']},
   {date:'2026-10-31', title:'导入旧督导文件也能自动带出', items:[
     '只导入以前的督导文件时，同一个店铺编号也会自动带出督导和店铺名称（之前只认店铺表）；顺序：手填 > 店铺表 > 旧督导文件',
     '督导表标出来源：「✓ 自动」是店铺表、「✓ 旧文件」是旧督导文件；还没导店铺表时会说这份有几位找不到']},
