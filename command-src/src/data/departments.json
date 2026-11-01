@@ -1,0 +1,402 @@
+[
+ {
+  "id": "ceo",
+  "floor": "5F",
+  "room": "5f-ceo",
+  "name": {
+   "zh": "老板办公室",
+   "en": "CEO Office"
+  },
+  "summary": {
+   "zh": "老板看全公司、拍板重要决定。",
+   "en": "The CEO oversees the whole company and makes key calls."
+  },
+  "color": "#F59E0B"
+ },
+ {
+  "id": "exec",
+  "floor": "5F",
+  "room": "5f-exec",
+  "name": {
+   "zh": "高管团队",
+   "en": "Executive Management"
+  },
+  "summary": {
+   "zh": "各部门主管，把老板的决定变成计划。",
+   "en": "Department heads who turn decisions into plans."
+  },
+  "color": "#FB923C"
+ },
+ {
+  "id": "strategy",
+  "floor": "5F",
+  "room": "5f-strategy",
+  "name": {
+   "zh": "战略部",
+   "en": "Strategy Department"
+  },
+  "summary": {
+   "zh": "市场、品牌、活动策划；营销 AI 员工在这里。",
+   "en": "Market, brand and campaigns — home of the marketing AI team."
+  },
+  "color": "#F472B6",
+  "team": "marketing"
+ },
+ {
+  "id": "product",
+  "floor": "4F",
+  "room": "4f-product",
+  "name": {
+   "zh": "产品开发部",
+   "en": "Product Development"
+  },
+  "summary": {
+   "zh": "规划新功能、写需求、排优先级。",
+   "en": "Plans features, writes specs, sets priorities."
+  },
+  "color": "#A78BFA"
+ },
+ {
+  "id": "airesearch",
+  "floor": "4F",
+  "room": "4f-ai",
+  "name": {
+   "zh": "AI 研究部",
+   "en": "AI Research"
+  },
+  "summary": {
+   "zh": "研究新模型、做数据分析和看板。",
+   "en": "Researches models, runs analysis and dashboards."
+  },
+  "color": "#C084FC",
+  "team": "data"
+ },
+ {
+  "id": "uiux",
+  "floor": "4F",
+  "room": "4f-uiux",
+  "name": {
+   "zh": "UI/UX 设计",
+   "en": "UI/UX Design"
+  },
+  "summary": {
+   "zh": "设计界面和使用流程。",
+   "en": "Designs interfaces and user flows."
+  },
+  "color": "#E879F9"
+ },
+ {
+  "id": "dev",
+  "floor": "4F",
+  "room": "4f-dev",
+  "name": {
+   "zh": "软件开发部",
+   "en": "Software Development"
+  },
+  "summary": {
+   "zh": "把审核工具、网站做出来。",
+   "en": "Builds the review tools and the website."
+  },
+  "color": "#818CF8"
+ },
+ {
+  "id": "qa",
+  "floor": "4F",
+  "room": "4f-qa",
+  "name": {
+   "zh": "测试部",
+   "en": "Quality Assurance"
+  },
+  "summary": {
+   "zh": "上线前把关，找出问题。",
+   "en": "Gatekeeps releases and finds bugs."
+  },
+  "color": "#93C5FD"
+ },
+ {
+  "id": "tech",
+  "floor": "4F",
+  "room": "4f-tech",
+  "name": {
+   "zh": "技术部",
+   "en": "Technical Department"
+  },
+  "summary": {
+   "zh": "架构、部署、上线。",
+   "en": "Architecture, deployment and releases."
+  },
+  "color": "#7DD3FC"
+ },
+ {
+  "id": "ops",
+  "floor": "3F",
+  "room": "3f-ops",
+  "name": {
+   "zh": "营运部",
+   "en": "Operations"
+  },
+  "summary": {
+   "zh": "排班、流程、每日营运数字。",
+   "en": "Scheduling, processes and daily ops metrics."
+  },
+  "color": "#60A5FA"
+ },
+ {
+  "id": "finance",
+  "floor": "3F",
+  "room": "3f-fin",
+  "name": {
+   "zh": "财务部",
+   "en": "Finance"
+  },
+  "summary": {
+   "zh": "催款、现金流、报税。",
+   "en": "Collections, cash flow and tax prep."
+  },
+  "color": "#34D399",
+  "team": "finance"
+ },
+ {
+  "id": "hr",
+  "floor": "3F",
+  "room": "3f-hr",
+  "name": {
+   "zh": "人事部",
+   "en": "Human Resources"
+  },
+  "summary": {
+   "zh": "招人、入职、考核。",
+   "en": "Hiring, onboarding and reviews."
+  },
+  "color": "#A3E635",
+  "team": "hr"
+ },
+ {
+  "id": "admin",
+  "floor": "3F",
+  "room": "3f-admin",
+  "name": {
+   "zh": "行政部",
+   "en": "Administration"
+  },
+  "summary": {
+   "zh": "办公室、物资、日常行政。",
+   "en": "Office, supplies and daily admin."
+  },
+  "color": "#FDE047"
+ },
+ {
+  "id": "legal",
+  "floor": "3F",
+  "room": "3f-legal",
+  "name": {
+   "zh": "法务部",
+   "en": "Legal"
+  },
+  "summary": {
+   "zh": "看合同、查合规。",
+   "en": "Contracts and compliance."
+  },
+  "color": "#CBD5E1",
+  "team": "legal"
+ },
+ {
+  "id": "procurement",
+  "floor": "3F",
+  "room": "3f-proc",
+  "name": {
+   "zh": "采购部",
+   "en": "Procurement"
+  },
+  "summary": {
+   "zh": "供应商、报价、采购单。",
+   "en": "Vendors, quotes and purchase orders."
+  },
+  "color": "#FCA5A5"
+ },
+ {
+  "id": "cs",
+  "floor": "2F",
+  "room": "2f-cs",
+  "name": {
+   "zh": "客服部 · 名字审核组",
+   "en": "CS Department · Name Review"
+  },
+  "summary": {
+   "zh": "名正言顺名册：逐位学员核对新名，转繁体，记订单库。",
+   "en": "Name roster review: checks each new name, converts to Traditional, keeps the order DB."
+  },
+  "color": "#22D3EE",
+  "team": "cs.name"
+ },
+ {
+  "id": "claude",
+  "floor": "2F",
+  "room": "2f-claude",
+  "name": {
+   "zh": "Claude AI 助理组",
+   "en": "Claude AI Assistant Team"
+  },
+  "summary": {
+   "zh": "在 Claude 里帮客服回客人、分工单、写常见问题。",
+   "en": "Drafts replies, triages tickets and writes FAQs inside Claude."
+  },
+  "color": "#F97316",
+  "team": "cs.support"
+ },
+ {
+  "id": "complaint",
+  "floor": "2F",
+  "room": "2f-complaint",
+  "name": {
+   "zh": "投诉处理组",
+   "en": "Complaint Team"
+  },
+  "summary": {
+   "zh": "处理客诉、安抚客人、追踪结案。",
+   "en": "Handles complaints, calms customers, tracks to closure."
+  },
+  "color": "#F87171"
+ },
+ {
+  "id": "techsup",
+  "floor": "2F",
+  "room": "2f-techsup",
+  "name": {
+   "zh": "技术支持 · 技术单审核组",
+   "en": "Technical Support · Order Review"
+  },
+  "summary": {
+   "zh": "按规则标红、分文件、改页脚，转给专家。",
+   "en": "Flags by rule, splits files, fixes footers, forwards to experts."
+  },
+  "color": "#3B82F6",
+  "team": "cs.tech"
+ },
+ {
+  "id": "orders",
+  "floor": "2F",
+  "room": "2f-orders",
+  "name": {
+   "zh": "订单管理组",
+   "en": "Order Management"
+  },
+  "summary": {
+   "zh": "订单进度、改单、退款申请。",
+   "en": "Order status, changes and refund requests."
+  },
+  "color": "#2DD4BF"
+ },
+ {
+  "id": "svc",
+  "floor": "2F",
+  "room": "2f-svc",
+  "name": {
+   "zh": "服务中心支援",
+   "en": "Service Center Support"
+  },
+  "summary": {
+   "zh": "支援各地服务中心的问题。",
+   "en": "Supports regional service centers."
+  },
+  "color": "#38BDF8"
+ },
+ {
+  "id": "reception",
+  "floor": "1F",
+  "room": "1f-recep",
+  "name": {
+   "zh": "接待处",
+   "en": "Reception"
+  },
+  "summary": {
+   "zh": "接待访客、收发快递、引导。",
+   "en": "Greets visitors, handles parcels, guides guests."
+  },
+  "color": "#93C5FD"
+ },
+ {
+  "id": "security",
+  "floor": "1F",
+  "room": "1f-sec",
+  "name": {
+   "zh": "保安",
+   "en": "Security"
+  },
+  "summary": {
+   "zh": "门禁、巡逻、访客登记。",
+   "en": "Access control, patrols, visitor log."
+  },
+  "color": "#94A3B8"
+ },
+ {
+  "id": "infra",
+  "floor": "B1",
+  "room": "b1-server",
+  "name": {
+   "zh": "基础架构组",
+   "en": "Infrastructure"
+  },
+  "summary": {
+   "zh": "机房、服务器、储存。",
+   "en": "Server room, servers and storage."
+  },
+  "color": "#38BDF8"
+ },
+ {
+  "id": "aiops",
+  "floor": "B1",
+  "room": "b1-compute",
+  "name": {
+   "zh": "AI 运算组",
+   "en": "AI Computing"
+  },
+  "summary": {
+   "zh": "GPU 集群、AI 员工的运行环境。",
+   "en": "GPU cluster that runs every AI employee."
+  },
+  "color": "#22D3EE"
+ },
+ {
+  "id": "network",
+  "floor": "B1",
+  "room": "b1-net",
+  "name": {
+   "zh": "网络控制",
+   "en": "Network Control"
+  },
+  "summary": {
+   "zh": "网络、防火墙、流量。",
+   "en": "Network, firewall and traffic."
+  },
+  "color": "#60A5FA"
+ },
+ {
+  "id": "itmaint",
+  "floor": "B1",
+  "room": "b1-it",
+  "name": {
+   "zh": "IT 维护",
+   "en": "IT Maintenance"
+  },
+  "summary": {
+   "zh": "电脑、设备维修和更新。",
+   "en": "Device repair and updates."
+  },
+  "color": "#A5B4FC"
+ },
+ {
+  "id": "secops",
+  "floor": "B1",
+  "room": "b1-mon",
+  "name": {
+   "zh": "安全监控",
+   "en": "Security Monitoring"
+  },
+  "summary": {
+   "zh": "监控画面、资安警报。",
+   "en": "CCTV and security alerts."
+  },
+  "color": "#F87171"
+ }
+]

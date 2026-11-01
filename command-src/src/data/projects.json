@@ -1,0 +1,88 @@
+[
+ {
+  "id": "p-cmd",
+  "name": {
+   "zh": "AI 公司指挥中心",
+   "en": "AI Company Command Center"
+  },
+  "depts": [
+   "dev",
+   "uiux",
+   "tech"
+  ],
+  "lead": "dev-19",
+  "progress": 72,
+  "status": "on-track",
+  "due": "2026-11-15",
+  "demo": true
+ },
+ {
+  "id": "p-name3",
+  "name": {
+   "zh": "名字审核 v3",
+   "en": "Name Review v3"
+  },
+  "depts": [
+   "product",
+   "airesearch",
+   "qa",
+   "cs"
+  ],
+  "lead": "product-09",
+  "progress": 48,
+  "status": "on-track",
+  "due": "2026-12-01",
+  "demo": true
+ },
+ {
+  "id": "p-sync",
+  "name": {
+   "zh": "跨电脑同步审核纪录",
+   "en": "Cross-device review sync"
+  },
+  "depts": [
+   "dev",
+   "tech",
+   "procurement"
+  ],
+  "lead": "tech-26",
+  "progress": 30,
+  "status": "at-risk",
+  "due": "2026-12-15",
+  "demo": true
+ },
+ {
+  "id": "p-cs",
+  "name": {
+   "zh": "客服扩编计划",
+   "en": "CS expansion plan"
+  },
+  "depts": [
+   "exec",
+   "hr",
+   "ops"
+  ],
+  "lead": "exec-03",
+  "progress": 40,
+  "status": "on-track",
+  "due": "2026-11-30",
+  "demo": true
+ },
+ {
+  "id": "p-2027",
+  "name": {
+   "zh": "2027 年度规划",
+   "en": "2027 Annual Plan"
+  },
+  "depts": [
+   "strategy",
+   "exec",
+   "finance"
+  ],
+  "lead": "strategy-07",
+  "progress": 35,
+  "status": "on-track",
+  "due": "2026-12-20",
+  "demo": true
+ }
+]

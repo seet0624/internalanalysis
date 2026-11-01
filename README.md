@@ -6,7 +6,7 @@
 
 | 账号 | 看得到 |
 |---|---|
-| `dongfangcs` | 国内客服部：3D 客服部、名字审核、技术单审核、资料库；其他部门、老板办公室锁住 |
+| `dongfangcs` | 国内客服部：3D 客服部、名字审核、技术单审核、资料库、指挥中心 2F；其他部门、老板办公室锁住 |
 | `martin` | 老板：全公司、今天的审核总览 |
 
 - 账号在 `hq/auth.js` 的 `ACCOUNTS`，存的是密码的 SHA-256（加盐），不是明码；加账号：在主控台 `HQAuth.hash('账号', '密码')` 算出来贴进去
@@ -65,9 +65,43 @@
 - 需求、去处、对话的设定在 `hq/office.js` 开头的 `NEEDS`、`ACT`、`CHATS`
 - 网址加 `?debug`，主控台可以用 `hqOffice`（例如 `hqOffice.info()` 看绘制次数）
 
+## AI 公司指挥中心（`command/`）
+
+一整栋 7 层楼的 3D 剖面大楼（B1 数据中心、1F 大堂、2F 客服与服务中心、3F 营运、4F 产品研发、5F 高层、R 天台），深色玻璃风的企业控制台。首页工具列的「AI 指挥中心」进入。
+
+- **整栋大楼**：每层楼旁边有楼层标签（人数、AI 数、进行中任务），点楼层或标签进入；拖曳旋转、滚轮缩放
+- **单层楼**：上面的楼层升起淡出、下面的变透明；部门标签（在座 / 工位、AI 数、工作中人数）、员工和 AI 员工（AI 是浮动的发光人形，青色＝真实名单、紫色＝示范）、状态光圈、任务标记；可切 **2D 平面**、显示工位编号
+- **右边「公司情报」**：全公司 KPI、AI 动态、AI 建议、警报、通知；选楼层 → 楼层介绍、部门目录、员工、任务、时间线；选部门 → 成员和任务；选员工 → 资料卡、目前任务、表现、执行纪录（客服组的 AI 员工可以直接「打开工具」或「复制 Claude 指令」）
+- **左边选单**：部门与团队、AI 员工、任务中心（看板）、项目、公司沟通、知识库（合进来的手册）、分析与报表、系统设置；底部是账号、设置、登出
+- **底部「公司沟通」**：全公司、部门、AI 沟通、任务更新、系统通知、时间线
+- 上方：搜索（部门、员工、AI、任务）、楼层选单、3D / 2D、放大缩小、重设镜头、全屏、筛选（员工 / AI / 部门）、中英切换、通知、AI 助理（在浏览器里查公司资料回答，例如「2F 谁在工作」「卡住的任务」）
+- **资料**：2F 客服部三个组、财务、人事、法务、营销、数据的员工来自 `hq/company.js`（真实名单）；名字审核 / 技术单审核处理完文件，2F 对应 AI 员工的状态、任务、执行纪录和上方即时通知会马上更新（同一个浏览器）。其他楼层的员工、任务、项目是**示范资料**，界面都标「示范」
+- **权限**：老板 `martin` 每层都能进；国内客服 `dongfangcs` 只能进 2F，其他楼层看得到外观、进不去
+
+### 改指挥中心
+
+原始码在 `command-src/`（Vite + React + TypeScript + Tailwind + React Three Fiber + Lucide），打包到 `command/`。资料和界面分开：
+
+| 文件 | 内容 |
+|---|---|
+| `command-src/src/data/floors.json` | 楼层和房间平面（36 × 22 公尺，中间走廊、电梯核心不能压） |
+| `command-src/src/data/departments.json` | 部门在哪层、哪个房间；写 `team` 的用 `hq/company.js` 真实名单 |
+| `command-src/src/data/people.json` | 示范员工、示范 AI 员工 |
+| `command-src/src/data/tasks.json` 等 | 任务、项目、公司对话、AI 建议 |
+
+```
+cd command-src
+npm ci           # 第一次
+npm run check    # 检查资料（重复 id、房间重叠、部门房间不存在…）
+npm run build    # 检查 + 型别检查 + 打包到 ../command/
+```
+
+改完把 `command-src/` 和 `command/` 一起提交。Claude 的专用 skill：`.claude/skills/command-center`（加楼层 / 部门 / AI 员工）、`.claude/skills/hq-new-tool`（加新审核工具并接进登入、3D 总部、指挥中心）。
+
 ## 国内访问
 
 - 不用 Google 字体，改用电脑自带的中文字体（苹方、微软雅黑、宋体 / 细明体）
+- 指挥中心的 React、Three.js 等全部打包在 `command/assets/`，不连外网
 - ExcelJS 4.4.0、JSZip 3.10.1、Three.js 0.170.0 放在 `vendor/`，跟网站一起放，不依赖外网 CDN；Excel / zip 本地文件没载入时才退回 cdnjs / jsdelivr
 - SheetJS 0.18.5（`vendor/xlsx.full.min.js`）只在名字审核「导入店铺资料」时才载入，用来读系统导出的 .xls 店铺表
 - 唯一会连外网的是墙上的画（Unsplash），载不到不影响使用
@@ -90,6 +124,8 @@ name/index.html     名字审核
 name/shops.js       名字审核内置的店铺资料：店铺编号 → 店铺名称、管理分公司、督导，以及督导 → 群（负责人 2026-10-31 同意公开；不放联系人 / 电话；有新店铺表就换这个文件）
 tech/index.html     技术单审核台（界面）
 tech/review-engine.js  技术单审核规则引擎
+command/            AI 公司指挥中心（打包好的，不要手改）
+command-src/        指挥中心原始码和资料（不会放上网站）
 vendor/             ExcelJS、JSZip、SheetJS（读 .xls）、three/（Three.js）
 deploy/             上传到阿里云 OSS 的程序和上线步骤（不会放上网站）
 ```

@@ -1,0 +1,436 @@
+[
+ {
+  "id": "t01",
+  "title": {
+   "zh": "批准 Q4 预算",
+   "en": "Approve Q4 budget"
+  },
+  "dept": "ceo",
+  "owner": "ceo-01",
+  "status": "review",
+  "priority": "high",
+  "progress": 80,
+  "due": "2026-11-05",
+  "demo": true
+ },
+ {
+  "id": "t02",
+  "title": {
+   "zh": "客服人力计划",
+   "en": "CS staffing plan"
+  },
+  "dept": "exec",
+  "owner": "exec-04",
+  "status": "active",
+  "priority": "high",
+  "progress": 60,
+  "due": "2026-11-08",
+  "demo": true,
+  "project": "p-cs"
+ },
+ {
+  "id": "t03",
+  "title": {
+   "zh": "部门 KPI 月报",
+   "en": "Monthly KPI report"
+  },
+  "dept": "exec",
+  "owner": "exec-03",
+  "status": "active",
+  "priority": "medium",
+  "progress": 45,
+  "due": "2026-11-10",
+  "demo": true
+ },
+ {
+  "id": "t04",
+  "title": {
+   "zh": "2027 年度规划",
+   "en": "2027 annual plan"
+  },
+  "dept": "strategy",
+  "owner": "strategy-08",
+  "status": "active",
+  "priority": "high",
+  "progress": 35,
+  "due": "2026-11-30",
+  "demo": true,
+  "project": "p-2027"
+ },
+ {
+  "id": "t05",
+  "title": {
+   "zh": "双十一活动文案",
+   "en": "Singles' Day campaign copy"
+  },
+  "dept": "strategy",
+  "owner": "strategy-07",
+  "status": "completed",
+  "priority": "urgent",
+  "progress": 100,
+  "due": "2026-11-01",
+  "demo": true
+ },
+ {
+  "id": "t06",
+  "title": {
+   "zh": "名字审核 v3 需求",
+   "en": "Name review v3 spec"
+  },
+  "dept": "product",
+  "owner": "product-10",
+  "status": "active",
+  "priority": "high",
+  "progress": 70,
+  "due": "2026-11-06",
+  "demo": true,
+  "project": "p-name3"
+ },
+ {
+  "id": "t07",
+  "title": {
+   "zh": "新功能优先级排序",
+   "en": "Feature prioritization"
+  },
+  "dept": "product",
+  "owner": "product-09",
+  "status": "pending",
+  "priority": "medium",
+  "progress": 0,
+  "due": "2026-11-07",
+  "demo": true,
+  "project": "p-name3"
+ },
+ {
+  "id": "t08",
+  "title": {
+   "zh": "新模型核名准确率测试",
+   "en": "New model name-check accuracy"
+  },
+  "dept": "airesearch",
+  "owner": "airesearch-14",
+  "status": "active",
+  "priority": "high",
+  "progress": 55,
+  "due": "2026-11-09",
+  "demo": true,
+  "project": "p-name3"
+ },
+ {
+  "id": "t09",
+  "title": {
+   "zh": "审核错误类型分析",
+   "en": "Review error analysis"
+  },
+  "dept": "airesearch",
+  "owner": "airesearch-13",
+  "status": "active",
+  "priority": "medium",
+  "progress": 40,
+  "due": "2026-11-12",
+  "demo": true
+ },
+ {
+  "id": "t10",
+  "title": {
+   "zh": "指挥中心深色主题",
+   "en": "Command center dark theme"
+  },
+  "dept": "uiux",
+  "owner": "uiux-17",
+  "status": "review",
+  "priority": "medium",
+  "progress": 90,
+  "due": "2026-11-03",
+  "demo": true,
+  "project": "p-cmd"
+ },
+ {
+  "id": "t11",
+  "title": {
+   "zh": "楼层 3D 视图",
+   "en": "3D floor view"
+  },
+  "dept": "dev",
+  "owner": "dev-19",
+  "status": "active",
+  "priority": "high",
+  "progress": 75,
+  "due": "2026-11-04",
+  "demo": true,
+  "project": "p-cmd"
+ },
+ {
+  "id": "t12",
+  "title": {
+   "zh": "审核事件服务器",
+   "en": "Review event server"
+  },
+  "dept": "dev",
+  "owner": "dev-20",
+  "status": "active",
+  "priority": "high",
+  "progress": 30,
+  "due": "2026-11-15",
+  "demo": true,
+  "project": "p-sync"
+ },
+ {
+  "id": "t13",
+  "title": {
+   "zh": "修复部署脚本",
+   "en": "Fix deploy script"
+  },
+  "dept": "dev",
+  "owner": "dev-19",
+  "status": "blocked",
+  "priority": "urgent",
+  "progress": 20,
+  "due": "2026-11-02",
+  "demo": true,
+  "project": "p-cmd"
+ },
+ {
+  "id": "t14",
+  "title": {
+   "zh": "繁体转换回归测试",
+   "en": "Traditional conversion regression"
+  },
+  "dept": "qa",
+  "owner": "qa-25",
+  "status": "active",
+  "priority": "medium",
+  "progress": 65,
+  "due": "2026-11-05",
+  "demo": true,
+  "project": "p-name3"
+ },
+ {
+  "id": "t15",
+  "title": {
+   "zh": "国内 CDN 评估",
+   "en": "China CDN evaluation"
+  },
+  "dept": "tech",
+  "owner": "tech-26",
+  "status": "active",
+  "priority": "high",
+  "progress": 50,
+  "due": "2026-11-08",
+  "demo": true,
+  "project": "p-sync"
+ },
+ {
+  "id": "t16",
+  "title": {
+   "zh": "下周客服排班",
+   "en": "Next week's CS shifts"
+  },
+  "dept": "ops",
+  "owner": "ops-29",
+  "status": "active",
+  "priority": "medium",
+  "progress": 80,
+  "due": "2026-11-02",
+  "demo": true
+ },
+ {
+  "id": "t17",
+  "title": {
+   "zh": "退款流程优化",
+   "en": "Refund process redesign"
+  },
+  "dept": "ops",
+  "owner": "ops-28",
+  "status": "pending",
+  "priority": "medium",
+  "progress": 10,
+  "due": "2026-11-20",
+  "demo": true,
+  "project": "p-cs"
+ },
+ {
+  "id": "t18",
+  "title": {
+   "zh": "10 月对账",
+   "en": "October reconciliation"
+  },
+  "dept": "finance",
+  "owner": "finance-31",
+  "status": "active",
+  "priority": "high",
+  "progress": 70,
+  "due": "2026-11-05",
+  "demo": true
+ },
+ {
+  "id": "t19",
+  "title": {
+   "zh": "新客服入职",
+   "en": "Onboard new CS agents"
+  },
+  "dept": "hr",
+  "owner": "hr-32",
+  "status": "pending",
+  "priority": "medium",
+  "progress": 0,
+  "due": "2026-11-04",
+  "demo": true,
+  "project": "p-cs"
+ },
+ {
+  "id": "t20",
+  "title": {
+   "zh": "会议室设备采购",
+   "en": "Meeting-room equipment"
+  },
+  "dept": "admin",
+  "owner": "admin-34",
+  "status": "active",
+  "priority": "low",
+  "progress": 40,
+  "due": "2026-11-12",
+  "demo": true
+ },
+ {
+  "id": "t21",
+  "title": {
+   "zh": "服务中心合约审阅",
+   "en": "Service-center contract review"
+  },
+  "dept": "legal",
+  "owner": "legal-35",
+  "status": "review",
+  "priority": "high",
+  "progress": 85,
+  "due": "2026-11-04",
+  "demo": true
+ },
+ {
+  "id": "t22",
+  "title": {
+   "zh": "服务器报价比较",
+   "en": "Server quote comparison"
+  },
+  "dept": "procurement",
+  "owner": "procurement-37",
+  "status": "active",
+  "priority": "medium",
+  "progress": 50,
+  "due": "2026-11-10",
+  "demo": true,
+  "project": "p-sync"
+ },
+ {
+  "id": "t23",
+  "title": {
+   "zh": "改名投诉跟进",
+   "en": "Rename complaint follow-ups"
+  },
+  "dept": "complaint",
+  "owner": "complaint-39",
+  "status": "active",
+  "priority": "urgent",
+  "progress": 50,
+  "due": "2026-11-02",
+  "demo": true
+ },
+ {
+  "id": "t24",
+  "title": {
+   "zh": "改单申请处理",
+   "en": "Order change requests"
+  },
+  "dept": "orders",
+  "owner": "orders-43",
+  "status": "active",
+  "priority": "high",
+  "progress": 60,
+  "due": "2026-11-02",
+  "demo": true
+ },
+ {
+  "id": "t25",
+  "title": {
+   "zh": "华南服务中心问题",
+   "en": "South China center issues"
+  },
+  "dept": "svc",
+  "owner": "svc-45",
+  "status": "active",
+  "priority": "medium",
+  "progress": 45,
+  "due": "2026-11-03",
+  "demo": true
+ },
+ {
+  "id": "t26",
+  "title": {
+   "zh": "访客登记系统",
+   "en": "Visitor check-in system"
+  },
+  "dept": "reception",
+  "owner": "reception-48",
+  "status": "completed",
+  "priority": "low",
+  "progress": 100,
+  "due": "2026-10-30",
+  "demo": true
+ },
+ {
+  "id": "t27",
+  "title": {
+   "zh": "更换故障硬盘",
+   "en": "Replace failed disks"
+  },
+  "dept": "infra",
+  "owner": "infra-50",
+  "status": "active",
+  "priority": "high",
+  "progress": 50,
+  "due": "2026-11-02",
+  "demo": true
+ },
+ {
+  "id": "t28",
+  "title": {
+   "zh": "GPU 排程优化",
+   "en": "GPU scheduling tune-up"
+  },
+  "dept": "aiops",
+  "owner": "aiops-53",
+  "status": "active",
+  "priority": "medium",
+  "progress": 35,
+  "due": "2026-11-09",
+  "demo": true
+ },
+ {
+  "id": "t29",
+  "title": {
+   "zh": "华南线路延迟",
+   "en": "South China link latency"
+  },
+  "dept": "network",
+  "owner": "network-54",
+  "status": "blocked",
+  "priority": "urgent",
+  "progress": 15,
+  "due": "2026-11-01",
+  "demo": true
+ },
+ {
+  "id": "t30",
+  "title": {
+   "zh": "登入异常调查",
+   "en": "Login anomaly investigation"
+  },
+  "dept": "secops",
+  "owner": "secops-58",
+  "status": "active",
+  "priority": "high",
+  "progress": 40,
+  "due": "2026-11-02",
+  "demo": true
+ }
+]

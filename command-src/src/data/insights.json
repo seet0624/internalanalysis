@@ -1,0 +1,62 @@
+[
+ {
+  "id": "i1",
+  "kind": "recommend",
+  "floor": "2F",
+  "text": {
+   "zh": "订单管理组 62 张未完成订单，建议从投诉组调 1 人支援 2 小时。",
+   "en": "Order Management has 62 open orders — lend 1 complaint agent for 2 hours."
+  },
+  "demo": true
+ },
+ {
+  "id": "i2",
+  "kind": "recommend",
+  "floor": "4F",
+  "text": {
+   "zh": "部署脚本被卡住，影响指挥中心上线；建议先补上 OSS 钥匙。",
+   "en": "Deploy script is blocked and delays launch — add the OSS keys first."
+  },
+  "demo": true
+ },
+ {
+  "id": "i3",
+  "kind": "alert",
+  "floor": "B1",
+  "text": {
+   "zh": "华南线路延迟 380ms，服务中心支援可能变慢。",
+   "en": "South China link at 380 ms — service center support may slow down."
+  },
+  "demo": true
+ },
+ {
+  "id": "i4",
+  "kind": "alert",
+  "floor": "4F",
+  "text": {
+   "zh": "软件开发部 1 位员工状态「错误」。",
+   "en": "1 employee in Software Development reports an error."
+  },
+  "demo": true
+ },
+ {
+  "id": "i5",
+  "kind": "notice",
+  "floor": "5F",
+  "text": {
+   "zh": "下午 3 点董事会议室：Q4 预算会议。",
+   "en": "3 pm Boardroom: Q4 budget meeting."
+  },
+  "demo": true
+ },
+ {
+  "id": "i6",
+  "kind": "notice",
+  "floor": "1F",
+  "text": {
+   "zh": "今天有 2 位访客预约，前台已准备访客证。",
+   "en": "2 visitors booked today; badges ready at reception."
+  },
+  "demo": true
+ }
+]
