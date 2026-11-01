@@ -20,7 +20,9 @@ export type FloorLayout = {
   labels: RoomLabel[];
   doors: Record<string, Door>;     // room id → 门（员工走路一定从门进出）
   plaques: Plaque[];
+  art: Art[];                      // 照片材质的装饰：丝毯（平放）、山水画（挂墙）
 };
+export type Art = { kind: 'rug' | 'painting'; x: number; y: number; z: number; w: number; h: number; flat: boolean };
 
 const mix = (a: string, b: string, t: number) => {
   const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
@@ -29,7 +31,7 @@ const mix = (a: string, b: string, t: number) => {
 };
 
 class Builder {
-  L: FloorLayout = { box: [], cyl: [], sph: [], glow: [], glowCyl: [], glass: [], tiles: [], trees: [], seats: {}, labels: [], doors: {}, plaques: [] };
+  L: FloorLayout = { box: [], cyl: [], sph: [], glow: [], glowCyl: [], glass: [], tiles: [], trees: [], seats: {}, labels: [], doors: {}, plaques: [], art: [] };
   tree(x: number, y: number, z: number, kind: TreeKind, h: number) {
     this.L.trees.push({ x, y, z, kind, h, ry: ((x * 7.3 + z * 3.1) % 6.28) });
   }
@@ -212,8 +214,7 @@ function furnish(b: Builder, r: RR, accent: string) {
     case 'exec': {
       // 老板 / 组长办公室（电影里那种）：丝毯、胡桃木大班台、高背皮椅、整面书柜、中式茶桌、皮沙发、山水画、落地灯
       const dz = r.z0 + 2.3;
-      b.rug(cx, cz + 0.2, r.w - 1.6, r.d - 2.4, '#C9B48F');
-      b.rug(cx, cz + 0.2, r.w - 2.0, r.d - 2.8, '#D8C7A3');
+      b.L.art.push({ kind: 'rug', x: cx, y: 0.02, z: cz + 0.4, w: Math.min(r.w - 1.8, 5), h: Math.min(r.d - 3.2, 4.2), flat: true });
       b.box(cx, 0.72, dz, 2.5, 0.07, 1.05, '#5A3A28');                      // 大班台桌面
       b.box(cx - 0.98, 0, dz, 0.55, 0.72, 0.95, '#6B4A33');                  // 左右抽屉柜
       b.box(cx + 0.98, 0, dz, 0.55, 0.72, 0.95, '#6B4A33');
@@ -246,10 +247,8 @@ function furnish(b: Builder, r: RR, accent: string) {
       b.cyl(cx + 0.8, 0.6, r.z0 + 0.35, 0.16, 0.12, '#2E4A6E');
       b.tree(cx + 0.8, 0.7, r.z0 + 0.35, 'bush', 0.5);
       b.cyl(cx - 0.8, 0.6, r.z0 + 0.35, 0.09, 0.4, '#E8E4DC');               // 青花瓷瓶
-      b.box(cx, 1.15, r.z0 + 0.2, 1.9, 0.95, 0.04, '#3A2A20');               // 画框
-      b.glow(cx, 1.2, r.z0 + 0.23, 1.78, 0.85, 0.01, '#DCE3DA');             // 山水画
-      b.glow(cx - 0.3, 1.3, r.z0 + 0.24, 0.9, 0.3, 0.005, '#9DB0A3');
-      b.glow(cx + 0.35, 1.25, r.z0 + 0.24, 0.6, 0.22, 0.005, '#B5C3B8');
+      b.box(cx, 1.05, r.z0 + 0.2, 1.95, 1.08, 0.04, '#3A2A20');              // 画框
+      b.L.art.push({ kind: 'painting', x: cx, y: 1.59, z: r.z0 + 0.225, w: 1.8, h: 0.98, flat: false });   // 山水画（Krea）
       // 茶桌（右边）：实木茶台、茶盘、茶壶、茶杯、两张圈椅
       const tx = r.x1 - 1.5, tz = cz + 1.0;
       b.box(tx, 0, tz, 1.3, 0.48, 0.7, '#4A3326');
@@ -291,7 +290,8 @@ function furnish(b: Builder, r: RR, accent: string) {
         b.box(r.x0 + 2.2, 0, r.z0 + 1.2, 3.2, 1.05, 0.6, C.wood);
         b.glow(r.x0 + 2.2, 1.05, r.z0 + 1.52, 3.2, 0.03, 0.02, accent);
       }
-      b.rug(cx, cz + 0.4, Math.min(r.w - 2, 6), Math.min(r.d - 2.5, 4));
+      b.L.art.push({ kind: 'rug', x: cx, y: 0.02, z: cz + 0.4, w: Math.min(r.w - 2, 6), h: Math.min(r.d - 2.5, 4), flat: true });
+      if (r.z0 <= -D / 2 + 0.01) { b.box(cx, 1.05, r.z0 + 0.2, 2.5, 1.38, 0.04, '#3A2A20'); b.L.art.push({ kind: 'painting', x: cx, y: 1.74, z: r.z0 + 0.225, w: 2.36, h: 1.25, flat: false }); }
       b.sofa(cx, cz - 1.2, 2.6, 0);
       b.sofa(cx, cz + 2.0, 2.6, Math.PI, C.sofaAlt);
       b.sofa(cx - 2.2, cz + 0.4, 1.8, Math.PI / 2);

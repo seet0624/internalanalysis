@@ -7,6 +7,7 @@ import { D, SLAB, W } from './constants';
 import { Batch } from './Batch';
 import { GEO } from './shared';
 import type { Prim } from './layout';
+import { photoTexture } from './textures';
 
 export type ShellMode = 'closed' | 'cut' | 'hidden';
 export type ShellKind = 'hall' | 'garden' | 'earth';
@@ -55,11 +56,11 @@ function tiles() {
 }
 
 export function makeShellMats() {
-  const wallH = new THREE.MeshStandardMaterial({ map: lattice().clone(), roughness: 0.9 });
-  const wallV = new THREE.MeshStandardMaterial({ map: lattice().clone(), roughness: 0.9 });
-  (wallH.map as THREE.Texture).repeat.set((W + 0.3) / 6, 1); (wallH.map as THREE.Texture).needsUpdate = true;
-  (wallV.map as THREE.Texture).repeat.set((D + 0.3) / 6, 1); (wallV.map as THREE.Texture).needsUpdate = true;
-  const roof = new THREE.MeshStandardMaterial({ map: tiles(), roughness: 0.75, metalness: 0.05, side: THREE.DoubleSide });
+  // Krea 生成的真实材质：白墙 + 冰裂纹花窗（一扇 3 公尺）、灰色筒瓦
+  const wallH = new THREE.MeshStandardMaterial({ map: photoTexture('lattice', (W + 0.3) / 3.4, 1), roughness: 0.9 });
+  const wallV = new THREE.MeshStandardMaterial({ map: photoTexture('lattice', (D + 0.3) / 3.4, 1), roughness: 0.9 });
+  const roof = new THREE.MeshStandardMaterial({ map: photoTexture('roof', 18, 3), roughness: 0.75, metalness: 0.05, side: THREE.DoubleSide });
+  void lattice; void tiles;   // 程序画的版本留着当备用
   const std = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.7, metalness: 0.05 });
   const grass = new THREE.MeshStandardMaterial({ color: '#7FA86A', roughness: 1 });
   const all = [wallH, wallV, roof, std, grass];

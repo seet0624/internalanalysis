@@ -19,7 +19,8 @@ import { useLive, recentLine } from '../lib/live';
 import { describeEvent } from '../lib/company';
 import { buildLogoWall } from '../../../hq/campus.js';
 import { Pavilion, makeShellMats, type ShellMode, type ShellKind } from './Pavilion';
-import type { Plaque } from './layout';
+import type { Art, Plaque, Prim } from './layout';
+import { photoTexture } from './textures';
 
 const LOGO = '../hq/brand/shuyi-logo-512.png';
 import { cn } from '../lib/cn';
@@ -54,9 +55,21 @@ export function FloorModel({ floor }: { floor: Floor }) {
     return null;
   }, [floor]);
   const fmats = useMemo(makeShellMats, []);
+  // 木头家具用胡桃木纹、台面用大理石纹（Krea 材质）；其他维持纯色
+  const looks = useMemo(() => {
+    const wood = new THREE.MeshStandardMaterial({ map: photoTexture('walnut', 1, 1), roughness: 0.55, metalness: 0.05 });
+    const marble = new THREE.MeshStandardMaterial({ map: photoTexture('marble', 1, 1), roughness: 0.25, metalness: 0.05 });
+    [wood, marble].forEach((x) => { x.userData.base = 1; });
+    return { wood, marble };
+  }, []);
+  const split = useMemo(() => splitByMaterial(layout.box), [layout]);
   const shellKind: ShellKind = floor.id === 'R' ? 'garden' : floor.id === 'B1' ? 'earth' : 'hall';
   const site = siteOf(floor.id);
-  const fadeList = useMemo(() => [...mats.all, edgeMat, ...tileMats, ...fmats.all, ...(extra?.materials ?? [])], [mats, edgeMat, tileMats, fmats, extra]);
+  const artMats = useMemo(() => layout.art.map((a) => {
+    const x = new THREE.MeshStandardMaterial({ map: photoTexture(a.kind, 1, 1, false), roughness: a.kind === 'rug' ? 0.95 : 0.8 });
+    x.userData.base = 1; return x;
+  }), [layout]);
+  const fadeList = useMemo(() => [...mats.all, edgeMat, ...tileMats, ...fmats.all, looks.wood, looks.marble, ...artMats, ...(extra?.materials ?? [])], [mats, edgeMat, tileMats, fmats, looks, artMats, extra]);
   const trees = useRef<THREE.Group>(null);
 
   // 公司资料每分钟重算一次（新物件）；人员没变就不要重排，不然走到一半的人会被拉回座位
@@ -184,7 +197,10 @@ export function FloorModel({ floor }: { floor: Floor }) {
           onPointerOut={isSel ? () => { document.body.style.cursor = ''; } : undefined}
         />
       ))}
-      <Batch prims={layout.box} geometry={GEO.box} material={mats.std} />
+      <Batch prims={split.other} geometry={GEO.box} material={mats.std} />
+      <Batch prims={split.wood} geometry={GEO.box} material={looks.wood} />
+      <Batch prims={split.marble} geometry={GEO.box} material={looks.marble} />
+      {layout.art.map((a, i) => <ArtPiece key={i} a={a} mat={artMats[i]} />)}
       <Batch prims={layout.cyl} geometry={GEO.cyl} material={mats.std} />
       <Batch prims={layout.sph} geometry={GEO.sph} material={mats.std} />
       <Batch prims={layout.glow} geometry={GEO.box} material={mats.glow} />
@@ -259,6 +275,27 @@ export function FloorModel({ floor }: { floor: Floor }) {
       ))}
       {isSel && labelsOn && hovered && <PersonTip p={hovered.person} x={hovered.x} z={hovered.z} />}
     </group>
+  );
+}
+
+// 哪些颜色是木头、哪些是大理石：改用照片材质；颜色换成明暗（照片本身就有颜色）
+const WOOD: Record<string, string> = { '#6B4A33': '#FFFFFF', '#5A3A28': '#D9CFC7', '#8C6A4C': '#FFF1E2', '#4A3326': '#BFB2A6', '#3A2A20': '#A89B90', '#B8956A': '#FFF6EA', '#A08C76': '#F5EDE4' };
+const MARBLE: Record<string, string> = { '#EDEAE4': '#FFFFFF', '#F6F3EE': '#FFFFFF', '#ECE8E1': '#F7F5F2', '#ECE6DC': '#FFFFFF' };
+function splitByMaterial(prims: Prim[]) {
+  const wood: Prim[] = [], marble: Prim[] = [], other: Prim[] = [];
+  for (const p of prims) {
+    const k = p.c.toUpperCase();
+    if (WOOD[k]) wood.push({ ...p, c: WOOD[k] });
+    else if (MARBLE[k]) marble.push({ ...p, c: MARBLE[k] });
+    else other.push(p);
+  }
+  return { wood, marble, other };
+}
+function ArtPiece({ a, mat }: { a: Art; mat: THREE.Material }) {
+  return (
+    <mesh position={[a.x, a.y, a.z]} rotation={a.flat ? [-Math.PI / 2, 0, 0] : [0, 0, 0]} material={mat} receiveShadow raycast={() => null}>
+      <planeGeometry args={[a.w, a.h]} />
+    </mesh>
   );
 }
 

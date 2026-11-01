@@ -8,7 +8,7 @@ import { GEO } from './shared';
 import type { Prim } from './layout';
 import { TreeField, type TreeSpot } from './Trees';
 import { D, LAKE, SITE, SLAB, W } from './constants';
-import { surfaceTexture } from './textures';
+import { photoTexture } from './textures';
 
 const Y = -SLAB - 0.58;                    // 地面高度（建筑台基底下）
 const P = (x: number, y: number, z: number, sx: number, sy: number, sz: number, c: string, r?: [number, number, number]): Prim => ({ p: [x, y + sy / 2, z], s: [sx, sy, sz], c, r });
@@ -35,9 +35,10 @@ export function Resort() {
   const mats = useMemo(() => ({
     std: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.75, metalness: 0.04 }),
     glow: new THREE.MeshBasicMaterial({ color: '#ffffff', toneMapped: false }),
-    water: new THREE.MeshStandardMaterial({ color: '#5E8F95', roughness: 0.08, metalness: 0.35, transparent: true, opacity: 0.92 }),
-    grass: new THREE.MeshStandardMaterial({ color: '#A9C68A', roughness: 1 }),
-    stone: (() => { const t = surfaceTexture('stone', 1, 1); t.repeat.set(0.4, 0.4); return new THREE.MeshStandardMaterial({ map: t, color: '#CFC8BA', roughness: 0.8 }); })()
+    water: new THREE.MeshStandardMaterial({ map: photoTexture('water', 0.06, 0.06), color: '#B7D3CF', roughness: 0.06, metalness: 0.3, transparent: true, opacity: 0.95 }),
+    grass: new THREE.MeshStandardMaterial({ color: '#A9C68A', roughness: 1 }),   // 远看用纯色（草的照片会出现格子纹）
+    stone: new THREE.MeshStandardMaterial({ map: photoTexture('paving', 1.5, 1.5), color: '#F2EEE6', roughness: 0.85 }),
+    shore: new THREE.MeshStandardMaterial({ map: photoTexture('paving', 0.3, 0.3), color: '#EEEAE2', roughness: 0.85 })
   }), []);
   const geo = useMemo(() => ({ lake: new THREE.ShapeGeometry(lakeShape()), shore: new THREE.ShapeGeometry(lakeShape(1.07)) }), []);
 
@@ -157,7 +158,8 @@ export function Resort() {
   // 湖心亭屋顶（六角攒尖）
   const pavRoof = useMemo(() => new THREE.ConeGeometry(5.2, 2.6, 6), []);
   const roofMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#4B5057', roughness: 0.7 }), []);
-  useFrame(({ clock }) => { mats.water.color.setHSL(0.51, 0.22, 0.47 + Math.sin(clock.elapsedTime * 0.4) * 0.01); });
+  // 湖水慢慢流动
+  useFrame((_, dt) => { const m = mats.water.map; if (m) { m.offset.x += dt * 0.004; m.offset.y += dt * 0.0025; } });
 
   return (
     <group>
@@ -175,7 +177,7 @@ export function Resort() {
         <meshStandardMaterial color="#B3C59F" roughness={1} />
       </mesh>
       {/* 湖：石岸 + 水 */}
-      <mesh geometry={geo.shore} rotation={[-Math.PI / 2, 0, 0]} position={[0, Y + 0.02, 0]} material={mats.stone} raycast={() => null} />
+      <mesh geometry={geo.shore} rotation={[-Math.PI / 2, 0, 0]} position={[0, Y + 0.02, 0]} material={mats.shore} raycast={() => null} />
       <mesh geometry={geo.lake} rotation={[-Math.PI / 2, 0, 0]} position={[0, Y + 0.08, 0]} material={mats.water} receiveShadow raycast={() => null} />
       <Batch prims={scene.paths} geometry={GEO.box} material={mats.stone} />
       <Batch prims={scene.box} geometry={GEO.box} material={mats.std} />
