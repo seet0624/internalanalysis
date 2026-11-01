@@ -34,7 +34,7 @@ const nearBuilding = (x: number, z: number, pad = 6) => Object.values(SITE).some
 export function Resort() {
   const mats = useMemo(() => ({
     std: new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.75, metalness: 0.04 }),
-    glow: new THREE.MeshBasicMaterial({ color: '#ffffff', toneMapped: false }),
+    glow: (() => { const m = new THREE.MeshBasicMaterial({ color: '#ffffff', toneMapped: false }); m.color.setScalar(1.6); return m; })(),   // 灯笼会发光
     water: new THREE.MeshStandardMaterial({ map: photoTexture('water', 0.06, 0.06), color: '#B7D3CF', roughness: 0.06, metalness: 0.3, transparent: true, opacity: 0.95 }),
     grass: new THREE.MeshStandardMaterial({ color: '#A9C68A', roughness: 1 }),   // 远看用纯色（草的照片会出现格子纹）
     stone: new THREE.MeshStandardMaterial({ map: photoTexture('paving', 1.5, 1.5), color: '#F2EEE6', roughness: 0.85 }),

@@ -12,9 +12,11 @@
   "dependencies": {
     "@react-three/drei": "^9.117.3",
     "@react-three/fiber": "^8.17.10",
+    "@react-three/postprocessing": "^2.16.6",
     "@supabase/supabase-js": "^2.118.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.460.0",
+    "postprocessing": "^6.36.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.5.4",

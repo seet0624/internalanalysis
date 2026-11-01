@@ -28,6 +28,7 @@ export type FloorMats = {
 export function makeFloorMats(): FloorMats {
   const std = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.55, metalness: 0.08 });
   const glow = new THREE.MeshBasicMaterial({ color: '#ffffff', toneMapped: false });
+  glow.color.setScalar(1.3);   // 比白色再亮一点：后期处理的泛光会让灯、屏幕、灯笼发光
   const glass = new THREE.MeshStandardMaterial({ color: '#F3EAD3', roughness: 0.05, metalness: 0.25, transparent: true, opacity: 0.22, depthWrite: false });
   const slab = new THREE.MeshStandardMaterial({ color: '#E2DCD1', roughness: 0.85, metalness: 0.05 });   // 浅色楼板
   const person = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.7 });

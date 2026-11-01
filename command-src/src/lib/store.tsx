@@ -1,10 +1,11 @@
 // 整个指挥中心的界面状态：现在看哪一层、选了谁、镜头、筛选、设置。
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { buildCompany, type CompanyModel, type HQEvent } from './company';
+import { defaultQuality, isQuality, type Quality } from './graphics';
 
 export type Section = 'features' | 'missions' | 'overview' | 'building' | 'departments' | 'ai' | 'tasks' | 'projects' | 'comms' | 'kb' | 'analytics' | 'settings';
 export type CamCmd = { kind: 'zoomIn' | 'zoomOut' | 'reset'; n: number };
-export type Settings = { quality: 'high' | 'low'; labels: boolean; seatIds: boolean; autoRotate: boolean };
+export type Settings = { quality: Quality; labels: boolean; seatIds: boolean; autoRotate: boolean };
 export type Filters = { humans: boolean; ai: boolean; dept: string };
 
 type Role = 'boss' | 'cs' | 'guest';
@@ -32,8 +33,13 @@ type State = {
 const Ctx = createContext<State | null>(null);
 
 const readSettings = (): Settings => {
-  const base: Settings = { quality: 'high', labels: true, seatIds: false, autoRotate: false };
-  try { return { ...base, ...JSON.parse(localStorage.getItem('cmd-settings') || '{}') }; } catch { return base; }
+  const base: Settings = { quality: defaultQuality(), labels: true, seatIds: false, autoRotate: false };
+  try {
+    const saved = JSON.parse(localStorage.getItem('cmd-settings') || '{}');
+    // 旧版只有「高 / 省电」：高 → 依电脑能力自动选
+    if (!isQuality(saved.quality)) saved.quality = saved.quality === 'low' ? 'low' : base.quality;
+    return { ...base, ...saved };
+  } catch { return base; }
 };
 
 export function StoreProvider({ children }: { children: ReactNode }) {

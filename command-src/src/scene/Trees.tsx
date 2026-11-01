@@ -40,13 +40,21 @@ function variant(kind: TreeKind): Variant {
   const bm = t.branchesMesh.material as THREE.Material;
   const lm = t.leavesMesh.material as THREE.MeshPhongMaterial;
   // 远看（小盆栽、天台的树）树叶贴图缩小后透明度会被平均掉，0.5 的门槛会把叶子整片切掉
-  lm.alphaTest = 0.18;
-  lm.alphaToCoverage = true;
+  lm.alphaTest = leafCoverage ? 0.18 : 0.4;
+  lm.alphaToCoverage = leafCoverage;
   lm.needsUpdate = true;
   const box = new THREE.Box3().setFromObject(t);
   const v = { branches: t.branchesMesh.geometry, leaves: t.leavesMesh.geometry, bm, lm, height: Math.max(0.1, box.max.y - box.min.y) };
   cache[kind] = v;
   return v;
+}
+
+// 后期处理开着的时候画面没有多重取样，alphaToCoverage 会让树叶出现白点 → 关掉，只用 alphaTest
+let leafCoverage = true;
+export function setLeafCoverage(on: boolean) {
+  if (leafCoverage === on) return;
+  leafCoverage = on;
+  for (const v of Object.values(cache)) { if (v) { v.lm.alphaToCoverage = on; v.lm.alphaTest = on ? 0.18 : 0.4; v.lm.needsUpdate = true; } }
 }
 
 // 树叶随风摇（原版材质才有风的 shader）

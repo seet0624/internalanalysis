@@ -468,7 +468,7 @@ function CSSettings() {
       <h2 className="text-lg font-semibold">系统设置</h2>
       <div className="mt-4 max-w-lg divide-y divide-[#F1F3F4] text-sm">
         <label className="flex items-center justify-between py-3">语言<select value={lang} onChange={(e) => setLang(e.target.value as 'zh' | 'en')} className="rounded-lg border border-[#DADCE0] px-2 py-1"><option value="zh">中文</option><option value="en">English</option></select></label>
-        <label className="flex items-center justify-between py-3">3D 画质<select value={s.settings.quality} onChange={(e) => s.setSettings({ quality: e.target.value as 'high' | 'low' })} className="rounded-lg border border-[#DADCE0] px-2 py-1"><option value="high">高</option><option value="low">省电</option></select></label>
+        <label className="flex items-center justify-between py-3">3D 画质<select value={s.settings.quality} onChange={(e) => s.setSettings({ quality: e.target.value as 'ultra' | 'balanced' | 'low' })} className="rounded-lg border border-[#DADCE0] px-2 py-1"><option value="ultra">极致</option><option value="balanced">标准</option><option value="low">省电</option></select></label>
         <div className="py-3 text-xs leading-relaxed text-faint">对话、工单、任务现在存在这台电脑的浏览器，同一台电脑的分页会同步。接上 Supabase 后会变成全公司即时同步，权限也会在服务器端检查。</div>
       </div>
     </Card>
