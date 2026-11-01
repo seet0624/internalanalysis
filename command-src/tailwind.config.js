@@ -30,7 +30,7 @@ export default {
       },
       fontSize: { '2xs': ['0.6875rem', '1rem'] },
       boxShadow: {
-        glass: '0 1px 2px rgb(60 45 20 / .06), 0 12px 32px -12px rgb(60 45 20 / .16), inset 0 1px 0 rgb(255 255 255 / .7)',
+        glass: '0 1px 2px rgb(60 64 67 / .12), 0 2px 6px 2px rgb(60 64 67 / .06)',
         glow: '0 0 0 1px rgb(var(--brand) / .25), 0 6px 18px -6px rgb(var(--brand) / .45)'
       },
       keyframes: {

@@ -13,6 +13,7 @@ import { STATUS_COLOR } from './scene/Avatars';
 import { FeaturesView } from './views/FeaturesView';
 import { DepartmentsView } from './views/DepartmentsView';
 import { AIView } from './views/AIView';
+import { MissionsView } from './views/MissionsView';
 import { TasksView } from './views/TasksView';
 import { ProjectsView } from './views/ProjectsView';
 import { CommsView } from './views/CommsView';
@@ -20,6 +21,7 @@ import { KBView } from './views/KBView';
 import { AnalyticsView } from './views/AnalyticsView';
 import { SettingsView } from './views/SettingsView';
 import { STATUSES } from './types';
+import { CSApp } from './cs/CSApp';
 import { cn } from './lib/cn';
 
 // 3D 区域上的小东西：返回、楼层快切、图例、提示、即时审核事件
@@ -83,6 +85,7 @@ function Workspace() {
   const s = useStore();
   switch (s.section) {
     case 'features': return <FeaturesView />;
+    case 'missions': return <MissionsView />;
     case 'departments': return <DepartmentsView />;
     case 'ai': return <AIView />;
     case 'tasks': return <TasksView />;
@@ -96,6 +99,12 @@ function Workspace() {
 }
 
 function Shell() {
+  const s = useStore();
+  if (s.csView) return <CSApp />;
+  return <BossShell />;
+}
+
+function BossShell() {
   const s = useStore();
   const { t } = useLang();
   const [navOpen, setNavOpen] = useState(false);
@@ -119,7 +128,7 @@ function Shell() {
   }, [s]);
 
   return (
-    <div className="flex h-full bg-[radial-gradient(ellipse_at_60%_20%,rgb(var(--brand)/0.16),transparent_60%),radial-gradient(ellipse_at_10%_90%,rgb(var(--accent)/0.08),transparent_55%)]">
+    <div className="flex h-full bg-canvas">
       <a href="#scene" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-accent focus:px-3 focus:py-1 focus:text-canvas">Skip</a>
       <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
       {(navOpen || intelOpen) && <div className="fixed inset-0 z-30 bg-canvas/60 backdrop-blur-sm xl:hidden" onClick={() => { setNavOpen(false); setIntelOpen(false); }} aria-hidden />}

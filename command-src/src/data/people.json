@@ -1,2450 +1,2777 @@
 [
- {
-  "id": "ceo-01",
-  "name": {
-   "zh": "Martin",
-   "en": "Martin"
-  },
-  "type": "human",
-  "dept": "ceo",
-  "title": {
-   "zh": "老板",
-   "en": "CEO"
-  },
-  "status": "working",
-  "perf": 98,
-  "task": {
-   "zh": "看全公司今日审核总览",
-   "en": "Reviewing today's company-wide review summary"
-  },
-  "real": true
- },
- {
-  "id": "ceo-02",
-  "name": {
-   "zh": "参谋 Aria",
-   "en": "Aria"
-  },
-  "type": "ai",
-  "dept": "ceo",
-  "title": {
-   "zh": "AI 幕僚长",
-   "en": "AI Chief of Staff"
-  },
-  "status": "thinking",
-  "perf": 95,
-  "task": {
-   "zh": "整理今天要老板拍板的 3 件事",
-   "en": "Preparing 3 decisions for the CEO today"
-  },
-  "history": [
-   {
-    "ago": 6,
-    "text": {
-     "zh": "开始：整理今天要老板拍板的 3 件事",
-     "en": "Started: Preparing 3 decisions for the CEO today"
-    }
-   },
-   {
-    "ago": 63,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 474,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "exec-03",
-  "name": {
-   "zh": "林志强",
-   "en": "Zhiqiang Lin"
-  },
-  "type": "human",
-  "dept": "exec",
-  "title": {
-   "zh": "营运总监",
-   "en": "COO"
-  },
-  "status": "working",
-  "perf": 91,
-  "task": {
-   "zh": "审批 Q4 客服人力计划",
-   "en": "Approving Q4 CS staffing plan"
-  },
-  "history": [
-   {
-    "ago": 9,
-    "text": {
-     "zh": "开始：审批 Q4 客服人力计划",
-     "en": "Started: Approving Q4 CS staffing plan"
-    }
-   },
-   {
-    "ago": 138,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 498,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "exec-04",
-  "name": {
-   "zh": "陈雅婷",
-   "en": "Yating Chen"
-  },
-  "type": "human",
-  "dept": "exec",
-  "title": {
-   "zh": "技术总监",
-   "en": "CTO"
-  },
-  "status": "working",
-  "perf": 93,
-  "task": {
-   "zh": "评审指挥中心上线计划",
-   "en": "Reviewing command-center launch plan"
-  },
-  "history": [
-   {
-    "ago": 6,
-    "text": {
-     "zh": "开始：评审指挥中心上线计划",
-     "en": "Started: Reviewing command-center launch plan"
-    }
-   },
-   {
-    "ago": 174,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 309,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "exec-05",
-  "name": {
-   "zh": "黄俊杰",
-   "en": "Junjie Huang"
-  },
-  "type": "human",
-  "dept": "exec",
-  "title": {
-   "zh": "财务总监",
-   "en": "CFO"
-  },
-  "status": "available",
-  "perf": 89,
-  "task": {
-   "zh": "等待月结报表",
-   "en": "Waiting for month-end report"
-  },
-  "history": [
-   {
-    "ago": 5,
-    "text": {
-     "zh": "开始：等待月结报表",
-     "en": "Started: Waiting for month-end report"
-    }
-   },
-   {
-    "ago": 67,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 422,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "exec-06",
-  "name": {
-   "zh": "Atlas",
-   "en": "Atlas"
-  },
-  "type": "ai",
-  "dept": "exec",
-  "title": {
-   "zh": "AI 决策分析师",
-   "en": "AI Decision Analyst"
-  },
-  "status": "working",
-  "perf": 94,
-  "task": {
-   "zh": "汇总各部门 KPI",
-   "en": "Aggregating department KPIs"
-  },
-  "history": [
-   {
-    "ago": 29,
-    "text": {
-     "zh": "开始：汇总各部门 KPI",
-     "en": "Started: Aggregating department KPIs"
-    }
-   },
-   {
-    "ago": 62,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 323,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "strategy-07",
-  "name": {
-   "zh": "周婉清",
-   "en": "Wanqing Zhou"
-  },
-  "type": "human",
-  "dept": "strategy",
-  "title": {
-   "zh": "战略经理",
-   "en": "Strategy Manager"
-  },
-  "status": "working",
-  "perf": 88,
-  "task": {
-   "zh": "写 2027 年度规划初稿",
-   "en": "Drafting the 2027 annual plan"
-  },
-  "history": [
-   {
-    "ago": 8,
-    "text": {
-     "zh": "开始：写 2027 年度规划初稿",
-     "en": "Started: Drafting the 2027 annual plan"
-    }
-   },
-   {
-    "ago": 153,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 230,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "strategy-08",
-  "name": {
-   "zh": "吴建华",
-   "en": "Jianhua Wu"
-  },
-  "type": "human",
-  "dept": "strategy",
-  "title": {
-   "zh": "市场分析师",
-   "en": "Market Analyst"
-  },
-  "status": "thinking",
-  "perf": 84,
-  "task": {
-   "zh": "研究竞品价格",
-   "en": "Researching competitor pricing"
-  },
-  "history": [
-   {
-    "ago": 39,
-    "text": {
-     "zh": "开始：研究竞品价格",
-     "en": "Started: Researching competitor pricing"
-    }
-   },
-   {
-    "ago": 76,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 314,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "product-09",
-  "name": {
-   "zh": "郑思远",
-   "en": "Siyuan Zheng"
-  },
-  "type": "human",
-  "dept": "product",
-  "title": {
-   "zh": "产品经理",
-   "en": "Product Manager"
-  },
-  "status": "working",
-  "perf": 90,
-  "task": {
-   "zh": "写名字审核 v3 需求",
-   "en": "Writing name-review v3 spec"
-  },
-  "history": [
-   {
-    "ago": 40,
-    "text": {
-     "zh": "开始：写名字审核 v3 需求",
-     "en": "Started: Writing name-review v3 spec"
-    }
-   },
-   {
-    "ago": 60,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 495,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "product-10",
-  "name": {
-   "zh": "刘佳琪",
-   "en": "Jiaqi Liu"
-  },
-  "type": "human",
-  "dept": "product",
-  "title": {
-   "zh": "产品经理",
-   "en": "Product Manager"
-  },
-  "status": "waiting",
-  "perf": 86,
-  "task": {
-   "zh": "等老板确认新功能优先级",
-   "en": "Waiting for CEO sign-off on priorities"
-  },
-  "history": [
-   {
-    "ago": 40,
-    "text": {
-     "zh": "开始：等老板确认新功能优先级",
-     "en": "Started: Waiting for CEO sign-off on priorities"
-    }
-   },
-   {
-    "ago": 146,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 225,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "product-11",
-  "name": {
-   "zh": "Nova",
-   "en": "Nova"
-  },
-  "type": "ai",
-  "dept": "product",
-  "title": {
-   "zh": "AI 产品助理",
-   "en": "AI Product Assistant"
-  },
-  "status": "working",
-  "perf": 92,
-  "task": {
-   "zh": "把客服反馈整理成需求清单",
-   "en": "Turning CS feedback into a backlog"
-  },
-  "history": [
-   {
-    "ago": 17,
-    "text": {
-     "zh": "开始：把客服反馈整理成需求清单",
-     "en": "Started: Turning CS feedback into a backlog"
-    }
-   },
-   {
-    "ago": 56,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 485,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "product-12",
-  "name": {
-   "zh": "Echo",
-   "en": "Echo"
-  },
-  "type": "ai",
-  "dept": "product",
-  "title": {
-   "zh": "AI 用户研究员",
-   "en": "AI User Researcher"
-  },
-  "status": "completed",
-  "perf": 90,
-  "task": {
-   "zh": "完成 12 份客服访谈摘要",
-   "en": "Summarized 12 CS interviews"
-  },
-  "history": [
-   {
-    "ago": 11,
-    "text": {
-     "zh": "开始：完成 12 份客服访谈摘要",
-     "en": "Started: Summarized 12 CS interviews"
-    }
-   },
-   {
-    "ago": 119,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 414,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "airesearch-13",
-  "name": {
-   "zh": "孙浩然",
-   "en": "Haoran Sun"
-  },
-  "type": "human",
-  "dept": "airesearch",
-  "title": {
-   "zh": "AI 研究员",
-   "en": "AI Researcher"
-  },
-  "status": "working",
-  "perf": 93,
-  "task": {
-   "zh": "测试新模型的核名准确率",
-   "en": "Testing a new model's name-check accuracy"
-  },
-  "history": [
-   {
-    "ago": 12,
-    "text": {
-     "zh": "开始：测试新模型的核名准确率",
-     "en": "Started: Testing a new model's name-check accuracy"
-    }
-   },
-   {
-    "ago": 75,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 492,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "airesearch-14",
-  "name": {
-   "zh": "马欣怡",
-   "en": "Xinyi Ma"
-  },
-  "type": "human",
-  "dept": "airesearch",
-  "title": {
-   "zh": "数据科学家",
-   "en": "Data Scientist"
-  },
-  "status": "thinking",
-  "perf": 87,
-  "task": {
-   "zh": "分析审核错误类型",
-   "en": "Analyzing review error types"
-  },
-  "history": [
-   {
-    "ago": 22,
-    "text": {
-     "zh": "开始：分析审核错误类型",
-     "en": "Started: Analyzing review error types"
-    }
-   },
-   {
-    "ago": 91,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 252,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "airesearch-15",
-  "name": {
-   "zh": "Orion",
-   "en": "Orion"
-  },
-  "type": "ai",
-  "dept": "airesearch",
-  "title": {
-   "zh": "AI 模型评估员",
-   "en": "AI Model Evaluator"
-  },
-  "status": "working",
-  "perf": 91,
-  "task": {
-   "zh": "跑 500 笔名册回归测试",
-   "en": "Running a 500-row roster regression"
-  },
-  "history": [
-   {
-    "ago": 40,
-    "text": {
-     "zh": "开始：跑 500 笔名册回归测试",
-     "en": "Started: Running a 500-row roster regression"
-    }
-   },
-   {
-    "ago": 93,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 390,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "uiux-16",
-  "name": {
-   "zh": "何雨桐",
-   "en": "Yutong He"
-  },
-  "type": "human",
-  "dept": "uiux",
-  "title": {
-   "zh": "UI 设计师",
-   "en": "UI Designer"
-  },
-  "status": "working",
-  "perf": 89,
-  "task": {
-   "zh": "设计指挥中心深色主题",
-   "en": "Designing the command-center dark theme"
-  },
-  "history": [
-   {
-    "ago": 9,
-    "text": {
-     "zh": "开始：设计指挥中心深色主题",
-     "en": "Started: Designing the command-center dark theme"
-    }
-   },
-   {
-    "ago": 61,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 488,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "uiux-17",
-  "name": {
-   "zh": "罗子轩",
-   "en": "Zixuan Luo"
-  },
-  "type": "human",
-  "dept": "uiux",
-  "title": {
-   "zh": "UX 设计师",
-   "en": "UX Designer"
-  },
-  "status": "available",
-  "perf": 85,
-  "task": {
-   "zh": "整理可用性测试结果",
-   "en": "Compiling usability test results"
-  },
-  "history": [
-   {
-    "ago": 6,
-    "text": {
-     "zh": "开始：整理可用性测试结果",
-     "en": "Started: Compiling usability test results"
-    }
-   },
-   {
-    "ago": 97,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 454,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "uiux-18",
-  "name": {
-   "zh": "Pixel",
-   "en": "Pixel"
-  },
-  "type": "ai",
-  "dept": "uiux",
-  "title": {
-   "zh": "AI 设计助理",
-   "en": "AI Design Assistant"
-  },
-  "status": "working",
-  "perf": 90,
-  "task": {
-   "zh": "产出 3 版楼层图示",
-   "en": "Producing 3 floor-icon variants"
-  },
-  "history": [
-   {
-    "ago": 37,
-    "text": {
-     "zh": "开始：产出 3 版楼层图示",
-     "en": "Started: Producing 3 floor-icon variants"
-    }
-   },
-   {
-    "ago": 154,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 597,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "dev-19",
-  "name": {
-   "zh": "高文博",
-   "en": "Wenbo Gao"
-  },
-  "type": "human",
-  "dept": "dev",
-  "title": {
-   "zh": "前端工程师",
-   "en": "Frontend Engineer"
-  },
-  "status": "working",
-  "perf": 92,
-  "task": {
-   "zh": "开发楼层 3D 视图",
-   "en": "Building the 3D floor view"
-  },
-  "history": [
-   {
-    "ago": 23,
-    "text": {
-     "zh": "开始：开发楼层 3D 视图",
-     "en": "Started: Building the 3D floor view"
-    }
-   },
-   {
-    "ago": 164,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 499,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "dev-20",
-  "name": {
-   "zh": "梁晓东",
-   "en": "Xiaodong Liang"
-  },
-  "type": "human",
-  "dept": "dev",
-  "title": {
-   "zh": "后端工程师",
-   "en": "Backend Engineer"
-  },
-  "status": "working",
-  "perf": 88,
-  "task": {
-   "zh": "设计审核事件服务器",
-   "en": "Designing the review-event server"
-  },
-  "history": [
-   {
-    "ago": 32,
-    "text": {
-     "zh": "开始：设计审核事件服务器",
-     "en": "Started: Designing the review-event server"
-    }
-   },
-   {
-    "ago": 137,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 353,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "dev-21",
-  "name": {
-   "zh": "谢美琳",
-   "en": "Meilin Xie"
-  },
-  "type": "human",
-  "dept": "dev",
-  "title": {
-   "zh": "全端工程师",
-   "en": "Full-stack Engineer"
-  },
-  "status": "error",
-  "perf": 80,
-  "task": {
-   "zh": "部署脚本失败，排查中",
-   "en": "Deploy script failed — investigating"
-  },
-  "history": [
-   {
-    "ago": 18,
-    "text": {
-     "zh": "开始：部署脚本失败，排查中",
-     "en": "Started: Deploy script failed — investigating"
-    }
-   },
-   {
-    "ago": 91,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 557,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "dev-22",
-  "name": {
-   "zh": "Forge",
-   "en": "Forge"
-  },
-  "type": "ai",
-  "dept": "dev",
-  "title": {
-   "zh": "AI 程序员",
-   "en": "AI Coding Agent"
-  },
-  "status": "working",
-  "perf": 94,
-  "task": {
-   "zh": "写技术单引擎单元测试",
-   "en": "Writing tech-order engine unit tests"
-  },
-  "history": [
-   {
-    "ago": 18,
-    "text": {
-     "zh": "开始：写技术单引擎单元测试",
-     "en": "Started: Writing tech-order engine unit tests"
-    }
-   },
-   {
-    "ago": 65,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 494,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "dev-23",
-  "name": {
-   "zh": "Lint",
-   "en": "Lint"
-  },
-  "type": "ai",
-  "dept": "dev",
-  "title": {
-   "zh": "AI 代码审查员",
-   "en": "AI Code Reviewer"
-  },
-  "status": "waiting",
-  "perf": 91,
-  "task": {
-   "zh": "等待 PR 审批",
-   "en": "Waiting for PR approval"
-  },
-  "history": [
-   {
-    "ago": 22,
-    "text": {
-     "zh": "开始：等待 PR 审批",
-     "en": "Started: Waiting for PR approval"
-    }
-   },
-   {
-    "ago": 179,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 453,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "qa-24",
-  "name": {
-   "zh": "韩冰",
-   "en": "Bing Han"
-  },
-  "type": "human",
-  "dept": "qa",
-  "title": {
-   "zh": "测试工程师",
-   "en": "QA Engineer"
-  },
-  "status": "working",
-  "perf": 87,
-  "task": {
-   "zh": "测试名字审核繁体转换",
-   "en": "Testing Traditional conversion"
-  },
-  "history": [
-   {
-    "ago": 24,
-    "text": {
-     "zh": "开始：测试名字审核繁体转换",
-     "en": "Started: Testing Traditional conversion"
-    }
-   },
-   {
-    "ago": 159,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 347,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "qa-25",
-  "name": {
-   "zh": "Probe",
-   "en": "Probe"
-  },
-  "type": "ai",
-  "dept": "qa",
-  "title": {
-   "zh": "AI 测试员",
-   "en": "AI Test Agent"
-  },
-  "status": "working",
-  "perf": 90,
-  "task": {
-   "zh": "自动跑 128 个测试案例",
-   "en": "Running 128 automated test cases"
-  },
-  "history": [
-   {
-    "ago": 7,
-    "text": {
-     "zh": "开始：自动跑 128 个测试案例",
-     "en": "Started: Running 128 automated test cases"
-    }
-   },
-   {
-    "ago": 75,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 462,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "tech-26",
-  "name": {
-   "zh": "冯磊",
-   "en": "Lei Feng"
-  },
-  "type": "human",
-  "dept": "tech",
-  "title": {
-   "zh": "架构师",
-   "en": "Architect"
-  },
-  "status": "thinking",
-  "perf": 91,
-  "task": {
-   "zh": "评估国内 CDN 方案",
-   "en": "Evaluating China CDN options"
-  },
-  "history": [
-   {
-    "ago": 29,
-    "text": {
-     "zh": "开始：评估国内 CDN 方案",
-     "en": "Started: Evaluating China CDN options"
-    }
-   },
-   {
-    "ago": 87,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 587,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "tech-27",
-  "name": {
-   "zh": "Relay",
-   "en": "Relay"
-  },
-  "type": "ai",
-  "dept": "tech",
-  "title": {
-   "zh": "AI 部署助理",
-   "en": "AI Release Agent"
-  },
-  "status": "available",
-  "perf": 89,
-  "task": {
-   "zh": "待命：下一次上线",
-   "en": "Standing by for next release"
-  },
-  "history": [
-   {
-    "ago": 24,
-    "text": {
-     "zh": "开始：待命：下一次上线",
-     "en": "Started: Standing by for next release"
-    }
-   },
-   {
-    "ago": 83,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 450,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "ops-28",
-  "name": {
-   "zh": "曹丽娜",
-   "en": "Lina Cao"
-  },
-  "type": "human",
-  "dept": "ops",
-  "title": {
-   "zh": "营运经理",
-   "en": "Operations Manager"
-  },
-  "status": "working",
-  "perf": 88,
-  "task": {
-   "zh": "排下周客服班表",
-   "en": "Scheduling next week's CS shifts"
-  },
-  "history": [
-   {
-    "ago": 29,
-    "text": {
-     "zh": "开始：排下周客服班表",
-     "en": "Started: Scheduling next week's CS shifts"
-    }
-   },
-   {
-    "ago": 55,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 542,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "ops-29",
-  "name": {
-   "zh": "邓伟",
-   "en": "Wei Deng"
-  },
-  "type": "human",
-  "dept": "ops",
-  "title": {
-   "zh": "流程专员",
-   "en": "Process Specialist"
-  },
-  "status": "working",
-  "perf": 84,
-  "task": {
-   "zh": "优化退款流程",
-   "en": "Improving the refund process"
-  },
-  "history": [
-   {
-    "ago": 7,
-    "text": {
-     "zh": "开始：优化退款流程",
-     "en": "Started: Improving the refund process"
-    }
-   },
-   {
-    "ago": 125,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 374,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "ops-30",
-  "name": {
-   "zh": "Vega",
-   "en": "Vega"
-  },
-  "type": "ai",
-  "dept": "ops",
-  "title": {
-   "zh": "AI 营运分析师",
-   "en": "AI Ops Analyst"
-  },
-  "status": "working",
-  "perf": 92,
-  "task": {
-   "zh": "监控今日审核量",
-   "en": "Monitoring today's review volume"
-  },
-  "history": [
-   {
-    "ago": 25,
-    "text": {
-     "zh": "开始：监控今日审核量",
-     "en": "Started: Monitoring today's review volume"
-    }
-   },
-   {
-    "ago": 172,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 496,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "finance-31",
-  "name": {
-   "zh": "许静",
-   "en": "Jing Xu"
-  },
-  "type": "human",
-  "dept": "finance",
-  "title": {
-   "zh": "会计",
-   "en": "Accountant"
-  },
-  "status": "working",
-  "perf": 86,
-  "task": {
-   "zh": "对 10 月账",
-   "en": "Reconciling October books"
-  },
-  "history": [
-   {
-    "ago": 32,
-    "text": {
-     "zh": "开始：对 10 月账",
-     "en": "Started: Reconciling October books"
-    }
-   },
-   {
-    "ago": 62,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 247,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "hr-32",
-  "name": {
-   "zh": "彭晓燕",
-   "en": "Xiaoyan Peng"
-  },
-  "type": "human",
-  "dept": "hr",
-  "title": {
-   "zh": "人事专员",
-   "en": "HR Specialist"
-  },
-  "status": "available",
-  "perf": 85,
-  "task": {
-   "zh": "安排两位新客服入职",
-   "en": "Onboarding two new CS agents"
-  },
-  "history": [
-   {
-    "ago": 20,
-    "text": {
-     "zh": "开始：安排两位新客服入职",
-     "en": "Started: Onboarding two new CS agents"
-    }
-   },
-   {
-    "ago": 166,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 556,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "admin-33",
-  "name": {
-   "zh": "蒋涛",
-   "en": "Tao Jiang"
-  },
-  "type": "human",
-  "dept": "admin",
-  "title": {
-   "zh": "行政主任",
-   "en": "Admin Lead"
-  },
-  "status": "working",
-  "perf": 83,
-  "task": {
-   "zh": "订购会议室设备",
-   "en": "Ordering meeting-room equipment"
-  },
-  "history": [
-   {
-    "ago": 7,
-    "text": {
-     "zh": "开始：订购会议室设备",
-     "en": "Started: Ordering meeting-room equipment"
-    }
-   },
-   {
-    "ago": 60,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 574,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "admin-34",
-  "name": {
-   "zh": "Ledger",
-   "en": "Ledger"
-  },
-  "type": "ai",
-  "dept": "admin",
-  "title": {
-   "zh": "AI 行政助理",
-   "en": "AI Admin Assistant"
-  },
-  "status": "completed",
-  "perf": 88,
-  "task": {
-   "zh": "完成本月办公用品盘点",
-   "en": "Completed monthly supply inventory"
-  },
-  "history": [
-   {
-    "ago": 22,
-    "text": {
-     "zh": "开始：完成本月办公用品盘点",
-     "en": "Started: Completed monthly supply inventory"
-    }
-   },
-   {
-    "ago": 159,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 345,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "legal-35",
-  "name": {
-   "zh": "沈慧",
-   "en": "Hui Shen"
-  },
-  "type": "human",
-  "dept": "legal",
-  "title": {
-   "zh": "法务顾问",
-   "en": "Legal Counsel"
-  },
-  "status": "working",
-  "perf": 90,
-  "task": {
-   "zh": "审阅新服务中心合约",
-   "en": "Reviewing new service-center contract"
-  },
-  "history": [
-   {
-    "ago": 27,
-    "text": {
-     "zh": "开始：审阅新服务中心合约",
-     "en": "Started: Reviewing new service-center contract"
-    }
-   },
-   {
-    "ago": 133,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 211,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "procurement-36",
-  "name": {
-   "zh": "董强",
-   "en": "Qiang Dong"
-  },
-  "type": "human",
-  "dept": "procurement",
-  "title": {
-   "zh": "采购专员",
-   "en": "Procurement Officer"
-  },
-  "status": "waiting",
-  "perf": 82,
-  "task": {
-   "zh": "等供应商报价",
-   "en": "Waiting for vendor quotes"
-  },
-  "history": [
-   {
-    "ago": 32,
-    "text": {
-     "zh": "开始：等供应商报价",
-     "en": "Started: Waiting for vendor quotes"
-    }
-   },
-   {
-    "ago": 135,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 286,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "procurement-37",
-  "name": {
-   "zh": "Quill",
-   "en": "Quill"
-  },
-  "type": "ai",
-  "dept": "procurement",
-  "title": {
-   "zh": "AI 采购助理",
-   "en": "AI Procurement Assistant"
-  },
-  "status": "working",
-  "perf": 87,
-  "task": {
-   "zh": "比较 4 家服务器报价",
-   "en": "Comparing 4 server quotes"
-  },
-  "history": [
-   {
-    "ago": 10,
-    "text": {
-     "zh": "开始：比较 4 家服务器报价",
-     "en": "Started: Comparing 4 server quotes"
-    }
-   },
-   {
-    "ago": 171,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 230,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "cs-38",
-  "name": {
-   "zh": "国内客服部",
-   "en": "Domestic CS Team"
-  },
-  "type": "human",
-  "dept": "cs",
-  "title": {
-   "zh": "客服账号（dongfangcs）",
-   "en": "CS account (dongfangcs)"
-  },
-  "status": "working",
-  "perf": 90,
-  "task": {
-   "zh": "处理今日名册和技术单",
-   "en": "Processing today's rosters and orders"
-  },
-  "real": true
- },
- {
-  "id": "complaint-39",
-  "name": {
-   "zh": "杨洁",
-   "en": "Jie Yang"
-  },
-  "type": "human",
-  "dept": "complaint",
-  "title": {
-   "zh": "投诉专员",
-   "en": "Complaint Specialist"
-  },
-  "status": "working",
-  "perf": 86,
-  "task": {
-   "zh": "跟进 3 宗改名投诉",
-   "en": "Following up 3 rename complaints"
-  },
-  "history": [
-   {
-    "ago": 18,
-    "text": {
-     "zh": "开始：跟进 3 宗改名投诉",
-     "en": "Started: Following up 3 rename complaints"
-    }
-   },
-   {
-    "ago": 146,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 400,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "complaint-40",
-  "name": {
-   "zh": "朱明",
-   "en": "Ming Zhu"
-  },
-  "type": "human",
-  "dept": "complaint",
-  "title": {
-   "zh": "投诉专员",
-   "en": "Complaint Specialist"
-  },
-  "status": "thinking",
-  "perf": 83,
-  "task": {
-   "zh": "研究退款个案",
-   "en": "Reviewing a refund case"
-  },
-  "history": [
-   {
-    "ago": 34,
-    "text": {
-     "zh": "开始：研究退款个案",
-     "en": "Started: Reviewing a refund case"
-    }
-   },
-   {
-    "ago": 65,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 285,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "complaint-41",
-  "name": {
-   "zh": "Calm",
-   "en": "Calm"
-  },
-  "type": "ai",
-  "dept": "complaint",
-  "title": {
-   "zh": "AI 情绪分析员",
-   "en": "AI Sentiment Analyst"
-  },
-  "status": "working",
-  "perf": 89,
-  "task": {
-   "zh": "分析今日客诉情绪",
-   "en": "Scoring today's complaint sentiment"
-  },
-  "history": [
-   {
-    "ago": 31,
-    "text": {
-     "zh": "开始：分析今日客诉情绪",
-     "en": "Started: Scoring today's complaint sentiment"
-    }
-   },
-   {
-    "ago": 147,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 481,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "orders-42",
-  "name": {
-   "zh": "秦玉",
-   "en": "Yu Qin"
-  },
-  "type": "human",
-  "dept": "orders",
-  "title": {
-   "zh": "订单专员",
-   "en": "Order Specialist"
-  },
-  "status": "working",
-  "perf": 87,
-  "task": {
-   "zh": "处理 14 张改单申请",
-   "en": "Processing 14 order changes"
-  },
-  "history": [
-   {
-    "ago": 20,
-    "text": {
-     "zh": "开始：处理 14 张改单申请",
-     "en": "Started: Processing 14 order changes"
-    }
-   },
-   {
-    "ago": 80,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 420,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "orders-43",
-  "name": {
-   "zh": "袁博",
-   "en": "Bo Yuan"
-  },
-  "type": "human",
-  "dept": "orders",
-  "title": {
-   "zh": "订单专员",
-   "en": "Order Specialist"
-  },
-  "status": "available",
-  "perf": 84,
-  "task": {
-   "zh": "等待新订单",
-   "en": "Waiting for new orders"
-  },
-  "history": [
-   {
-    "ago": 38,
-    "text": {
-     "zh": "开始：等待新订单",
-     "en": "Started: Waiting for new orders"
-    }
-   },
-   {
-    "ago": 116,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 561,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "orders-44",
-  "name": {
-   "zh": "Tracker",
-   "en": "Tracker"
-  },
-  "type": "ai",
-  "dept": "orders",
-  "title": {
-   "zh": "AI 订单追踪员",
-   "en": "AI Order Tracker"
-  },
-  "status": "working",
-  "perf": 93,
-  "task": {
-   "zh": "追踪 62 张未完成订单",
-   "en": "Tracking 62 open orders"
-  },
-  "history": [
-   {
-    "ago": 29,
-    "text": {
-     "zh": "开始：追踪 62 张未完成订单",
-     "en": "Started: Tracking 62 open orders"
-    }
-   },
-   {
-    "ago": 136,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 549,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "svc-45",
-  "name": {
-   "zh": "潘婷",
-   "en": "Ting Pan"
-  },
-  "type": "human",
-  "dept": "svc",
-  "title": {
-   "zh": "服务中心协调员",
-   "en": "Service Center Coordinator"
-  },
-  "status": "working",
-  "perf": 85,
-  "task": {
-   "zh": "回复华南服务中心问题",
-   "en": "Answering South China center queries"
-  },
-  "history": [
-   {
-    "ago": 27,
-    "text": {
-     "zh": "开始：回复华南服务中心问题",
-     "en": "Started: Answering South China center queries"
-    }
-   },
-   {
-    "ago": 104,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 277,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "svc-46",
-  "name": {
-   "zh": "Bridge",
-   "en": "Bridge"
-  },
-  "type": "ai",
-  "dept": "svc",
-  "title": {
-   "zh": "AI 服务中心助理",
-   "en": "AI Center Assistant"
-  },
-  "status": "waiting",
-  "perf": 88,
-  "task": {
-   "zh": "等待服务中心回传资料",
-   "en": "Waiting for center data"
-  },
-  "history": [
-   {
-    "ago": 8,
-    "text": {
-     "zh": "开始：等待服务中心回传资料",
-     "en": "Started: Waiting for center data"
-    }
-   },
-   {
-    "ago": 90,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 277,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "reception-47",
-  "name": {
-   "zh": "唐诗雨",
-   "en": "Shiyu Tang"
-  },
-  "type": "human",
-  "dept": "reception",
-  "title": {
-   "zh": "前台接待",
-   "en": "Receptionist"
-  },
-  "status": "working",
-  "perf": 90,
-  "task": {
-   "zh": "登记 2 位访客",
-   "en": "Checking in 2 visitors"
-  },
-  "history": [
-   {
-    "ago": 17,
-    "text": {
-     "zh": "开始：登记 2 位访客",
-     "en": "Started: Checking in 2 visitors"
-    }
-   },
-   {
-    "ago": 104,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 206,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "reception-48",
-  "name": {
-   "zh": "Greet",
-   "en": "Greet"
-  },
-  "type": "ai",
-  "dept": "reception",
-  "title": {
-   "zh": "AI 接待员",
-   "en": "AI Concierge"
-  },
-  "status": "available",
-  "perf": 92,
-  "task": {
-   "zh": "待命：引导访客",
-   "en": "Ready to guide visitors"
-  },
-  "history": [
-   {
-    "ago": 34,
-    "text": {
-     "zh": "开始：待命：引导访客",
-     "en": "Started: Ready to guide visitors"
-    }
-   },
-   {
-    "ago": 91,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 334,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "security-49",
-  "name": {
-   "zh": "王刚",
-   "en": "Gang Wang"
-  },
-  "type": "human",
-  "dept": "security",
-  "title": {
-   "zh": "保安主管",
-   "en": "Security Lead"
-  },
-  "status": "working",
-  "perf": 88,
-  "task": {
-   "zh": "大堂巡逻",
-   "en": "Lobby patrol"
-  },
-  "history": [
-   {
-    "ago": 21,
-    "text": {
-     "zh": "开始：大堂巡逻",
-     "en": "Started: Lobby patrol"
-    }
-   },
-   {
-    "ago": 46,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 274,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "infra-50",
-  "name": {
-   "zh": "钱宇航",
-   "en": "Yuhang Qian"
-  },
-  "type": "human",
-  "dept": "infra",
-  "title": {
-   "zh": "系统管理员",
-   "en": "Sysadmin"
-  },
-  "status": "working",
-  "perf": 89,
-  "task": {
-   "zh": "更换 2 块硬盘",
-   "en": "Replacing 2 disks"
-  },
-  "history": [
-   {
-    "ago": 29,
-    "text": {
-     "zh": "开始：更换 2 块硬盘",
-     "en": "Started: Replacing 2 disks"
-    }
-   },
-   {
-    "ago": 139,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 512,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "infra-51",
-  "name": {
-   "zh": "Sentinel",
-   "en": "Sentinel"
-  },
-  "type": "ai",
-  "dept": "infra",
-  "title": {
-   "zh": "AI 机房监控",
-   "en": "AI Infra Monitor"
-  },
-  "status": "working",
-  "perf": 96,
-  "task": {
-   "zh": "监控 48 台服务器",
-   "en": "Monitoring 48 servers"
-  },
-  "history": [
-   {
-    "ago": 39,
-    "text": {
-     "zh": "开始：监控 48 台服务器",
-     "en": "Started: Monitoring 48 servers"
-    }
-   },
-   {
-    "ago": 126,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 264,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "aiops-52",
-  "name": {
-   "zh": "赵一鸣",
-   "en": "Yiming Zhao"
-  },
-  "type": "human",
-  "dept": "aiops",
-  "title": {
-   "zh": "AI 平台工程师",
-   "en": "AI Platform Engineer"
-  },
-  "status": "thinking",
-  "perf": 90,
-  "task": {
-   "zh": "调整 GPU 排程",
-   "en": "Tuning GPU scheduling"
-  },
-  "history": [
-   {
-    "ago": 35,
-    "text": {
-     "zh": "开始：调整 GPU 排程",
-     "en": "Started: Tuning GPU scheduling"
-    }
-   },
-   {
-    "ago": 58,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 433,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "aiops-53",
-  "name": {
-   "zh": "Core",
-   "en": "Core"
-  },
-  "type": "ai",
-  "dept": "aiops",
-  "title": {
-   "zh": "AI 运算调度员",
-   "en": "AI Compute Scheduler"
-  },
-  "status": "working",
-  "perf": 97,
-  "task": {
-   "zh": "分配运算给 31 位 AI 员工",
-   "en": "Allocating compute to 31 AI employees"
-  },
-  "history": [
-   {
-    "ago": 38,
-    "text": {
-     "zh": "开始：分配运算给 31 位 AI 员工",
-     "en": "Started: Allocating compute to 31 AI employees"
-    }
-   },
-   {
-    "ago": 145,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 403,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "network-54",
-  "name": {
-   "zh": "孔亮",
-   "en": "Liang Kong"
-  },
-  "type": "human",
-  "dept": "network",
-  "title": {
-   "zh": "网络工程师",
-   "en": "Network Engineer"
-  },
-  "status": "working",
-  "perf": 87,
-  "task": {
-   "zh": "更新防火墙规则",
-   "en": "Updating firewall rules"
-  },
-  "history": [
-   {
-    "ago": 28,
-    "text": {
-     "zh": "开始：更新防火墙规则",
-     "en": "Started: Updating firewall rules"
-    }
-   },
-   {
-    "ago": 145,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 253,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "network-55",
-  "name": {
-   "zh": "Pulse",
-   "en": "Pulse"
-  },
-  "type": "ai",
-  "dept": "network",
-  "title": {
-   "zh": "AI 网络监控",
-   "en": "AI Network Monitor"
-  },
-  "status": "error",
-  "perf": 78,
-  "task": {
-   "zh": "华南线路延迟过高",
-   "en": "High latency on South China link"
-  },
-  "history": [
-   {
-    "ago": 33,
-    "text": {
-     "zh": "开始：华南线路延迟过高",
-     "en": "Started: High latency on South China link"
-    }
-   },
-   {
-    "ago": 147,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 231,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "itmaint-56",
-  "name": {
-   "zh": "石磊",
-   "en": "Lei Shi"
-  },
-  "type": "human",
-  "dept": "itmaint",
-  "title": {
-   "zh": "IT 技术员",
-   "en": "IT Technician"
-  },
-  "status": "working",
-  "perf": 84,
-  "task": {
-   "zh": "维修 3 台客服电脑",
-   "en": "Repairing 3 CS laptops"
-  },
-  "history": [
-   {
-    "ago": 15,
-    "text": {
-     "zh": "开始：维修 3 台客服电脑",
-     "en": "Started: Repairing 3 CS laptops"
-    }
-   },
-   {
-    "ago": 62,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 306,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "secops-57",
-  "name": {
-   "zh": "龙飞",
-   "en": "Fei Long"
-  },
-  "type": "human",
-  "dept": "secops",
-  "title": {
-   "zh": "资安分析师",
-   "en": "Security Analyst"
-  },
-  "status": "working",
-  "perf": 90,
-  "task": {
-   "zh": "检查登入异常",
-   "en": "Investigating login anomalies"
-  },
-  "history": [
-   {
-    "ago": 31,
-    "text": {
-     "zh": "开始：检查登入异常",
-     "en": "Started: Investigating login anomalies"
-    }
-   },
-   {
-    "ago": 86,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 256,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- },
- {
-  "id": "secops-58",
-  "name": {
-   "zh": "Watch",
-   "en": "Watch"
-  },
-  "type": "ai",
-  "dept": "secops",
-  "title": {
-   "zh": "AI 资安哨兵",
-   "en": "AI Security Sentinel"
-  },
-  "status": "working",
-  "perf": 95,
-  "task": {
-   "zh": "即时分析 64 路监控",
-   "en": "Analyzing 64 camera feeds"
-  },
-  "history": [
-   {
-    "ago": 24,
-    "text": {
-     "zh": "开始：即时分析 64 路监控",
-     "en": "Started: Analyzing 64 camera feeds"
-    }
-   },
-   {
-    "ago": 58,
-    "text": {
-     "zh": "完成上一项任务，交给主管确认",
-     "en": "Finished previous task, sent for review"
-    }
-   },
-   {
-    "ago": 252,
-    "text": {
-     "zh": "晨会同步今日重点",
-     "en": "Synced today's priorities at stand-up"
-    }
-   }
-  ],
-  "demo": true
- }
+  {
+    "id": "ceo-01",
+    "name": {
+      "zh": "Martin",
+      "en": "Martin"
+    },
+    "type": "human",
+    "dept": "ceo",
+    "title": {
+      "zh": "老板",
+      "en": "CEO"
+    },
+    "status": "working",
+    "perf": 98,
+    "task": {
+      "zh": "看全公司今日审核总览",
+      "en": "Reviewing today's company-wide review summary"
+    },
+    "real": true
+  },
+  {
+    "id": "ceo-02",
+    "name": {
+      "zh": "Aria",
+      "en": "Aria"
+    },
+    "type": "ai",
+    "dept": "ceo",
+    "title": {
+      "zh": "AI CEO（看全公司运作）",
+      "en": "AI CEO (runs company operations)"
+    },
+    "status": "working",
+    "perf": 97,
+    "task": {
+      "zh": "每小时看全公司：收任务、分团队、盯进度",
+      "en": "Hourly: takes missions, assigns teams, tracks progress"
+    },
+    "history": [],
+    "skill": "Plan",
+    "real": true
+  },
+  {
+    "id": "exec-03",
+    "name": {
+      "zh": "林志强",
+      "en": "Zhiqiang Lin"
+    },
+    "type": "human",
+    "dept": "exec",
+    "title": {
+      "zh": "营运总监",
+      "en": "COO"
+    },
+    "status": "working",
+    "perf": 91,
+    "task": {
+      "zh": "审批 Q4 客服人力计划",
+      "en": "Approving Q4 CS staffing plan"
+    },
+    "history": [
+      {
+        "ago": 9,
+        "text": {
+          "zh": "开始：审批 Q4 客服人力计划",
+          "en": "Started: Approving Q4 CS staffing plan"
+        }
+      },
+      {
+        "ago": 138,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 498,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "exec-04",
+    "name": {
+      "zh": "陈雅婷",
+      "en": "Yating Chen"
+    },
+    "type": "human",
+    "dept": "exec",
+    "title": {
+      "zh": "技术总监",
+      "en": "CTO"
+    },
+    "status": "working",
+    "perf": 93,
+    "task": {
+      "zh": "评审指挥中心上线计划",
+      "en": "Reviewing command-center launch plan"
+    },
+    "history": [
+      {
+        "ago": 6,
+        "text": {
+          "zh": "开始：评审指挥中心上线计划",
+          "en": "Started: Reviewing command-center launch plan"
+        }
+      },
+      {
+        "ago": 174,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 309,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "exec-05",
+    "name": {
+      "zh": "黄俊杰",
+      "en": "Junjie Huang"
+    },
+    "type": "human",
+    "dept": "exec",
+    "title": {
+      "zh": "财务总监",
+      "en": "CFO"
+    },
+    "status": "available",
+    "perf": 89,
+    "task": {
+      "zh": "等待月结报表",
+      "en": "Waiting for month-end report"
+    },
+    "history": [
+      {
+        "ago": 5,
+        "text": {
+          "zh": "开始：等待月结报表",
+          "en": "Started: Waiting for month-end report"
+        }
+      },
+      {
+        "ago": 67,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 422,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "exec-06",
+    "name": {
+      "zh": "Atlas",
+      "en": "Atlas"
+    },
+    "type": "ai",
+    "dept": "exec",
+    "title": {
+      "zh": "AI 决策分析师",
+      "en": "AI Decision Analyst"
+    },
+    "status": "available",
+    "perf": 94,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "hzblj-skills:deep-reasoner",
+    "real": true
+  },
+  {
+    "id": "strategy-07",
+    "name": {
+      "zh": "周婉清",
+      "en": "Wanqing Zhou"
+    },
+    "type": "human",
+    "dept": "strategy",
+    "title": {
+      "zh": "战略经理",
+      "en": "Strategy Manager"
+    },
+    "status": "working",
+    "perf": 88,
+    "task": {
+      "zh": "写 2027 年度规划初稿",
+      "en": "Drafting the 2027 annual plan"
+    },
+    "history": [
+      {
+        "ago": 8,
+        "text": {
+          "zh": "开始：写 2027 年度规划初稿",
+          "en": "Started: Drafting the 2027 annual plan"
+        }
+      },
+      {
+        "ago": 153,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 230,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "strategy-08",
+    "name": {
+      "zh": "吴建华",
+      "en": "Jianhua Wu"
+    },
+    "type": "human",
+    "dept": "strategy",
+    "title": {
+      "zh": "市场分析师",
+      "en": "Market Analyst"
+    },
+    "status": "thinking",
+    "perf": 84,
+    "task": {
+      "zh": "研究竞品价格",
+      "en": "Researching competitor pricing"
+    },
+    "history": [
+      {
+        "ago": 39,
+        "text": {
+          "zh": "开始：研究竞品价格",
+          "en": "Started: Researching competitor pricing"
+        }
+      },
+      {
+        "ago": 76,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 314,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "product-09",
+    "name": {
+      "zh": "郑思远",
+      "en": "Siyuan Zheng"
+    },
+    "type": "human",
+    "dept": "product",
+    "title": {
+      "zh": "产品经理",
+      "en": "Product Manager"
+    },
+    "status": "working",
+    "perf": 90,
+    "task": {
+      "zh": "写名字审核 v3 需求",
+      "en": "Writing name-review v3 spec"
+    },
+    "history": [
+      {
+        "ago": 40,
+        "text": {
+          "zh": "开始：写名字审核 v3 需求",
+          "en": "Started: Writing name-review v3 spec"
+        }
+      },
+      {
+        "ago": 60,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 495,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "product-10",
+    "name": {
+      "zh": "刘佳琪",
+      "en": "Jiaqi Liu"
+    },
+    "type": "human",
+    "dept": "product",
+    "title": {
+      "zh": "产品经理",
+      "en": "Product Manager"
+    },
+    "status": "waiting",
+    "perf": 86,
+    "task": {
+      "zh": "等老板确认新功能优先级",
+      "en": "Waiting for CEO sign-off on priorities"
+    },
+    "history": [
+      {
+        "ago": 40,
+        "text": {
+          "zh": "开始：等老板确认新功能优先级",
+          "en": "Started: Waiting for CEO sign-off on priorities"
+        }
+      },
+      {
+        "ago": 146,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 225,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "product-11",
+    "name": {
+      "zh": "Nova",
+      "en": "Nova"
+    },
+    "type": "ai",
+    "dept": "product",
+    "title": {
+      "zh": "AI 产品助理",
+      "en": "AI Product Assistant"
+    },
+    "status": "available",
+    "perf": 92,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "product-management:write-spec",
+    "real": true
+  },
+  {
+    "id": "product-12",
+    "name": {
+      "zh": "Echo",
+      "en": "Echo"
+    },
+    "type": "ai",
+    "dept": "product",
+    "title": {
+      "zh": "AI 用户研究员",
+      "en": "AI User Researcher"
+    },
+    "status": "available",
+    "perf": 90,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "chrome-extension-builder:product-researcher",
+    "real": true
+  },
+  {
+    "id": "airesearch-13",
+    "name": {
+      "zh": "孙浩然",
+      "en": "Haoran Sun"
+    },
+    "type": "human",
+    "dept": "airesearch",
+    "title": {
+      "zh": "AI 研究员",
+      "en": "AI Researcher"
+    },
+    "status": "working",
+    "perf": 93,
+    "task": {
+      "zh": "测试新模型的核名准确率",
+      "en": "Testing a new model's name-check accuracy"
+    },
+    "history": [
+      {
+        "ago": 12,
+        "text": {
+          "zh": "开始：测试新模型的核名准确率",
+          "en": "Started: Testing a new model's name-check accuracy"
+        }
+      },
+      {
+        "ago": 75,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 492,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "airesearch-14",
+    "name": {
+      "zh": "马欣怡",
+      "en": "Xinyi Ma"
+    },
+    "type": "human",
+    "dept": "airesearch",
+    "title": {
+      "zh": "数据科学家",
+      "en": "Data Scientist"
+    },
+    "status": "thinking",
+    "perf": 87,
+    "task": {
+      "zh": "分析审核错误类型",
+      "en": "Analyzing review error types"
+    },
+    "history": [
+      {
+        "ago": 22,
+        "text": {
+          "zh": "开始：分析审核错误类型",
+          "en": "Started: Analyzing review error types"
+        }
+      },
+      {
+        "ago": 91,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 252,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "airesearch-15",
+    "name": {
+      "zh": "Orion",
+      "en": "Orion"
+    },
+    "type": "ai",
+    "dept": "airesearch",
+    "title": {
+      "zh": "AI 模型评估员",
+      "en": "AI Model Evaluator"
+    },
+    "status": "available",
+    "perf": 91,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "nimble:nimble-analyst",
+    "real": true
+  },
+  {
+    "id": "uiux-16",
+    "name": {
+      "zh": "何雨桐",
+      "en": "Yutong He"
+    },
+    "type": "human",
+    "dept": "uiux",
+    "title": {
+      "zh": "UI 设计师",
+      "en": "UI Designer"
+    },
+    "status": "working",
+    "perf": 89,
+    "task": {
+      "zh": "设计指挥中心深色主题",
+      "en": "Designing the command-center dark theme"
+    },
+    "history": [
+      {
+        "ago": 9,
+        "text": {
+          "zh": "开始：设计指挥中心深色主题",
+          "en": "Started: Designing the command-center dark theme"
+        }
+      },
+      {
+        "ago": 61,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 488,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "uiux-17",
+    "name": {
+      "zh": "罗子轩",
+      "en": "Zixuan Luo"
+    },
+    "type": "human",
+    "dept": "uiux",
+    "title": {
+      "zh": "UX 设计师",
+      "en": "UX Designer"
+    },
+    "status": "available",
+    "perf": 85,
+    "task": {
+      "zh": "整理可用性测试结果",
+      "en": "Compiling usability test results"
+    },
+    "history": [
+      {
+        "ago": 6,
+        "text": {
+          "zh": "开始：整理可用性测试结果",
+          "en": "Started: Compiling usability test results"
+        }
+      },
+      {
+        "ago": 97,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 454,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "uiux-18",
+    "name": {
+      "zh": "Pixel",
+      "en": "Pixel"
+    },
+    "type": "ai",
+    "dept": "uiux",
+    "title": {
+      "zh": "AI 设计助理",
+      "en": "AI Design Assistant"
+    },
+    "status": "available",
+    "perf": 90,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "a1-gallery:design-researcher",
+    "real": true
+  },
+  {
+    "id": "dev-19",
+    "name": {
+      "zh": "高文博",
+      "en": "Wenbo Gao"
+    },
+    "type": "human",
+    "dept": "dev",
+    "title": {
+      "zh": "前端工程师",
+      "en": "Frontend Engineer"
+    },
+    "status": "working",
+    "perf": 92,
+    "task": {
+      "zh": "开发楼层 3D 视图",
+      "en": "Building the 3D floor view"
+    },
+    "history": [
+      {
+        "ago": 23,
+        "text": {
+          "zh": "开始：开发楼层 3D 视图",
+          "en": "Started: Building the 3D floor view"
+        }
+      },
+      {
+        "ago": 164,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 499,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "dev-20",
+    "name": {
+      "zh": "梁晓东",
+      "en": "Xiaodong Liang"
+    },
+    "type": "human",
+    "dept": "dev",
+    "title": {
+      "zh": "后端工程师",
+      "en": "Backend Engineer"
+    },
+    "status": "working",
+    "perf": 88,
+    "task": {
+      "zh": "设计审核事件服务器",
+      "en": "Designing the review-event server"
+    },
+    "history": [
+      {
+        "ago": 32,
+        "text": {
+          "zh": "开始：设计审核事件服务器",
+          "en": "Started: Designing the review-event server"
+        }
+      },
+      {
+        "ago": 137,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 353,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "dev-21",
+    "name": {
+      "zh": "谢美琳",
+      "en": "Meilin Xie"
+    },
+    "type": "human",
+    "dept": "dev",
+    "title": {
+      "zh": "全端工程师",
+      "en": "Full-stack Engineer"
+    },
+    "status": "error",
+    "perf": 80,
+    "task": {
+      "zh": "部署脚本失败，排查中",
+      "en": "Deploy script failed — investigating"
+    },
+    "history": [
+      {
+        "ago": 18,
+        "text": {
+          "zh": "开始：部署脚本失败，排查中",
+          "en": "Started: Deploy script failed — investigating"
+        }
+      },
+      {
+        "ago": 91,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 557,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "dev-22",
+    "name": {
+      "zh": "Forge",
+      "en": "Forge"
+    },
+    "type": "ai",
+    "dept": "dev",
+    "title": {
+      "zh": "AI 程序员",
+      "en": "AI Coding Agent"
+    },
+    "status": "available",
+    "perf": 94,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "hzblj-skills:web-developer",
+    "real": true
+  },
+  {
+    "id": "dev-23",
+    "name": {
+      "zh": "Lint",
+      "en": "Lint"
+    },
+    "type": "ai",
+    "dept": "review",
+    "title": {
+      "zh": "AI 代码风格审核",
+      "en": "AI Clean-code Reviewer"
+    },
+    "status": "available",
+    "perf": 91,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "hzblj-skills:clean-code-reviewer",
+    "real": true
+  },
+  {
+    "id": "qa-24",
+    "name": {
+      "zh": "韩冰",
+      "en": "Bing Han"
+    },
+    "type": "human",
+    "dept": "qa",
+    "title": {
+      "zh": "测试工程师",
+      "en": "QA Engineer"
+    },
+    "status": "working",
+    "perf": 87,
+    "task": {
+      "zh": "测试名字审核繁体转换",
+      "en": "Testing Traditional conversion"
+    },
+    "history": [
+      {
+        "ago": 24,
+        "text": {
+          "zh": "开始：测试名字审核繁体转换",
+          "en": "Started: Testing Traditional conversion"
+        }
+      },
+      {
+        "ago": 159,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 347,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "qa-25",
+    "name": {
+      "zh": "Probe",
+      "en": "Probe"
+    },
+    "type": "ai",
+    "dept": "qa",
+    "title": {
+      "zh": "AI 测试员",
+      "en": "AI Test Agent"
+    },
+    "status": "available",
+    "perf": 90,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "chrome-extension-builder:qa-engineer",
+    "real": true
+  },
+  {
+    "id": "tech-26",
+    "name": {
+      "zh": "冯磊",
+      "en": "Lei Feng"
+    },
+    "type": "human",
+    "dept": "tech",
+    "title": {
+      "zh": "架构师",
+      "en": "Architect"
+    },
+    "status": "thinking",
+    "perf": 91,
+    "task": {
+      "zh": "评估国内 CDN 方案",
+      "en": "Evaluating China CDN options"
+    },
+    "history": [
+      {
+        "ago": 29,
+        "text": {
+          "zh": "开始：评估国内 CDN 方案",
+          "en": "Started: Evaluating China CDN options"
+        }
+      },
+      {
+        "ago": 87,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 587,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "tech-27",
+    "name": {
+      "zh": "Relay",
+      "en": "Relay"
+    },
+    "type": "ai",
+    "dept": "tech",
+    "title": {
+      "zh": "AI 部署助理",
+      "en": "AI Release Agent"
+    },
+    "status": "available",
+    "perf": 89,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "engineering:deploy-checklist",
+    "real": true
+  },
+  {
+    "id": "ops-28",
+    "name": {
+      "zh": "曹丽娜",
+      "en": "Lina Cao"
+    },
+    "type": "human",
+    "dept": "ops",
+    "title": {
+      "zh": "营运经理",
+      "en": "Operations Manager"
+    },
+    "status": "working",
+    "perf": 88,
+    "task": {
+      "zh": "排下周客服班表",
+      "en": "Scheduling next week's CS shifts"
+    },
+    "history": [
+      {
+        "ago": 29,
+        "text": {
+          "zh": "开始：排下周客服班表",
+          "en": "Started: Scheduling next week's CS shifts"
+        }
+      },
+      {
+        "ago": 55,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 542,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "ops-29",
+    "name": {
+      "zh": "邓伟",
+      "en": "Wei Deng"
+    },
+    "type": "human",
+    "dept": "ops",
+    "title": {
+      "zh": "流程专员",
+      "en": "Process Specialist"
+    },
+    "status": "working",
+    "perf": 84,
+    "task": {
+      "zh": "优化退款流程",
+      "en": "Improving the refund process"
+    },
+    "history": [
+      {
+        "ago": 7,
+        "text": {
+          "zh": "开始：优化退款流程",
+          "en": "Started: Improving the refund process"
+        }
+      },
+      {
+        "ago": 125,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 374,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "ops-30",
+    "name": {
+      "zh": "Vega",
+      "en": "Vega"
+    },
+    "type": "ai",
+    "dept": "ops",
+    "title": {
+      "zh": "AI 营运分析师",
+      "en": "AI Ops Analyst"
+    },
+    "status": "available",
+    "perf": 92,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "operations:process-optimization",
+    "real": true
+  },
+  {
+    "id": "finance-31",
+    "name": {
+      "zh": "许静",
+      "en": "Jing Xu"
+    },
+    "type": "human",
+    "dept": "finance",
+    "title": {
+      "zh": "会计",
+      "en": "Accountant"
+    },
+    "status": "working",
+    "perf": 86,
+    "task": {
+      "zh": "对 10 月账",
+      "en": "Reconciling October books"
+    },
+    "history": [
+      {
+        "ago": 32,
+        "text": {
+          "zh": "开始：对 10 月账",
+          "en": "Started: Reconciling October books"
+        }
+      },
+      {
+        "ago": 62,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 247,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "hr-32",
+    "name": {
+      "zh": "彭晓燕",
+      "en": "Xiaoyan Peng"
+    },
+    "type": "human",
+    "dept": "hr",
+    "title": {
+      "zh": "人事专员",
+      "en": "HR Specialist"
+    },
+    "status": "available",
+    "perf": 85,
+    "task": {
+      "zh": "安排两位新客服入职",
+      "en": "Onboarding two new CS agents"
+    },
+    "history": [
+      {
+        "ago": 20,
+        "text": {
+          "zh": "开始：安排两位新客服入职",
+          "en": "Started: Onboarding two new CS agents"
+        }
+      },
+      {
+        "ago": 166,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 556,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "admin-33",
+    "name": {
+      "zh": "蒋涛",
+      "en": "Tao Jiang"
+    },
+    "type": "human",
+    "dept": "admin",
+    "title": {
+      "zh": "行政主任",
+      "en": "Admin Lead"
+    },
+    "status": "working",
+    "perf": 83,
+    "task": {
+      "zh": "订购会议室设备",
+      "en": "Ordering meeting-room equipment"
+    },
+    "history": [
+      {
+        "ago": 7,
+        "text": {
+          "zh": "开始：订购会议室设备",
+          "en": "Started: Ordering meeting-room equipment"
+        }
+      },
+      {
+        "ago": 60,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 574,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "admin-34",
+    "name": {
+      "zh": "Ledger",
+      "en": "Ledger"
+    },
+    "type": "ai",
+    "dept": "admin",
+    "title": {
+      "zh": "AI 行政助理",
+      "en": "AI Admin Assistant"
+    },
+    "status": "available",
+    "perf": 88,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "productivity:task-management",
+    "real": true
+  },
+  {
+    "id": "legal-35",
+    "name": {
+      "zh": "沈慧",
+      "en": "Hui Shen"
+    },
+    "type": "human",
+    "dept": "legal",
+    "title": {
+      "zh": "法务顾问",
+      "en": "Legal Counsel"
+    },
+    "status": "working",
+    "perf": 90,
+    "task": {
+      "zh": "审阅新服务中心合约",
+      "en": "Reviewing new service-center contract"
+    },
+    "history": [
+      {
+        "ago": 27,
+        "text": {
+          "zh": "开始：审阅新服务中心合约",
+          "en": "Started: Reviewing new service-center contract"
+        }
+      },
+      {
+        "ago": 133,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 211,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "procurement-36",
+    "name": {
+      "zh": "董强",
+      "en": "Qiang Dong"
+    },
+    "type": "human",
+    "dept": "procurement",
+    "title": {
+      "zh": "采购专员",
+      "en": "Procurement Officer"
+    },
+    "status": "waiting",
+    "perf": 82,
+    "task": {
+      "zh": "等供应商报价",
+      "en": "Waiting for vendor quotes"
+    },
+    "history": [
+      {
+        "ago": 32,
+        "text": {
+          "zh": "开始：等供应商报价",
+          "en": "Started: Waiting for vendor quotes"
+        }
+      },
+      {
+        "ago": 135,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 286,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "procurement-37",
+    "name": {
+      "zh": "Quill",
+      "en": "Quill"
+    },
+    "type": "ai",
+    "dept": "procurement",
+    "title": {
+      "zh": "AI 采购助理",
+      "en": "AI Procurement Assistant"
+    },
+    "status": "available",
+    "perf": 87,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "operations:vendor-review",
+    "real": true
+  },
+  {
+    "id": "cs-38",
+    "name": {
+      "zh": "国内客服部",
+      "en": "Domestic CS Team"
+    },
+    "type": "human",
+    "dept": "cs",
+    "title": {
+      "zh": "客服账号（dongfangcs）",
+      "en": "CS account (dongfangcs)"
+    },
+    "status": "working",
+    "perf": 90,
+    "task": {
+      "zh": "处理今日名册和技术单",
+      "en": "Processing today's rosters and orders"
+    },
+    "real": true
+  },
+  {
+    "id": "complaint-39",
+    "name": {
+      "zh": "杨洁",
+      "en": "Jie Yang"
+    },
+    "type": "human",
+    "dept": "complaint",
+    "title": {
+      "zh": "投诉专员",
+      "en": "Complaint Specialist"
+    },
+    "status": "working",
+    "perf": 86,
+    "task": {
+      "zh": "跟进 3 宗改名投诉",
+      "en": "Following up 3 rename complaints"
+    },
+    "history": [
+      {
+        "ago": 18,
+        "text": {
+          "zh": "开始：跟进 3 宗改名投诉",
+          "en": "Started: Following up 3 rename complaints"
+        }
+      },
+      {
+        "ago": 146,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 400,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "complaint-40",
+    "name": {
+      "zh": "朱明",
+      "en": "Ming Zhu"
+    },
+    "type": "human",
+    "dept": "complaint",
+    "title": {
+      "zh": "投诉专员",
+      "en": "Complaint Specialist"
+    },
+    "status": "thinking",
+    "perf": 83,
+    "task": {
+      "zh": "研究退款个案",
+      "en": "Reviewing a refund case"
+    },
+    "history": [
+      {
+        "ago": 34,
+        "text": {
+          "zh": "开始：研究退款个案",
+          "en": "Started: Reviewing a refund case"
+        }
+      },
+      {
+        "ago": 65,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 285,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "complaint-41",
+    "name": {
+      "zh": "Calm",
+      "en": "Calm"
+    },
+    "type": "ai",
+    "dept": "complaint",
+    "title": {
+      "zh": "AI 情绪分析员",
+      "en": "AI Sentiment Analyst"
+    },
+    "status": "available",
+    "perf": 89,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "customer-support:customer-escalation",
+    "real": true
+  },
+  {
+    "id": "orders-42",
+    "name": {
+      "zh": "秦玉",
+      "en": "Yu Qin"
+    },
+    "type": "human",
+    "dept": "orders",
+    "title": {
+      "zh": "订单专员",
+      "en": "Order Specialist"
+    },
+    "status": "working",
+    "perf": 87,
+    "task": {
+      "zh": "处理 14 张改单申请",
+      "en": "Processing 14 order changes"
+    },
+    "history": [
+      {
+        "ago": 20,
+        "text": {
+          "zh": "开始：处理 14 张改单申请",
+          "en": "Started: Processing 14 order changes"
+        }
+      },
+      {
+        "ago": 80,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 420,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "orders-43",
+    "name": {
+      "zh": "袁博",
+      "en": "Bo Yuan"
+    },
+    "type": "human",
+    "dept": "orders",
+    "title": {
+      "zh": "订单专员",
+      "en": "Order Specialist"
+    },
+    "status": "available",
+    "perf": 84,
+    "task": {
+      "zh": "等待新订单",
+      "en": "Waiting for new orders"
+    },
+    "history": [
+      {
+        "ago": 38,
+        "text": {
+          "zh": "开始：等待新订单",
+          "en": "Started: Waiting for new orders"
+        }
+      },
+      {
+        "ago": 116,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 561,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "orders-44",
+    "name": {
+      "zh": "Tracker",
+      "en": "Tracker"
+    },
+    "type": "ai",
+    "dept": "orders",
+    "title": {
+      "zh": "AI 订单追踪员",
+      "en": "AI Order Tracker"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "customer-support:ticket-triage",
+    "real": true
+  },
+  {
+    "id": "svc-45",
+    "name": {
+      "zh": "潘婷",
+      "en": "Ting Pan"
+    },
+    "type": "human",
+    "dept": "orders",
+    "title": {
+      "zh": "服务中心协调员",
+      "en": "Service Center Coordinator"
+    },
+    "status": "working",
+    "perf": 85,
+    "task": {
+      "zh": "回复华南服务中心问题",
+      "en": "Answering South China center queries"
+    },
+    "history": [
+      {
+        "ago": 27,
+        "text": {
+          "zh": "开始：回复华南服务中心问题",
+          "en": "Started: Answering South China center queries"
+        }
+      },
+      {
+        "ago": 104,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 277,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "svc-46",
+    "name": {
+      "zh": "Bridge",
+      "en": "Bridge"
+    },
+    "type": "ai",
+    "dept": "orders",
+    "title": {
+      "zh": "AI 服务中心助理",
+      "en": "AI Center Assistant"
+    },
+    "status": "available",
+    "perf": 88,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "customer-support:draft-response",
+    "real": true
+  },
+  {
+    "id": "reception-47",
+    "name": {
+      "zh": "唐诗雨",
+      "en": "Shiyu Tang"
+    },
+    "type": "human",
+    "dept": "reception",
+    "title": {
+      "zh": "前台接待",
+      "en": "Receptionist"
+    },
+    "status": "working",
+    "perf": 90,
+    "task": {
+      "zh": "登记 2 位访客",
+      "en": "Checking in 2 visitors"
+    },
+    "history": [
+      {
+        "ago": 17,
+        "text": {
+          "zh": "开始：登记 2 位访客",
+          "en": "Started: Checking in 2 visitors"
+        }
+      },
+      {
+        "ago": 104,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 206,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "reception-48",
+    "name": {
+      "zh": "Greet",
+      "en": "Greet"
+    },
+    "type": "ai",
+    "dept": "reception",
+    "title": {
+      "zh": "AI 接待员",
+      "en": "AI Concierge"
+    },
+    "status": "available",
+    "perf": 92,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "customer-support:kb-article",
+    "real": true
+  },
+  {
+    "id": "security-49",
+    "name": {
+      "zh": "王刚",
+      "en": "Gang Wang"
+    },
+    "type": "human",
+    "dept": "security",
+    "title": {
+      "zh": "保安主管",
+      "en": "Security Lead"
+    },
+    "status": "working",
+    "perf": 88,
+    "task": {
+      "zh": "大堂巡逻",
+      "en": "Lobby patrol"
+    },
+    "history": [
+      {
+        "ago": 21,
+        "text": {
+          "zh": "开始：大堂巡逻",
+          "en": "Started: Lobby patrol"
+        }
+      },
+      {
+        "ago": 46,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 274,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "infra-50",
+    "name": {
+      "zh": "钱宇航",
+      "en": "Yuhang Qian"
+    },
+    "type": "human",
+    "dept": "infra",
+    "title": {
+      "zh": "系统管理员",
+      "en": "Sysadmin"
+    },
+    "status": "working",
+    "perf": 89,
+    "task": {
+      "zh": "更换 2 块硬盘",
+      "en": "Replacing 2 disks"
+    },
+    "history": [
+      {
+        "ago": 29,
+        "text": {
+          "zh": "开始：更换 2 块硬盘",
+          "en": "Started: Replacing 2 disks"
+        }
+      },
+      {
+        "ago": 139,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 512,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "infra-51",
+    "name": {
+      "zh": "Sentinel",
+      "en": "Sentinel"
+    },
+    "type": "ai",
+    "dept": "infra",
+    "title": {
+      "zh": "AI 机房监控",
+      "en": "AI Infra Monitor"
+    },
+    "status": "available",
+    "perf": 96,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "engineering:incident-response",
+    "real": true
+  },
+  {
+    "id": "aiops-52",
+    "name": {
+      "zh": "赵一鸣",
+      "en": "Yiming Zhao"
+    },
+    "type": "human",
+    "dept": "aiops",
+    "title": {
+      "zh": "AI 平台工程师",
+      "en": "AI Platform Engineer"
+    },
+    "status": "thinking",
+    "perf": 90,
+    "task": {
+      "zh": "调整 GPU 排程",
+      "en": "Tuning GPU scheduling"
+    },
+    "history": [
+      {
+        "ago": 35,
+        "text": {
+          "zh": "开始：调整 GPU 排程",
+          "en": "Started: Tuning GPU scheduling"
+        }
+      },
+      {
+        "ago": 58,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 433,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "aiops-53",
+    "name": {
+      "zh": "Core",
+      "en": "Core"
+    },
+    "type": "ai",
+    "dept": "aiops",
+    "title": {
+      "zh": "AI 运算调度员",
+      "en": "AI Compute Scheduler"
+    },
+    "status": "available",
+    "perf": 97,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "superpowers:dispatching-parallel-agents",
+    "real": true
+  },
+  {
+    "id": "network-54",
+    "name": {
+      "zh": "孔亮",
+      "en": "Liang Kong"
+    },
+    "type": "human",
+    "dept": "network",
+    "title": {
+      "zh": "网络工程师",
+      "en": "Network Engineer"
+    },
+    "status": "working",
+    "perf": 87,
+    "task": {
+      "zh": "更新防火墙规则",
+      "en": "Updating firewall rules"
+    },
+    "history": [
+      {
+        "ago": 28,
+        "text": {
+          "zh": "开始：更新防火墙规则",
+          "en": "Started: Updating firewall rules"
+        }
+      },
+      {
+        "ago": 145,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 253,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "network-55",
+    "name": {
+      "zh": "Pulse",
+      "en": "Pulse"
+    },
+    "type": "ai",
+    "dept": "network",
+    "title": {
+      "zh": "AI 网络监控",
+      "en": "AI Network Monitor"
+    },
+    "status": "available",
+    "perf": 78,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "ultrapowers-dev:observability",
+    "real": true
+  },
+  {
+    "id": "itmaint-56",
+    "name": {
+      "zh": "石磊",
+      "en": "Lei Shi"
+    },
+    "type": "human",
+    "dept": "itmaint",
+    "title": {
+      "zh": "IT 技术员",
+      "en": "IT Technician"
+    },
+    "status": "working",
+    "perf": 84,
+    "task": {
+      "zh": "维修 3 台客服电脑",
+      "en": "Repairing 3 CS laptops"
+    },
+    "history": [
+      {
+        "ago": 15,
+        "text": {
+          "zh": "开始：维修 3 台客服电脑",
+          "en": "Started: Repairing 3 CS laptops"
+        }
+      },
+      {
+        "ago": 62,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 306,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "secops-57",
+    "name": {
+      "zh": "龙飞",
+      "en": "Fei Long"
+    },
+    "type": "human",
+    "dept": "secops",
+    "title": {
+      "zh": "资安分析师",
+      "en": "Security Analyst"
+    },
+    "status": "working",
+    "perf": 90,
+    "task": {
+      "zh": "检查登入异常",
+      "en": "Investigating login anomalies"
+    },
+    "history": [
+      {
+        "ago": 31,
+        "text": {
+          "zh": "开始：检查登入异常",
+          "en": "Started: Investigating login anomalies"
+        }
+      },
+      {
+        "ago": 86,
+        "text": {
+          "zh": "完成上一项任务，交给主管确认",
+          "en": "Finished previous task, sent for review"
+        }
+      },
+      {
+        "ago": 256,
+        "text": {
+          "zh": "晨会同步今日重点",
+          "en": "Synced today's priorities at stand-up"
+        }
+      }
+    ],
+    "demo": true
+  },
+  {
+    "id": "secops-58",
+    "name": {
+      "zh": "Watch",
+      "en": "Watch"
+    },
+    "type": "ai",
+    "dept": "secops",
+    "title": {
+      "zh": "AI 资安哨兵",
+      "en": "AI Security Sentinel"
+    },
+    "status": "available",
+    "perf": 95,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "security-review",
+    "real": true
+  },
+  {
+    "id": "cn-01",
+    "name": {
+      "zh": "陈宇轩",
+      "en": "Chen Yuxuan"
+    },
+    "type": "human",
+    "dept": "cs",
+    "title": {
+      "zh": "客服专员",
+      "en": "CS Agent"
+    },
+    "status": "working",
+    "perf": 89,
+    "task": {
+      "zh": "回复学员咨询",
+      "en": "Answering student enquiries"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#F1C9A5",
+      "hair": "short",
+      "hairColor": "#22201E",
+      "top": "#1A73E8",
+      "bottom": "#3C4043",
+      "headset": true
+    },
+    "history": [
+      {
+        "ago": 8,
+        "text": {
+          "zh": "开始：回复学员咨询",
+          "en": "Started: Answering student enquiries"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cn-02",
+    "name": {
+      "zh": "李思琪",
+      "en": "Li Siqi"
+    },
+    "type": "human",
+    "dept": "cs",
+    "title": {
+      "zh": "客服专员",
+      "en": "CS Agent"
+    },
+    "status": "working",
+    "perf": 96,
+    "task": {
+      "zh": "处理退款申请",
+      "en": "Processing a refund request"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#F5D6BA",
+      "hair": "long",
+      "hairColor": "#3B2A20",
+      "top": "#FFFFFF",
+      "bottom": "#5F6368",
+      "headset": true
+    },
+    "history": [
+      {
+        "ago": 11,
+        "text": {
+          "zh": "开始：处理退款申请",
+          "en": "Started: Processing a refund request"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cn-03",
+    "name": {
+      "zh": "张凯",
+      "en": "Zhang Kai"
+    },
+    "type": "human",
+    "dept": "cs",
+    "title": {
+      "zh": "客服专员",
+      "en": "CS Agent"
+    },
+    "status": "working",
+    "perf": 88,
+    "task": {
+      "zh": "核对充值记录",
+      "en": "Checking a top-up record"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#E0AC83",
+      "hair": "spiky",
+      "hairColor": "#1B1B1F",
+      "top": "#34A853",
+      "bottom": "#3C4043",
+      "headset": true
+    },
+    "history": [
+      {
+        "ago": 14,
+        "text": {
+          "zh": "开始：核对充值记录",
+          "en": "Started: Checking a top-up record"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cn-04",
+    "name": {
+      "zh": "王梦婷",
+      "en": "Wang Mengting"
+    },
+    "type": "human",
+    "dept": "cs",
+    "title": {
+      "zh": "客服专员",
+      "en": "CS Agent"
+    },
+    "status": "thinking",
+    "perf": 95,
+    "task": {
+      "zh": "整理常见问题",
+      "en": "Updating the FAQ"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#F1C9A5",
+      "hair": "bun",
+      "hairColor": "#22201E",
+      "top": "#FBBC04",
+      "bottom": "#3C4043",
+      "headset": true,
+      "glasses": true
+    },
+    "history": [
+      {
+        "ago": 17,
+        "text": {
+          "zh": "开始：整理常见问题",
+          "en": "Started: Updating the FAQ"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cn-05",
+    "name": {
+      "zh": "刘泽文",
+      "en": "Liu Zewen"
+    },
+    "type": "human",
+    "dept": "cs",
+    "title": {
+      "zh": "客服专员",
+      "en": "CS Agent"
+    },
+    "status": "working",
+    "perf": 87,
+    "task": {
+      "zh": "跟进物流状态",
+      "en": "Following up shipping status"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#C68B5E",
+      "hair": "short",
+      "hairColor": "#3B2A20",
+      "top": "#EA4335",
+      "bottom": "#202124",
+      "headset": true
+    },
+    "history": [
+      {
+        "ago": 20,
+        "text": {
+          "zh": "开始：跟进物流状态",
+          "en": "Started: Following up shipping status"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cn-06",
+    "name": {
+      "zh": "周雨欣",
+      "en": "Zhou Yuxin"
+    },
+    "type": "human",
+    "dept": "cs",
+    "title": {
+      "zh": "客服专员",
+      "en": "CS Agent"
+    },
+    "status": "available",
+    "perf": 94,
+    "task": {
+      "zh": "等待新咨询",
+      "en": "Waiting for new enquiries"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#F5D6BA",
+      "hair": "ponytail",
+      "hairColor": "#5A3B26",
+      "top": "#A142F4",
+      "bottom": "#5F6368",
+      "headset": true
+    },
+    "history": [
+      {
+        "ago": 23,
+        "text": {
+          "zh": "开始：等待新咨询",
+          "en": "Started: Waiting for new enquiries"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cn-07",
+    "name": {
+      "zh": "赵子豪",
+      "en": "Zhao Zihao"
+    },
+    "type": "human",
+    "dept": "cs",
+    "title": {
+      "zh": "名字审核专员",
+      "en": "Name Review Agent"
+    },
+    "status": "working",
+    "perf": 86,
+    "task": {
+      "zh": "核对名正言顺技术单",
+      "en": "Reviewing a naming order sheet"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#E0AC83",
+      "hair": "side",
+      "hairColor": "#22201E",
+      "top": "#12B5CB",
+      "bottom": "#3C4043",
+      "headset": true,
+      "glasses": true
+    },
+    "history": [
+      {
+        "ago": 26,
+        "text": {
+          "zh": "开始：核对名正言顺技术单",
+          "en": "Started: Reviewing a naming order sheet"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cn-08",
+    "name": {
+      "zh": "孙佳怡",
+      "en": "Sun Jiayi"
+    },
+    "type": "human",
+    "dept": "cs",
+    "title": {
+      "zh": "客服专员",
+      "en": "CS Agent"
+    },
+    "status": "working",
+    "perf": 93,
+    "task": {
+      "zh": "回复改名进度",
+      "en": "Replying on rename progress"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#F1C9A5",
+      "hair": "bob",
+      "hairColor": "#1B1B1F",
+      "top": "#F29900",
+      "bottom": "#5F6368",
+      "headset": true
+    },
+    "history": [
+      {
+        "ago": 29,
+        "text": {
+          "zh": "开始：回复改名进度",
+          "en": "Started: Replying on rename progress"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cn-09",
+    "name": {
+      "zh": "黄伟",
+      "en": "Huang Wei"
+    },
+    "type": "human",
+    "dept": "cslead",
+    "title": {
+      "zh": "客服组长",
+      "en": "CS Team Lead"
+    },
+    "status": "working",
+    "perf": 85,
+    "task": {
+      "zh": "复核疑难工单",
+      "en": "Reviewing escalated tickets"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#D9A07A",
+      "hair": "short",
+      "hairColor": "#22201E",
+      "top": "#3C4043",
+      "bottom": "#202124",
+      "glasses": true,
+      "tie": true
+    },
+    "history": [
+      {
+        "ago": 32,
+        "text": {
+          "zh": "开始：复核疑难工单",
+          "en": "Started: Reviewing escalated tickets"
+        }
+      }
+    ]
+  },
+  {
+    "id": "cn-10",
+    "name": {
+      "zh": "吴晓彤",
+      "en": "Wu Xiaotong"
+    },
+    "type": "human",
+    "dept": "complaint",
+    "title": {
+      "zh": "投诉专员",
+      "en": "Complaint Specialist"
+    },
+    "status": "working",
+    "perf": 92,
+    "task": {
+      "zh": "安抚投诉客人",
+      "en": "Calming an upset customer"
+    },
+    "demo": true,
+    "look": {
+      "skin": "#F5D6BA",
+      "hair": "long",
+      "hairColor": "#22201E",
+      "top": "#E8EAED",
+      "bottom": "#3C4043",
+      "headset": true
+    },
+    "history": [
+      {
+        "ago": 35,
+        "text": {
+          "zh": "开始：安抚投诉客人",
+          "en": "Started: Calming an upset customer"
+        }
+      }
+    ]
+  },
+  {
+    "id": "review-01",
+    "name": {
+      "zh": "叶慧敏",
+      "en": "Huimin Ye"
+    },
+    "type": "human",
+    "dept": "review",
+    "title": {
+      "zh": "审核部主管",
+      "en": "Head of Review"
+    },
+    "status": "working",
+    "perf": 91,
+    "task": {
+      "zh": "看今天要审核的计划和成果",
+      "en": "Reviewing today's plans and results"
+    },
+    "history": [],
+    "demo": true
+  },
+  {
+    "id": "review-02",
+    "name": {
+      "zh": "Judge",
+      "en": "Judge"
+    },
+    "type": "ai",
+    "dept": "review",
+    "title": {
+      "zh": "AI 程序审核员",
+      "en": "AI Code Reviewer"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "feature-dev:code-reviewer",
+    "real": true
+  },
+  {
+    "id": "review-03",
+    "name": {
+      "zh": "Shield",
+      "en": "Shield"
+    },
+    "type": "ai",
+    "dept": "review",
+    "title": {
+      "zh": "AI 安全审核员",
+      "en": "AI Security Reviewer"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "chrome-extension-builder:security-reviewer",
+    "real": true
+  },
+  {
+    "id": "review-04",
+    "name": {
+      "zh": "Hunter",
+      "en": "Hunter"
+    },
+    "type": "ai",
+    "dept": "review",
+    "title": {
+      "zh": "AI 错误猎人",
+      "en": "AI Silent-failure Hunter"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "pr-review-toolkit:silent-failure-hunter",
+    "real": true
+  },
+  {
+    "id": "review-05",
+    "name": {
+      "zh": "Gauge",
+      "en": "Gauge"
+    },
+    "type": "ai",
+    "dept": "review",
+    "title": {
+      "zh": "AI 文案品牌审核",
+      "en": "AI Brand & Copy QA"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "brand-voice:quality-assurance",
+    "real": true
+  },
+  {
+    "id": "review-06",
+    "name": {
+      "zh": "Sage",
+      "en": "Sage"
+    },
+    "type": "ai",
+    "dept": "review",
+    "title": {
+      "zh": "AI 计划审核员",
+      "en": "AI Plan Reviewer"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "agentic-sdlc:reviewing-plan",
+    "real": true
+  },
+  {
+    "id": "review-07",
+    "name": {
+      "zh": "Verify",
+      "en": "Verify"
+    },
+    "type": "ai",
+    "dept": "review",
+    "title": {
+      "zh": "AI 验收员",
+      "en": "AI Acceptance Checker"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "superpowers:verification-before-completion",
+    "real": true
+  },
+  {
+    "id": "dev-60",
+    "name": {
+      "zh": "Blueprint",
+      "en": "Blueprint"
+    },
+    "type": "ai",
+    "dept": "dev",
+    "title": {
+      "zh": "AI 架构师",
+      "en": "AI Code Architect"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "feature-dev:code-architect",
+    "real": true
+  },
+  {
+    "id": "dev-61",
+    "name": {
+      "zh": "Scout",
+      "en": "Scout"
+    },
+    "type": "ai",
+    "dept": "dev",
+    "title": {
+      "zh": "AI 代码侦察",
+      "en": "AI Code Explorer"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "feature-dev:code-explorer",
+    "real": true
+  },
+  {
+    "id": "dev-62",
+    "name": {
+      "zh": "Swift",
+      "en": "Swift"
+    },
+    "type": "ai",
+    "dept": "dev",
+    "title": {
+      "zh": "AI 快手工程师",
+      "en": "AI Fast Worker"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "hzblj-skills:fast-worker",
+    "real": true
+  },
+  {
+    "id": "dev-63",
+    "name": {
+      "zh": "Motion",
+      "en": "Motion"
+    },
+    "type": "ai",
+    "dept": "dev",
+    "title": {
+      "zh": "AI 动画工程师",
+      "en": "AI Animation Specialist"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "hzblj-skills:animation-specialist",
+    "real": true
+  },
+  {
+    "id": "dev-64",
+    "name": {
+      "zh": "Refine",
+      "en": "Refine"
+    },
+    "type": "ai",
+    "dept": "dev",
+    "title": {
+      "zh": "AI 代码精简师",
+      "en": "AI Code Simplifier"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "pr-review-toolkit:code-simplifier",
+    "real": true
+  },
+  {
+    "id": "qa-65",
+    "name": {
+      "zh": "Coverage",
+      "en": "Coverage"
+    },
+    "type": "ai",
+    "dept": "qa",
+    "title": {
+      "zh": "AI 测试覆盖分析",
+      "en": "AI Test Coverage Analyst"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "pr-review-toolkit:pr-test-analyzer",
+    "real": true
+  },
+  {
+    "id": "strategy-66",
+    "name": {
+      "zh": "Rank",
+      "en": "Rank"
+    },
+    "type": "ai",
+    "dept": "strategy",
+    "title": {
+      "zh": "AI SEO 审核",
+      "en": "AI SEO Auditor"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "searchfit-seo:seo-auditor:AGENT",
+    "real": true
+  },
+  {
+    "id": "strategy-67",
+    "name": {
+      "zh": "Rival",
+      "en": "Rival"
+    },
+    "type": "ai",
+    "dept": "strategy",
+    "title": {
+      "zh": "AI 竞争对手分析",
+      "en": "AI Competitor Analyst"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "searchfit-seo:competitor-analyzer:AGENT",
+    "real": true
+  },
+  {
+    "id": "airesearch-68",
+    "name": {
+      "zh": "Seeker",
+      "en": "Seeker"
+    },
+    "type": "ai",
+    "dept": "airesearch",
+    "title": {
+      "zh": "AI 资料搜集员",
+      "en": "AI Researcher"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "nimble:nimble-researcher",
+    "real": true
+  },
+  {
+    "id": "airesearch-69",
+    "name": {
+      "zh": "Deep",
+      "en": "Deep"
+    },
+    "type": "ai",
+    "dept": "airesearch",
+    "title": {
+      "zh": "AI 深度分析师",
+      "en": "AI Deep Analyst"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "content-intelligence:deep-analyst",
+    "real": true
+  },
+  {
+    "id": "uiux-70",
+    "name": {
+      "zh": "Canvas",
+      "en": "Canvas"
+    },
+    "type": "ai",
+    "dept": "uiux",
+    "title": {
+      "zh": "AI 体验设计师",
+      "en": "AI UX Designer"
+    },
+    "status": "available",
+    "perf": 93,
+    "task": {
+      "zh": "待命：等 AI CEO 分配任务",
+      "en": "Standing by for the AI CEO"
+    },
+    "history": [],
+    "skill": "chrome-extension-builder:ux-designer",
+    "real": true
+  }
 ]

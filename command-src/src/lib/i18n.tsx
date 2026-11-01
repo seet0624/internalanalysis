@@ -7,6 +7,7 @@ const UI = {
   company: { zh: '数易', en: 'Shuyi' },
   nav_features: { zh: '功能', en: 'Features' },
   nav_overview: { zh: '公司总览', en: 'Company Overview' },
+  nav_missions: { zh: '派任务给 AI 团队', en: 'Missions for AI teams' },
   featuresCount: { zh: '我们有 {n} 个功能', en: 'We have {n} features' },
   featuresHint: { zh: '点一下就能用。审核工具在最上面。', en: 'Click to use. Review tools are at the top.' },
   fg_review: { zh: '审核工具', en: 'Review tools' },

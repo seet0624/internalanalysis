@@ -151,9 +151,10 @@ export function Building() {
     <group>
       {/* 看单层楼（2F 以上）时园区的树会挡到，先藏起来 */}
       <Ground trees={!s.floor || (s.model.floors.find((f) => f.id === s.floor)?.level ?? 0) <= 0} />
-      <Frame />
-      {s.model.floors.map((f) => <FloorModel key={f.id} floor={f} />)}
-      <FloorMarkers />
+      {!s.csView && <Frame />}
+      {/* 客服中国仪表板：只有 2F（看不到其他楼层）；老板：整栋 */}
+      {s.model.floors.filter((f) => !s.csView || f.id === '2F').map((f) => <FloorModel key={f.id} floor={f} />)}
+      {!s.csView && <FloorMarkers />}
     </group>
   );
 }

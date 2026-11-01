@@ -75,7 +75,35 @@
     try { localStorage.setItem(KEY, JSON.stringify({ id: id, exp: Date.now() + TTL })); } catch (e) {}
     return session();
   }
-  function logout() { try { localStorage.removeItem(KEY); } catch (e) {} }
+  function logout() { try { localStorage.removeItem(KEY); localStorage.removeItem(CLOUD_TOKEN); } catch (e) {} }
+
+  // ---------- 云端（Supabase）：网站密码对了，顺便登入云端资料库 ----------
+  // 第一次登入时，后端用同一套 hash 再验一次密码，才建立云端账号；之后就是普通登入。
+  // 云端资料谁能看什么由后端权限把关（客服账号只看得到 2F），跟网页里的检查无关。
+  var CLOUD_URL = 'https://xmtljgxdzhrptsazklls.supabase.co';
+  var CLOUD_KEY = 'sb_publishable_Z9It450THGdFoj_FItrJOQ_HcWYA0lJ';
+  var CLOUD_TOKEN = 'sb-xmtljgxdzhrptsazklls-auth-token';   // 跟 supabase-js 预设的存法一样，指挥中心直接接着用
+  function post(path, body) {
+    return fetch(CLOUD_URL + path, { method: 'POST', headers: { apikey: CLOUD_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); });
+  }
+  function cloudLogin(id, pass, timeoutMs) {
+    id = String(id || '').trim().toLowerCase();
+    var email = id + '@shuyi-hq.app';
+    var token = function () { return post('/auth/v1/token?grant_type=password', { email: email, password: String(pass || '') }); };
+    var work = token().then(function (r) {
+      if (r.ok) return r;
+      return post('/rest/v1/rpc/hq_provision', { p_account: id, p_password: String(pass || '') }).then(function (p) { return p.ok && p.body ? token() : r; });
+    }).then(function (r) {
+      if (!r.ok || !r.body || !r.body.access_token) return false;
+      var sess = r.body;
+      if (!sess.expires_at) sess.expires_at = Math.floor(Date.now() / 1000) + (sess.expires_in || 3600);
+      try { localStorage.setItem(CLOUD_TOKEN, JSON.stringify(sess)); } catch (e) { return false; }
+      return true;
+    }).catch(function () { return false; });
+    // 国内网络偶尔连不上：最多等几秒，连不上就用本机模式，不挡登入
+    return Promise.race([work, new Promise(function (res) { setTimeout(function () { res(false); }, timeoutMs || 7000); })]);
+  }
   // path：网站根目录下的路径，例如 'name/' 或 'docs/dongfang/'
   function can(path, s) {
     s = s || session();
@@ -87,7 +115,7 @@
   }
   function here() { return location.href.split('#')[0].split('?')[0].replace(ROOT, ''); }
 
-  window.HQAuth = { session: session, login: login, logout: logout, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
+  window.HQAuth = { session: session, login: login, logout: logout, cloudLogin: cloudLogin, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
 
   if (isHQ) return;
   // 其他页：没登入、或这个身份不能进 → 回首页

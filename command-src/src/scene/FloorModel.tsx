@@ -14,6 +14,9 @@ import { GEO, damp, makeFloorMats, setFloorOpacity } from './shared';
 import { surfaceTexture } from './textures';
 import { TreeField } from './Trees';
 import { Robots } from './Robots';
+import { Crew } from './Crew';
+import { useLive, recentLine } from '../lib/live';
+import { describeEvent } from '../lib/company';
 import { buildLogoWall, buildRoofSign } from '../../../hq/campus.js';
 
 const LOGO = '../hq/brand/shuyi-logo-512.png';
@@ -25,6 +28,7 @@ export function FloorModel({ floor }: { floor: Floor }) {
   const s = useStore();
   const { tr, t } = useLang();
   const m = s.model;
+  const { chat } = useLive();
   const deptColor = (id?: string) => m.departments.find((d) => d.id === id)?.color;
   const layout = useMemo(() => buildFloorLayout(floor, deptColor), [floor]); // eslint-disable-line react-hooks/exhaustive-deps
   const mats = useMemo(makeFloorMats, []);
@@ -107,6 +111,21 @@ export function FloorModel({ floor }: { floor: Floor }) {
   }, [s.dept, layout, tileMats]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [hovered, setHovered] = useState<Placement | null>(null);
+  const aiLines = useMemo(() => {
+    const out: Record<string, string> = {};
+    const now = Date.now();
+    for (const p of placements) {
+      if (p.person.type !== 'ai') continue;
+      const line = recentLine(chat, p.person.id, now);
+      if (line) out[p.person.id] = line.text;
+    }
+    const ev = m.events[m.events.length - 1];
+    if (ev && now - ev.t < 20000) {
+      const id = ev.tool === 'name' ? 'cs-r0' : ev.tool === 'tech' ? 'techsup-r0' : '';
+      if (id) out[id] = tr(describeEvent(ev));
+    }
+    return out;
+  }, [placements, chat, m.events, tr]);
   const enter = () => {
     if (!s.canEnter(floor.id)) { s.flash(t('locked')); return; }
     s.selectFloor(floor.id);
@@ -124,7 +143,7 @@ export function FloorModel({ floor }: { floor: Floor }) {
       ))}
       {/* 房间地砖（选楼层后可以点部门） */}
       {layout.tiles.map((tile, i) => (
-        <mesh key={tile.room.id} geometry={GEO.box} material={tileMats[i]} position={[tile.x, 0.01, tile.z]} scale={[tile.w, 0.02, tile.d]}
+        <mesh key={tile.room.id} geometry={GEO.box} material={tileMats[i]} position={[tile.x, 0.01, tile.z]} scale={[tile.w, 0.02, tile.d]} receiveShadow
           raycast={isSel ? undefined : () => null}
           onClick={isSel && tile.room.dept ? (e) => { e.stopPropagation(); s.selectDept(tile.room.dept ?? null); s.selectPerson(null); } : undefined}
           onPointerOver={isSel && tile.room.dept ? () => { document.body.style.cursor = 'pointer'; } : undefined}
@@ -140,12 +159,16 @@ export function FloorModel({ floor }: { floor: Floor }) {
       {layout.trees.length > 0 && <group ref={trees}><TreeField spots={layout.trees} /></group>}
       {extra && <primitive object={extra.group} />}
 
-      {/* 看单层楼：AI 员工换成会动的机器人；整栋大楼时用轻量的发光人形 */}
-      <Avatars placements={isSel ? visiblePlacements.filter((p) => p.person.type === 'human') : visiblePlacements} mats={mats} active={overview || isSel} selected={isSel ? s.person : null}
-        onPick={(id) => { if (isSel) { s.selectPerson(id); } }} onHover={isSel ? setHovered : () => undefined} />
+      {/* 看单层楼：员工是 Roblox 风格 3D 角色、AI 员工是会动的机器人；整栋大楼时用轻量的人形 */}
+      {!isSel && <Avatars placements={visiblePlacements} mats={mats} active={overview} selected={null} onPick={() => undefined} onHover={() => undefined} />}
+      {isSel && (
+        <Crew floor={floor} placements={visiblePlacements.filter((p) => p.person.type === 'human')} chat={chat} selected={s.person} showNames={s.csView}
+          onPick={(id) => s.selectPerson(id)} onHover={setHovered} />
+      )}
       {isSel && (
         <Suspense fallback={null}>
-          <Robots placements={visiblePlacements.filter((p) => p.person.type === 'ai')} onPick={(id) => s.selectPerson(id)} onHover={setHovered} />
+          <Robots placements={visiblePlacements.filter((p) => p.person.type === 'ai')} lines={aiLines} showNames={false} nameOf={(p) => tr(p.person.name)}
+            onPick={(id) => s.selectPerson(id)} onHover={setHovered} />
         </Suspense>
       )}
 
@@ -182,10 +205,12 @@ export function FloorModel({ floor }: { floor: Floor }) {
               <span className="size-2 shrink-0 rounded-full" style={{ background: d.color }} />
               <span className="flex flex-col">
                 <span className="text-xs font-semibold text-fg">{tr(d.name)}</span>
-                <span className="num text-2xs text-muted">
-                  {ppl.length}{seats ? `/${seats}` : ''} · AI {ai} · <span className="text-st-working">{busy}</span>
-                  {err && <span className="ml-1 text-danger">●</span>}
-                </span>
+                {!s.csView && (
+                  <span className="num text-2xs text-muted">
+                    {ppl.length}{seats ? `/${seats}` : ''} · AI {ai} · <span className="text-st-working">{busy}</span>
+                    {err && <span className="ml-1 text-danger">●</span>}
+                  </span>
+                )}
               </span>
             </button>
           </Html>

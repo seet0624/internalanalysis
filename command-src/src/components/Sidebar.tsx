@@ -1,14 +1,16 @@
-import { LayoutGrid, BarChart3, BookOpen, Bot, Building2, FolderKanban, LayoutDashboard, ListChecks, Lock, LogOut, MessagesSquare, Settings, Users, X } from 'lucide-react';
+import { Rocket, LayoutGrid, BarChart3, BookOpen, Bot, Building2, FolderKanban, LayoutDashboard, ListChecks, Lock, LogOut, MessagesSquare, Settings, Users, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useStore, type Section } from '../lib/store';
 import { useLang, type UIKey } from '../lib/i18n';
 import { peopleOfFloor } from '../lib/company';
 import { buildFeatures } from '../lib/features';
 import { cn } from '../lib/cn';
+import { useLive } from '../lib/live';
 
 const NAV: { id: Section; key: UIKey; icon: ReactNode }[] = [
   { id: 'features', key: 'nav_features', icon: <LayoutGrid className="size-4" /> },
   { id: 'overview', key: 'nav_overview', icon: <LayoutDashboard className="size-4" /> },
+  { id: 'missions', key: 'nav_missions', icon: <Rocket className="size-4" /> },
   { id: 'building', key: 'nav_building', icon: <Building2 className="size-4" /> },
   { id: 'departments', key: 'nav_departments', icon: <Users className="size-4" /> },
   { id: 'ai', key: 'nav_ai', icon: <Bot className="size-4" /> },
@@ -24,6 +26,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
   const s = useStore();
   const { t, tr } = useLang();
   const featureCount = buildFeatures(s.role).length;
+  const openMissions = useLive().missions.filter((m) => m.status !== 'done' && m.status !== 'cancelled').length;
   const floorsTopDown = [...s.model.floors].sort((a, b) => b.level - a.level);
   const go = (id: Section) => {
     s.setSection(id);
@@ -58,6 +61,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                   <span className={on ? 'text-accent' : ''}>{n.icon}</span>
                   {t(n.key)}
                   {n.id === 'features' && <span className="num ml-auto rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-canvas">{featureCount}</span>}
+                  {n.id === 'missions' && openMissions > 0 && <span className="num ml-auto rounded-full bg-[#9334E6] px-2 py-0.5 text-[10px] font-bold text-white">{openMissions}</span>}
                 </button>
               </li>
             );
@@ -86,7 +90,8 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             );
           })}
         </ul>
-        <a href="../" className="mt-3 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-faint hover:bg-elevated/50 hover:text-fg">← {t('oldHQ')}</a>
+        <button type="button" onClick={() => { s.setCsView(true); onClose(); }} className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-brand hover:bg-brand/10">客服中国视图（2F 工作台）→</button>
+        <a href="../?classic=1" className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-faint hover:bg-elevated/50 hover:text-fg">← {t('oldHQ')}</a>
       </nav>
 
       <div className="flex items-center gap-2.5 border-t border-line/10 p-3">

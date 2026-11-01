@@ -11,19 +11,19 @@
 <style>
 /* Three steps: 上传 → 处理待办 → 下载. 数易品牌：米白底、白卡片、金色强调（深色模式墨黑底）。 */
 :root{
-  --bg:#F4EFE5; --surface:#FFFDF8; --sunk:#F3EEE4; --ink:#2A2420; --muted:#55544E; --faint:#6B6A64; --line:#E8E1D3; --line-soft:#EFE9DD; --field:#D6D3CA;
-  --accent:#8C6B24; --accent-hover:#74581C; --accent-soft:#F3EAD3; --accent-ink:#6B511A; --on-accent:#FFFFFF;
+  --bg:#F8F9FA; --surface:#FFFFFF; --sunk:#F1F3F4; --ink:#202124; --muted:#55544E; --faint:#6B6A64; --line:#DADCE0; --line-soft:#EEF0F2; --field:#D6D3CA;
+  --accent:#1A73E8; --accent-hover:#1765CC; --accent-soft:#E8F0FE; --accent-ink:#174EA6; --on-accent:#FFFFFF;
   --crit:#B3261E; --crit-bg:#FBE9E7; --crit-ink:#8C1D18; --warn:#7A4300; --warn-bg:#FFF1DC; --orange:#C26A00;
-  --blue:#B8933F; --blue-bg:#EFE7DB; --blue-ink:#5B4A3A; --ok:#2C6A37; --ok-bg:#E6F2E8;
-  --bar:#6B511A; --bar-ink:#FFFDF8; --bar-warn:#F2B866; --sel:#F7F0DF;
+  --blue:#1A73E8; --blue-bg:#EFE7DB; --blue-ink:#5B4A3A; --ok:#2C6A37; --ok-bg:#E6F2E8;
+  --bar:#174EA6; --bar-ink:#FFFFFF; --bar-warn:#F2B866; --sel:#E8F0FE;
   --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
 }
 :root[data-theme="dark"]{
-  --bg:#14110F; --surface:#1E1A17; --sunk:#1A1714; --ink:#FAF7F0; --muted:#BDB3A3; --faint:#9A8F80; --line:#3A3430; --line-soft:#2B2622; --field:#4A433D;
-  --accent:#D4AF5F; --accent-hover:#E3CB8F; --accent-soft:#3A2F1E; --accent-ink:#E3CB8F; --on-accent:#14110F;
+  --bg:#14110F; --surface:#1E1A17; --sunk:#1A1714; --ink:#F8F9FA; --muted:#BDB3A3; --faint:#9A8F80; --line:#3A3430; --line-soft:#2B2622; --field:#4A433D;
+  --accent:#8AB4F8; --accent-hover:#AECBFA; --accent-soft:#1F3A5F; --accent-ink:#AECBFA; --on-accent:#14110F;
   --crit:#FF8A80; --crit-bg:#3A1C1A; --crit-ink:#FFB3AB; --warn:#F2B866; --warn-bg:#33270F; --orange:#F0A64B;
   --blue:#CDB89A; --blue-bg:#2E261E; --blue-ink:#E8DCC6; --ok:#7FCC8C; --ok-bg:#183020;
-  --bar:#0F0D0B; --bar-ink:#FAF7F0; --bar-warn:#F2B866; --sel:#3A2F1E; color-scheme:dark}
+  --bar:#0F0D0B; --bar-ink:#F8F9FA; --bar-warn:#F2B866; --sel:#1F3A5F; color-scheme:dark}
 *{box-sizing:border-box}
 html{background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
@@ -92,7 +92,7 @@ p{margin:0}
 /* upload */
 .hero h1{font-size:30px;font-weight:700}
 @media (min-width:720px){.hero h1{font-size:32px}}
-.drop{position:relative;border:2px dashed #D9C38E;border-radius:20px;background:var(--surface);padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;cursor:pointer}
+.drop{position:relative;border:2px dashed #AECBFA;border-radius:20px;background:var(--surface);padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;cursor:pointer}
 .drop.over{border-color:var(--accent);background:var(--accent-soft)}
 .drop input{position:absolute;width:1px;height:1px;opacity:0}
 .drop .ico{width:72px;height:72px;border-radius:20px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent)}
@@ -277,7 +277,7 @@ tr.on td{background:var(--sel)}
 .pv{position:fixed;inset:0;z-index:70;background:rgba(10,12,16,.55);display:flex;align-items:center;justify-content:center;padding:16px}
 .pv-box{background:var(--surface);border-radius:16px;width:100%;max-width:900px;height:min(92vh,1100px);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.35)}
 .pv-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 10px 18px;border-bottom:1px solid var(--line)}
-.pv iframe{flex:1;width:100%;border:0;background:#FAF7F0}
+.pv iframe{flex:1;width:100%;border:0;background:#F8F9FA}
 .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--accent-ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 </style>
 </head>
@@ -685,13 +685,13 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       s + ' .rb-ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px}' + s + ' .rb-r{color:var(--rb-red)}' +
       '@media (max-width:640px){' + s + ' .rb-row{flex-wrap:wrap;gap:6px}' + s + ' .rb-yes{width:auto;flex-direction:row;gap:6px}' + s + ' .rb-yes svg{width:40px}' + s + ' .rb-out,' + s + ' .rb-last{width:100%}' + s + ' .rb-sec{padding:18px 16px}}';
   }
-  var RB_LIGHT = '--rb-surface:#FFFFFF;--rb-sunk:#FAF7F0;--rb-ink:#14110F;--rb-muted:#55544E;--rb-line:#E8E1D3;--rb-line-soft:#EFE9DD;--rb-accent:#8C6B24;--rb-red:#B3261E;--rb-red-bg:#FBE9E7;--rb-red-ink:#8C1D18;--rb-warn:#7A4300;--rb-warn-bg:#FFF1DC;--rb-orange:#C26A00;--rb-blue:#B8933F;--rb-blue-bg:#EFE7DB;--rb-blue-ink:#5B4A3A;--rb-ok:#2C6A37;--rb-ok-bg:#E6F2E8';
+  var RB_LIGHT = '--rb-surface:#FFFFFF;--rb-sunk:#F8F9FA;--rb-ink:#14110F;--rb-muted:#55544E;--rb-line:#DADCE0;--rb-line-soft:#EEF0F2;--rb-accent:#1A73E8;--rb-red:#B3261E;--rb-red-bg:#FBE9E7;--rb-red-ink:#8C1D18;--rb-warn:#7A4300;--rb-warn-bg:#FFF1DC;--rb-orange:#C26A00;--rb-blue:#1A73E8;--rb-blue-bg:#EFE7DB;--rb-blue-ink:#5B4A3A;--rb-ok:#2C6A37;--rb-ok-bg:#E6F2E8';
   // A standalone, print-ready document (A4) — opens in any browser, 打印 → 另存为 PDF works too.
   function rulesDoc() {
     var today = E.todayStr();
-    var css = ':root{' + RB_LIGHT + '}*{box-sizing:border-box}body{margin:0;background:#FAF7F0;color:#14110F;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.65}' +
+    var css = ':root{' + RB_LIGHT + '}*{box-sizing:border-box}body{margin:0;background:#F8F9FA;color:#14110F;font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;line-height:1.65}' +
       '.page{max-width:1040px;margin:0 auto;padding:36px 24px 56px;display:flex;flex-direction:column;gap:22px}' +
-      '.cover{display:flex;flex-direction:column;gap:6px}.cover small{font-size:13px;color:#8C6B24;font-weight:700;letter-spacing:.08em}.cover h1{margin:0;font-size:32px}.cover p{margin:0;color:#55544E}' +
+      '.cover{display:flex;flex-direction:column;gap:6px}.cover small{font-size:13px;color:#1A73E8;font-weight:700;letter-spacing:.08em}.cover h1{margin:0;font-size:32px}.cover p{margin:0;color:#55544E}' +
       rulesCss('.page') + '@page{size:A4;margin:12mm}@media print{body{background:#fff}.page{padding:0;max-width:none}.rb-nav{display:none}.rb-sec{break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
     return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>技术单审核规则 ' + esc(today) + '</title>' +
       '<style>' + css + '</style></head><body><div class="page">' +

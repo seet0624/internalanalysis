@@ -7,7 +7,7 @@
 <script src="../hq/auth.js" data-nobadge></script>
 <script src="../hq/tool-kit.js"></script>
 <script src="../hq/bus.js"></script>
-<meta name="theme-color" content="#FAF7F0">
+<meta name="theme-color" content="#F8F9FA">
 <script src="../vendor/exceljs.min.js"></script>
 <script src="../vendor/jszip.min.js"></script>
 <script src="shops.js"></script>
@@ -19,28 +19,28 @@ if(!window.JSZip) document.write('<script src="https://cdnjs.cloudflare.com/ajax
 <style>
 :root{
   --bg:#14110F; --bg2:#1A1714; --panel:#1E1A17; --panel2:#25201C; --line:#3A3430; --line2:#4A433D;
-  --ink:#FAF7F0; --ink2:#E8E1D3; --muted:#BDB3A3; --gold:#D4AF5F; --gold2:#E3CB8F;
-  --pri-bg:#D4AF5F; --pri-ink:#14110F;
-  --accent-soft:#3A2F1E; --accent-ink:#E3CB8F; --hl:rgba(212,175,95,.3);
+  --ink:#F8F9FA; --ink2:#DADCE0; --muted:#BDB3A3; --gold:#8AB4F8; --gold2:#AECBFA;
+  --pri-bg:#8AB4F8; --pri-ink:#14110F;
+  --accent-soft:#1F3A5F; --accent-ink:#AECBFA; --hl:rgba(26,115,232,.25);
   --bad:#FF8A80; --bad-bg:#3A1C1A; --bad-line:rgba(255,138,128,.45); --bad-solid-ink:#1A0A0C;
   --warn:#F2B866; --warn-bg:#33270F; --warn-line:rgba(242,184,102,.45); --warn-solid-ink:#1E1302;
   --ok:#7FCC8C; --ok-bg:#183020;
   --clash-bg:#3A1C1A; --clash-ink:#FFD9DD; --clash-sub:#FFB3AB; --soft-bg:#33270F;
-  --sel:#3A2F1E; --sel-line:#8C6B24; --shadow:0 18px 50px rgba(0,0,0,.45);
+  --sel:#1F3A5F; --sel-line:#1A73E8; --shadow:0 18px 50px rgba(0,0,0,.45);
   --sans:'PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
   --serif-tc:'Noto Serif TC','Noto Serif SC','Songti TC','PMingLiU','MingLiU','SimSun',serif;
   --serif-sc:'Noto Serif SC','Noto Serif TC','Songti SC','SimSun',serif;
 }
 body.light{
-  --bg:#F4EFE5; --bg2:#FFFDF8; --panel:#FFFDF8; --panel2:#F9F8F5; --line:#E8E1D3; --line2:#D6D3CA;
-  --ink:#2A2420; --ink2:#5E564C; --muted:#55544E; --gold:#8C6B24; --gold2:#74581C;
-  --pri-bg:#8C6B24; --pri-ink:#FFFFFF;
-  --accent-soft:#F3EAD3; --accent-ink:#6B511A; --hl:#EADBB4;
+  --bg:#F8F9FA; --bg2:#FFFFFF; --panel:#FFFFFF; --panel2:#F9F8F5; --line:#DADCE0; --line2:#D6D3CA;
+  --ink:#202124; --ink2:#5F6368; --muted:#55544E; --gold:#1A73E8; --gold2:#1765CC;
+  --pri-bg:#1A73E8; --pri-ink:#FFFFFF;
+  --accent-soft:#E8F0FE; --accent-ink:#174EA6; --hl:#D2E3FC;
   --bad:#B3261E; --bad-bg:#FBE9E7; --bad-line:#EBB8B2; --bad-solid-ink:#FFFFFF;
   --warn:#7A4300; --warn-bg:#FFF1DC; --warn-line:#E7C99A; --warn-solid-ink:#FFFFFF;
   --ok:#2C6A37; --ok-bg:#E6F2E8;
   --clash-bg:#FBE9E7; --clash-ink:#8C1D18; --clash-sub:#8C1D18; --soft-bg:#FFF1DC;
-  --sel:#F7F0DF; --sel-line:#D9C38E; --shadow:0 18px 50px rgba(29,33,37,.12);
+  --sel:#E8F0FE; --sel-line:#AECBFA; --shadow:0 18px 50px rgba(29,33,37,.12);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
@@ -121,8 +121,8 @@ kbd{font-family:inherit;font-size:11px;color:var(--muted);border:1px solid var(-
 .qtabs{display:flex;gap:3px;background:var(--panel2);border-radius:9px;padding:3px;margin:10px 12px 8px}
 .qtabs button{flex:1;border:0;border-radius:7px;background:transparent;font-size:12px;padding:7px 0;color:var(--muted);white-space:nowrap}
 .qtabs button.on{background:var(--line2);color:var(--ink)}
-body.light .toast{background:#6B511A;color:#FFFDF8}
-body.light .qtabs button.on{background:#FFFDF8;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+body.light .toast{background:#174EA6;color:#FFFFFF}
+body.light .qtabs button.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .qtabs button[data-q=must]{color:var(--bad)} .qtabs button[data-q=check]{color:var(--warn)} .qtabs button[data-q=ok]{color:var(--ok)}
 .qinfo{display:flex;align-items:center;gap:8px;margin:0 14px 6px;font-size:12px;color:var(--muted)}
 .qinfo .shl{background:var(--soft-bg)}
@@ -1523,6 +1523,10 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-01', title:'换成 Google 风格配色、顶栏可切换工具', items:[
+    '配色换成 Google 风格：白底、蓝色按钮，跟首页、两个仪表板、技术单审核台同一套',
+    '顶栏「切换：技术单审核」直接跳过去；读文件出错会用白话说明怎么办；载入名册后关页面会先提醒'
+  ]},
   {date:'2026-11-01', title:'换成数易品牌配色', items:[
     '配色换成数易品牌：米白底、墨黑字、金色按钮（深色模式是墨黑底），跟首页、技术单审核台、指挥中心同一套',
     '首页和指挥中心一打开就有「功能」：名字审核、技术单审核放在最上面，点了直接进来'

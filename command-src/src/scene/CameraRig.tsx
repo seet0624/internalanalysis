@@ -26,7 +26,8 @@ export function CameraRig() {
     }
     const y = floorY(f.level);
     if (s.mode === '2d') return { pos: new THREE.Vector3(0, y + (narrow ? 62 : 44), 0.6), target: new THREE.Vector3(0, y, 0) };
-    const k = narrow ? 1.5 : 1.08;
+    // 客服中国仪表板：镜头近一点，看得清每个人
+    const k = (narrow ? 1.5 : 1.08) * (s.csView ? 0.78 : 1);
     return { pos: new THREE.Vector3(18 * k, y + 24 * k, 26 * k), target: new THREE.Vector3(-0.5, y, 1.5) };
   };
 
@@ -34,7 +35,7 @@ export function CameraRig() {
   useEffect(() => {
     goal.current = home();
     moving.current = true;
-  }, [s.floor, s.mode, narrow]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s.floor, s.mode, narrow, s.csView]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 放大、缩小、重设
   useEffect(() => {

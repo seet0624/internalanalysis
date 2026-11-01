@@ -11,16 +11,16 @@
 /* 整个网站就是一间 3D 公司；控件浮在上面。颜色跟两个审核工具同一套：数易品牌（米白、墨黑、金色）
    页面类型：分栏（主画面 = 3D 公司，右边 = 详细资料，左边抽屉 = 组织架构） */
 :root{
-  --ink:#2A2420; --ink-strong:#14110F; --muted:#5E564C; --faint:#8A8173; --line:#E8E1D3; --line-strong:#D9CFBC; --field:#D9CFBC; --sunk:#F3EEE4; --hover:#EFE7D6; --gold:#B8933F; --gold-tint:#F3EAD3;
-  --accent:#8C6B24; --accent-hover:#74581C; --accent-soft:#F3EAD3; --accent-ink:#6B511A; --on-accent:#FFFFFF;
-  --good:#4F7A5A; --warn:#C28A2C; --bad:#A23B2A;
-  --surface:#FFFDF8; --shadow:0 1px 2px rgba(60,45,20,.06),0 8px 24px rgba(60,45,20,.08); --shadow-lg:0 20px 48px -12px rgba(60,45,20,.18);
+  --ink:#202124; --ink-strong:#14110F; --muted:#5F6368; --faint:#80868B; --line:#DADCE0; --line-strong:#C4C7C5; --field:#C4C7C5; --sunk:#F1F3F4; --hover:#E8EAED; --gold:#1A73E8; --gold-tint:#E8F0FE;
+  --accent:#1A73E8; --accent-hover:#1765CC; --accent-soft:#E8F0FE; --accent-ink:#174EA6; --on-accent:#FFFFFF;
+  --good:#1E8E3E; --warn:#F9AB00; --bad:#D93025;
+  --surface:#FFFFFF; --shadow:0 1px 2px rgba(60,64,67,.06),0 8px 24px rgba(60,64,67,.08); --shadow-lg:0 20px 48px -12px rgba(60,64,67,.18);
   --sans:'PingFang SC','Microsoft YaHei','Noto Sans SC','Hiragino Sans GB',system-ui,sans-serif; --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   --sky:#FFFFFF;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden}
-body{background:#F1ECE1;color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5}
+body{background:#F8F9FA;color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 h1,h2,h3{margin:0;line-height:1.25;text-wrap:balance}
@@ -31,12 +31,12 @@ button{cursor:pointer}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* ---------- 3D 舞台（天色跟着游戏时间变） ---------- */
-.stage{position:fixed;inset:0;background:radial-gradient(120% 90% at 25% 0%,var(--sky) 0%,#F5F0E6 45%,#E5DCCB 100%);touch-action:none}
+.stage{position:fixed;inset:0;background:radial-gradient(120% 90% at 25% 0%,var(--sky) 0%,#F8F9FA 45%,#E8EAED 100%);touch-action:none}
 .stage canvas{display:block;cursor:grab}
 .stage canvas:active{cursor:grabbing}
 .hq-labels{position:absolute;inset:0;pointer-events:none}
 .hq-room,.hq-sign{position:relative;pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line-strong);
-  background:var(--surface);box-shadow:0 1px 4px rgba(60,45,20,.06);font-size:13px;font-weight:700;white-space:nowrap}
+  background:var(--surface);box-shadow:0 1px 4px rgba(60,64,67,.06);font-size:13px;font-weight:700;white-space:nowrap}
 .hq-room::before,.hq-sign::before{content:"";position:absolute;inset:-10px -4px}   /* 点击范围放大到 44px 高，外观不变 */
 .hq-room i,.hq-sign i{width:8px;height:8px;border-radius:50%;flex:none}
 .hq-room small,.hq-sign small{font-size:12px;font-weight:400;color:var(--faint)}
@@ -50,7 +50,7 @@ button{cursor:pointer}
 .hq-room-planned,.hq-sign-planned{border-style:dashed;color:var(--faint)}
 .hq-sign{font-size:12px;padding:3px 9px}
 .hq-tag{pointer-events:none;opacity:0;display:inline-flex;flex-direction:column;align-items:center;padding:4px 9px 5px;border-radius:10px;border:1px solid var(--line-strong);
-  background:var(--surface);box-shadow:0 1px 4px rgba(60,45,20,.07);font-size:12px;line-height:1.3;white-space:nowrap;transition:opacity .15s ease-out}
+  background:var(--surface);box-shadow:0 1px 4px rgba(60,64,67,.07);font-size:12px;line-height:1.3;white-space:nowrap;transition:opacity .15s ease-out}
 .hq-tag-name{font-weight:700;font-size:13px}
 .hq-tag-role{color:var(--muted)}
 .hq-tag-stat{margin-top:2px;font-size:12px;color:var(--accent-ink)}
@@ -60,7 +60,7 @@ button{cursor:pointer}
 .hq-tag.is-sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .hq-plan .hq-room{font-size:14px}
 /* 头上冒的想法、对话 */
-.hq-bubble{pointer-events:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;padding:2px 8px;font-size:16px;line-height:1.4;box-shadow:0 1px 4px rgba(60,45,20,.07);white-space:nowrap}
+.hq-bubble{pointer-events:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;padding:2px 8px;font-size:16px;line-height:1.4;box-shadow:0 1px 4px rgba(60,64,67,.07);white-space:nowrap}
 .hq-bubble.is-speech{font-size:12px;padding:4px 10px;max-width:180px;white-space:normal;text-align:center}
 
 /* ---------- 浮动卡片 ---------- */
@@ -92,7 +92,7 @@ button{cursor:pointer}
 .tbtn:hover{color:var(--accent)}
 /* 图标按钮的提示：滑鼠移上去或键盘停在上面都会出现 */
 [data-tip]{position:relative}
-[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);background:var(--accent-ink);color:#FFFDF8;font-size:12px;font-weight:500;line-height:1.4;padding:4px 8px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease-out;z-index:10}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);background:var(--accent-ink);color:#FFFFFF;font-size:12px;font-weight:500;line-height:1.4;padding:4px 8px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease-out;z-index:10}
 [data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1}
 .game [data-tip]::after{top:auto;bottom:calc(100% + 8px)}
 
@@ -161,13 +161,13 @@ button{cursor:pointer}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .legend i{width:8px;height:8px;border-radius:50%}
 .credit{font-size:12px;color:var(--faint);margin-top:auto}
-.scrim{position:fixed;inset:0;z-index:4;background:rgba(60,45,20,.16)}
-.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:var(--accent-ink);color:#FFFDF8;border-radius:999px;padding:8px 16px;font-size:14px;z-index:20}
+.scrim{position:fixed;inset:0;z-index:4;background:rgba(60,64,67,.16)}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:var(--accent-ink);color:#FFFFFF;border-radius:999px;padding:8px 16px;font-size:14px;z-index:20}
 
 /* ---------- 载入中：平面图骨架 ---------- */
 .skeleton{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:3;pointer-events:none}
 .skel-plan{width:min(560px,80vw);aspect-ratio:3/2;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(4,1fr);gap:8px;transform:perspective(900px) rotateX(48deg) rotateZ(-30deg)}
-.skel-plan i{background:rgba(60,45,20,.06);border-radius:8px}
+.skel-plan i{background:rgba(60,64,67,.06);border-radius:8px}
 .skel-plan i:nth-child(1){grid-column:span 2}.skel-plan i:nth-child(7){grid-column:span 3;grid-row:span 2}
 .skeleton p{font-size:14px;color:var(--faint)}
 .nogl{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
@@ -175,7 +175,7 @@ button{cursor:pointer}
 
 /* ---------- 手机 ---------- */
 /* ---------- 登入 ---------- */
-.login{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:#F1ECE1 url("hq/brand/login-bg.webp") center/cover no-repeat;overflow:hidden}
+.login{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:#F8F9FA url("hq/brand/login-bg.webp") center/cover no-repeat;overflow:hidden}
 /* 背景：公司 3D 模板的截图，慢慢推近；没载入前先是米白 */
 .login::before{content:"";position:absolute;inset:-4%;background:inherit;filter:blur(3px) saturate(1.05);animation:loginDrift 60s ease-in-out infinite alternate}
 .login::after{content:"";position:absolute;inset:0;background:radial-gradient(70% 70% at 50% 50%,rgba(250,247,240,.25),rgba(250,247,240,.65))}
@@ -189,9 +189,9 @@ button{cursor:pointer}
 .login h1{font-size:18px;font-weight:600}
 .login p{color:var(--muted);font-size:14px}
 .login label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500}
-.login input{min-height:46px;border:1px solid var(--field);border-radius:12px;padding:0 14px;font-size:16px;background:#FFFDF8}
+.login input{min-height:46px;border:1px solid var(--field);border-radius:12px;padding:0 14px;font-size:16px;background:#FFFFFF}
 /* 浏览器自动填入会变蓝底：改回米白 */
-.login input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #FFFDF8 inset;-webkit-text-fill-color:var(--ink);caret-color:var(--ink)}
+.login input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #FFFFFF inset;-webkit-text-fill-color:var(--ink);caret-color:var(--ink)}
 .login input:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--accent)}
 .login .err{color:var(--bad);font-size:14px;min-height:20px}
 .acct{font-size:13px;color:var(--faint);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -350,15 +350,19 @@ const enterName = (g) => '进入' + g.name.replace(/(组|部)$/, '');
 // ---------- 登入 ----------
 const params = new URLSearchParams(location.search);
 // 从别的页面被带回来登入的，登入后回去那一页
-function goNext(sess) { const nx = params.get('next'); if (nx && HQAuth.can(nx, sess)) { location.replace(HQAuth.root + nx); return true; } return false; }
+// 登入后：有 next 就回原本那页；不然进各自的仪表板（老板 → 公司总览，国内客服 → 2F 工作台）。?classic 看原本的 3D 办公室
+function goNext(sess) { const nx = params.get('next'); if (nx && HQAuth.can(nx, sess)) { location.replace(HQAuth.root + nx); return true; } if (!params.has('classic')) { location.replace(HQAuth.root + 'command/'); return true; } return false; }
 const SESSION = HQAuth.session() || await new Promise((resolve) => {
   const box = $('login'); box.hidden = false; $('skeleton').hidden = true;
   if (params.get('next')) $('loginMsg').textContent = '请先登入，登入后会带你回刚才的页面。';
   $('loginId').focus();
-  $('loginForm').addEventListener('submit', (e) => {
+  $('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const sess = HQAuth.login($('loginId').value, $('loginPass').value);
     if (!sess) { $('loginErr').textContent = '账号或密码不对，请再试一次'; $('loginPass').select(); return; }
+    const btn = $('loginForm').querySelector('button[type=submit],button:not([type])');
+    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = '连接公司云端…'; }
+    await HQAuth.cloudLogin($('loginId').value, $('loginPass').value);   // 连不上也照样进去（本机模式）
     box.hidden = true; $('skeleton').hidden = false; resolve(sess);
   });
 });
@@ -556,7 +560,7 @@ setInterval(refreshLive, 1000);
 
 // ---------- 组织架构 ----------
 $('drawer').innerHTML = `<div class="drawer-h"><h2>组织架构</h2><button type="button" class="ibtn" id="closeDrawer" aria-label="关闭组织架构" data-tip="关闭"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
-  <div class="legend"><span><i style="background:#8C6B24"></i>网站里的员工：点了进入审核工具</span><span><i style="background:#C26A00"></i>Claude 里的员工：点了复制指令</span><span><i style="background:${FAC_COLOR}"></i>设施：里面放连接器</span></div>
+  <div class="legend"><span><i style="background:#1A73E8"></i>网站里的员工：点了进入审核工具</span><span><i style="background:#C26A00"></i>Claude 里的员工：点了复制指令</span><span><i style="background:${FAC_COLOR}"></i>设施：里面放连接器</span></div>
   <section><h3>老板${ROLE === 'boss' ? '' : ' · 🔒'}</h3><ul class="mini"><li><button type="button" data-sel="boss"><span class="d" style="background:${BOSS_COLOR}" aria-hidden="true">${initial(C.boss.title)}</span><span><b>${esc(C.boss.title)}（${esc(C.boss.name)}）</b> <span class="s">老板办公室</span></span></button></li></ul></section>
   ${main ? `<section><h3>${esc(main.name)} · 主要办公区</h3><div class="grp">${main.teams.map((g) => `<div class="grp-h"><i style="width:8px;height:8px;border-radius:50%;background:${g.color}"></i><b>${esc(g.name)}</b><span class="kind ${g.kind}">· ${KIND[g.kind]}</span></div>
     ${g.agents.length ? `<ul class="mini">${g.agents.map((_, k) => agentRow(g, k)).join('')}</ul>` : `<ul class="mini">${groupRow(g)}</ul>`}`).join('')}</div></section>` : ''}

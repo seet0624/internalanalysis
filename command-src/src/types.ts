@@ -31,6 +31,10 @@ export type Department = {
 
 export type HistoryItem = { ago: number; text: L };   // ago：几分钟前
 
+// 人物外观（Roblox 风格 3D 角色）；没写就按 id 自动配一套
+export type HairStyle = 'short' | 'long' | 'spiky' | 'bun' | 'ponytail' | 'side' | 'bob' | 'bald';
+export type Look = { skin: string; hair: HairStyle; hairColor: string; top: string; bottom: string; headset?: boolean; glasses?: boolean; tie?: boolean };
+
 export type Person = {
   id: string; name: L; type: 'human' | 'ai';
   dept: string; title: L;
@@ -38,6 +42,7 @@ export type Person = {
   demo?: boolean; real?: boolean;
   skill?: string; href?: string;
   history?: HistoryItem[];
+  look?: Look;
 };
 
 export type TaskStatus = 'pending' | 'active' | 'review' | 'completed' | 'blocked';

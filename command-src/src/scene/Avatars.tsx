@@ -8,7 +8,7 @@ import { GEO, type FloorMats } from './shared';
 export type Placement = { person: Person; x: number; z: number; ry: number; sit: boolean; seatId: string };
 
 export const STATUS_COLOR: Record<Status, string> = {
-  working: '#D4AF5F', available: '#6E9E78', thinking: '#B8AFA0', waiting: '#C9773A', completed: '#8FB39A', error: '#C2553F'
+  working: '#1A73E8', available: '#1E8E3E', thinking: '#9334E6', waiting: '#F9AB00', completed: '#12B5CB', error: '#D93025'
 };
 const OUTFITS = ['#5E564C', '#8C7A62', '#5B4A3A', '#F3EAD3', '#6F8A74', '#7A6A55', '#A88B5C', '#8C6B24', '#E8E1D3', '#6B4A33'];
 const SKINS = ['#F1C9A5', '#E0AC83', '#C68B5E', '#F5D6BA', '#D9A07A'];
@@ -69,7 +69,7 @@ export function Avatars({ placements, mats, active, selected, onPick, onHover }:
     });
     if (disc.current) { disc.current.instanceMatrix.needsUpdate = true; if (disc.current.instanceColor) disc.current.instanceColor.needsUpdate = true; }
     ais.forEach((p, i) => {
-      const c = p.person.real ? '#D4AF5F' : '#B8AFA0';
+      const c = p.person.real ? '#9334E6' : '#C58AF9';
       aiBody.current?.setColorAt(i, col.set(c));
       aiHead.current?.setColorAt(i, col.set(p.person.real ? '#FFF1C9' : '#F5F1EA'));
       halo.current?.setColorAt(i, col.set(c));
@@ -135,7 +135,7 @@ export function Avatars({ placements, mats, active, selected, onPick, onHover }:
       {sel && (
         <mesh position={[sel.x, 0.04, sel.z]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
           <ringGeometry args={[0.42, 0.56, 36]} />
-          <meshBasicMaterial color="#B8933F" toneMapped={false} transparent opacity={0.95} />
+          <meshBasicMaterial color="#1A73E8" toneMapped={false} transparent opacity={0.95} />
         </mesh>
       )}
     </group>

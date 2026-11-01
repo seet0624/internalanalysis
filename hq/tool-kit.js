@@ -3,11 +3,11 @@
 // 2. HQTool.guard(有没有还没下载的工作)：关掉或重新整理页面前先提醒
 (function () {
   'use strict';
-  var css = '.hqk-ov{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(60,45,20,.18)}' +
-    '.hqk-box{width:min(420px,100%);background:#FFFDF8;color:#2A2420;border:1px solid #E8E1D3;border-radius:16px;box-shadow:0 20px 48px -12px rgba(60,45,20,.28);padding:20px 22px;font:15px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif}' +
-    '.hqk-box h2{margin:0 0 6px;font-size:16px;display:flex;align-items:center;gap:8px}.hqk-box h2::before{content:"";width:8px;height:8px;border-radius:50%;background:#B8933F}' +
-    '.hqk-box p{margin:0;white-space:pre-line;color:#5E564C}.hqk-box button{margin-top:16px;min-height:40px;padding:0 18px;border:0;border-radius:10px;background:#8C6B24;color:#FFFDF8;font:inherit;font-weight:600;cursor:pointer;float:right}' +
-    '.hqk-box button:focus-visible{outline:2px solid #B8933F;outline-offset:2px}.hqk-box::after{content:"";display:block;clear:both}';
+  var css = '.hqk-ov{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(60,64,67,.18)}' +
+    '.hqk-box{width:min(420px,100%);background:#FFFFFF;color:#202124;border:1px solid #DADCE0;border-radius:16px;box-shadow:0 20px 48px -12px rgba(60,64,67,.28);padding:20px 22px;font:15px/1.6 "PingFang SC","Microsoft YaHei",system-ui,sans-serif}' +
+    '.hqk-box h2{margin:0 0 6px;font-size:16px;display:flex;align-items:center;gap:8px}.hqk-box h2::before{content:"";width:8px;height:8px;border-radius:50%;background:#1A73E8}' +
+    '.hqk-box p{margin:0;white-space:pre-line;color:#5F6368}.hqk-box button{margin-top:16px;min-height:40px;padding:0 18px;border:0;border-radius:10px;background:#1A73E8;color:#FFFFFF;font:inherit;font-weight:600;cursor:pointer;float:right}' +
+    '.hqk-box button:focus-visible{outline:2px solid #1A73E8;outline-offset:2px}.hqk-box::after{content:"";display:block;clear:both}';
   var queue = [];
   function show(msg) {
     if (!document.body) { document.addEventListener('DOMContentLoaded', function () { show(msg); }); return; }
