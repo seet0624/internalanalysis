@@ -38,9 +38,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       open ? 'translate-x-0' : '-translate-x-full'
     )} aria-label={t('appName')}>
       <div className="flex items-center gap-2.5 px-4 pb-3 pt-4">
-        <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-brand to-accent shadow-glow">
-          <Building2 className="size-5 text-canvas" aria-hidden />
-        </div>
+        <img src="../hq/brand/shuyi-logo-64.png" alt="" width={36} height={36} className="size-9 shrink-0" />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-bold tracking-tight">{t('company')} · {t('appName')}</div>
           <div className="text-2xs text-faint">AI Company HQ</div>

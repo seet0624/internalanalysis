@@ -3,28 +3,28 @@
 @tailwind utilities;
 
 @layer base {
-  /* 唯一的颜色来源：数易品牌（深色版）—— 墨黑底、米白字、金色是唯一的强调色 */
+  /* 唯一的颜色来源：数易品牌（浅色，跟首页同一套）—— 米白底、暖深棕字、金色是唯一的强调色，尽量不用黑色 */
   :root {
-    --canvas: 20 17 15;      /* --ink #14110F */
-    --surface: 30 26 23;
-    --elevated: 44 38 33;
-    --line: 250 247 240;     /* 米白，配透明度当细线 */
-    --fg: 250 247 240;       /* --paper #FAF7F0 */
-    --muted: 196 186 170;
-    --faint: 140 130 116;
-    --brand: 184 147 63;     /* --gold #B8933F */
-    --accent: 212 175 95;    /* 深底上用亮一点的金 */
-    --ai: 227 203 143;       /* 香槟金：AI 员工 */
-    --warn: 214 154 58;
-    --danger: 194 85 63;     /* --risk 提亮 */
-    --ok: 110 158 120;       /* --ok 提亮 */
-    --st-working: 212 175 95;
-    --st-available: 110 158 120;
-    --st-thinking: 184 175 160;
-    --st-waiting: 201 119 58;
-    --st-completed: 143 179 154;
-    --st-error: 194 85 63;
-    color-scheme: dark;
+    --canvas: 244 239 229;   /* #F4EFE5 页面底 */
+    --surface: 255 253 248;  /* #FFFDF8 卡片（不用纯白） */
+    --elevated: 243 238 228; /* #F3EEE4 凹陷区 */
+    --line: 90 70 40;        /* 配透明度当细线 */
+    --fg: 42 36 32;          /* #2A2420 主文字 */
+    --muted: 94 86 76;       /* #5E564C */
+    --faint: 138 129 115;    /* #8A8173 */
+    --brand: 140 107 36;     /* #8C6B24 深金：按钮底色（白字） */
+    --accent: 126 96 32;     /* 金色文字 / 强调（米白底上够对比） */
+    --ai: 154 123 58;        /* AI 员工 */
+    --warn: 194 138 44;      /* #C28A2C */
+    --danger: 162 59 42;     /* #A23B2A */
+    --ok: 79 122 90;         /* #4F7A5A */
+    --st-working: 184 147 63;
+    --st-available: 79 122 90;
+    --st-thinking: 138 129 115;
+    --st-waiting: 194 119 44;
+    --st-completed: 95 140 110;
+    --st-error: 162 59 42;
+    color-scheme: light;
   }
   html, body, #root { height: 100%; }
   body {
@@ -44,8 +44,8 @@
 @layer components {
   /* 玻璃面板：半透明 + 模糊 + 细边 */
   .glass {
-    background: linear-gradient(180deg, rgb(var(--surface) / .78), rgb(var(--surface) / .62));
-    border: 1px solid rgb(var(--line) / .14);
+    background: linear-gradient(180deg, rgb(var(--surface) / .9), rgb(var(--surface) / .78));
+    border: 1px solid rgb(var(--line) / .12);
     -webkit-backdrop-filter: blur(18px) saturate(140%);
     backdrop-filter: blur(18px) saturate(140%);
     @apply shadow-glass;

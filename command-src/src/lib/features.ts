@@ -19,8 +19,8 @@ const REVIEW: Record<string, Pick<Feature, 'name' | 'desc' | 'steps' | 'tool'>> 
   name: {
     tool: 'name',
     name: { zh: '名字审核', en: 'Name Review' },
-    desc: { zh: '名正言顺名册：逐位学员核对新名（撞字、撞音、不雅谐音），转繁体，下载结果。', en: 'Roster review: check each new name, convert to Traditional, download results.' },
-    steps: [{ zh: '上传名册 Excel', en: 'Upload the roster Excel' }, { zh: '看每位学员的结果', en: 'Review each student' }, { zh: '下载结果文件', en: 'Download the result' }]
+    desc: { zh: '名正言顺技术单：逐位学员核对新名（撞字、撞音、不雅谐音），转繁体，下载结果。', en: 'Roster review: check each new name, convert to Traditional, download results.' },
+    steps: [{ zh: '上传名正言顺技术单', en: 'Upload the naming order sheet' }, { zh: '看每位学员的结果', en: 'Review each student' }, { zh: '下载结果文件', en: 'Download the result' }]
   },
   tech: {
     tool: 'tech',

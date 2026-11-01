@@ -28,8 +28,8 @@ export type FloorMats = {
 export function makeFloorMats(): FloorMats {
   const std = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.55, metalness: 0.08 });
   const glow = new THREE.MeshBasicMaterial({ color: '#ffffff', toneMapped: false });
-  const glass = new THREE.MeshStandardMaterial({ color: '#F3EAD3', roughness: 0.05, metalness: 0.25, transparent: true, opacity: 0.12, depthWrite: false });
-  const slab = new THREE.MeshStandardMaterial({ color: '#8A8174', roughness: 0.85, metalness: 0.05 });   // 清水模混凝土
+  const glass = new THREE.MeshStandardMaterial({ color: '#F3EAD3', roughness: 0.05, metalness: 0.25, transparent: true, opacity: 0.22, depthWrite: false });
+  const slab = new THREE.MeshStandardMaterial({ color: '#E2DCD1', roughness: 0.85, metalness: 0.05 });   // 浅色楼板
   const person = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.7 });
   const aiBody = new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.55, toneMapped: false, depthWrite: false });
   const aiGlow = new THREE.MeshBasicMaterial({ color: '#ffffff', toneMapped: false });

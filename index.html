@@ -5,16 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>审核总部</title>
 <meta name="description" content="3D 公司总部：客服部、各部门、设施和员工。员工有心情和需求，会自己走动；点员工就能开始工作。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 28'%3E%3Crect x='1' y='1' width='26' height='26' rx='7' fill='%238C6B24'/%3E%3Cpath d='M8 14.5l4 4 8-9' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="hq/brand/shuyi-logo-64.png">
+<link rel="apple-touch-icon" href="hq/brand/shuyi-logo-180.png">
 <style>
 /* 整个网站就是一间 3D 公司；控件浮在上面。颜色跟两个审核工具同一套：数易品牌（米白、墨黑、金色）
    页面类型：分栏（主画面 = 3D 公司，右边 = 详细资料，左边抽屉 = 组织架构） */
 :root{
-  --ink:#14110F; --muted:#55544E; --faint:#6B6A64; --line:rgba(29,33,37,.10); --line-strong:rgba(29,33,37,.16); --field:#D6D3CA; --sunk:#F3EEE4;
+  --ink:#2A2420; --ink-strong:#14110F; --muted:#5E564C; --faint:#8A8173; --line:#E8E1D3; --line-strong:#D9CFBC; --field:#D9CFBC; --sunk:#F3EEE4; --hover:#EFE7D6; --gold:#B8933F; --gold-tint:#F3EAD3;
   --accent:#8C6B24; --accent-hover:#74581C; --accent-soft:#F3EAD3; --accent-ink:#6B511A; --on-accent:#FFFFFF;
-  --good:#2EB872; --warn:#C98A1E; --bad:#D9473C;
-  --surface:#FFFFFF; --shadow:0 1px 2px rgba(29,33,37,.05),0 8px 24px rgba(29,33,37,.07);
-  --sans:'PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif; --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --good:#4F7A5A; --warn:#C28A2C; --bad:#A23B2A;
+  --surface:#FFFDF8; --shadow:0 1px 2px rgba(60,45,20,.06),0 8px 24px rgba(60,45,20,.08); --shadow-lg:0 20px 48px -12px rgba(60,45,20,.18);
+  --sans:'PingFang SC','Microsoft YaHei','Noto Sans SC','Hiragino Sans GB',system-ui,sans-serif; --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   --sky:#FFFFFF;
 }
 *{box-sizing:border-box}
@@ -35,7 +36,7 @@ button{cursor:pointer}
 .stage canvas:active{cursor:grabbing}
 .hq-labels{position:absolute;inset:0;pointer-events:none}
 .hq-room,.hq-sign{position:relative;pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line-strong);
-  background:var(--surface);box-shadow:0 1px 4px rgba(29,33,37,.06);font-size:13px;font-weight:700;white-space:nowrap}
+  background:var(--surface);box-shadow:0 1px 4px rgba(60,45,20,.06);font-size:13px;font-weight:700;white-space:nowrap}
 .hq-room::before,.hq-sign::before{content:"";position:absolute;inset:-10px -4px}   /* 点击范围放大到 44px 高，外观不变 */
 .hq-room i,.hq-sign i{width:8px;height:8px;border-radius:50%;flex:none}
 .hq-room small,.hq-sign small{font-size:12px;font-weight:400;color:var(--faint)}
@@ -49,7 +50,7 @@ button{cursor:pointer}
 .hq-room-planned,.hq-sign-planned{border-style:dashed;color:var(--faint)}
 .hq-sign{font-size:12px;padding:3px 9px}
 .hq-tag{pointer-events:none;opacity:0;display:inline-flex;flex-direction:column;align-items:center;padding:4px 9px 5px;border-radius:10px;border:1px solid var(--line-strong);
-  background:var(--surface);box-shadow:0 1px 4px rgba(29,33,37,.07);font-size:12px;line-height:1.3;white-space:nowrap;transition:opacity .15s ease-out}
+  background:var(--surface);box-shadow:0 1px 4px rgba(60,45,20,.07);font-size:12px;line-height:1.3;white-space:nowrap;transition:opacity .15s ease-out}
 .hq-tag-name{font-weight:700;font-size:13px}
 .hq-tag-role{color:var(--muted)}
 .hq-tag-stat{margin-top:2px;font-size:12px;color:var(--accent-ink)}
@@ -59,7 +60,7 @@ button{cursor:pointer}
 .hq-tag.is-sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .hq-plan .hq-room{font-size:14px}
 /* 头上冒的想法、对话 */
-.hq-bubble{pointer-events:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;padding:2px 8px;font-size:16px;line-height:1.4;box-shadow:0 1px 4px rgba(29,33,37,.07);white-space:nowrap}
+.hq-bubble{pointer-events:none;background:var(--surface);border:1px solid var(--line-strong);border-radius:14px;padding:2px 8px;font-size:16px;line-height:1.4;box-shadow:0 1px 4px rgba(60,45,20,.07);white-space:nowrap}
 .hq-bubble.is-speech{font-size:12px;padding:4px 10px;max-width:180px;white-space:normal;text-align:center}
 
 /* ---------- 浮动卡片 ---------- */
@@ -83,7 +84,7 @@ button{cursor:pointer}
 .tools{top:16px;right:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100vw - 32px)}
 .seg{display:inline-flex;padding:4px;gap:4px;border-radius:16px}
 .seg button{border:0;background:transparent;border-radius:12px;min-height:44px;min-width:44px;padding:0 12px;font-weight:500;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--ink);color:#FFFFFF}
+.seg button[aria-pressed="true"]{background:var(--gold-tint);color:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--line-strong)}
 .seg button:hover:not([aria-pressed="true"]){background:var(--sunk);color:var(--ink)}
 .ibtn{position:relative;width:44px;height:44px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center}
 .ibtn:hover{color:var(--accent)}
@@ -91,7 +92,7 @@ button{cursor:pointer}
 .tbtn:hover{color:var(--accent)}
 /* 图标按钮的提示：滑鼠移上去或键盘停在上面都会出现 */
 [data-tip]{position:relative}
-[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);background:var(--ink);color:#FFFFFF;font-size:12px;font-weight:500;line-height:1.4;padding:4px 8px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease-out;z-index:10}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);background:var(--accent-ink);color:#FFFDF8;font-size:12px;font-weight:500;line-height:1.4;padding:4px 8px;border-radius:8px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s ease-out;z-index:10}
 [data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1}
 .game [data-tip]::after{top:auto;bottom:calc(100% + 8px)}
 
@@ -104,7 +105,7 @@ button{cursor:pointer}
 .game .seg button{padding:0;width:44px}
 .walls{border:1px solid var(--line);background:var(--surface);border-radius:12px;min-height:44px;padding:0 12px;display:inline-flex;align-items:center;gap:8px;font-weight:500;color:var(--muted)}
 .walls[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
-.hint{left:50%;bottom:16px;transform:translateX(-50%);background:rgba(29,33,37,.78);color:#FFFFFF;border-radius:999px;padding:6px 14px;font-size:12px;white-space:nowrap;pointer-events:none}
+.hint{left:50%;bottom:16px;transform:translateX(-50%);background:rgba(255,253,248,.88);color:var(--muted);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:999px;padding:6px 14px;font-size:12px;white-space:nowrap;pointer-events:none}
 
 /* ---------- 详细资料 ---------- */
 .panel{top:84px;right:16px;width:360px;max-height:calc(100vh - 100px);overflow:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
@@ -160,13 +161,13 @@ button{cursor:pointer}
 .legend span{display:inline-flex;align-items:center;gap:8px}
 .legend i{width:8px;height:8px;border-radius:50%}
 .credit{font-size:12px;color:var(--faint);margin-top:auto}
-.scrim{position:fixed;inset:0;z-index:4;background:rgba(29,33,37,.18)}
-.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;border-radius:999px;padding:8px 16px;font-size:14px;z-index:20}
+.scrim{position:fixed;inset:0;z-index:4;background:rgba(60,45,20,.16)}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:var(--accent-ink);color:#FFFDF8;border-radius:999px;padding:8px 16px;font-size:14px;z-index:20}
 
 /* ---------- 载入中：平面图骨架 ---------- */
 .skeleton{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:3;pointer-events:none}
 .skel-plan{width:min(560px,80vw);aspect-ratio:3/2;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(4,1fr);gap:8px;transform:perspective(900px) rotateX(48deg) rotateZ(-30deg)}
-.skel-plan i{background:rgba(29,33,37,.06);border-radius:8px}
+.skel-plan i{background:rgba(60,45,20,.06);border-radius:8px}
 .skel-plan i:nth-child(1){grid-column:span 2}.skel-plan i:nth-child(7){grid-column:span 3;grid-row:span 2}
 .skeleton p{font-size:14px;color:var(--faint)}
 .nogl{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--muted)}
@@ -174,13 +175,24 @@ button{cursor:pointer}
 
 /* ---------- 手机 ---------- */
 /* ---------- 登入 ---------- */
-.login{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(120% 90% at 25% 0%,#FFFFFF 0%,#F0EADF 60%,#E5DCCB 100%)}
-.login form{width:min(380px,100%);padding:28px;display:flex;flex-direction:column;gap:16px}
-.login h1{font-size:24px;display:flex;align-items:center;gap:10px}
+.login{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:#F1ECE1 url("hq/brand/login-bg.webp") center/cover no-repeat;overflow:hidden}
+/* 背景：公司 3D 模板的截图，慢慢推近；没载入前先是米白 */
+.login::before{content:"";position:absolute;inset:-4%;background:inherit;filter:blur(3px) saturate(1.05);animation:loginDrift 60s ease-in-out infinite alternate}
+.login::after{content:"";position:absolute;inset:0;background:radial-gradient(70% 70% at 50% 50%,rgba(250,247,240,.25),rgba(250,247,240,.65))}
+@keyframes loginDrift{from{transform:scale(1)}to{transform:scale(1.08) translate(-1.5%,-1%)}}
+@media (prefers-reduced-motion:reduce){.login::before{animation:none}}
+.login form{position:relative;z-index:1;width:min(400px,100%);padding:32px;display:flex;flex-direction:column;gap:16px;background:rgba(255,253,248,.76);-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2);border:1px solid rgba(232,225,211,.9);border-radius:20px;box-shadow:var(--shadow-lg)}
+.login .lg-logo{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--gold)}
+.login .lg-logo img{width:52px;height:52px}
+.login .lg-logo b{display:block;font-size:22px;letter-spacing:.06em;color:var(--ink-strong)}
+.login .lg-logo small{display:block;font-size:13px;color:var(--faint);letter-spacing:.04em}
+.login h1{font-size:18px;font-weight:600}
 .login p{color:var(--muted);font-size:14px}
 .login label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500}
-.login input{min-height:44px;border:1px solid var(--field);border-radius:12px;padding:0 12px;font-size:16px;background:#FFFFFF}
-.login input:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.login input{min-height:46px;border:1px solid var(--field);border-radius:12px;padding:0 14px;font-size:16px;background:#FFFDF8}
+/* 浏览器自动填入会变蓝底：改回米白 */
+.login input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #FFFDF8 inset;-webkit-text-fill-color:var(--ink);caret-color:var(--ink)}
+.login input:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--accent)}
 .login .err{color:var(--bad);font-size:14px;min-height:20px}
 .acct{font-size:13px;color:var(--faint);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .acct button{border:0;background:none;color:var(--accent);font-size:13px;padding:8px 4px;min-height:32px;text-decoration:underline}
@@ -253,7 +265,7 @@ button{cursor:pointer}
 
 <header class="hud card brand">
   <div class="brand-row">
-    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7" fill="#8C6B24"/><path d="M8 14.5l4 4 8-9" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <img src="hq/brand/shuyi-logo-64.png" alt="数易" width="32" height="32" style="flex:none">
     <div class="co">
       <button type="button" class="co-name" id="coName" aria-label="改公司名称"><span id="coText"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
       <input class="co-input" id="coInput" type="text" maxlength="20" aria-label="公司名称（按 Enter 保存，Esc 取消）" hidden>
@@ -304,7 +316,8 @@ button{cursor:pointer}
 </section>
 <div class="login" id="login" hidden>
   <form class="card" id="loginForm" autocomplete="on">
-    <h1><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7" fill="#8C6B24"/><path d="M8 14.5l4 4 8-9" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>登入审核总部</h1>
+    <div class="lg-logo"><img src="hq/brand/shuyi-logo-180.png" alt="" width="52" height="52"><span><b>数易 · 审核总部</b><small>SHUYI REVIEW HQ</small></span></div>
+    <h1>登入</h1>
     <p id="loginMsg">用公司给你的账号登入。</p>
     <label>账号<input id="loginId" name="username" autocomplete="username" required></label>
     <label>密码<input id="loginPass" name="password" type="password" autocomplete="current-password" required></label>

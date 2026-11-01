@@ -49,7 +49,7 @@ class Builder {
   // ---------- 家具 ----------
   plant(x: number, z: number, h = 1) {
     this.cyl(x, 0, z, 0.24, 0.42, C.plantPot);
-    this.cyl(x, 0.42, z, 0.21, 0.02, '#3B2A1E');   // 泥土
+    this.cyl(x, 0.42, z, 0.21, 0.02, '#6B5442');   // 泥土
     this.tree(x, 0.4, z, 'bush', 1.0 * h);
   }
   chair(x: number, z: number, ry: number, c: string = C.chair) {
@@ -76,7 +76,7 @@ class Builder {
   sofa(x: number, z: number, w: number, ry: number, c: string = C.sofa) {
     const bx = Math.sin(ry) * -0.32, bz = Math.cos(ry) * -0.32;
     this.box(x, 0, z, ry % Math.PI === 0 ? w : 0.85, 0.42, ry % Math.PI === 0 ? 0.85 : w, c);
-    this.box(x + bx, 0.42, z + bz, ry % Math.PI === 0 ? w : 0.2, 0.42, ry % Math.PI === 0 ? 0.2 : w, mix(c, '#000000', 0.15));
+    this.box(x + bx, 0.42, z + bz, ry % Math.PI === 0 ? w : 0.2, 0.42, ry % Math.PI === 0 ? 0.2 : w, mix(c, '#5E5650', 0.15));
   }
   table(x: number, z: number, w: number, d: number, c: string = C.white, h = 0.74) {
     this.box(x, h - 0.05, z, w, 0.05, d, c);
@@ -158,7 +158,7 @@ function furnish(b: Builder, r: RR, accent: string) {
     case 'board': case 'meeting': {
       const big = r.kind === 'board';
       const tw = Math.min(r.w - 3, big ? 9 : 4), td = big ? 2 : 1.2;
-      if (big) b.rug(cx, cz, tw + 2.4, td + 3, '#4A3C30');
+      if (big) b.rug(cx, cz, tw + 2.4, td + 3, '#CDB89A');
       b.table(cx, cz, tw, td, big ? C.wood : C.white);
       const n = Math.max(2, Math.floor(tw / 0.9));
       for (let i = 0; i < n; i++) {
@@ -209,7 +209,7 @@ function furnish(b: Builder, r: RR, accent: string) {
       b.glow(cx + 5, 0.06, cz - 2.5, 4, 0.02, 2.2, '#3E5552');
       const trees: [number, number, TreeKind, number][] = [[-9, -3, 'oak', 4.8], [-6, 3, 'ash', 4.2], [-1, -3.2, 'aspen', 5.0], [2, 3.1, 'oak', 4.0], [8, 3, 'ash', 4.4], [10, -3, 'aspen', 4.8], [-10.5, 2.8, 'pine', 4.2]];
       for (const [dx, dz, kind, h] of trees) {
-        b.cyl(cx + dx, 0, cz + dz, 0.55, 0.12, '#3B2A1E');
+        b.cyl(cx + dx, 0, cz + dz, 0.55, 0.12, '#6B5442');
         b.tree(cx + dx, 0.05, cz + dz, kind, h);
       }
       for (let i = 0; i < 10; i++) b.tree(r.x0 + 0.8 + i * 2.3, 0.05, r.z0 + 0.5, 'bush', 0.7);
@@ -219,13 +219,13 @@ function furnish(b: Builder, r: RR, accent: string) {
     }
     case 'solar': {
       for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) {
-        b.tilt(r.x0 + 2.2 + i * 3.4, 0.5, r.z0 + 2.4 + j * 4, 3, 0.06, 2.6, '#1E2428', [-0.45, 0, 0]);
+        b.tilt(r.x0 + 2.2 + i * 3.4, 0.5, r.z0 + 2.4 + j * 4, 3, 0.06, 2.6, '#3C4250', [-0.45, 0, 0]);
         b.box(r.x0 + 2.2 + i * 3.4, 0, r.z0 + 2.4 + j * 4, 0.1, 0.6, 0.1, C.metal);
       }
       break;
     }
     case 'server': case 'compute': {
-      b.box(cx, 0.005, cz, r.w - 0.6, 0.04, r.d - 0.6, r.kind === 'server' ? '#2A2622' : '#221C16');
+      b.box(cx, 0.005, cz, r.w - 0.6, 0.04, r.d - 0.6, r.kind === 'server' ? '#D9D2C5' : '#E3DACB');
       const led = r.kind === 'server' ? '#D4AF5F' : '#E3CB8F';
       const rows = 3, per = Math.floor((r.w - 2) / 0.65);
       for (let row = 0; row < rows; row++) for (let i = 0; i < per; i++) {
@@ -261,7 +261,7 @@ function furnish(b: Builder, r: RR, accent: string) {
     case 'maintenance': {
       b.box(cx - 1.5, 0, r.z0 + 1.2, 3.2, 0.9, 0.9, C.metal);
       b.box(cx + 2, 0, r.z0 + 1.2, 2.4, 0.9, 0.9, C.metal);
-      for (let i = 0; i < 4; i++) b.box(r.x0 + 0.4, 0, r.z0 + 1 + i * 1.8, 0.5, 2.0, 1.4, '#3A3430');
+      for (let i = 0; i < 4; i++) b.box(r.x0 + 0.4, 0, r.z0 + 1 + i * 1.8, 0.5, 2.0, 1.4, '#B8AFA0');
       for (let i = 0; i < 5; i++) b.box(cx - 2 + i * 1.1, 0.9, r.z0 + 1.1, 0.5, 0.3, 0.4, i % 2 ? '#4F7A5A' : '#B8933F');
       b.seat(r, cx - 1.5, r.z0 + 2.1, Math.PI, false);
       b.seat(r, cx + 2, r.z0 + 2.1, Math.PI, false);
@@ -275,7 +275,7 @@ function furnish(b: Builder, r: RR, accent: string) {
         b.glow(r.x0 + 2.2 + i * 3.4, 1.0, r.z0 + 3.01, 0.6, 0.12, 0.01, '#8FB39A');
       }
       for (let i = 0; i < 7; i++) {
-        b.box(r.x0 + 1.2 + i * 1.0, 0, r.z1 - 1.4, 0.8, 1.9, 0.8, '#2B2622');
+        b.box(r.x0 + 1.2 + i * 1.0, 0, r.z1 - 1.4, 0.8, 1.9, 0.8, '#CFC6B6');
         b.glow(r.x0 + 1.2 + i * 1.0, 1.5, r.z1 - 1.79, 0.5, 0.06, 0.01, '#8FB39A');
       }
       b.cyl(r.x1 - 1.2, 0, r.z0 + 1.2, 0.5, 2.2, C.metal);
@@ -285,7 +285,7 @@ function furnish(b: Builder, r: RR, accent: string) {
       b.box(cx, 0, cz + 0.6, r.w - 3.2, 1.08, 0.8, C.white);
       b.box(cx, 1.08, cz + 0.6, r.w - 3.0, 0.05, 1.0, '#D9CFBE');
       b.glow(cx, 0.08, cz + 1.01, r.w - 3.2, 0.05, 0.01, accent);
-      b.box(cx, 0, r.z0 + 0.25, r.w - 1.5, WALL_H, 0.2, '#2B2622');
+      b.box(cx, 0, r.z0 + 0.25, r.w - 1.5, WALL_H, 0.2, '#CFC6B6');
       b.glow(cx, 1.3, r.z0 + 0.36, 3.2, 0.7, 0.01, accent);
       b.chair(cx - 1.2, cz - 0.4, Math.PI); b.chair(cx + 1.2, cz - 0.4, Math.PI);
       b.seat(r, cx - 1.2, cz - 0.4, Math.PI); b.seat(r, cx + 1.2, cz - 0.4, Math.PI);
@@ -339,7 +339,7 @@ export function buildFloorLayout(floor: Floor, deptColor: (id?: string) => strin
     const dc = deptColor(room.dept) || floor.accent;
     if (room.kind === 'core') {
       b.box(cx, 0, cz, room.w - 0.3, WALL_H + 0.2, room.d - 0.3, C.core);
-      for (let i = 0; i < 3; i++) b.glow(r.x0 + 1 + i * 1.6, 0.05, r.z1 - 0.12, 1.0, 2.1, 0.02, '#3A3430');
+      for (let i = 0; i < 3; i++) b.glow(r.x0 + 1 + i * 1.6, 0.05, r.z1 - 0.12, 1.0, 2.1, 0.02, '#B8AFA0');
       b.glow(cx, WALL_H + 0.2, cz, room.w - 0.5, 0.02, room.d - 0.5, '#8C6B24');
       continue;
     }
@@ -380,8 +380,8 @@ export function buildFloorLayout(floor: Floor, deptColor: (id?: string) => strin
     b.L.labels.push({ room, x: cx, z: cz });
   }
   // 外墙：后面和左边是玻璃帷幕（前、右切开看得到里面）
-  for (let x = -W / 2; x <= W / 2 + 0.01; x += 3) b.box(x, 0, -D / 2, 0.12, WALL_H + 0.4, 0.12, '#3A3430');
-  for (let z = -D / 2; z <= D / 2 + 0.01; z += 3) b.box(-W / 2, 0, z, 0.12, WALL_H + 0.4, 0.12, '#3A3430');
+  for (let x = -W / 2; x <= W / 2 + 0.01; x += 3) b.box(x, 0, -D / 2, 0.12, WALL_H + 0.4, 0.12, '#B8AFA0');
+  for (let z = -D / 2; z <= D / 2 + 0.01; z += 3) b.box(-W / 2, 0, z, 0.12, WALL_H + 0.4, 0.12, '#B8AFA0');
   b.glass(0, 0, -D / 2 - 0.02, W, WALL_H + 0.4, 0.06);
   b.glass(-W / 2 - 0.02, 0, 0, 0.06, WALL_H + 0.4, D);
   b.glow(0, WALL_H + 0.4, -D / 2, W, 0.04, 0.08, '#E3CB8F');

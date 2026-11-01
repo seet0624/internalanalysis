@@ -46,13 +46,15 @@ export function Scene() {
       <Canvas
         frameloop={covered ? 'demand' : 'always'}
         dpr={high ? [1, 1.75] : [1, 1]}
-        gl={{ antialias: high, alpha: true, powerPreference: 'high-performance' }}
+        gl={{ antialias: high, alpha: false, powerPreference: 'high-performance' }}
         camera={{ position: [48, 31, 56], fov: 40, near: 0.5, far: 800 }}
         onPointerMissed={() => s.selectPerson(null)}
       >
         <Env />
-        <hemisphereLight args={['#FFF1DC', '#1A1410', 0.8]} />
-        <directionalLight position={[30, 70, 28]} intensity={1.55} color="#FFEBD0" />
+        <color attach="background" args={['#F1EADC']} />
+        <fog attach="fog" args={['#EFE7D8', 140, 360]} />
+        <hemisphereLight args={['#FFF8EC', '#D9D2C5', 1.0]} />
+        <directionalLight position={[30, 70, 28]} intensity={1.7} color="#FFF1DE" />
         <directionalLight position={[-40, 25, -20]} intensity={0.3} color="#F3EAD3" />
         <Building />
         <OrbitControls makeDefault enableDamping dampingFactor={0.08} minDistance={6} maxDistance={160} />

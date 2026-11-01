@@ -117,7 +117,7 @@ function floorMaterial(kind, w, d) {
   else if (kind === 'tile') { t = FLOOR_TEX.tile(); rep = [w / 1.6, d / 1.6]; }
   else if (kind === 'stone') { t = FLOOR_TEX.stone(); rep = [w / 2, d / 2]; }
   else if (kind === 'concrete') { t = FLOOR_TEX.concrete(); rep = [w / 3, d / 3]; }
-  else if (kind === 'dark') { return new THREE.MeshStandardMaterial({ color: '#4A4E55', roughness: 0.9 }); }
+  else if (kind === 'dark') { return new THREE.MeshStandardMaterial({ color: '#8A8174', roughness: 0.9 }); }
   else { t = FLOOR_TEX.carpet({ carpet: '#D8D3CA', carpetWarm: '#E5D2B2', carpetGreen: '#CBD7C7' }[kind] || '#D8D3CA'); rep = [w / 2, d / 2]; }
   t.repeat.set(rep[0], rep[1]);
   return new THREE.MeshStandardMaterial({ map: t, roughness: kind === 'tile' ? 0.35 : 0.85 });
@@ -143,7 +143,7 @@ function screenTexture(kind, color) {
 }
 function abstractArt(seed) {
   return canvasTex(256, 192, (g) => {
-    const pal = [['#E8D7C3', '#8C6B24', '#F2B866', '#9A5B3F'], ['#EDE5D8', '#B8933F', '#C99A3B', '#55544E'], ['#EFE6DA', '#C26A00', '#6B6250', '#7A6A55'], ['#E4EEE6', '#2C6A37', '#F2B866', '#8C6B24']][seed % 4];
+    const pal = [['#E8D7C3', '#8C6B24', '#F2B866', '#9A5B3F'], ['#EDE5D8', '#B8933F', '#C99A3B', '#8A8174'], ['#EFE6DA', '#C26A00', '#6B6250', '#7A6A55'], ['#E4EEE6', '#2C6A37', '#F2B866', '#8C6B24']][seed % 4];
     g.fillStyle = pal[0]; g.fillRect(0, 0, 256, 192);
     g.fillStyle = pal[1]; g.beginPath(); g.arc(90, 100, 56, 0, Math.PI * 2); g.fill();
     g.fillStyle = pal[2]; g.fillRect(140, 40, 70, 90);
@@ -159,12 +159,12 @@ const M = {
   glass: new THREE.MeshStandardMaterial({ color: '#F3EAD3', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.28, depthWrite: false }),
   frame: mat('#A8AEB2', { roughness: 0.4, metalness: 0.4 }),
   desk: mat('#EDE6DA', { roughness: 0.6 }), oak: mat('#C9A97E', { roughness: 0.6 }), walnut: mat('#7A5A3C', { roughness: 0.55 }),
-  leg: mat('#B9BDC1', { roughness: 0.35, metalness: 0.5 }), chair: mat('#2F3439', { roughness: 0.7 }), monitor: mat('#14110F', { roughness: 0.35 }),
+  leg: mat('#B9BDC1', { roughness: 0.35, metalness: 0.5 }), chair: mat('#6B6250', { roughness: 0.7 }), monitor: mat('#14110F', { roughness: 0.35 }),
   sofa: mat('#8E9E9F', { roughness: 0.95 }), sofa2: mat('#CDBBA3', { roughness: 0.95 }), cushion: mat('#E7DCCB', { roughness: 1 }),
   leaf: mat('#5E8F5B', { roughness: 0.9 }), leaf2: mat('#7BA66E', { roughness: 0.9 }), pot: mat('#D9D0C3', { roughness: 0.7 }),
   white: mat('#FFFFFF', { roughness: 0.4 }), steel: mat('#C9CED2', { roughness: 0.25, metalness: 0.7 }), counter: mat('#F6F4F0', { roughness: 0.3 }),
-  cabinet: mat('#A9B4B0', { roughness: 0.6 }), dark: mat('#33373D', { roughness: 0.6 }), shelf: mat('#D8CBB5', { roughness: 0.8 }),
-  green: mat('#3FAE5A', { roughness: 0.8 }), led: new THREE.MeshStandardMaterial({ color: '#2EE07A', emissive: '#2EE07A', emissiveIntensity: 1 }),
+  cabinet: mat('#A9B4B0', { roughness: 0.6 }), dark: mat('#7A7165', { roughness: 0.6 }), shelf: mat('#D8CBB5', { roughness: 0.8 }),
+  green: mat('#3FAE5A', { roughness: 0.8 }), led: new THREE.MeshStandardMaterial({ color: '#8FB39A', emissive: '#8FB39A', emissiveIntensity: 1 }),
   ghost: new THREE.MeshStandardMaterial({ color: '#FFFFFF', transparent: true, opacity: 0.35, depthWrite: false }),
   grass: mat('#C9D8B8', { roughness: 1 }), path: mat('#E9E4DB', { roughness: 1 })
 };
@@ -596,7 +596,7 @@ export function mountOffice(container, company, opts = {}) {
     plant(8.9, 15.2, 1.1);
     const doormat = new THREE.Mesh(new THREE.PlaneGeometry(ENTRANCE.x1 - ENTRANCE.x0, 1.2), M.dark);
     doormat.rotation.x = -Math.PI / 2; doormat.position.set((ENTRANCE.x0 + ENTRANCE.x1) / 2, 0.03, BD / 2 - 0.8); scene.add(doormat);
-    roomSign(OPEN[1], `<i style="background:#55544E"></i>前台大厅`, 'room/lobby');
+    roomSign(OPEN[1], `<i style="background:#8A8174"></i>前台大厅`, 'room/lobby');
     artFrame(-12.4, 1.2, 10.25, 0, 1.5, 1.0, 3);
   }
   function drawLogo(name) {
@@ -627,7 +627,7 @@ export function mountOffice(container, company, opts = {}) {
     spot('lounge', 21.5, 14.2, Math.PI, false, '在休息区打手足球', '休息区');
     rbox(2.4, 1.6, 0.35, M.shelf, 19.6, 0.82, 10.35, g, 0.03); blockRect(18.4, 10.1, 20.8, 10.6);
     plant(23.3, 10.8, 1.3); plant(12.6, 15.3, 1.0);
-    roomSign(OPEN[2], `<i style="background:#55544E"></i>休息区`, 'room/lounge');
+    roomSign(OPEN[2], `<i style="background:#8A8174"></i>休息区`, 'room/lounge');
     artFrame(14.0, 1.0, 10.08, 0, 1.2, 0.8, 1);
   }
 
@@ -655,10 +655,10 @@ export function mountOffice(container, company, opts = {}) {
   ROOMS.forEach((r) => {
     if (r.id === 'boss') { roomSign(r, `<i style="background:${BOSS_COLOR}"></i>老板办公室<small>${esc(company.boss.title)}（${esc(company.boss.name)}）</small>`, 'boss', 'hq-room-boss'); return; }
     if (r.id === 'wcf') return;
-    if (r.id === 'wcm') { roomSign({ x0: -24, z0: -5, x1: -16, z1: 3 }, `<i style="background:#55544E"></i>洗手间<small>男 · 女</small>`, 'room/wc'); return; }
-    if (r.id === 'pantry') { roomSign(r, `<i style="background:#55544E"></i>茶水间`, 'room/pantry'); return; }
+    if (r.id === 'wcm') { roomSign({ x0: -24, z0: -5, x1: -16, z1: 3 }, `<i style="background:#8A8174"></i>洗手间<small>男 · 女</small>`, 'room/wc'); return; }
+    if (r.id === 'pantry') { roomSign(r, `<i style="background:#8A8174"></i>茶水间`, 'room/pantry'); return; }
     const f = (company.facilities || []).find((x) => 'fac/' + x.id === r.pick);
-    if (f) roomSign(r, `<i style="background:#55544E"></i>${esc(f.room)}<small>${f.connectors.length} 个连接器</small>`, 'fac/' + f.id, 'hq-room-fac');
+    if (f) roomSign(r, `<i style="background:#8A8174"></i>${esc(f.room)}<small>${f.connectors.length} 个连接器</small>`, 'fac/' + f.id, 'hq-room-fac');
   });
   // 走廊只有 2 格宽，植物放在走廊尽头的角落，不挡路
   [[-15.6, 15.5], [11.6, -4.6], [23.5, -5.6]].forEach(([x, z]) => plant(x, z, 0.7));
@@ -673,7 +673,7 @@ export function mountOffice(container, company, opts = {}) {
       sph(0.12 + (i % 3) * 0.04, i % 2 ? M.leaf : M.leaf2, -13.7, y, z, g, 0.8);
     }
     // 四色吊灯
-    const shades = ['#C9A86A', '#E2574C', '#F2B940', '#3FA45B'];
+    const shades = ['#C9A86A', '#B8735A', '#E3CB8F', '#7FA58A'];
     const lampMat = new THREE.MeshStandardMaterial({ color: '#FFF4D6', emissive: '#FFE7B0', emissiveIntensity: 1.4 });
     const pendant = (x, z, k, y = 2.25) => {
       cyl(0.008, 0.008, 0.6, M.dark, x, y + 0.45, z, g, 6);
@@ -780,9 +780,9 @@ export function mountOffice(container, company, opts = {}) {
 
   // ---------- 人物：有关节、五官、发型、服装 ----------
   const SKIN = ['#F1D3B8', '#E2B48E', '#C68D63', '#8F5B3B', '#F4DCC6', '#D9A47E'];
-  const HAIR = ['#2A211C', '#3B2A20', '#1E1E1E', '#6B4A2E', '#9A7350', '#4A3A30', '#2F2A28'];
-  const PANTS = ['#2B2F36', '#3C4654', '#4A4036', '#2F3B33', '#5A6370', '#7A6A58'];
-  const SHOES = ['#1E1E1E', '#F2F2F2', '#6B4A2E', '#3A3430'];
+  const HAIR = ['#5E4A3A', '#3B2A20', '#4A433D', '#6B4A2E', '#9A7350', '#4A3A30', '#6B5F55'];
+  const PANTS = ['#6B6250', '#7A7165', '#4A4036', '#2F3B33', '#8A8174', '#7A6A58'];
+  const SHOES = ['#4A433D', '#F2F2F2', '#6B4A2E', '#3A3430'];
   const HAIR_STYLES = ['short', 'long', 'bob', 'bun', 'pony', 'buzz', 'curly'];
   const OUTFITS = ['shirt', 'hoodie', 'blazer', 'polo', 'dress', 'cardigan'];
   const VC = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7 });   // 头、手、鞋这些合成一块的部件
@@ -822,7 +822,7 @@ export function mountOffice(container, company, opts = {}) {
     // 躯干（发光用这块材质）
     const torso = new THREE.Mesh(new RoundedBoxGeometry(0.4, 0.56, 0.24, 2, 0.09), shirt); torso.position.y = 1.2;
     // 衣服细节、腰带、臀部
-    const extras = [[new THREE.BoxGeometry(0.38, 0.16, 0.24), L.pants, [0, 0.9, 0]], [new THREE.BoxGeometry(0.39, 0.035, 0.245), '#2A2A2A', [0, 0.98, 0]]];
+    const extras = [[new THREE.BoxGeometry(0.38, 0.16, 0.24), L.pants, [0, 0.9, 0]], [new THREE.BoxGeometry(0.39, 0.035, 0.245), '#5E5650', [0, 0.98, 0]]];
     if (L.outfit === 'blazer') extras.push([new THREE.BoxGeometry(0.1, 0.34, 0.012), '#F4F4F2', [0, 1.3, 0.122]], [new THREE.BoxGeometry(0.035, 0.26, 0.014), L.top, [0, 1.27, 0.128]]);
     if (L.outfit === 'cardigan') extras.push([new THREE.BoxGeometry(0.12, 0.5, 0.012), '#F1EDE4', [0, 1.2, 0.122]]);
     if (L.outfit === 'hoodie') extras.push([new THREE.TorusGeometry(0.12, 0.05, 8, 16), shade(top, 0.85), [0, 1.47, -0.07], [Math.PI / 2.4, 0, 0]], [new THREE.BoxGeometry(0.22, 0.1, 0.02), shade(top, 0.85), [0, 1.04, 0.122]]);
@@ -838,7 +838,7 @@ export function mountOffice(container, company, opts = {}) {
       [sphG(0.035, 8, 6), S, [-0.165, 0.16, 0]], [sphG(0.035, 8, 6), S, [0.165, 0.16, 0]],
       [sphG(0.026, 8, 6), shade(S, 0.92), [0, 0.15, 0.172]],
       [sphG(0.03, 10, 8), '#FFFFFF', [-0.06, 0.2, 0.145], null, [1, 1, 0.5]], [sphG(0.03, 10, 8), '#FFFFFF', [0.06, 0.2, 0.145], null, [1, 1, 0.5]],
-      [sphG(0.017, 8, 6), '#2A1E18', [-0.06, 0.2, 0.161]], [sphG(0.017, 8, 6), '#2A1E18', [0.06, 0.2, 0.161]],
+      [sphG(0.017, 8, 6), '#5A4434', [-0.06, 0.2, 0.161]], [sphG(0.017, 8, 6), '#5A4434', [0.06, 0.2, 0.161]],
       [new THREE.BoxGeometry(0.065, 0.013, 0.012), H, [-0.06, 0.25, 0.158], [0, 0, 0.08]], [new THREE.BoxGeometry(0.065, 0.013, 0.012), H, [0.06, 0.25, 0.158], [0, 0, -0.08]],
       [new THREE.BoxGeometry(0.06, 0.012, 0.01), '#9C4A3F', [0, 0.095, 0.165]]
     ];
@@ -850,7 +850,7 @@ export function mountOffice(container, company, opts = {}) {
     if (L.hair === 'bun') head.push([sphG(0.075, 12, 10), H, [0, 0.34, -0.1]]);
     if (L.hair === 'pony') head.push([new THREE.CapsuleGeometry(0.045, 0.2, 4, 8), H, [0, 0.1, -0.2], [0.35, 0, 0]]);
     if (L.hair === 'curly') for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; head.push([sphG(0.06, 8, 6), H, [Math.cos(a) * 0.12, 0.3 + Math.sin(i * 2) * 0.02, Math.sin(a) * 0.12 - 0.02]]); }
-    if (L.glasses) head.push([new THREE.TorusGeometry(0.04, 0.007, 6, 16), '#222222', [-0.06, 0.2, 0.172]], [new THREE.TorusGeometry(0.04, 0.007, 6, 16), '#222222', [0.06, 0.2, 0.172]], [new THREE.BoxGeometry(0.04, 0.008, 0.008), '#222222', [0, 0.205, 0.175]]);
+    if (L.glasses) head.push([new THREE.TorusGeometry(0.04, 0.007, 6, 16), '#5E5650', [-0.06, 0.2, 0.172]], [new THREE.TorusGeometry(0.04, 0.007, 6, 16), '#5E5650', [0.06, 0.2, 0.172]], [new THREE.BoxGeometry(0.04, 0.008, 0.008), '#5E5650', [0, 0.205, 0.175]]);
     const headG = new THREE.Group(); headG.position.y = 1.5;
     const headM = new THREE.Mesh(mergeParts(head), VC); headG.add(headM);
     body.add(torso, extra, headG);
@@ -948,7 +948,7 @@ export function mountOffice(container, company, opts = {}) {
   }
 
   // 老板：穿西装，坐在大桌后面，面向全公司
-  const bossP = makePerson(lookFor(11, '#2F3640', { outfit: 'blazer', top: '#C99A3B', hair: 'short', hairColor: '#2A211C', glasses: false, height: 1.06, skin: '#E2B48E' }), 'boss');
+  const bossP = makePerson(lookFor(11, '#6B6250', { outfit: 'blazer', top: '#C99A3B', hair: 'short', hairColor: '#5E4A3A', glasses: false, height: 1.06, skin: '#E2B48E' }), 'boss');
   bossP.root.position.copy(bossSeat); bossP.root.rotation.y = 0;
   const bossBubble = document.createElement('div'); bossBubble.className = 'hq-bubble'; bossBubble.hidden = true;
   { const o = new CSS2DObject(bossBubble); o.position.set(0, 2.8, 0); bossP.root.add(o); }
@@ -1149,7 +1149,7 @@ export function mountOffice(container, company, opts = {}) {
   items.forEach((it, id) => { if (locked(id) && it.el) { it.el.classList.add('hq-locked'); if (!it.agent) it.el.insertAdjacentHTML('beforeend', '<small>🔒 老板才能看</small>'); } });
 
   // 选中员工脚下的圈
-  const ring = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 40), new THREE.MeshBasicMaterial({ color: '#2EB872', transparent: true, opacity: 0.85, depthWrite: false }));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 40), new THREE.MeshBasicMaterial({ color: '#B8933F', transparent: true, opacity: 0.85, depthWrite: false }));
   ring.rotation.x = -Math.PI / 2; ring.visible = false; scene.add(ring);
 
   // ---------- 游戏时钟、天色 ----------

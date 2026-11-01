@@ -49,7 +49,7 @@ function Ground({ trees }: { trees: boolean }) {
   return (
     <group>
       <mesh geometry={geo.far} rotation={[-Math.PI / 2, 0, 0]} position={[0, y - 0.01, 0]} raycast={() => null}>
-        <meshStandardMaterial map={lawnTex} color="#7E8C6A" roughness={1} />
+        <meshStandardMaterial map={lawnTex} color="#C9D4B4" roughness={1} />
       </mesh>
       <mesh geometry={geo.plaza} rotation={[-Math.PI / 2, 0, 0]} position={[0, y, 0]} raycast={() => null}>
         <meshStandardMaterial map={plazaTex} color="#D9CFBE" roughness={0.5} />
@@ -57,22 +57,22 @@ function Ground({ trees }: { trees: boolean }) {
       {/* 马路：柏油 + 白色虚线 */}
       <mesh position={[0, y + 0.015, D / 2 + 11]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
         <planeGeometry args={[240, 8]} />
-        <meshStandardMaterial color="#2A2724" roughness={0.95} />
+        <meshStandardMaterial color="#B5ADA0" roughness={0.95} />
       </mesh>
       {Array.from({ length: 40 }, (_, i) => (
         <mesh key={i} position={[-117 + i * 6, y + 0.02, D / 2 + 11]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
           <planeGeometry args={[2.6, 0.16]} />
-          <meshBasicMaterial color="#D9CFBE" />
+          <meshBasicMaterial color="#FFFDF8" />
         </mesh>
       ))}
       {/* 地下室的坑：后、左两面墙 */}
       <mesh position={[0, -GAP / 2 - SLAB, -D / 2 - 0.55]} raycast={() => null}>
         <boxGeometry args={[W + 1.2, GAP, 0.1]} />
-        <meshStandardMaterial color="#4A443C" roughness={0.9} />
+        <meshStandardMaterial color="#D9D2C5" roughness={0.9} />
       </mesh>
       <mesh position={[-W / 2 - 0.55, -GAP / 2 - SLAB, 0]} raycast={() => null}>
         <boxGeometry args={[0.1, GAP, D + 1.2]} />
-        <meshStandardMaterial color="#4A443C" roughness={0.9} />
+        <meshStandardMaterial color="#D9D2C5" roughness={0.9} />
       </mesh>
       {trees && <TreeField spots={SITE_TREES} />}
     </group>
@@ -88,7 +88,7 @@ function Frame() {
       {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => (
         <mesh key={i} position={[sx * (W / 2 + 0.3), minY + h / 2, sz * (D / 2 + 0.3)]} raycast={() => null}>
           <boxGeometry args={[0.14, h, 0.14]} />
-          <meshBasicMaterial color={i === 3 ? '#E3CB8F' : '#8C6B24'} toneMapped={false} transparent opacity={0.8} />
+          <meshBasicMaterial color={i === 3 ? '#B8933F' : '#C9B68A'} toneMapped={false} transparent opacity={0.8} />
         </mesh>
       ))}
     </group>
