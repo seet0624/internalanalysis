@@ -24,6 +24,7 @@ type State = {
   commOpen: boolean; setCommOpen: (v: boolean) => void;
   assistantOpen: boolean; setAssistantOpen: (v: boolean) => void;
   canEnter: (floorId: string) => boolean;
+  csView: boolean; setCsView: (v: boolean) => void;   // 客服中国仪表板（客服账号一定是；老板可以切过去看）
   toast: string | null; flash: (msg: string) => void;
   lastEvent: HQEvent | null;
 };
@@ -40,7 +41,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const role: Role = session?.role === 'boss' ? 'boss' : session?.role === 'cs' ? 'cs' : 'guest';
   const [model, setModel] = useState<CompanyModel>(buildCompany);
   const [lastEvent, setLastEvent] = useState<HQEvent | null>(null);
-  const [section, setSection] = useState<Section>('features');   // 功能先显示
+  const [section, setSection] = useState<Section>(role === 'boss' ? 'overview' : 'features');   // 老板先看公司总览
   const [floor, setFloor] = useState<string | null>(role === 'cs' ? '2F' : null);   // 国内客服：大楼直接看自己的 2F
   const [mode, setMode] = useState<'3d' | '2d'>('3d');
   const [dept, selectDept] = useState<string | null>(null);
@@ -52,6 +53,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [commOpen, setCommOpen] = useState(() => window.innerWidth >= 768);   // 手机先收起，让大楼大一点
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [csViewBoss, setCsView] = useState(false);
+  const csView = role === 'cs' || csViewBoss;
 
   // 真实审核纪录：别的分页（名字审核、技术单）处理完文件就重算
   useEffect(() => {
@@ -82,8 +85,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     model, role, userName: session?.name ?? '',
     section, setSection, floor, selectFloor, mode, setMode, dept, selectDept, person, selectPerson,
     hoverFloor, setHoverFloor, cam, camera, filters, setFilters, settings, setSettings,
-    commOpen, setCommOpen, assistantOpen, setAssistantOpen, canEnter, toast, flash, lastEvent
-  }), [model, role, session?.name, section, floor, selectFloor, mode, dept, person, hoverFloor, cam, camera, filters, setFilters,
+    commOpen, setCommOpen, assistantOpen, setAssistantOpen, canEnter, toast, flash, lastEvent, csView, setCsView
+  }), [csView, model, role, session?.name, section, floor, selectFloor, mode, dept, person, hoverFloor, cam, camera, filters, setFilters,
     settings, setSettings, commOpen, assistantOpen, canEnter, toast, flash, lastEvent]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

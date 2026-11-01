@@ -355,7 +355,7 @@
    "zh": "华南服务中心问题",
    "en": "South China center issues"
   },
-  "dept": "svc",
+  "dept": "orders",
   "owner": "svc-45",
   "status": "active",
   "priority": "medium",

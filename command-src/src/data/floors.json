@@ -3,7 +3,7 @@
   "id": "R",
   "code": "R",
   "level": 5,
-  "accent": "#8FB39A",
+  "accent": "#34A853",
   "name": {
    "zh": "天台 · 高管休息区与创新花园",
    "en": "Rooftop · Executive Lounge & Innovation Garden"
@@ -79,7 +79,7 @@
   "id": "5F",
   "code": "5F",
   "level": 4,
-  "accent": "#E3CB8F",
+  "accent": "#FBBC04",
   "name": {
    "zh": "5F · 高层与管理",
    "en": "5F · Executive & Management"
@@ -184,7 +184,7 @@
   "id": "4F",
   "code": "4F",
   "level": 3,
-  "accent": "#C9A86A",
+  "accent": "#A142F4",
   "name": {
    "zh": "4F · 产品与研发",
    "en": "4F · Product & Research"
@@ -296,7 +296,7 @@
   "id": "3F",
   "code": "3F",
   "level": 2,
-  "accent": "#B8933F",
+  "accent": "#4285F4",
   "name": {
    "zh": "3F · 营运与支援",
    "en": "3F · Operations & Support"
@@ -408,21 +408,21 @@
   "id": "2F",
   "code": "2F",
   "level": 1,
-  "accent": "#D4AF5F",
+  "accent": "#1A73E8",
   "name": {
-   "zh": "2F · 客服与服务中心",
-   "en": "2F · Customer Service & Service Center"
+   "zh": "2F · 客服部（中国团队）",
+   "en": "2F · Customer Service (China Team)"
   },
   "description": {
-   "zh": "公司的主力楼层：名字审核、技术单审核、Claude 客服组都在这里；审核工具处理文件后，员工的状态和任务会即时更新。",
-   "en": "The company's main floor: name review, technical-order review and the Claude support team. Statuses update live when the review tools process files."
+   "zh": "国内客服部的楼层：客服主工位区、组长办公室、技术支持、订单管理、投诉处理、AI 助手区、会议室、培训室、休息区和咖啡角。名字审核、技术单审核处理文件后，员工状态和任务即时更新。",
+   "en": "The China CS floor: main workstations, team-lead office, technical support, order management, complaints, AI assistant area, meeting room, training room, lounge and coffee corner."
   },
   "rooms": [
    {
     "id": "2f-cs",
     "name": {
-     "zh": "客服部（名字审核组）",
-     "en": "CS Department (Name Review)"
+     "zh": "客服主工位区",
+     "en": "CS Main Workstations"
     },
     "kind": "office",
     "x": 0,
@@ -430,7 +430,7 @@
     "w": 15,
     "d": 9.5,
     "dept": "cs",
-    "seats": 8
+    "seats": 12
    },
    {
     "id": "2f-core",
@@ -447,27 +447,40 @@
    {
     "id": "2f-claude",
     "name": {
-     "zh": "Claude AI 助理组",
-     "en": "Claude AI Assistant Team"
+     "zh": "AI 助手工作区",
+     "en": "AI Assistant Workstations"
     },
     "kind": "office",
     "x": 21,
     "z": 0,
-    "w": 15,
+    "w": 8,
     "d": 9.5,
     "dept": "claude",
-    "seats": 8
+    "seats": 4
+   },
+   {
+    "id": "2f-lead",
+    "name": {
+     "zh": "组长办公室",
+     "en": "Team Lead Office"
+    },
+    "kind": "exec",
+    "x": 29,
+    "z": 0,
+    "w": 7,
+    "d": 9.5,
+    "dept": "cslead"
    },
    {
     "id": "2f-complaint",
     "name": {
-     "zh": "投诉处理组",
-     "en": "Complaint Team"
+     "zh": "投诉处理区",
+     "en": "Complaint Handling"
     },
     "kind": "office",
     "x": 0,
     "z": 12.5,
-    "w": 7,
+    "w": 6,
     "d": 9.5,
     "dept": "complaint",
     "seats": 4
@@ -475,44 +488,42 @@
    {
     "id": "2f-techsup",
     "name": {
-     "zh": "技术支持（技术单审核组）",
-     "en": "Technical Support (Order Review)"
+     "zh": "技术支持区",
+     "en": "Technical Support"
     },
     "kind": "office",
-    "x": 7,
+    "x": 6,
     "z": 12.5,
-    "w": 8,
+    "w": 7,
     "d": 9.5,
     "dept": "techsup",
-    "seats": 6
+    "seats": 4
    },
    {
     "id": "2f-orders",
     "name": {
-     "zh": "订单管理组",
+     "zh": "订单管理区",
      "en": "Order Management"
     },
     "kind": "office",
-    "x": 15,
+    "x": 13,
     "z": 12.5,
-    "w": 8,
+    "w": 7,
     "d": 9.5,
     "dept": "orders",
     "seats": 6
    },
    {
-    "id": "2f-svc",
+    "id": "2f-meet",
     "name": {
-     "zh": "服务中心支援",
-     "en": "Service Center Support"
+     "zh": "会议室",
+     "en": "Meeting Room"
     },
-    "kind": "office",
-    "x": 23,
+    "kind": "meeting",
+    "x": 20,
     "z": 12.5,
-    "w": 7,
-    "d": 9.5,
-    "dept": "svc",
-    "seats": 4
+    "w": 6,
+    "d": 9.5
    },
    {
     "id": "2f-train",
@@ -521,23 +532,35 @@
      "en": "Training Room"
     },
     "kind": "training",
-    "x": 30,
+    "x": 26,
     "z": 12.5,
-    "w": 6,
+    "w": 5,
     "d": 4.75,
-    "seats": 6
+    "seats": 4
    },
    {
-    "id": "2f-meet",
+    "id": "2f-coffee",
     "name": {
-     "zh": "客服会议室",
-     "en": "CS Meeting Room"
+     "zh": "咖啡角",
+     "en": "Coffee Corner"
     },
-    "kind": "meeting",
-    "x": 30,
+    "kind": "coffee",
+    "x": 26,
     "z": 17.25,
-    "w": 6,
+    "w": 5,
     "d": 4.75
+   },
+   {
+    "id": "2f-lounge",
+    "name": {
+     "zh": "员工休息区",
+     "en": "Employee Lounge"
+    },
+    "kind": "lounge",
+    "x": 31,
+    "z": 12.5,
+    "w": 5,
+    "d": 9.5
    }
   ]
  },
@@ -545,7 +568,7 @@
   "id": "1F",
   "code": "1F",
   "level": 0,
-  "accent": "#BDB3A3",
+  "accent": "#12B5CB",
   "name": {
    "zh": "1F · 大堂与公共区",
    "en": "1F · Reception & Public Area"
@@ -659,7 +682,7 @@
   "id": "B1",
   "code": "B1",
   "level": -1,
-  "accent": "#A07C30",
+  "accent": "#5F6368",
   "name": {
    "zh": "B1 · 数据中心",
    "en": "B1 · Data Center"

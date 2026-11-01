@@ -11,7 +11,7 @@
    "zh": "老板看全公司、拍板重要决定。",
    "en": "The CEO oversees the whole company and makes key calls."
   },
-  "color": "#E3CB8F"
+  "color": "#4285F4"
  },
  {
   "id": "exec",
@@ -25,7 +25,7 @@
    "zh": "各部门主管，把老板的决定变成计划。",
    "en": "Department heads who turn decisions into plans."
   },
-  "color": "#A07C30"
+  "color": "#34A853"
  },
  {
   "id": "strategy",
@@ -39,7 +39,7 @@
    "zh": "市场、品牌、活动策划；营销 AI 员工在这里。",
    "en": "Market, brand and campaigns — home of the marketing AI team."
   },
-  "color": "#7FA58A",
+  "color": "#FBBC04",
   "team": "marketing"
  },
  {
@@ -54,7 +54,7 @@
    "zh": "规划新功能、写需求、排优先级。",
    "en": "Plans features, writes specs, sets priorities."
   },
-  "color": "#B8735A"
+  "color": "#EA4335"
  },
  {
   "id": "airesearch",
@@ -68,7 +68,7 @@
    "zh": "研究新模型、做数据分析和看板。",
    "en": "Researches models, runs analysis and dashboards."
   },
-  "color": "#A89C88",
+  "color": "#A142F4",
   "team": "data"
  },
  {
@@ -83,7 +83,7 @@
    "zh": "设计界面和使用流程。",
    "en": "Designs interfaces and user flows."
   },
-  "color": "#E3CB8F"
+  "color": "#12B5CB"
  },
  {
   "id": "dev",
@@ -97,7 +97,7 @@
    "zh": "把审核工具、网站做出来。",
    "en": "Builds the review tools and the website."
   },
-  "color": "#8E8A5A"
+  "color": "#F29900"
  },
  {
   "id": "qa",
@@ -111,7 +111,7 @@
    "zh": "上线前把关，找出问题。",
    "en": "Gatekeeps releases and finds bugs."
   },
-  "color": "#C9773A"
+  "color": "#5F6368"
  },
  {
   "id": "tech",
@@ -125,7 +125,7 @@
    "zh": "架构、部署、上线。",
    "en": "Architecture, deployment and releases."
   },
-  "color": "#D4AF5F"
+  "color": "#4285F4"
  },
  {
   "id": "ops",
@@ -139,7 +139,7 @@
    "zh": "排班、流程、每日营运数字。",
    "en": "Scheduling, processes and daily ops metrics."
   },
-  "color": "#A07C30"
+  "color": "#34A853"
  },
  {
   "id": "finance",
@@ -153,7 +153,7 @@
    "zh": "催款、现金流、报税。",
    "en": "Collections, cash flow and tax prep."
   },
-  "color": "#7FA58A",
+  "color": "#FBBC04",
   "team": "finance"
  },
  {
@@ -168,7 +168,7 @@
    "zh": "招人、入职、考核。",
    "en": "Hiring, onboarding and reviews."
   },
-  "color": "#B8735A",
+  "color": "#EA4335",
   "team": "hr"
  },
  {
@@ -183,7 +183,7 @@
    "zh": "办公室、物资、日常行政。",
    "en": "Office, supplies and daily admin."
   },
-  "color": "#A89C88"
+  "color": "#A142F4"
  },
  {
   "id": "legal",
@@ -197,7 +197,7 @@
    "zh": "看合同、查合规。",
    "en": "Contracts and compliance."
   },
-  "color": "#E3CB8F",
+  "color": "#12B5CB",
   "team": "legal"
  },
  {
@@ -212,36 +212,50 @@
    "zh": "供应商、报价、采购单。",
    "en": "Vendors, quotes and purchase orders."
   },
-  "color": "#8E8A5A"
+  "color": "#F29900"
  },
  {
   "id": "cs",
   "floor": "2F",
   "room": "2f-cs",
   "name": {
-   "zh": "客服部 · 名字审核组",
-   "en": "CS Department · Name Review"
+   "zh": "客服部 · 中国团队",
+   "en": "CS · China Team"
   },
   "summary": {
-   "zh": "名正言顺名册：逐位学员核对新名，转繁体，记订单库。",
-   "en": "Name roster review: checks each new name, converts to Traditional, keeps the order DB."
+   "zh": "国内客服主力：回客人、处理名字审核（名正言顺技术单）、跟进订单。",
+   "en": "China CS core team: customer replies, name review orders, order follow-up."
   },
-  "color": "#E3CB8F",
+  "color": "#1A73E8",
   "team": "cs.name"
+ },
+ {
+  "id": "cslead",
+  "floor": "2F",
+  "room": "2f-lead",
+  "name": {
+   "zh": "组长办公室",
+   "en": "Team Lead Office"
+  },
+  "summary": {
+   "zh": "客服组长：排班、复核疑难单、带新人。",
+   "en": "CS team lead: scheduling, escalations, coaching."
+  },
+  "color": "#34A853"
  },
  {
   "id": "claude",
   "floor": "2F",
   "room": "2f-claude",
   "name": {
-   "zh": "Claude AI 助理组",
-   "en": "Claude AI Assistant Team"
+   "zh": "AI 助手组",
+   "en": "AI Assistant Team"
   },
   "summary": {
    "zh": "在 Claude 里帮客服回客人、分工单、写常见问题。",
    "en": "Drafts replies, triages tickets and writes FAQs inside Claude."
   },
-  "color": "#C9773A",
+  "color": "#9334E6",
   "team": "cs.support"
  },
  {
@@ -256,21 +270,21 @@
    "zh": "处理客诉、安抚客人、追踪结案。",
    "en": "Handles complaints, calms customers, tracks to closure."
   },
-  "color": "#A07C30"
+  "color": "#EA4335"
  },
  {
   "id": "techsup",
   "floor": "2F",
   "room": "2f-techsup",
   "name": {
-   "zh": "技术支持 · 技术单审核组",
+   "zh": "技术支持 · 技术单审核",
    "en": "Technical Support · Order Review"
   },
   "summary": {
    "zh": "按规则标红、分文件、改页脚，转给专家。",
    "en": "Flags by rule, splits files, fixes footers, forwards to experts."
   },
-  "color": "#D4AF5F",
+  "color": "#12B5CB",
   "team": "cs.tech"
  },
  {
@@ -285,21 +299,7 @@
    "zh": "订单进度、改单、退款申请。",
    "en": "Order status, changes and refund requests."
   },
-  "color": "#B8735A"
- },
- {
-  "id": "svc",
-  "floor": "2F",
-  "room": "2f-svc",
-  "name": {
-   "zh": "服务中心支援",
-   "en": "Service Center Support"
-  },
-  "summary": {
-   "zh": "支援各地服务中心的问题。",
-   "en": "Supports regional service centers."
-  },
-  "color": "#A89C88"
+  "color": "#F29900"
  },
  {
   "id": "reception",
@@ -313,7 +313,7 @@
    "zh": "接待访客、收发快递、引导。",
    "en": "Greets visitors, handles parcels, guides guests."
   },
-  "color": "#E3CB8F"
+  "color": "#12B5CB"
  },
  {
   "id": "security",
@@ -327,7 +327,7 @@
    "zh": "门禁、巡逻、访客登记。",
    "en": "Access control, patrols, visitor log."
   },
-  "color": "#8E8A5A"
+  "color": "#F29900"
  },
  {
   "id": "infra",
@@ -341,7 +341,7 @@
    "zh": "机房、服务器、储存。",
    "en": "Server room, servers and storage."
   },
-  "color": "#C9773A"
+  "color": "#5F6368"
  },
  {
   "id": "aiops",
@@ -355,7 +355,7 @@
    "zh": "GPU 集群、AI 员工的运行环境。",
    "en": "GPU cluster that runs every AI employee."
   },
-  "color": "#D4AF5F"
+  "color": "#4285F4"
  },
  {
   "id": "network",
@@ -369,7 +369,7 @@
    "zh": "网络、防火墙、流量。",
    "en": "Network, firewall and traffic."
   },
-  "color": "#A07C30"
+  "color": "#34A853"
  },
  {
   "id": "itmaint",
@@ -383,7 +383,7 @@
    "zh": "电脑、设备维修和更新。",
    "en": "Device repair and updates."
   },
-  "color": "#7FA58A"
+  "color": "#FBBC04"
  },
  {
   "id": "secops",
@@ -397,6 +397,6 @@
    "zh": "监控画面、资安警报。",
    "en": "CCTV and security alerts."
   },
-  "color": "#B8735A"
+  "color": "#EA4335"
  }
 ]

@@ -64,14 +64,28 @@ class Builder {
     this.box(x, 0.7, z, 1.4, 0.05, 0.7, C.deskTop);
     this.box(x - 0.66, 0, z, 0.05, 0.7, 0.62, C.deskLeg);
     this.box(x + 0.66, 0, z, 0.05, 0.7, 0.62, C.deskLeg);
+    // 双屏幕
     const mz = z + facing * 0.2;
-    this.box(x, 0.75, mz, 0.08, 0.2, 0.08, C.monitor);
-    this.box(x, 0.92, mz, 0.62, 0.36, 0.03, C.monitor);
-    this.glow(x, 0.94, mz - facing * 0.02, 0.56, 0.3, 0.01, screen);
-    this.box(x + 0.4, 0.75, z - facing * 0.05, 0.3, 0.02, 0.12, C.deskLeg);
+    for (const k of [-1, 1]) {
+      const mx = x + k * 0.29;
+      this.box(mx, 0.75, mz, 0.06, 0.18, 0.06, C.monitor);
+      this.box(mx, 0.9, mz, 0.54, 0.32, 0.03, C.monitor, k * facing * 0.18);
+      this.glow(mx, 0.92, mz - facing * 0.02, 0.49, 0.27, 0.01, k === -1 ? screen : C.screen, k * facing * 0.18);
+    }
+    // 键盘、滑鼠、耳机、马克杯
+    this.box(x, 0.75, z - facing * 0.08, 0.42, 0.02, 0.13, '#E8EAED');
+    this.box(x + 0.3, 0.75, z - facing * 0.08, 0.06, 0.02, 0.09, '#E8EAED');
+    this.cyl(x - 0.48, 0.75, z - facing * 0.05, 0.05, 0.1, '#FFFFFF');
+    this.box(x + 0.5, 0.75, z + facing * 0.05, 0.16, 0.05, 0.12, '#5F6368');
     const cz = z - facing * 0.62;
     this.chair(x, cz, ry);
     this.seat(room, x, cz, ry, true);
+  }
+  whiteboard(x: number, z: number, w: number, ry: number) {
+    this.box(x, 0.85, z, ry ? 0.05 : w, 1.0, ry ? w : 0.05, '#FFFFFF', 0);
+    this.box(x, 0.8, z, ry ? 0.08 : w + 0.06, 0.04, ry ? w + 0.06 : 0.08, '#BDC1C6');
+    this.box(x - (ry ? 0 : w * 0.3), 1.3, z + (ry ? -w * 0.3 : 0), ry ? 0.06 : w * 0.25, 0.04, ry ? w * 0.25 : 0.06, '#1A73E8');
+    this.box(x + (ry ? 0 : w * 0.1), 1.15, z + (ry ? w * 0.1 : 0), ry ? 0.06 : w * 0.35, 0.03, ry ? w * 0.35 : 0.06, '#EA4335');
   }
   sofa(x: number, z: number, w: number, ry: number, c: string = C.sofa) {
     const bx = Math.sin(ry) * -0.32, bz = Math.cos(ry) * -0.32;
@@ -167,6 +181,7 @@ function furnish(b: Builder, r: RR, accent: string) {
         b.chair(x, cz + td / 2 + 0.45, Math.PI);
       }
       b.screenWall(r.x0 + 0.2, cz, Math.min(r.d - 2, big ? 4 : 2.4), Math.PI / 2, big ? accent : C.screen);
+      if (!big) b.whiteboard(r.x1 - 0.2, cz, Math.min(r.d - 3, 2.2), Math.PI / 2);
       b.plant(r.x1 - 0.6, r.z0 + 0.6);
       break;
     }

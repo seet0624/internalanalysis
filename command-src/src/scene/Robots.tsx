@@ -1,5 +1,6 @@
 // AI 员工的机器人（CC0，hq/models/RobotExpressive.glb）：只在看单层楼时用，整栋大楼时还是轻量的发光人形。
 import { useEffect, useMemo } from 'react';
+import { Html } from '@react-three/drei';
 import { useFrame, useLoader, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -19,8 +20,8 @@ function recolor(root: THREE.Object3D, real: boolean) {
     if (!m.isMesh) return;
     const src = m.material as THREE.MeshStandardMaterial;
     const mat = src.clone();
-    if (src.name === 'Main') mat.color.set(real ? '#D4AF5F' : '#CFC6B6');
-    else if (src.name === 'Grey') mat.color.set('#F3EAD3');
+    if (src.name === 'Main') mat.color.set(real ? '#FFFFFF' : '#E8EAED');
+    else if (src.name === 'Grey') mat.color.set(real ? '#9334E6' : '#C58AF9');
     else if (src.name === 'Black') mat.color.set('#5E5650');
     mat.metalness = 0.15; mat.roughness = 0.55;
     m.material = mat;
@@ -31,7 +32,7 @@ function recolor(root: THREE.Object3D, real: boolean) {
 
 type Bot = { root: THREE.Group; mixer: THREE.AnimationMixer; id: string };
 
-export function Robots({ placements, onPick, onHover }: { placements: Placement[]; onPick: (id: string) => void; onHover: (p: Placement | null) => void }) {
+export function Robots({ placements, lines, showNames, nameOf, onPick, onHover }: { placements: Placement[]; lines: Record<string, string>; showNames: boolean; nameOf: (p: Placement) => string; onPick: (id: string) => void; onHover: (p: Placement | null) => void }) {
   const gltf = useLoader(GLTFLoader, URL_ROBOT);
   const scale = useMemo(() => {
     const box = new THREE.Box3().setFromObject(gltf.scene);
@@ -70,6 +71,14 @@ export function Robots({ placements, onPick, onHover }: { placements: Placement[
           onPointerOver={(e: ThreeEvent<PointerEvent>) => { const id = idOf(e); if (!id) return; e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover(placements.find((p) => p.person.id === id) ?? null); }}
           onPointerOut={() => { document.body.style.cursor = ''; onHover(null); }} />
       ))}
+      {placements.map((p) => (lines[p.person.id] || showNames) ? (
+        <Html key={'b' + p.person.id} position={[p.x, 1.9, p.z]} center zIndexRange={[9, 0]} className="tag3d">
+          <div className="flex flex-col items-center gap-1">
+            {lines[p.person.id] && <div className="max-w-56 animate-slideUp rounded-2xl rounded-bl-sm border border-ai/30 bg-surface px-3 py-1.5 text-xs leading-snug text-fg shadow-glass">{lines[p.person.id]}</div>}
+            {showNames && <div className="whitespace-nowrap rounded-full bg-ai/10 px-2 py-0.5 text-[10px] font-semibold text-ai shadow-glass">AI · {nameOf(p)}</div>}
+          </div>
+        </Html>
+      ) : null)}
     </group>
   );
 }

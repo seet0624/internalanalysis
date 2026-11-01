@@ -1,6 +1,6 @@
 // 右侧「公司情报」：没选东西看全公司；选了楼层 / 部门 / 员工就看那一个。
-import { useState } from 'react';
-import { Activity, AlertTriangle, ArrowLeft, Bell, Bot, Building2, CheckCircle2, Clock, Copy, ExternalLink, Layers, Lightbulb, ListChecks, Sparkles, Users, X } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { Activity, AlertTriangle, ArrowLeft, Bell, Bot, Building2, CheckCircle2, Clock, Copy, ExternalLink, Headphones, Layers, Lightbulb, ListChecks, Sparkles, Users, X } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { useAgo, useLang } from '../lib/i18n';
 import { deptById, deptsOfFloor, floorById, peopleOfDept, peopleOfFloor, personById, tasksOfFloor } from '../lib/company';
@@ -47,18 +47,19 @@ function Intel() {
   const ago = useAgo();
   const m = s.model;
   const ai = m.people.filter((p) => p.type === 'ai');
-  const tasks = m.tasks;
   const aiMsgs = m.messages.filter((x) => x.ch === 'ai' || x.real).slice(0, 5);
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-2">
-        <Kpi label={t('employees')} value={m.people.length - ai.length} icon={<Users className="size-3" />} />
-        <Kpi label={t('aiAgents')} value={ai.length} icon={<Bot className="size-3" />} tone="text-accent" />
-        <Kpi label={t('departments')} value={m.departments.length} icon={<Building2 className="size-3" />} />
-        <Kpi label={t('activeTasks')} value={tasks.filter((x) => x.status === 'active' || x.status === 'review').length} icon={<Activity className="size-3" />} tone="text-st-working" />
-        <Kpi label={t('completedTasks')} value={tasks.filter((x) => x.status === 'completed').length} icon={<CheckCircle2 className="size-3" />} tone="text-ok" />
-        <Kpi label={t('pendingTasks')} value={tasks.filter((x) => x.status === 'pending' || x.status === 'blocked').length} icon={<Clock className="size-3" />} tone="text-warn" />
+      {/* 参考图 1：KPI、任务环图、部门表现、快捷操作 */}
+      <div className="grid grid-cols-2 gap-2">
+        <Kpi label={t('employees')} value={m.people.length - ai.length} icon={<Users className="size-3.5 text-brand" />} />
+        <Kpi label={t('aiAgents')} value={ai.length} icon={<Sparkles className="size-3.5 text-ai" />} tone="text-ai" />
+        <Kpi label={t('departments')} value={m.departments.length} icon={<Building2 className="size-3.5 text-ok" />} />
+        <Kpi label={t('floor')} value={m.floors.length} icon={<Layers className="size-3.5 text-warn" />} />
       </div>
+      <TaskDonut />
+      <DeptPerformance />
+      <QuickActions />
       <section>
         <PanelTitle icon={<Sparkles className="size-3.5 text-accent" />}>{t('aiActivity')}</PanelTitle>
         <ul className="space-y-1.5">
@@ -101,6 +102,78 @@ function Intel() {
       })}
       <p className="text-2xs leading-relaxed text-faint">{t('demoNote')}</p>
     </div>
+  );
+}
+
+function TaskDonut() {
+  const s = useStore();
+  const { t } = useLang();
+  const tasks = s.model.tasks;
+  const done = tasks.filter((x) => x.status === 'completed').length;
+  const act = tasks.filter((x) => x.status === 'active' || x.status === 'review').length;
+  const pend = tasks.length - done - act;
+  const seg = [[done, '#1E8E3E', t('completedTasks')], [act, '#1A73E8', t('activeTasks')], [pend, '#F9AB00', t('pendingTasks')]] as const;
+  let off = 0;
+  return (
+    <section className="rounded-xl border border-line/15 p-3">
+      <PanelTitle>{t('taskCenter')}</PanelTitle>
+      <div className="flex items-center gap-4">
+        <div className="relative size-24 shrink-0">
+          <svg viewBox="0 0 36 36" className="size-24 -rotate-90" aria-hidden>
+            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#E8EAED" strokeWidth="4" />
+            {seg.map(([n, c], i) => { const len = tasks.length ? (n / tasks.length) * 97.4 : 0; const el = <circle key={i} cx="18" cy="18" r="15.5" fill="none" stroke={c} strokeWidth="4" strokeDasharray={`${len} 100`} strokeDashoffset={-off} />; off += len; return el; })}
+          </svg>
+          <span className="absolute inset-0 grid place-items-center text-center"><span><b className="num block text-xl leading-none">{tasks.length}</b><span className="text-[10px] text-muted">{t('tasks')}</span></span></span>
+        </div>
+        <ul className="flex-1 space-y-1.5 text-xs">
+          {seg.map(([n, c, l]) => <li key={l} className="flex items-center gap-2"><span className="size-2.5 rounded-full" style={{ background: c }} />{l}<b className="num ml-auto">{n}</b><span className="w-9 text-right text-faint">{tasks.length ? Math.round((n / tasks.length) * 100) : 0}%</span></li>)}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function DeptPerformance() {
+  const s = useStore();
+  const { tr } = useLang();
+  const rows = s.model.departments.map((d) => {
+    const ppl = s.model.people.filter((p) => p.dept === d.id);
+    return { d, v: ppl.length ? Math.round(ppl.reduce((a, p) => a + p.perf, 0) / ppl.length) : 0 };
+  }).filter((r) => r.v).sort((a, b) => b.v - a.v).slice(0, 5);
+  const colors = ['#1E8E3E', '#1A73E8', '#F9AB00', '#EA4335', '#9334E6'];
+  return (
+    <section className="rounded-xl border border-line/15 p-3">
+      <PanelTitle>部门表现</PanelTitle>
+      <ul className="space-y-2">
+        {rows.map((r, i) => (
+          <li key={r.d.id} className="flex items-center gap-2 text-xs">
+            <span className="w-24 truncate">{tr(r.d.name).split(' · ')[0]}</span>
+            <span className="h-2 flex-1 overflow-hidden rounded-full bg-[#F1F3F4]"><span className="block h-full rounded-full" style={{ width: `${r.v}%`, background: colors[i % colors.length] }} /></span>
+            <span className="num w-8 text-right font-semibold">{r.v}%</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function QuickActions() {
+  const s = useStore();
+  const acts: [string, ReactNode, () => void][] = [
+    ['员工管理', <Users key="u" className="size-5 text-brand" />, () => s.setSection('ai')],
+    ['任务分配', <CheckCircle2 key="c" className="size-5 text-ok" />, () => s.setSection('tasks')],
+    ['楼层编辑', <Layers key="l" className="size-5 text-ai" />, () => s.setSection('building')],
+    ['客服视图', <Headphones key="h" className="size-5 text-warn" />, () => s.setCsView(true)]
+  ];
+  return (
+    <section className="rounded-xl border border-line/15 p-3">
+      <PanelTitle>快捷操作</PanelTitle>
+      <div className="grid grid-cols-4 gap-2">
+        {acts.map(([l, ic, fn]) => (
+          <button key={l} type="button" onClick={fn} className="flex flex-col items-center gap-1.5 rounded-xl bg-[#F8F9FA] px-1 py-2.5 text-[11px] hover:bg-[#E8F0FE]">{ic}{l}</button>
+        ))}
+      </div>
+    </section>
   );
 }
 

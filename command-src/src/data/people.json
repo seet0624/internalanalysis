@@ -1852,7 +1852,7 @@
    "en": "Ting Pan"
   },
   "type": "human",
-  "dept": "svc",
+  "dept": "orders",
   "title": {
    "zh": "服务中心协调员",
    "en": "Service Center Coordinator"
@@ -1895,7 +1895,7 @@
    "en": "Bridge"
   },
   "type": "ai",
-  "dept": "svc",
+  "dept": "orders",
   "title": {
    "zh": "AI 服务中心助理",
    "en": "AI Center Assistant"
@@ -2446,5 +2446,378 @@
    }
   ],
   "demo": true
+ },
+ {
+  "id": "cn-01",
+  "name": {
+   "zh": "陈宇轩",
+   "en": "Chen Yuxuan"
+  },
+  "type": "human",
+  "dept": "cs",
+  "title": {
+   "zh": "客服专员",
+   "en": "CS Agent"
+  },
+  "status": "working",
+  "perf": 89,
+  "task": {
+   "zh": "回复学员咨询",
+   "en": "Answering student enquiries"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#F1C9A5",
+   "hair": "short",
+   "hairColor": "#22201E",
+   "top": "#1A73E8",
+   "bottom": "#3C4043",
+   "headset": true
+  },
+  "history": [
+   {
+    "ago": 8,
+    "text": {
+     "zh": "开始：回复学员咨询",
+     "en": "Started: Answering student enquiries"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cn-02",
+  "name": {
+   "zh": "李思琪",
+   "en": "Li Siqi"
+  },
+  "type": "human",
+  "dept": "cs",
+  "title": {
+   "zh": "客服专员",
+   "en": "CS Agent"
+  },
+  "status": "working",
+  "perf": 96,
+  "task": {
+   "zh": "处理退款申请",
+   "en": "Processing a refund request"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#F5D6BA",
+   "hair": "long",
+   "hairColor": "#3B2A20",
+   "top": "#FFFFFF",
+   "bottom": "#5F6368",
+   "headset": true
+  },
+  "history": [
+   {
+    "ago": 11,
+    "text": {
+     "zh": "开始：处理退款申请",
+     "en": "Started: Processing a refund request"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cn-03",
+  "name": {
+   "zh": "张凯",
+   "en": "Zhang Kai"
+  },
+  "type": "human",
+  "dept": "cs",
+  "title": {
+   "zh": "客服专员",
+   "en": "CS Agent"
+  },
+  "status": "working",
+  "perf": 88,
+  "task": {
+   "zh": "核对充值记录",
+   "en": "Checking a top-up record"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#E0AC83",
+   "hair": "spiky",
+   "hairColor": "#1B1B1F",
+   "top": "#34A853",
+   "bottom": "#3C4043",
+   "headset": true
+  },
+  "history": [
+   {
+    "ago": 14,
+    "text": {
+     "zh": "开始：核对充值记录",
+     "en": "Started: Checking a top-up record"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cn-04",
+  "name": {
+   "zh": "王梦婷",
+   "en": "Wang Mengting"
+  },
+  "type": "human",
+  "dept": "cs",
+  "title": {
+   "zh": "客服专员",
+   "en": "CS Agent"
+  },
+  "status": "thinking",
+  "perf": 95,
+  "task": {
+   "zh": "整理常见问题",
+   "en": "Updating the FAQ"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#F1C9A5",
+   "hair": "bun",
+   "hairColor": "#22201E",
+   "top": "#FBBC04",
+   "bottom": "#3C4043",
+   "headset": true,
+   "glasses": true
+  },
+  "history": [
+   {
+    "ago": 17,
+    "text": {
+     "zh": "开始：整理常见问题",
+     "en": "Started: Updating the FAQ"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cn-05",
+  "name": {
+   "zh": "刘泽文",
+   "en": "Liu Zewen"
+  },
+  "type": "human",
+  "dept": "cs",
+  "title": {
+   "zh": "客服专员",
+   "en": "CS Agent"
+  },
+  "status": "working",
+  "perf": 87,
+  "task": {
+   "zh": "跟进物流状态",
+   "en": "Following up shipping status"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#C68B5E",
+   "hair": "short",
+   "hairColor": "#3B2A20",
+   "top": "#EA4335",
+   "bottom": "#202124",
+   "headset": true
+  },
+  "history": [
+   {
+    "ago": 20,
+    "text": {
+     "zh": "开始：跟进物流状态",
+     "en": "Started: Following up shipping status"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cn-06",
+  "name": {
+   "zh": "周雨欣",
+   "en": "Zhou Yuxin"
+  },
+  "type": "human",
+  "dept": "cs",
+  "title": {
+   "zh": "客服专员",
+   "en": "CS Agent"
+  },
+  "status": "available",
+  "perf": 94,
+  "task": {
+   "zh": "等待新咨询",
+   "en": "Waiting for new enquiries"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#F5D6BA",
+   "hair": "ponytail",
+   "hairColor": "#5A3B26",
+   "top": "#A142F4",
+   "bottom": "#5F6368",
+   "headset": true
+  },
+  "history": [
+   {
+    "ago": 23,
+    "text": {
+     "zh": "开始：等待新咨询",
+     "en": "Started: Waiting for new enquiries"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cn-07",
+  "name": {
+   "zh": "赵子豪",
+   "en": "Zhao Zihao"
+  },
+  "type": "human",
+  "dept": "cs",
+  "title": {
+   "zh": "名字审核专员",
+   "en": "Name Review Agent"
+  },
+  "status": "working",
+  "perf": 86,
+  "task": {
+   "zh": "核对名正言顺技术单",
+   "en": "Reviewing a naming order sheet"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#E0AC83",
+   "hair": "side",
+   "hairColor": "#22201E",
+   "top": "#12B5CB",
+   "bottom": "#3C4043",
+   "headset": true,
+   "glasses": true
+  },
+  "history": [
+   {
+    "ago": 26,
+    "text": {
+     "zh": "开始：核对名正言顺技术单",
+     "en": "Started: Reviewing a naming order sheet"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cn-08",
+  "name": {
+   "zh": "孙佳怡",
+   "en": "Sun Jiayi"
+  },
+  "type": "human",
+  "dept": "cs",
+  "title": {
+   "zh": "客服专员",
+   "en": "CS Agent"
+  },
+  "status": "working",
+  "perf": 93,
+  "task": {
+   "zh": "回复改名进度",
+   "en": "Replying on rename progress"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#F1C9A5",
+   "hair": "bob",
+   "hairColor": "#1B1B1F",
+   "top": "#F29900",
+   "bottom": "#5F6368",
+   "headset": true
+  },
+  "history": [
+   {
+    "ago": 29,
+    "text": {
+     "zh": "开始：回复改名进度",
+     "en": "Started: Replying on rename progress"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cn-09",
+  "name": {
+   "zh": "黄伟",
+   "en": "Huang Wei"
+  },
+  "type": "human",
+  "dept": "cslead",
+  "title": {
+   "zh": "客服组长",
+   "en": "CS Team Lead"
+  },
+  "status": "working",
+  "perf": 85,
+  "task": {
+   "zh": "复核疑难工单",
+   "en": "Reviewing escalated tickets"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#D9A07A",
+   "hair": "short",
+   "hairColor": "#22201E",
+   "top": "#3C4043",
+   "bottom": "#202124",
+   "glasses": true,
+   "tie": true
+  },
+  "history": [
+   {
+    "ago": 32,
+    "text": {
+     "zh": "开始：复核疑难工单",
+     "en": "Started: Reviewing escalated tickets"
+    }
+   }
+  ]
+ },
+ {
+  "id": "cn-10",
+  "name": {
+   "zh": "吴晓彤",
+   "en": "Wu Xiaotong"
+  },
+  "type": "human",
+  "dept": "complaint",
+  "title": {
+   "zh": "投诉专员",
+   "en": "Complaint Specialist"
+  },
+  "status": "working",
+  "perf": 92,
+  "task": {
+   "zh": "安抚投诉客人",
+   "en": "Calming an upset customer"
+  },
+  "demo": true,
+  "look": {
+   "skin": "#F5D6BA",
+   "hair": "long",
+   "hairColor": "#22201E",
+   "top": "#E8EAED",
+   "bottom": "#3C4043",
+   "headset": true
+  },
+  "history": [
+   {
+    "ago": 35,
+    "text": {
+     "zh": "开始：安抚投诉客人",
+     "en": "Started: Calming an upset customer"
+    }
+   }
+  ]
  }
 ]
