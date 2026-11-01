@@ -1,5 +1,5 @@
 // 整个指挥中心的界面状态：现在看哪一层、选了谁、镜头、筛选、设置。
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { buildCompany, type CompanyModel, type HQEvent } from './company';
 
 export type Section = 'features' | 'missions' | 'overview' | 'building' | 'departments' | 'ai' | 'tasks' | 'projects' | 'comms' | 'kb' | 'analytics' | 'settings';
@@ -56,6 +56,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [csViewBoss, setCsView] = useState(false);
   const csView = role === 'cs' || csViewBoss;
 
+  // 云端没存到（权限、断线）：要让人知道，不能默默失败
+  useEffect(() => {
+    const h = (e: Event) => flashRef.current('云端没有存到，请检查网络后再试一次（' + String((e as CustomEvent).detail ?? '').slice(0, 60) + '）');
+    window.addEventListener('live-error', h);
+    return () => window.removeEventListener('live-error', h);
+  }, []);
   // 真实审核纪录：别的分页（名字审核、技术单）处理完文件就重算
   useEffect(() => {
     window.HQBus?.on((e) => { setModel(buildCompany()); if (!e.demo) setLastEvent(e); });
@@ -68,6 +74,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setToast(msg);
     window.setTimeout(() => setToast((t) => (t === msg ? null : t)), 2600);
   }, []);
+  const flashRef = useRef(flash);
   const selectFloor = useCallback((id: string | null) => {
     setFloor(id);
     selectDept(null);

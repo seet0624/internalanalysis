@@ -18,6 +18,8 @@ import { Crew } from './Crew';
 import { useLive, recentLine } from '../lib/live';
 import { describeEvent } from '../lib/company';
 import { buildLogoWall, buildRoofSign } from '../../../hq/campus.js';
+import { Facade, makeFacadeMats, type FacadeMode } from './Facade';
+import type { Plaque } from './layout';
 
 const LOGO = '../hq/brand/shuyi-logo-512.png';
 import { cn } from '../lib/cn';
@@ -52,9 +54,12 @@ export function FloorModel({ floor }: { floor: Floor }) {
     }
     return null;
   }, [floor]);
-  const fadeList = useMemo(() => [...mats.all, edgeMat, ...tileMats, ...(extra?.materials ?? [])], [mats, edgeMat, tileMats, extra]);
+  const fmats = useMemo(makeFacadeMats, []);
+  const fadeList = useMemo(() => [...mats.all, edgeMat, ...tileMats, ...fmats.all, ...(extra?.materials ?? [])], [mats, edgeMat, tileMats, fmats, extra]);
   const trees = useRef<THREE.Group>(null);
 
+  // 公司资料每分钟重算一次（新物件）；人员没变就不要重排，不然走到一半的人会被拉回座位
+  const peopleKey = m.people.map((p) => p.id + p.status + p.dept).join('|');
   // 员工排到自己部门房间的工位上；工位不够就站在房间中间
   const placements = useMemo<Placement[]>(() => {
     const out: Placement[] = [];
@@ -72,19 +77,32 @@ export function FloorModel({ floor }: { floor: Floor }) {
       });
     }
     return out;
-  }, [m.people, m.departments, floor, layout]);
+  }, [peopleKey, floor, layout]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const visiblePlacements = useMemo(() => placements.filter((p) =>
     (p.person.type === 'human' ? s.filters.humans : s.filters.ai) && (s.filters.dept === 'all' || p.person.dept === s.filters.dept)
   ), [placements, s.filters]);
+  // 固定同一个阵列：不然每次重画都会把走到一半的人拉回座位
+  const floorOfPerson = useMemo(() => {
+    const map = new Map(m.people.map((p) => [p.id, m.departments.find((d) => d.id === p.dept)?.floor]));
+    return (id: string) => map.get(id);
+  }, [m.people, m.departments]);
+  const humans = useMemo(() => visiblePlacements.filter((p) => p.person.type === 'human'), [visiblePlacements]);
+  const bots = useMemo(() => visiblePlacements.filter((p) => p.person.type === 'ai'), [visiblePlacements]);
 
   const focus = s.floor ? m.floors.find((f) => f.id === s.floor) : null;
   const isSel = focus?.id === floor.id;
   const overview = !focus;
   const above = focus ? floor.level > focus.level : false;
-  const targetOffset = overview ? (s.hoverFloor === floor.id ? 0.7 : 0) : above ? 46 : 0;
-  // 下面只留紧邻的一层当背景（淡淡的），再下面的都藏起来，免得画面乱
-  const targetOpacity = overview ? 1 : isSel ? 1 : above || s.mode === '2d' || floor.level < (focus?.level ?? 0) - 1 ? 0 : 0.07;
+  const targetOffset = above ? 46 : 0;
+  // 楼层叠在一起像真的大楼：上面的楼层飞走，下面的楼层留着（看得到外墙）；2D 平面只留这一层
+  const targetOpacity = overview || isSel ? 1 : above || s.mode === '2d' || floor.level < 0 ? 0 : 1;
+  const facadeMode: FacadeMode = s.mode === '2d' && isSel ? 'hidden' : isSel ? 'cut' : 'closed';
+  const hoverPeek = overview && s.hoverFloor === floor.id;
+  // 下面的楼层被这层楼板盖住，里面的家具不用画（省效能）
+  const interior = overview || isSel;
+  // 名牌：每个房号牌一张小贴图
+  const plaqueTex = useMemo(() => layout.plaques.map((pq) => plaqueTexture(pq, tr(pq.room.name))), [layout, tr]);
 
   const group = useRef<THREE.Group>(null);
   const cur = useRef({ off: 0, op: 1 });
@@ -97,6 +115,9 @@ export function FloorModel({ floor }: { floor: Floor }) {
     if (Math.abs(targetOpacity - cur.current.op) < 0.002) cur.current.op = targetOpacity;
     g.position.y = floorY(floor.level) + cur.current.off;
     g.visible = cur.current.op > 0.01;
+    // 整栋看时，滑鼠移到哪一层，那层的窗户变透明，可以偷看里面
+    const peek = hoverPeek ? 0.25 : 0.94;
+    for (const fm of [fmats.outerH, fmats.outerV]) fm.userData.base += (peek - fm.userData.base) * k;
     setFloorOpacity(fadeList, cur.current.op);
     if (trees.current) trees.current.visible = cur.current.op > 0.5;   // 树不跟着半透明，淡出时直接藏
   });
@@ -141,6 +162,8 @@ export function FloorModel({ floor }: { floor: Floor }) {
       {[[0, D / 2 + 0.3, W + 0.6, 0.06], [0, -D / 2 - 0.3, W + 0.6, 0.06], [W / 2 + 0.3, 0, 0.06, D + 0.6], [-W / 2 - 0.3, 0, 0.06, D + 0.6]].map(([x, z, sx, sz], i) => (
         <mesh key={i} geometry={GEO.box} material={edgeMat} position={[x, -0.02, z]} scale={[sx, 0.05, sz]} raycast={() => null} />
       ))}
+      <Facade level={floor.level} mode={facadeMode} mats={fmats} />
+      <group visible={interior}>
       {/* 房间地砖（选楼层后可以点部门） */}
       {layout.tiles.map((tile, i) => (
         <mesh key={tile.room.id} geometry={GEO.box} material={tileMats[i]} position={[tile.x, 0.01, tile.z]} scale={[tile.w, 0.02, tile.d]} receiveShadow
@@ -158,16 +181,18 @@ export function FloorModel({ floor }: { floor: Floor }) {
       <Batch prims={layout.glass} geometry={GEO.box} material={mats.glass} />
       {layout.trees.length > 0 && <group ref={trees}><TreeField spots={layout.trees} /></group>}
       {extra && <primitive object={extra.group} />}
+      {layout.plaques.map((pq, i) => <Sign key={pq.room.id} pq={pq} tex={plaqueTex[i]} />)}
+      </group>
 
       {/* 看单层楼：员工是 Roblox 风格 3D 角色、AI 员工是会动的机器人；整栋大楼时用轻量的人形 */}
       {!isSel && <Avatars placements={visiblePlacements} mats={mats} active={overview} selected={null} onPick={() => undefined} onHover={() => undefined} />}
       {isSel && (
-        <Crew floor={floor} placements={visiblePlacements.filter((p) => p.person.type === 'human')} chat={chat} selected={s.person} showNames={s.csView}
+        <Crew floor={floor} placements={humans} others={bots} doors={layout.doors} floorOf={floorOfPerson} chat={chat} selected={s.person} showNames={s.csView}
           onPick={(id) => s.selectPerson(id)} onHover={setHovered} />
       )}
       {isSel && (
         <Suspense fallback={null}>
-          <Robots placements={visiblePlacements.filter((p) => p.person.type === 'ai')} lines={aiLines} showNames={false} nameOf={(p) => tr(p.person.name)}
+          <Robots placements={bots} lines={aiLines} showNames={false} nameOf={(p) => tr(p.person.name)}
             onPick={(id) => s.selectPerson(id)} onHover={setHovered} />
         </Suspense>
       )}
@@ -223,6 +248,29 @@ export function FloorModel({ floor }: { floor: Floor }) {
       ))}
       {isSel && labelsOn && hovered && <PersonTip p={hovered.person} x={hovered.x} z={hovered.z} />}
     </group>
+  );
+}
+
+// 门上的房号牌：房号 + 部门名，部门色的一条
+function plaqueTexture(pq: Plaque, name: string) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 64;
+  const g = c.getContext('2d') as CanvasRenderingContext2D;
+  g.fillStyle = '#2B2F33'; g.fillRect(0, 0, 256, 64);
+  g.fillStyle = pq.color; g.fillRect(0, 0, 8, 64);
+  g.fillStyle = '#E8C77A'; g.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif'; g.textBaseline = 'middle';
+  g.fillText(pq.no, 18, 33);
+  g.fillStyle = '#FFFFFF'; g.font = '22px "PingFang SC","Microsoft YaHei",sans-serif';
+  const short = name.length > 7 ? name.slice(0, 7) + '…' : name;
+  g.fillText(short, 92, 34);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+function Sign({ pq, tex }: { pq: Plaque; tex: THREE.Texture }) {
+  return (
+    <mesh position={[pq.x, pq.y, pq.z]} rotation={[0, pq.ry, 0]} raycast={() => null}>
+      <planeGeometry args={[0.96, 0.24]} />
+      <meshBasicMaterial map={tex} toneMapped={false} side={THREE.DoubleSide} />
+    </mesh>
   );
 }
 

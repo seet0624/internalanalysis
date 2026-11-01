@@ -155,7 +155,7 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
   const s = useStore();
   const { tr } = useLang();
   const me = useMe();
-  const { chat } = useLive();
+  const { chat, mode } = useLive();
   const [tab, setTab] = useState<ChatChannel>(initial);
   const [text, setText] = useState('');
   const [emoji, setEmoji] = useState(false);
@@ -167,7 +167,7 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
     const ev = s.model.events.slice(-20).map((e) => ({ id: 'ev' + e.id, ch: 'notice' as const, from: e.tool === 'name' ? 'cs-r0' : 'techsup-r0', text: tr(describeEvent(e)), t: e.t, demo: false }));
     return [...chat.filter((m) => m.ch === 'notice'), ...ev].sort((a, b) => a.t - b.t);
   }, [chat, s.model.events, tr]);
-  const msgs = tab === 'notice' ? notices : chat.filter((m) => m.ch === tab || (tab === 'team' && m.ch === 'mission'));
+  const msgs = tab === 'notice' ? notices : chat.filter((m) => m.ch === tab || (tab === 'team' && m.ch === 'mission' && m.scope !== 'company'));
   useEffect(() => { list.current?.scrollTo({ top: list.current.scrollHeight }); }, [msgs.length, tab]);
   const send = () => {
     const v = text.trim();
@@ -184,7 +184,7 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
             className={cn('relative px-3 py-2.5 text-sm', tab === k ? 'font-semibold text-[#1967D2] after:absolute after:inset-x-2 after:bottom-0 after:h-[3px] after:rounded-t after:bg-[#1A73E8]' : 'text-muted hover:text-fg')}>{l}</button>
         ))}
-        {!chat.some((m) => m.demo) && <button type="button" onClick={playDemo} className="ml-auto flex items-center gap-1 rounded-full px-2 py-1 text-[11px] text-faint hover:bg-elevated" title="只用来看效果，讯息会标示范"><Play className="size-3" />播放示范</button>}
+        {mode === 'local' && !chat.some((m) => m.demo) && <button type="button" onClick={playDemo} className="ml-auto flex items-center gap-1 rounded-full px-2 py-1 text-[11px] text-faint hover:bg-elevated" title="只用来看效果，讯息会标示范"><Play className="size-3" />播放示范</button>}
       </div>
       <div ref={list} className={cn('min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3', compact && 'max-h-40')} aria-live="polite">
         {msgs.length === 0 && <p className="py-4 text-center text-xs text-faint">{tab === 'team' ? '还没有讨论。说点什么，同事和 3D 办公室里的你都会看到。' : tab === 'announce' ? '还没有公告。' : '还没有通知。处理工单、完成任务、用审核工具处理文件后会出现在这里。'}</p>}
@@ -238,7 +238,7 @@ function TodayTasks({ full = false }: { full?: boolean }) {
               <input type="checkbox" checked={x.done} onChange={() => me && live.toggleTask(x.id, me.id)} className="size-[18px] rounded accent-[#1A73E8]" aria-label={x.text} />
               <span className={cn('min-w-0 flex-1 text-sm', x.done && 'text-faint line-through')}>{x.text}{x.demo && <span className="ml-1 rounded bg-warn/15 px-1 text-[10px] text-[#B06000]">示范</span>}</span>
               {owner && full && <span className="flex items-center gap-1 text-xs text-muted"><Avatar p={owner} size={20} ring={false} />{tr(owner.name)}</span>}
-              {full && <button type="button" onClick={() => live.removeTask(x.id)} className="opacity-0 group-hover:opacity-100" aria-label="删除"><Trash2 className="size-4 text-faint" /></button>}
+              {full && <button type="button" onClick={() => live.removeTask(x.id)} className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100" aria-label="删除"><Trash2 className="size-4 text-faint" /></button>}
             </li>
           );
         })}

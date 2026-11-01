@@ -65,7 +65,10 @@
   function read() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
   function session() {
     var s = read();
-    if (!s || !ACCOUNTS[s.id] || s.exp < Date.now()) return null;
+    if (!s || !ACCOUNTS[s.id] || s.exp < Date.now()) {
+      if (s) { try { localStorage.removeItem(KEY); localStorage.removeItem(CLOUD_TOKEN); } catch (e) {} }   // 过期：网站和云端一起登出
+      return null;
+    }
     return { id: s.id, role: ACCOUNTS[s.id].role, name: ACCOUNTS[s.id].name };
   }
   function login(id, pass) {
@@ -75,7 +78,14 @@
     try { localStorage.setItem(KEY, JSON.stringify({ id: id, exp: Date.now() + TTL })); } catch (e) {}
     return session();
   }
-  function logout() { try { localStorage.removeItem(KEY); localStorage.removeItem(CLOUD_TOKEN); } catch (e) {} }
+  function logout() {
+    // 云端也登出（让登入凭证失效），再清掉这台电脑上的
+    try {
+      var tok = JSON.parse(localStorage.getItem(CLOUD_TOKEN) || 'null');
+      if (tok && tok.access_token) fetch(CLOUD_URL + '/auth/v1/logout', { method: 'POST', keepalive: true, headers: { apikey: CLOUD_KEY, Authorization: 'Bearer ' + tok.access_token } }).catch(function () {});
+    } catch (e) {}
+    try { localStorage.removeItem(KEY); localStorage.removeItem(CLOUD_TOKEN); } catch (e) {}
+  }
 
   // ---------- 云端（Supabase）：网站密码对了，顺便登入云端资料库 ----------
   // 第一次登入时，后端用同一套 hash 再验一次密码，才建立云端账号；之后就是普通登入。
@@ -95,14 +105,16 @@
       if (r.ok) return r;
       return post('/rest/v1/rpc/hq_provision', { p_account: id, p_password: String(pass || '') }).then(function (p) { return p.ok && p.body ? token() : r; });
     }).then(function (r) {
-      if (!r.ok || !r.body || !r.body.access_token) return false;
+      if (!r.ok || !r.body || !r.body.access_token) { try { localStorage.removeItem(CLOUD_TOKEN); } catch (e) {} return false; }
       var sess = r.body;
       if (!sess.expires_at) sess.expires_at = Math.floor(Date.now() / 1000) + (sess.expires_in || 3600);
       try { localStorage.setItem(CLOUD_TOKEN, JSON.stringify(sess)); } catch (e) { return false; }
       return true;
     }).catch(function () { return false; });
     // 国内网络偶尔连不上：最多等几秒，连不上就用本机模式，不挡登入
-    return Promise.race([work, new Promise(function (res) { setTimeout(function () { res(false); }, timeoutMs || 7000); })]);
+    var timer;
+    var limit = new Promise(function (res) { timer = setTimeout(function () { res(false); }, timeoutMs || 7000); });
+    return Promise.race([work, limit]).then(function (v) { clearTimeout(timer); return v; });
   }
   // path：网站根目录下的路径，例如 'name/' 或 'docs/dongfang/'
   function can(path, s) {

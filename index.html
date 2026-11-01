@@ -356,10 +356,13 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
   const box = $('login'); box.hidden = false; $('skeleton').hidden = true;
   if (params.get('next')) $('loginMsg').textContent = '请先登入，登入后会带你回刚才的页面。';
   $('loginId').focus();
+  let busy = false;
   $('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (busy) return;
     const sess = HQAuth.login($('loginId').value, $('loginPass').value);
     if (!sess) { $('loginErr').textContent = '账号或密码不对，请再试一次'; $('loginPass').select(); return; }
+    busy = true;
     const btn = $('loginForm').querySelector('button[type=submit],button:not([type])');
     if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = '连接公司云端…'; }
     await HQAuth.cloudLogin($('loginId').value, $('loginPass').value);   // 连不上也照样进去（本机模式）

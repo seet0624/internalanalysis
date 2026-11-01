@@ -48,8 +48,10 @@ type State = {
   me: string | null; seeded: boolean;
 };
 
-const KEY = 'cmd-live-v1';
-const ME_KEY = 'cmd-me';
+// 本机资料按账号分开存（同一台电脑换账号，不会看到上一个人的资料）
+const ACCOUNT = window.HQAuth?.session()?.id ?? 'guest';
+const KEY = 'cmd-live-v1:' + ACCOUNT;
+const ME_KEY = 'cmd-me:' + ACCOUNT;
 const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('cmd-live') : null;
 const auth = () => window.HQAuth?.session() ?? null;
 const myScope = (): Scope => (auth()?.role === 'boss' ? 'company' : '2F');
@@ -124,27 +126,36 @@ function upsert<T extends { id: string }>(list: T[], item: T): T[] {
 }
 const byTime = <T extends { t: number }>(l: T[]) => l.sort((a, b) => a.t - b.t);
 
+const withTimeout = <T,>(p: PromiseLike<T>, ms: number) => Promise.race([p, new Promise<never>((_, rej) => window.setTimeout(() => rej(new Error('timeout')), ms))]);
+
+async function fetchAll() {
+  const sb = cloud();
+  // 最新的在前面拿，再排回时间顺序（不然超过上限时会少掉最新的）
+  const [c, tk, ta, mi, ev, rp] = await withTimeout(Promise.all([
+    sb.from('chat').select('*').order('at', { ascending: false }).limit(400),
+    sb.from('tickets').select('*').order('created_at', { ascending: false }).limit(500),
+    sb.from('tasks').select('*').order('at', { ascending: false }).limit(500),
+    sb.from('missions').select('*').order('created_at', { ascending: false }).limit(200),
+    sb.from('mission_events').select('*').order('at', { ascending: false }).limit(3000),
+    sb.from('ceo_reports').select('*').order('at', { ascending: false }).limit(10)
+  ]), 10000);
+  const err = [c, tk, ta, mi, ev, rp].find((x) => x.error);
+  if (err) throw err.error;
+  publish({
+    ...all, mode: 'cloud', seeded: true,
+    chat: byTime((c.data ?? []).map(mapChat)), tickets: (tk.data ?? []).map(mapTicket), tasks: byTime((ta.data ?? []).map(mapTask)),
+    missions: (mi.data ?? []).map(mapMission), events: byTime((ev.data ?? []).map(mapEvent)), reports: byTime((rp.data ?? []).map(mapReport))
+  });
+}
+
 async function connect() {
   const who = auth();
-  const ok = await cloudSession(who?.id);
-  if (!ok) { publish({ ...all, mode: 'local' }); if (wantSeed) seedDemo(); return; }
+  // 国内网络偶尔连不上新加坡：最多等 8 秒，不行就用本机模式
+  const ok = await withTimeout(cloudSession(who?.id), 8000).catch(() => null);
+  if (!ok) { goLocal(); return; }
   const sb = cloud();
   try {
-    const [c, tk, ta, mi, ev, rp] = await Promise.all([
-      sb.from('chat').select('*').order('at', { ascending: false }).limit(400),
-      sb.from('tickets').select('*').order('created_at', { ascending: false }).limit(500),
-      sb.from('tasks').select('*').order('at').limit(500),
-      sb.from('missions').select('*').order('created_at', { ascending: false }).limit(200),
-      sb.from('mission_events').select('*').order('at').limit(3000),
-      sb.from('ceo_reports').select('*').order('at', { ascending: false }).limit(10)
-    ]);
-    const err = [c, tk, ta, mi, ev, rp].find((x) => x.error);
-    if (err) throw err.error;
-    publish({
-      ...all, mode: 'cloud', seeded: true,
-      chat: byTime((c.data ?? []).map(mapChat)), tickets: (tk.data ?? []).map(mapTicket), tasks: (ta.data ?? []).map(mapTask),
-      missions: (mi.data ?? []).map(mapMission), events: (ev.data ?? []).map(mapEvent), reports: byTime((rp.data ?? []).map(mapReport))
-    });
+    // 先订阅即时更新、再拿资料：中间新增的不会漏；断线重连、回到这个分页也重拿一次
     const ch = sb.channel('hq-live');
     for (const table of Object.keys(TABLES)) {
       ch.on('postgres_changes', { event: '*', schema: 'public', table }, (p) => {
@@ -153,15 +164,36 @@ async function connect() {
         const next = p.eventType === 'DELETE'
           ? list.filter((x) => x.id !== String((p.old as Row).id))
           : upsert(list, map(p.new as Row));
-        publish({ ...all, [key]: key === 'chat' || key === 'events' ? byTime(next as ChatMsg[]) : next });
+        publish({ ...all, [key]: key === 'chat' || key === 'events' || key === 'tasks' ? byTime(next as ChatMsg[]) : next });
       });
     }
-    ch.subscribe();
+    let first = true;
+    ch.subscribe((status) => {
+      if (status === 'SUBSCRIBED' && !first) void fetchAll().catch(() => undefined);
+      if (status === 'SUBSCRIBED') first = false;
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[live] 即时同步中断，会自动重连', status);
+    });
+    await fetchAll();
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && all.mode === 'cloud') void fetchAll().catch(() => undefined); });
+    flushQueue();
   } catch (e) {
     console.warn('[live] 云端连不上，改用本机模式', e);
-    publish({ ...loadLocal(), mode: 'local' });
-    if (wantSeed) seedDemo();
+    goLocal();
   }
+}
+function goLocal() {
+  publish({ ...loadLocal(), mode: 'local' });
+  flushQueue();
+  if (wantSeed) seedDemo();
+}
+// 还在连云端时按的动作先排队，连好（或确定用本机）再做，不会不见
+const queue: (() => void)[] = [];
+function flushQueue() { while (queue.length) queue.shift()?.(); }
+function ready<A extends unknown[], R>(fn: (...a: A) => R) {
+  return (...a: A): R | undefined => {
+    if (all.mode === 'connecting') { queue.push(() => { fn(...a); }); return undefined; }
+    return fn(...a);
+  };
 }
 void connect();
 
@@ -213,23 +245,23 @@ export const live = {
   get: () => state,
   subscribe: (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; },
   seedDemo,
-  clearDemo: () => {
+  clearDemo: ready(() => {
     if (isCloud()) {
       all.tickets.filter((x) => x.demo).forEach((x) => push('tickets', 'delete', {}, x.id));
       all.tasks.filter((x) => x.demo).forEach((x) => push('tasks', 'delete', {}, x.id));
       all.chat.filter((x) => x.demo).forEach((x) => push('chat', 'delete', {}, x.id));
     }
     commit({ ...all, chat: all.chat.filter((x) => !x.demo), tickets: all.tickets.filter((x) => !x.demo), tasks: all.tasks.filter((x) => !x.demo) });
-  },
+  }),
   setMe: (id: string) => { try { localStorage.setItem(ME_KEY, id); } catch { /* ignore */ } commit({ ...all, me: id }); },
-  send: (m: Omit<ChatMsg, 'id' | 't'> & { t?: number }) =>
-    commit(addChat({ id: newId(), t: Date.now(), scope: m.scope ?? (m.ch === 'mission' ? myScope() : '2F'), ...m }, all)),
-  addTicket: (t: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => {
+  send: ready((m: Omit<ChatMsg, 'id' | 't'> & { t?: number }) =>
+    commit(addChat({ id: newId(), t: Date.now(), scope: m.scope ?? (m.ch === 'mission' ? myScope() : '2F'), ...m }, all))),
+  addTicket: ready((t: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => {
     const tk: Ticket = { ...t, id: newId(), createdAt: Date.now(), updatedAt: Date.now() };
     if (isCloud()) push('tickets', 'insert', { id: tk.id, no: tk.no, title: tk.title, customer: tk.customer, channel: tk.channel, status: tk.status, priority: tk.priority, assignee: tk.assignee, demo: !!tk.demo });
     commit({ ...all, tickets: [tk, ...all.tickets] });
-  },
-  updateTicket: (id: string, patch: Partial<Ticket>, by: string) => {
+  }),
+  updateTicket: ready((id: string, patch: Partial<Ticket>, by: string) => {
     const tk = all.tickets.find((x) => x.id === id);
     if (!tk) return;
     const tickets = all.tickets.map((x) => (x.id === id ? { ...x, ...patch, updatedAt: Date.now() } : x));
@@ -238,23 +270,24 @@ export const live = {
     // 真实动作 → 系统通知（3D 里这个人的头上也会冒出这句话）
     const text = patch.status ? `工单 ${tk.no}「${tk.title}」${words[patch.status]}` : patch.assignee ? `工单 ${tk.no} 交给新的负责人` : `更新了工单 ${tk.no}`;
     commit(addChat({ id: newId(), t: Date.now(), ch: 'notice', from: by, text, scope: '2F', demo: tk.demo }, { ...all, tickets }));
-  },
-  addTask: (text: string, owner: string) => {
+  }),
+  addTask: ready((text: string, owner: string) => {
     const x: TaskItem = { id: newId(), text, done: false, owner, t: Date.now() };
     if (isCloud()) push('tasks', 'insert', { id: x.id, text, owner });
     commit({ ...all, tasks: [...all.tasks, x] });
-  },
-  toggleTask: (id: string, by: string) => {
+  }),
+  toggleTask: ready((id: string, by: string) => {
     const tk = all.tasks.find((x) => x.id === id);
     if (!tk) return;
     if (isCloud()) push('tasks', 'update', { done: !tk.done }, id);
     const next = { ...all, tasks: all.tasks.map((x) => (x.id === id ? { ...x, done: !x.done } : x)) };
     commit(!tk.done ? addChat({ id: newId(), t: Date.now(), ch: 'notice', from: by, text: `完成了任务「${tk.text}」`, scope: '2F', demo: tk.demo }, next) : next);
-  },
-  removeTask: (id: string) => { if (isCloud()) push('tasks', 'delete', {}, id); commit({ ...all, tasks: all.tasks.filter((x) => x.id !== id) }); },
+  }),
+  removeTask: ready((id: string) => { if (isCloud()) push('tasks', 'delete', {}, id); commit({ ...all, tasks: all.tasks.filter((x) => x.id !== id) }); }),
 
   // ---------- 老板派任务 ----------
   createMission: async (m: { title: string; brief: string; kind: MissionKind; priority: Ticket['priority']; teams: string[]; scope: Scope }, by: string): Promise<Mission | null> => {
+    if (all.mode === 'connecting') await new Promise<void>((res) => queue.push(res));
     const id = newId(), now = Date.now();
     let mission: Mission = { id, no: 'M-' + String(all.missions.length + 1).padStart(3, '0'), ...m, status: 'new', assignees: [], links: [], reviewRound: 0, createdBy: by, createdAt: now, updatedAt: now };
     if (isCloud()) {
@@ -270,12 +303,12 @@ export const live = {
     commit(addChat({ id: newId(), t: now, ch: 'mission', from: by, scope: m.scope, mission: id, text: `派了新任务 ${mission.no}「${m.title}」，请 AI CEO 安排团队。` }, next));
     return mission;
   },
-  commentMission: (missionId: string, text: string, by: string) => {
+  commentMission: ready((missionId: string, text: string, by: string) => {
     const ev: MissionEvent = { id: newId(), mission: missionId, actor: by, kind: 'comment', text, t: Date.now() };
     if (isCloud()) push('mission_events', 'insert', { mission_id: missionId, actor: by, kind: 'comment', body: text });
     commit({ ...all, events: isCloud() ? all.events : [...all.events, ev] });
-  },
-  setMissionStatus: (missionId: string, status: MissionStatus, by: string, note: string) => {
+  }),
+  setMissionStatus: ready((missionId: string, status: MissionStatus, by: string, note: string) => {
     const mi = all.missions.find((x) => x.id === missionId);
     if (!mi) return;
     if (isCloud()) {
@@ -284,7 +317,7 @@ export const live = {
     }
     const ev: MissionEvent = { id: newId(), mission: missionId, actor: by, kind: 'comment', text: note, t: Date.now() };
     commit({ ...all, missions: all.missions.map((x) => (x.id === missionId ? { ...x, status, updatedAt: Date.now() } : x)), events: isCloud() ? all.events : [...all.events, ev] });
-  }
+  })
 };
 
 export function useLive(): State {

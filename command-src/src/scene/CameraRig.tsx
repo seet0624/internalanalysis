@@ -7,7 +7,7 @@ import { useStore } from '../lib/store';
 import { damp } from './shared';
 import { floorY } from './constants';
 
-const OVERVIEW = { pos: new THREE.Vector3(48, 31, 56), target: new THREE.Vector3(0, 10.5, 0) };
+const OVERVIEW = { pos: new THREE.Vector3(44, 24, 52), target: new THREE.Vector3(0, 7, 0) };
 
 export function CameraRig() {
   const s = useStore();
