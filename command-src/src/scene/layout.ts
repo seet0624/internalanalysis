@@ -1,6 +1,8 @@
 // 楼层平面 → 3D 小物件清单（只是资料，画的工作在 FloorModel 用 InstancedMesh 一次画完）。
 import type { Floor, Room } from '../types';
 import { COLORS as C, D, W, WALL_H } from './constants';
+import type { TreeKind, TreeSpot } from './Trees';
+import type { Surface } from './textures';
 
 export type Prim = { p: [number, number, number]; s: [number, number, number]; c: string; r?: [number, number, number] };
 export type Seat = { x: number; z: number; ry: number; id: string; room: string; sit: boolean };
@@ -8,7 +10,8 @@ export type RoomLabel = { room: Room; x: number; z: number };
 
 export type FloorLayout = {
   box: Prim[]; cyl: Prim[]; sph: Prim[]; glow: Prim[]; glowCyl: Prim[]; glass: Prim[];
-  tiles: { room: Room; x: number; z: number; w: number; d: number; color: string }[];
+  tiles: { room: Room; x: number; z: number; w: number; d: number; color: string; surface: Surface }[];
+  trees: TreeSpot[];   // 盆栽、花园的树（真实树模型）
   seats: Record<string, Seat[]>;   // room id → 工位
   labels: RoomLabel[];
 };
@@ -20,7 +23,10 @@ const mix = (a: string, b: string, t: number) => {
 };
 
 class Builder {
-  L: FloorLayout = { box: [], cyl: [], sph: [], glow: [], glowCyl: [], glass: [], tiles: [], seats: {}, labels: [] };
+  L: FloorLayout = { box: [], cyl: [], sph: [], glow: [], glowCyl: [], glass: [], tiles: [], trees: [], seats: {}, labels: [] };
+  tree(x: number, y: number, z: number, kind: TreeKind, h: number) {
+    this.L.trees.push({ x, y, z, kind, h, ry: ((x * 7.3 + z * 3.1) % 6.28) });
+  }
   // y 是底部高度；物件中心 = y + 高/2
   box(x: number, y: number, z: number, sx: number, sy: number, sz: number, c: string, ry = 0) {
     this.L.box.push({ p: [x, y + sy / 2, z], s: [sx, sy, sz], c, r: ry ? [0, ry, 0] : undefined });
@@ -42,9 +48,9 @@ class Builder {
 
   // ---------- 家具 ----------
   plant(x: number, z: number, h = 1) {
-    this.cyl(x, 0, z, 0.22, 0.42, C.plantPot);
-    this.sph(x, 0.42 + 0.35 * h, z, 0.36 * h, C.leaf, 1.25);
-    this.sph(x + 0.12, 0.42 + 0.6 * h, z - 0.08, 0.24 * h, C.leafDark);
+    this.cyl(x, 0, z, 0.24, 0.42, C.plantPot);
+    this.cyl(x, 0.42, z, 0.21, 0.02, '#3B2A1E');   // 泥土
+    this.tree(x, 0.4, z, 'bush', 1.0 * h);
   }
   chair(x: number, z: number, ry: number, c: string = C.chair) {
     const bx = Math.sin(ry) * -0.24, bz = Math.cos(ry) * -0.24;
@@ -152,7 +158,7 @@ function furnish(b: Builder, r: RR, accent: string) {
     case 'board': case 'meeting': {
       const big = r.kind === 'board';
       const tw = Math.min(r.w - 3, big ? 9 : 4), td = big ? 2 : 1.2;
-      if (big) b.rug(cx, cz, tw + 2.4, td + 3, '#1C2A55');
+      if (big) b.rug(cx, cz, tw + 2.4, td + 3, '#4A3C30');
       b.table(cx, cz, tw, td, big ? C.wood : C.white);
       const n = Math.max(2, Math.floor(tw / 0.9));
       for (let i = 0; i < n; i++) {
@@ -198,37 +204,36 @@ function furnish(b: Builder, r: RR, accent: string) {
       break;
     }
     case 'garden': {
-      b.box(cx, 0.005, cz, r.w - 0.4, 0.06, r.d - 0.4, C.grass);
       b.box(cx, 0.03, cz, r.w - 0.4, 0.05, 1.2, C.path);
       b.box(cx - 4, 0.03, cz, 1.2, 0.05, r.d - 0.4, C.path);
-      b.glow(cx + 5, 0.06, cz - 2.5, 4, 0.02, 2.2, '#1E6FA8');
-      const trees = [[-9, -3], [-6, 3], [-1, -3.2], [2, 3.1], [8, 3], [10, -3], [-10.5, 2.8]];
-      for (const [dx, dz] of trees) {
-        b.cyl(cx + dx, 0, cz + dz, 0.12, 1.3, '#5B4632');
-        b.sph(cx + dx, 1.9, cz + dz, 0.85, C.leaf, 1.1);
-        b.sph(cx + dx + 0.3, 2.4, cz + dz - 0.2, 0.55, C.leafDark);
+      b.glow(cx + 5, 0.06, cz - 2.5, 4, 0.02, 2.2, '#3E5552');
+      const trees: [number, number, TreeKind, number][] = [[-9, -3, 'oak', 4.8], [-6, 3, 'ash', 4.2], [-1, -3.2, 'aspen', 5.0], [2, 3.1, 'oak', 4.0], [8, 3, 'ash', 4.4], [10, -3, 'aspen', 4.8], [-10.5, 2.8, 'pine', 4.2]];
+      for (const [dx, dz, kind, h] of trees) {
+        b.cyl(cx + dx, 0, cz + dz, 0.55, 0.12, '#3B2A1E');
+        b.tree(cx + dx, 0.05, cz + dz, kind, h);
       }
+      for (let i = 0; i < 10; i++) b.tree(r.x0 + 0.8 + i * 2.3, 0.05, r.z0 + 0.5, 'bush', 0.7);
       for (let i = 0; i < 4; i++) b.box(cx - 8 + i * 5, 0, cz + 1.0, 1.6, 0.42, 0.45, C.wood);
-      for (let i = 0; i < 6; i++) b.box(r.x0 + 1 + i * 4, 0, r.z1 - 0.6, 1.6, 0.5, 0.6, C.plantPot);
+      for (let i = 0; i < 6; i++) { b.box(r.x0 + 1 + i * 4, 0, r.z1 - 0.6, 1.6, 0.5, 0.6, C.plantPot); b.tree(r.x0 + 0.6 + i * 4, 0.5, r.z1 - 0.6, 'bush', 0.6); b.tree(r.x0 + 1.4 + i * 4, 0.5, r.z1 - 0.6, 'bush', 0.55); }
       break;
     }
     case 'solar': {
       for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) {
-        b.tilt(r.x0 + 2.2 + i * 3.4, 0.5, r.z0 + 2.4 + j * 4, 3, 0.06, 2.6, '#123A7A', [-0.45, 0, 0]);
+        b.tilt(r.x0 + 2.2 + i * 3.4, 0.5, r.z0 + 2.4 + j * 4, 3, 0.06, 2.6, '#1E2428', [-0.45, 0, 0]);
         b.box(r.x0 + 2.2 + i * 3.4, 0, r.z0 + 2.4 + j * 4, 0.1, 0.6, 0.1, C.metal);
       }
       break;
     }
     case 'server': case 'compute': {
-      b.box(cx, 0.005, cz, r.w - 0.6, 0.04, r.d - 0.6, r.kind === 'server' ? '#101C36' : '#140F33');
-      const led = r.kind === 'server' ? '#38BDF8' : '#A78BFA';
+      b.box(cx, 0.005, cz, r.w - 0.6, 0.04, r.d - 0.6, r.kind === 'server' ? '#2A2622' : '#221C16');
+      const led = r.kind === 'server' ? '#D4AF5F' : '#E3CB8F';
       const rows = 3, per = Math.floor((r.w - 2) / 0.65);
       for (let row = 0; row < rows; row++) for (let i = 0; i < per; i++) {
         const x = r.x0 + 1.1 + i * 0.65, z = r.z0 + 1.4 + row * 2.9;
-        b.rack(x, z, (i + row) % 5 === 0 ? '#22D3EE' : led);
+        b.rack(x, z, (i + row) % 5 === 0 ? '#E3CB8F' : led);
       }
       if (r.kind === 'compute') {
-        b.glowCyl(r.x1 - 2.2, 0, r.z1 - 1.6, 0.6, 2.2, '#22D3EE');
+        b.glowCyl(r.x1 - 2.2, 0, r.z1 - 1.6, 0.6, 2.2, '#E3CB8F');
         b.cyl(r.x1 - 2.2, 2.2, r.z1 - 1.6, 0.8, 0.12, C.metal);
         b.cyl(r.x1 - 2.2, 0, r.z1 - 1.6, 0.8, 0.12, C.metal);
       }
@@ -237,9 +242,9 @@ function furnish(b: Builder, r: RR, accent: string) {
       break;
     }
     case 'network': case 'monitor': {
-      b.screenWall(cx, r.z0 + 0.25, r.w - 1.6, 0, r.kind === 'monitor' ? '#F87171' : '#22D3EE');
+      b.screenWall(cx, r.z0 + 0.25, r.w - 1.6, 0, r.kind === 'monitor' ? '#C2553F' : '#E3CB8F');
       if (r.kind === 'monitor') for (let i = 0; i < 6; i++) for (let j = 0; j < 2; j++)
-        b.glow(r.x0 + 1.3 + i * ((r.w - 2.6) / 5), 1.0 + j * 0.62, r.z0 + 0.31, (r.w - 3) / 6, 0.5, 0.01, j ? '#60A5FA' : '#38BDF8');
+        b.glow(r.x0 + 1.3 + i * ((r.w - 2.6) / 5), 1.0 + j * 0.62, r.z0 + 0.31, (r.w - 3) / 6, 0.5, 0.01, j ? '#C9A86A' : '#D4AF5F');
       b.box(cx, 0, cz - 0.4, r.w - 3, 0.74, 0.9, C.deskLeg);
       b.box(cx, 0.74, cz - 0.4, r.w - 2.8, 0.04, 1.0, C.deskTop);
       for (let i = 0; i < 3; i++) {
@@ -249,15 +254,15 @@ function furnish(b: Builder, r: RR, accent: string) {
         b.chair(x, cz + 0.4, Math.PI);
         b.seat(r, x, cz + 0.4, Math.PI);
       }
-      b.rack(r.x1 - 0.8, r.z1 - 1.2, '#38BDF8');
+      b.rack(r.x1 - 0.8, r.z1 - 1.2, '#D4AF5F');
       b.plant(r.x0 + 0.6, r.z1 - 0.6);
       break;
     }
     case 'maintenance': {
       b.box(cx - 1.5, 0, r.z0 + 1.2, 3.2, 0.9, 0.9, C.metal);
       b.box(cx + 2, 0, r.z0 + 1.2, 2.4, 0.9, 0.9, C.metal);
-      for (let i = 0; i < 4; i++) b.box(r.x0 + 0.4, 0, r.z0 + 1 + i * 1.8, 0.5, 2.0, 1.4, '#2A3550');
-      for (let i = 0; i < 5; i++) b.box(cx - 2 + i * 1.1, 0.9, r.z0 + 1.1, 0.5, 0.3, 0.4, i % 2 ? '#3B82F6' : '#F59E0B');
+      for (let i = 0; i < 4; i++) b.box(r.x0 + 0.4, 0, r.z0 + 1 + i * 1.8, 0.5, 2.0, 1.4, '#3A3430');
+      for (let i = 0; i < 5; i++) b.box(cx - 2 + i * 1.1, 0.9, r.z0 + 1.1, 0.5, 0.3, 0.4, i % 2 ? '#4F7A5A' : '#B8933F');
       b.seat(r, cx - 1.5, r.z0 + 2.1, Math.PI, false);
       b.seat(r, cx + 2, r.z0 + 2.1, Math.PI, false);
       b.table(cx, cz + 2, 2, 1);
@@ -265,22 +270,22 @@ function furnish(b: Builder, r: RR, accent: string) {
     }
     case 'power': {
       for (let i = 0; i < 2; i++) {
-        b.box(r.x0 + 2.2 + i * 3.4, 0, r.z0 + 2.2, 2.8, 1.6, 1.6, '#C9A227');
+        b.box(r.x0 + 2.2 + i * 3.4, 0, r.z0 + 2.2, 2.8, 1.6, 1.6, '#B8A27A');
         b.box(r.x0 + 2.2 + i * 3.4, 1.6, r.z0 + 2.2, 0.4, 0.6, 0.4, C.metal);
-        b.glow(r.x0 + 2.2 + i * 3.4, 1.0, r.z0 + 3.01, 0.6, 0.12, 0.01, '#34D399');
+        b.glow(r.x0 + 2.2 + i * 3.4, 1.0, r.z0 + 3.01, 0.6, 0.12, 0.01, '#8FB39A');
       }
       for (let i = 0; i < 7; i++) {
-        b.box(r.x0 + 1.2 + i * 1.0, 0, r.z1 - 1.4, 0.8, 1.9, 0.8, '#1F2A44');
-        b.glow(r.x0 + 1.2 + i * 1.0, 1.5, r.z1 - 1.79, 0.5, 0.06, 0.01, '#34D399');
+        b.box(r.x0 + 1.2 + i * 1.0, 0, r.z1 - 1.4, 0.8, 1.9, 0.8, '#2B2622');
+        b.glow(r.x0 + 1.2 + i * 1.0, 1.5, r.z1 - 1.79, 0.5, 0.06, 0.01, '#8FB39A');
       }
       b.cyl(r.x1 - 1.2, 0, r.z0 + 1.2, 0.5, 2.2, C.metal);
       break;
     }
     case 'reception': {
       b.box(cx, 0, cz + 0.6, r.w - 3.2, 1.08, 0.8, C.white);
-      b.box(cx, 1.08, cz + 0.6, r.w - 3.0, 0.05, 1.0, '#C7CFDF');
+      b.box(cx, 1.08, cz + 0.6, r.w - 3.0, 0.05, 1.0, '#D9CFBE');
       b.glow(cx, 0.08, cz + 1.01, r.w - 3.2, 0.05, 0.01, accent);
-      b.box(cx, 0, r.z0 + 0.25, r.w - 1.5, WALL_H, 0.2, '#122046');
+      b.box(cx, 0, r.z0 + 0.25, r.w - 1.5, WALL_H, 0.2, '#2B2622');
       b.glow(cx, 1.3, r.z0 + 0.36, 3.2, 0.7, 0.01, accent);
       b.chair(cx - 1.2, cz - 0.4, Math.PI); b.chair(cx + 1.2, cz - 0.4, Math.PI);
       b.seat(r, cx - 1.2, cz - 0.4, Math.PI); b.seat(r, cx + 1.2, cz - 0.4, Math.PI);
@@ -289,12 +294,12 @@ function furnish(b: Builder, r: RR, accent: string) {
     }
     case 'security': {
       b.box(cx, 0, cz - 1.2, r.w - 1.2, 0.8, 0.8, C.deskLeg);
-      for (let i = 0; i < 3; i++) b.glow(cx - 1.1 + i * 1.1, 0.9, cz - 1.5, 0.9, 0.5, 0.02, i === 1 ? '#F87171' : '#38BDF8');
+      for (let i = 0; i < 3; i++) b.glow(cx - 1.1 + i * 1.1, 0.9, cz - 1.5, 0.9, 0.5, 0.02, i === 1 ? '#C2553F' : '#D4AF5F');
       b.chair(cx - 0.6, cz - 0.3, Math.PI); b.chair(cx + 0.8, cz - 0.3, Math.PI);
       b.seat(r, cx - 0.6, cz - 0.3, Math.PI); b.seat(r, cx + 0.8, cz - 0.3, Math.PI);
       for (let i = 0; i < 2; i++) {
         b.box(cx - 1 + i * 2, 0, r.z1 - 1.6, 0.3, 1.0, 1.2, C.metal);
-        b.glow(cx - 1 + i * 2, 1.0, r.z1 - 1.6, 0.3, 0.03, 1.2, '#34D399');
+        b.glow(cx - 1 + i * 2, 1.0, r.z1 - 1.6, 0.3, 0.03, 1.2, '#8FB39A');
       }
       break;
     }
@@ -303,9 +308,9 @@ function furnish(b: Builder, r: RR, accent: string) {
         const x = r.x0 + 2 + i * 3.6, z = cz + (i % 2 ? 1.2 : -1.2);
         b.cyl(x, 0, z, 0.6, 0.9, C.white);
         b.glow(x, 0.9, z, 0.5, 0.02, 0.5, accent);
-        if (i % 2) b.sph(x, 1.35, z, 0.35, '#93C5FD'); else b.box(x, 0.95, z, 0.5, 0.7, 0.5, '#60A5FA');
+        if (i % 2) b.sph(x, 1.35, z, 0.35, '#F3EAD3'); else b.box(x, 0.95, z, 0.5, 0.7, 0.5, '#C9A86A');
       }
-      b.screenWall(cx, r.z0 + 0.3, r.w - 4, 0, '#60A5FA');
+      b.screenWall(cx, r.z0 + 0.3, r.w - 4, 0, '#C9A86A');
       b.plant(r.x0 + 0.6, r.z0 + 0.6, 1.4);
       break;
     }
@@ -313,25 +318,35 @@ function furnish(b: Builder, r: RR, accent: string) {
   }
 }
 
+const SURFACE: Partial<Record<Room['kind'], Surface>> = {
+  office: 'wood', exec: 'wood', training: 'wood', pavilion: 'wood', coffee: 'wood',
+  meeting: 'carpet', board: 'carpet',
+  lounge: 'stone', waiting: 'stone', reception: 'stone', showroom: 'stone', security: 'stone',
+  server: 'raised', compute: 'raised', network: 'raised', monitor: 'raised', maintenance: 'concrete', power: 'concrete',
+  garden: 'grass', solar: 'concrete'
+};
+
 const deptShort = (r: Room) => (r.dept || r.id.split('-')[1] || 'X').toUpperCase().slice(0, 4);
 
 export function buildFloorLayout(floor: Floor, deptColor: (id?: string) => string | undefined): FloorLayout {
   const b = new Builder();
   const ox = -W / 2, oz = -D / 2;
   // 走廊
-  b.L.tiles.push({ room: { id: `${floor.id}-hall`, name: { zh: '走廊', en: 'Corridor' }, kind: 'lounge', x: 0, z: 9.5, w: W, d: 3 }, x: 0, z: 11 + oz, w: W - 0.3, d: 3, color: C.corridor });
+  b.L.tiles.push({ room: { id: `${floor.id}-hall`, name: { zh: '走廊', en: 'Corridor' }, kind: 'lounge', x: 0, z: 9.5, w: W, d: 3 }, x: 0, z: 11 + oz, w: W - 0.3, d: 3, color: '#E8E1D3', surface: floor.id === 'R' ? 'concrete' : 'stone' });
   for (const room of floor.rooms) {
     const r: RR = { ...room, x0: room.x + ox, z0: room.z + oz, x1: room.x + room.w + ox, z1: room.z + room.d + oz };
     const cx = (r.x0 + r.x1) / 2, cz = (r.z0 + r.z1) / 2;
     const dc = deptColor(room.dept) || floor.accent;
     if (room.kind === 'core') {
       b.box(cx, 0, cz, room.w - 0.3, WALL_H + 0.2, room.d - 0.3, C.core);
-      for (let i = 0; i < 3; i++) b.glow(r.x0 + 1 + i * 1.6, 0.05, r.z1 - 0.12, 1.0, 2.1, 0.02, '#1E3A8A');
-      b.glow(cx, WALL_H + 0.2, cz, room.w - 0.5, 0.02, room.d - 0.5, '#0E7490');
+      for (let i = 0; i < 3; i++) b.glow(r.x0 + 1 + i * 1.6, 0.05, r.z1 - 0.12, 1.0, 2.1, 0.02, '#3A3430');
+      b.glow(cx, WALL_H + 0.2, cz, room.w - 0.5, 0.02, room.d - 0.5, '#8C6B24');
       continue;
     }
-    const tint = room.kind === 'garden' ? '#14301F' : mix(C.slabTop, dc, 0.16);
-    b.L.tiles.push({ room, x: cx, z: cz, w: room.w - 0.12, d: room.d - 0.12, color: tint });
+    const surface = SURFACE[room.kind] ?? 'stone';
+    // 地板本身有贴图；颜色只轻轻带一点部门色
+    const tint = surface === 'grass' ? '#FFFFFF' : mix('#FFFFFF', dc, 0.12);
+    b.L.tiles.push({ room, x: cx, z: cz, w: room.w - 0.12, d: room.d - 0.12, color: tint, surface });
     // 玻璃隔间（靠走廊那边留门）+ 顶边发光
     const touchesHall = Math.abs(room.z + room.d - 9.5) < 0.01 || Math.abs(room.z - 12.5) < 0.01;
     const doorZ = Math.abs(room.z + room.d - 9.5) < 0.01 ? r.z1 : r.z0;
@@ -365,11 +380,11 @@ export function buildFloorLayout(floor: Floor, deptColor: (id?: string) => strin
     b.L.labels.push({ room, x: cx, z: cz });
   }
   // 外墙：后面和左边是玻璃帷幕（前、右切开看得到里面）
-  for (let x = -W / 2; x <= W / 2 + 0.01; x += 3) b.box(x, 0, -D / 2, 0.12, WALL_H + 0.4, 0.12, '#24365F');
-  for (let z = -D / 2; z <= D / 2 + 0.01; z += 3) b.box(-W / 2, 0, z, 0.12, WALL_H + 0.4, 0.12, '#24365F');
+  for (let x = -W / 2; x <= W / 2 + 0.01; x += 3) b.box(x, 0, -D / 2, 0.12, WALL_H + 0.4, 0.12, '#3A3430');
+  for (let z = -D / 2; z <= D / 2 + 0.01; z += 3) b.box(-W / 2, 0, z, 0.12, WALL_H + 0.4, 0.12, '#3A3430');
   b.glass(0, 0, -D / 2 - 0.02, W, WALL_H + 0.4, 0.06);
   b.glass(-W / 2 - 0.02, 0, 0, 0.06, WALL_H + 0.4, D);
-  b.glow(0, WALL_H + 0.4, -D / 2, W, 0.04, 0.08, '#22D3EE');
-  b.glow(-W / 2, WALL_H + 0.4, 0, 0.08, 0.04, D, '#22D3EE');
+  b.glow(0, WALL_H + 0.4, -D / 2, W, 0.04, 0.08, '#E3CB8F');
+  b.glow(-W / 2, WALL_H + 0.4, 0, 0.08, 0.04, D, '#E3CB8F');
   return b.L;
 }

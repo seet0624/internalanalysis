@@ -7,53 +7,74 @@ import { useStore } from '../lib/store';
 import { useLang } from '../lib/i18n';
 import { peopleOfFloor, tasksOfFloor } from '../lib/company';
 import { FloorModel } from './FloorModel';
+import { TreeField, useWind, type TreeSpot } from './Trees';
+import { surfaceTexture } from './textures';
 import { D, GAP, SLAB, W, floorY } from './constants';
 import { cn } from '../lib/cn';
 
-function Ground() {
-  const geo = useMemo(() => {
-    const s = new THREE.Shape();
-    s.moveTo(-90, -90); s.lineTo(90, -90); s.lineTo(90, 90); s.lineTo(-90, 90); s.lineTo(-90, -90);
-    const h = new THREE.Path();
-    const hw = W / 2 + 0.5, hd = D / 2 + 0.5;
-    h.moveTo(-hw, -hd); h.lineTo(-hw, hd); h.lineTo(hw, hd); h.lineTo(hw, -hd); h.lineTo(-hw, -hd);
-    s.holes.push(h);
-    return new THREE.ShapeGeometry(s);
-  }, []);
+// 园区：广场石材、草坪、马路、真实的树
+const SITE_TREES: TreeSpot[] = (() => {
+  const out: TreeSpot[] = [];
   const y = -SLAB - 0.03;
+  // 镜头从右前方看，树种在马路对面、大楼后面和左边，不会挡住楼层
+  for (let x = -60; x <= 60; x += 7) out.push({ x, y, z: D / 2 + 17.5, kind: 'ash', h: 6 + ((x * 13) % 3 + 3) % 3 * 0.6, ry: x });
+  const groups: [number, number, TreeSpot['kind'], number][] = [
+    [-W / 2 - 6, -4, 'oak', 7.5], [-W / 2 - 10, 3, 'aspen', 8], [-W / 2 - 7, 8, 'pine', 7], [-W / 2 - 13, -9, 'oak', 8.5],
+    [W / 2 + 7, -12, 'pine', 7.5], [W / 2 + 14, -8, 'ash', 7],
+    [-10, -D / 2 - 7, 'oak', 8], [2, -D / 2 - 9, 'pine', 8.5], [12, -D / 2 - 7, 'aspen', 7.5], [-20, -D / 2 - 10, 'ash', 7], [24, -D / 2 - 8, 'oak', 8]
+  ];
+  for (const [x, z, kind, h] of groups) out.push({ x, y, z, kind, h, ry: x + z });
+  // 大楼边的绿篱
+  for (let x = -W / 2 + 1; x < W / 2; x += 1.6) out.push({ x, y, z: -D / 2 - 1.6, kind: 'bush', h: 1.1, ry: x });
+  for (let z = -D / 2 + 1; z < D / 2; z += 1.6) out.push({ x: -W / 2 - 1.6, y, z, kind: 'bush', h: 1.1, ry: z });
+  return out;
+})();
+
+function Ground({ trees }: { trees: boolean }) {
+  const y = -SLAB - 0.03;
+  const geo = useMemo(() => {
+    const ring = (hw: number, hd: number, ow: number, od: number) => {
+      const s = new THREE.Shape();
+      s.moveTo(-ow, -od); s.lineTo(ow, -od); s.lineTo(ow, od); s.lineTo(-ow, od); s.lineTo(-ow, -od);
+      const h = new THREE.Path();
+      h.moveTo(-hw, -hd); h.lineTo(-hw, hd); h.lineTo(hw, hd); h.lineTo(hw, -hd); h.lineTo(-hw, -hd);
+      s.holes.push(h);
+      return new THREE.ShapeGeometry(s);
+    };
+    return { far: ring(W / 2 + 7, D / 2 + 6, 120, 120), plaza: ring(W / 2 + 0.5, D / 2 + 0.5, W / 2 + 7, D / 2 + 6) };
+  }, []);
+  // ShapeGeometry 的 UV 就是公尺：重复 = 1 / 砖的大小
+  const plazaTex = useMemo(() => { const t = surfaceTexture('stone', 1, 1); t.repeat.set(1 / 3, 1 / 3); return t; }, []);
+  const lawnTex = useMemo(() => { const t = surfaceTexture('grass', 1, 1); t.repeat.set(1 / 5, 1 / 5); return t; }, []);
   return (
     <group>
-      <mesh geometry={geo} rotation={[-Math.PI / 2, 0, 0]} position={[0, y, 0]} raycast={() => null}>
-        <meshStandardMaterial color="#070E22" roughness={0.95} transparent opacity={0.92} />
+      <mesh geometry={geo.far} rotation={[-Math.PI / 2, 0, 0]} position={[0, y - 0.01, 0]} raycast={() => null}>
+        <meshStandardMaterial map={lawnTex} color="#7E8C6A" roughness={1} />
       </mesh>
-      <gridHelper args={[180, 90, '#13306A', '#0C1E45']} position={[0, y + 0.01, 0]} />
-      {/* 马路 + 人行道发光线 */}
-      <mesh position={[0, y + 0.02, D / 2 + 7]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
-        <planeGeometry args={[180, 6]} />
-        <meshStandardMaterial color="#0B1530" roughness={0.9} />
+      <mesh geometry={geo.plaza} rotation={[-Math.PI / 2, 0, 0]} position={[0, y, 0]} raycast={() => null}>
+        <meshStandardMaterial map={plazaTex} color="#D9CFBE" roughness={0.5} />
       </mesh>
-      {[-1, 1].map((k) => (
-        <mesh key={k} position={[0, y + 0.03, D / 2 + 7 + k * 3]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
-          <planeGeometry args={[180, 0.08]} />
-          <meshBasicMaterial color="#1D4ED8" toneMapped={false} />
+      {/* 马路：柏油 + 白色虚线 */}
+      <mesh position={[0, y + 0.015, D / 2 + 11]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+        <planeGeometry args={[240, 8]} />
+        <meshStandardMaterial color="#2A2724" roughness={0.95} />
+      </mesh>
+      {Array.from({ length: 40 }, (_, i) => (
+        <mesh key={i} position={[-117 + i * 6, y + 0.02, D / 2 + 11]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+          <planeGeometry args={[2.6, 0.16]} />
+          <meshBasicMaterial color="#D9CFBE" />
         </mesh>
       ))}
       {/* 地下室的坑：后、左两面墙 */}
       <mesh position={[0, -GAP / 2 - SLAB, -D / 2 - 0.55]} raycast={() => null}>
         <boxGeometry args={[W + 1.2, GAP, 0.1]} />
-        <meshStandardMaterial color="#0A1430" roughness={0.9} />
+        <meshStandardMaterial color="#4A443C" roughness={0.9} />
       </mesh>
       <mesh position={[-W / 2 - 0.55, -GAP / 2 - SLAB, 0]} raycast={() => null}>
         <boxGeometry args={[0.1, GAP, D + 1.2]} />
-        <meshStandardMaterial color="#0A1430" roughness={0.9} />
+        <meshStandardMaterial color="#4A443C" roughness={0.9} />
       </mesh>
-      {/* 广场上的树 */}
-      {[[-W / 2 - 4, D / 2 + 2.5], [-W / 2 - 10, -2], [W / 2 + 5, -D / 2 - 3], [W / 2 + 9, 4], [-6, -D / 2 - 5], [12, -D / 2 - 6], [W / 2 + 4, D / 2 + 2]].map(([x, z], i) => (
-        <group key={i} position={[x, y, z]}>
-          <mesh position={[0, 0.8, 0]} raycast={() => null}><cylinderGeometry args={[0.12, 0.16, 1.6, 8]} /><meshStandardMaterial color="#4B3A2A" /></mesh>
-          <mesh position={[0, 2.2, 0]} raycast={() => null}><sphereGeometry args={[1.1, 14, 10]} /><meshStandardMaterial color="#1F7A52" roughness={0.8} /></mesh>
-        </group>
-      ))}
+      {trees && <TreeField spots={SITE_TREES} />}
     </group>
   );
 }
@@ -67,7 +88,7 @@ function Frame() {
       {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => (
         <mesh key={i} position={[sx * (W / 2 + 0.3), minY + h / 2, sz * (D / 2 + 0.3)]} raycast={() => null}>
           <boxGeometry args={[0.14, h, 0.14]} />
-          <meshBasicMaterial color={i === 3 ? '#22D3EE' : '#1E40AF'} toneMapped={false} transparent opacity={0.8} />
+          <meshBasicMaterial color={i === 3 ? '#E3CB8F' : '#8C6B24'} toneMapped={false} transparent opacity={0.8} />
         </mesh>
       ))}
     </group>
@@ -109,9 +130,11 @@ function FloorMarkers() {
 
 export function Building() {
   const s = useStore();
+  useWind();
   return (
     <group>
-      <Ground />
+      {/* 看单层楼（2F 以上）时园区的树会挡到，先藏起来 */}
+      <Ground trees={!s.floor || (s.model.floors.find((f) => f.id === s.floor)?.level ?? 0) <= 0} />
       <Frame />
       {s.model.floors.map((f) => <FloorModel key={f.id} floor={f} />)}
       <FloorMarkers />

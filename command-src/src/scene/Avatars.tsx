@@ -8,9 +8,9 @@ import { GEO, type FloorMats } from './shared';
 export type Placement = { person: Person; x: number; z: number; ry: number; sit: boolean; seatId: string };
 
 export const STATUS_COLOR: Record<Status, string> = {
-  working: '#38BDF8', available: '#34D399', thinking: '#A78BFA', waiting: '#FBBF24', completed: '#2DD4BF', error: '#F87171'
+  working: '#D4AF5F', available: '#6E9E78', thinking: '#B8AFA0', waiting: '#C9773A', completed: '#8FB39A', error: '#C2553F'
 };
-const OUTFITS = ['#1E3A8A', '#334155', '#7C2D12', '#14532D', '#4C1D95', '#0F766E', '#9F1239', '#1F2937', '#E2E8F0', '#A16207'];
+const OUTFITS = ['#2B2622', '#3A3430', '#5B4A3A', '#F3EAD3', '#4F5B4F', '#7A6A55', '#1E1B19', '#8C6B24', '#E8E1D3', '#6B4A33'];
 const SKINS = ['#F1C9A5', '#E0AC83', '#C68B5E', '#F5D6BA', '#D9A07A'];
 const HAIR = ['#1B1B1F', '#3B2A20', '#5A3B26', '#22201E', '#7A5A3A'];
 const hash = (s: string) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); };
@@ -53,8 +53,8 @@ export function Avatars({ placements, mats, active, selected, onPick, onHover }:
       set(head.current, p.x, 1.36 + sitY, p.z, 0.3, 0.32, 0.3, SKINS[h % SKINS.length]);
       set(hair.current, p.x - fx * 0.25, 1.43 + sitY, p.z - fz * 0.25, 0.32, 0.26, 0.32, HAIR[(h >> 3) % HAIR.length]);
       // 腿是 box（中心在一半高）：坐着往前伸，站着直立
-      if (p.sit) set(legs.current, p.x + fx, 0.5, p.z + fz, 0.3, 0.14, 0.5, '#1E293B');
-      else set(legs.current, p.x, 0.33, p.z, 0.28, 0.66, 0.2, '#1E293B');
+      if (p.sit) set(legs.current, p.x + fx, 0.5, p.z + fz, 0.3, 0.14, 0.5, '#2A2420');
+      else set(legs.current, p.x, 0.33, p.z, 0.28, 0.66, 0.2, '#2A2420');
     });
     for (const m of [torso.current, head.current, hair.current, legs.current]) {
       if (!m) continue;
@@ -69,9 +69,9 @@ export function Avatars({ placements, mats, active, selected, onPick, onHover }:
     });
     if (disc.current) { disc.current.instanceMatrix.needsUpdate = true; if (disc.current.instanceColor) disc.current.instanceColor.needsUpdate = true; }
     ais.forEach((p, i) => {
-      const c = p.person.real ? '#22D3EE' : '#A78BFA';
+      const c = p.person.real ? '#E3CB8F' : '#CFC6B8';
       aiBody.current?.setColorAt(i, col.set(c));
-      aiHead.current?.setColorAt(i, col.set(p.person.real ? '#A5F3FC' : '#DDD6FE'));
+      aiHead.current?.setColorAt(i, col.set(p.person.real ? '#FFF1C9' : '#F5F1EA'));
       halo.current?.setColorAt(i, col.set(c));
     });
     for (const m of [aiBody.current, aiHead.current, halo.current]) if (m?.instanceColor) m.instanceColor.needsUpdate = true;
@@ -135,7 +135,7 @@ export function Avatars({ placements, mats, active, selected, onPick, onHover }:
       {sel && (
         <mesh position={[sel.x, 0.04, sel.z]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
           <ringGeometry args={[0.42, 0.56, 36]} />
-          <meshBasicMaterial color="#22D3EE" toneMapped={false} transparent opacity={0.95} />
+          <meshBasicMaterial color="#E3CB8F" toneMapped={false} transparent opacity={0.95} />
         </mesh>
       )}
     </group>

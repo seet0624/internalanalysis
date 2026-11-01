@@ -17,6 +17,7 @@ function Env() {
     const env = pm.fromScene(new RoomEnvironment(), 0.04).texture;
     scene.environment = env;
     scene.environmentIntensity = 0.45;
+    if (location.search.includes('debug')) Object.assign(window, { cmdGL: gl, cmdScene: scene });   // ?debug：主控台看绘制次数、三角形数
     return () => { env.dispose(); pm.dispose(); };
   }, [gl, scene]);
   return null;
@@ -38,18 +39,21 @@ export function Scene() {
   const fallback = <div className="grid h-full place-items-center p-6 text-center text-sm text-muted">{t('no3d')}</div>;
   if (!hasWebGL()) return fallback;
   const high = s.settings.quality === 'high';
+  // 工作面板（功能、任务……）盖住大楼时，3D 只在需要时才画，省电
+  const covered = s.section !== 'overview' && s.section !== 'building';
   return (
     <GLBoundary fallback={fallback}>
       <Canvas
+        frameloop={covered ? 'demand' : 'always'}
         dpr={high ? [1, 1.75] : [1, 1]}
         gl={{ antialias: high, alpha: true, powerPreference: 'high-performance' }}
         camera={{ position: [48, 31, 56], fov: 40, near: 0.5, far: 800 }}
         onPointerMissed={() => s.selectPerson(null)}
       >
         <Env />
-        <hemisphereLight args={['#C4DBFF', '#0A1024', 0.75]} />
-        <directionalLight position={[30, 70, 28]} intensity={1.5} />
-        <directionalLight position={[-40, 25, -20]} intensity={0.35} color="#6EA8FF" />
+        <hemisphereLight args={['#FFF1DC', '#1A1410', 0.8]} />
+        <directionalLight position={[30, 70, 28]} intensity={1.55} color="#FFEBD0" />
+        <directionalLight position={[-40, 25, -20]} intensity={0.3} color="#F3EAD3" />
         <Building />
         <OrbitControls makeDefault enableDamping dampingFactor={0.08} minDistance={6} maxDistance={160} />
         <CameraRig />

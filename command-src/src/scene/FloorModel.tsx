@@ -11,6 +11,8 @@ import { Batch } from './Batch';
 import { Avatars, STATUS_COLOR, type Placement } from './Avatars';
 import { D, SLAB, W, WALL_H, floorY } from './constants';
 import { GEO, damp, makeFloorMats, setFloorOpacity } from './shared';
+import { surfaceTexture } from './textures';
+import { TreeField } from './Trees';
 import { cn } from '../lib/cn';
 
 const invisible = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false });
@@ -24,11 +26,15 @@ export function FloorModel({ floor }: { floor: Floor }) {
   const mats = useMemo(makeFloorMats, []);
   const edgeMat = useMemo(() => { const x = new THREE.MeshBasicMaterial({ color: floor.accent, toneMapped: false }); x.userData.base = 1; return x; }, [floor.accent]);
   const tileMats = useMemo(() => layout.tiles.map((tile) => {
-    const x = new THREE.MeshStandardMaterial({ color: tile.color, roughness: 0.75, metalness: 0.05 });
+    const x = new THREE.MeshStandardMaterial({
+      color: tile.color, map: surfaceTexture(tile.surface, tile.w, tile.d, tile.surface === 'wood' ? 3 : 4),
+      roughness: tile.surface === 'stone' ? 0.35 : tile.surface === 'wood' ? 0.6 : 0.9, metalness: 0.02
+    });
     x.userData.base = 1; x.userData.color = tile.color;
     return x;
   }), [layout]);
   const fadeList = useMemo(() => [...mats.all, edgeMat, ...tileMats], [mats, edgeMat, tileMats]);
+  const trees = useRef<THREE.Group>(null);
 
   // 员工排到自己部门房间的工位上；工位不够就站在房间中间
   const placements = useMemo<Placement[]>(() => {
@@ -73,14 +79,15 @@ export function FloorModel({ floor }: { floor: Floor }) {
     g.position.y = floorY(floor.level) + cur.current.off;
     g.visible = cur.current.op > 0.01;
     setFloorOpacity(fadeList, cur.current.op);
+    if (trees.current) trees.current.visible = cur.current.op > 0.5;   // 树不跟着半透明，淡出时直接藏
   });
 
   // 选中的部门：地砖亮一点
   useEffect(() => {
     layout.tiles.forEach((tile, i) => {
       const on = s.dept && tile.room.dept === s.dept;
-      tileMats[i].color.set(on ? (deptColor(tile.room.dept) ?? '#22D3EE') : tile.color);
-      if (on) tileMats[i].color.lerp(new THREE.Color(tile.color), 0.55);
+      tileMats[i].color.set(tile.color);
+      if (on) tileMats[i].color.lerp(new THREE.Color(deptColor(tile.room.dept) ?? '#D4AF5F'), 0.6);
     });
   }, [s.dept, layout, tileMats]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -115,6 +122,7 @@ export function FloorModel({ floor }: { floor: Floor }) {
       <Batch prims={layout.glow} geometry={GEO.box} material={mats.glow} />
       <Batch prims={layout.glowCyl} geometry={GEO.cyl} material={mats.glow} />
       <Batch prims={layout.glass} geometry={GEO.box} material={mats.glass} />
+      {layout.trees.length > 0 && <group ref={trees}><TreeField spots={layout.trees} /></group>}
 
       <Avatars placements={visiblePlacements} mats={mats} active={overview || isSel} selected={isSel ? s.person : null}
         onPick={(id) => { if (isSel) { s.selectPerson(id); } }} onHover={isSel ? setHovered : () => undefined} />

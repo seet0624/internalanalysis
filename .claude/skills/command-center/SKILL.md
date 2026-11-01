@@ -26,7 +26,8 @@ description: Add or change floors, rooms, departments, employees, AI employees, 
 3. 房间 `kind` 决定 3D 里摆什么家具：`office`（工位，用 `seats` 设工位数）、`exec`、`meeting`、`board`、`lounge`、`waiting`、`pavilion`、`coffee`、`garden`、`solar`、`server`、`compute`、`network`、`monitor`、`maintenance`、`power`、`reception`、`security`、`showroom`、`training`、`core`。新家具类型要改 `src/scene/layout.ts` 的 `furnish()`。
 4. 员工会自动坐到自己部门房间的工位上（`layout.ts` 产生的 `seats`）；人比工位多，多的人站在房间里。加人时顺便确认 `seats` 够。
 5. id 用小写英文、不重复。员工 id 习惯写 `部门id-两位数字`。
-6. 状态只能是 `working` `available` `thinking` `waiting` `completed` `error`。
+6. 颜色只用数易品牌色和它的深浅（金、古铜、鼠尾草绿、陶土、石色、沙色），**不要蓝色**；界面颜色改 `src/index.css` 的 token，不要在元件里写死。
+7. 状态只能是 `working` `available` `thinking` `waiting` `completed` `error`。
 
 ## 常见做法
 
@@ -44,6 +45,8 @@ description: Add or change floors, rooms, departments, employees, AI employees, 
 **要用真实名单的部门**：在 `departments.json` 写 `"team": "hq部门id"` 或 `"team": "cs.组id"`，员工从 `hq/company.js` 读，`src/lib/company.ts` 会合进来；名字的英文拼音、职称英文在 `company.ts` 的 `NAME_EN`、`ROLE_EN` 补。
 
 **真实审核纪录**：名字审核、技术单审核用 `HQBus.emit()` 记事件，`company.ts` 的 `realStatus` / `describeEvent` 把事件变成 2F 员工的状态、任务、执行纪录。新工具要接进来，看 `hq-new-tool` skill。
+
+**功能清单**（一打开看到的「我们有 N 个功能」）：`src/lib/features.ts` 从 `hq/company.js` 读审核工具（`kind: 'site'`）、资料（`library`）、Claude 助手（有 `skill` 的员工），加新工具通常只要改 `hq/company.js`。
 
 **权限**：哪个账号能进哪层在 `src/lib/store.tsx` 的 `canEnter`（老板全部、国内客服只有 2F）。页面能不能进在 `hq/auth.js` 的 `ACCESS`。
 

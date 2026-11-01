@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { buildCompany, type CompanyModel, type HQEvent } from './company';
 
-export type Section = 'overview' | 'building' | 'departments' | 'ai' | 'tasks' | 'projects' | 'comms' | 'kb' | 'analytics' | 'settings';
+export type Section = 'features' | 'overview' | 'building' | 'departments' | 'ai' | 'tasks' | 'projects' | 'comms' | 'kb' | 'analytics' | 'settings';
 export type CamCmd = { kind: 'zoomIn' | 'zoomOut' | 'reset'; n: number };
 export type Settings = { quality: 'high' | 'low'; labels: boolean; seatIds: boolean; autoRotate: boolean };
 export type Filters = { humans: boolean; ai: boolean; dept: string };
@@ -40,8 +40,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const role: Role = session?.role === 'boss' ? 'boss' : session?.role === 'cs' ? 'cs' : 'guest';
   const [model, setModel] = useState<CompanyModel>(buildCompany);
   const [lastEvent, setLastEvent] = useState<HQEvent | null>(null);
-  const [section, setSection] = useState<Section>('overview');
-  const [floor, setFloor] = useState<string | null>(null);
+  const [section, setSection] = useState<Section>('features');   // 功能先显示
+  const [floor, setFloor] = useState<string | null>(role === 'cs' ? '2F' : null);   // 国内客服：大楼直接看自己的 2F
   const [mode, setMode] = useState<'3d' | '2d'>('3d');
   const [dept, selectDept] = useState<string | null>(null);
   const [person, selectPerson] = useState<string | null>(null);
