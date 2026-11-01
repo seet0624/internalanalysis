@@ -9,6 +9,8 @@ import { peopleOfFloor, tasksOfFloor } from '../lib/company';
 import { FloorModel } from './FloorModel';
 import { TreeField, useWind, type TreeSpot } from './Trees';
 import { surfaceTexture } from './textures';
+import { useFrame } from '@react-three/fiber';
+import { buildEntrance, buildPlaza } from '../../../hq/campus.js';
 import { D, GAP, SLAB, W, floorY } from './constants';
 import { cn } from '../lib/cn';
 
@@ -30,6 +32,20 @@ const SITE_TREES: TreeSpot[] = (() => {
   return out;
 })();
 
+// 大门 + 门前广场：对着 1F 接待柜台（跟首页同一个 hq/campus.js）
+function Entrance() {
+  const parts = useMemo(() => {
+    const ent = buildEntrance({ width: 6.4, height: 3.1, logoUrl: '../hq/brand/shuyi-logo-512.png' });
+    const plaza = buildPlaza({ width: 22, depth: 4.6 });
+    const g = new THREE.Group();
+    ent.group.position.set(0, 0, 0.35); g.add(ent.group, plaza.group);
+    g.position.set(-8, -SLAB + 0.02, D / 2);
+    return { g, ent };
+  }, []);
+  useFrame(({ clock }) => parts.ent.update(clock.elapsedTime));
+  return <primitive object={parts.g} />;
+}
+
 function Ground({ trees }: { trees: boolean }) {
   const y = -SLAB - 0.03;
   const geo = useMemo(() => {
@@ -45,11 +61,10 @@ function Ground({ trees }: { trees: boolean }) {
   }, []);
   // ShapeGeometry 的 UV 就是公尺：重复 = 1 / 砖的大小
   const plazaTex = useMemo(() => { const t = surfaceTexture('stone', 1, 1); t.repeat.set(1 / 3, 1 / 3); return t; }, []);
-  const lawnTex = useMemo(() => { const t = surfaceTexture('grass', 1, 1); t.repeat.set(1 / 5, 1 / 5); return t; }, []);
   return (
     <group>
       <mesh geometry={geo.far} rotation={[-Math.PI / 2, 0, 0]} position={[0, y - 0.01, 0]} raycast={() => null}>
-        <meshStandardMaterial map={lawnTex} color="#C9D4B4" roughness={1} />
+        <meshStandardMaterial color="#DCE5C8" roughness={1} />
       </mesh>
       <mesh geometry={geo.plaza} rotation={[-Math.PI / 2, 0, 0]} position={[0, y, 0]} raycast={() => null}>
         <meshStandardMaterial map={plazaTex} color="#D9CFBE" roughness={0.5} />
@@ -75,6 +90,7 @@ function Ground({ trees }: { trees: boolean }) {
         <meshStandardMaterial color="#D9D2C5" roughness={0.9} />
       </mesh>
       {trees && <TreeField spots={SITE_TREES} />}
+      {trees && <Entrance />}
     </group>
   );
 }

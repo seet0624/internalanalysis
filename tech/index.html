@@ -782,7 +782,13 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var doneN = all.length - open.length;
     h += '<section class="card pad progress" aria-label="进度"><div style="display:flex;flex-direction:column;gap:4px;min-width:0">' +
       (open.length ? '<div class="big">还有 <em>' + open.length + '</em> 件事要你决定</div>' : '<div class="big done"><em>都处理好了</em>，可以下载</div>') +
-      '<div class="small" style="font-size:14px">' + state.results.length + ' 个文件 · ' + all.length + ' 单已审核，红字已自动标好</div></div>' +
+      '<div class="small" style="font-size:14px">' + state.results.length + ' 个文件 · ' + all.length + ' 单已审核，红字已自动标好</div>' +
+      // 要问下单者的话术：一次复制全部，直接贴到群里
+      (function () {
+        var lines = [];
+        td.forEach(function (t) { (t.flags || []).forEach(function (f) { if (f.copy && lines.indexOf(f.copy) < 0) lines.push(f.copy); }); });
+        return lines.length ? '<div><button type="button" class="btn small" data-copytext="' + esc(lines.map(function (x, i) { return (i + 1) + '. ' + x; }).join('\n\n')) + '">复制全部要问的话术（' + lines.length + ' 条）</button></div>' : '';
+      })() + '</div>' +
       '<div class="bar"><div class="small" style="display:flex;justify-content:space-between"><span>已处理 ' + doneN + ' / ' + all.length + '</span><span>' + (all.length ? Math.round(doneN * 100 / all.length) : 100) + '%</span></div>' +
       '<div class="track"><span style="width:' + (all.length ? doneN * 100 / all.length : 100) + '%"></span></div></div></section>';
 

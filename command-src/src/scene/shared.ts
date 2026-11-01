@@ -43,7 +43,7 @@ export function setFloorOpacity(mats: THREE.Material[], o: number) {
   for (const m of mats) {
     const base = (m.userData.base as number) ?? 1;
     const next = base * o;
-    const wantT = next < 0.999 || base < 1;
+    const wantT = next < 0.999 || base < 1 || !!m.userData.alpha;   // 有透明贴图的（招牌）一直要透明
     if (m.transparent !== wantT) { m.transparent = wantT; m.needsUpdate = true; }
     m.opacity = next;
     m.depthWrite = base >= 1 && o > 0.6;

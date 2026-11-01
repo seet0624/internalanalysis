@@ -286,7 +286,6 @@ function furnish(b: Builder, r: RR, accent: string) {
       b.box(cx, 1.08, cz + 0.6, r.w - 3.0, 0.05, 1.0, '#D9CFBE');
       b.glow(cx, 0.08, cz + 1.01, r.w - 3.2, 0.05, 0.01, accent);
       b.box(cx, 0, r.z0 + 0.25, r.w - 1.5, WALL_H, 0.2, '#CFC6B6');
-      b.glow(cx, 1.3, r.z0 + 0.36, 3.2, 0.7, 0.01, accent);
       b.chair(cx - 1.2, cz - 0.4, Math.PI); b.chair(cx + 1.2, cz - 0.4, Math.PI);
       b.seat(r, cx - 1.2, cz - 0.4, Math.PI); b.seat(r, cx + 1.2, cz - 0.4, Math.PI);
       b.plant(r.x0 + 0.6, r.z1 - 0.6, 1.3); b.plant(r.x1 - 0.6, r.z1 - 0.6, 1.3);

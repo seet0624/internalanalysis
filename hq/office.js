@@ -8,6 +8,7 @@ import { CSS2DRenderer, CSS2DObject } from '../vendor/three/CSS2DRenderer.js';
 import { RoomEnvironment } from '../vendor/three/RoomEnvironment.js';
 import { RoundedBoxGeometry } from '../vendor/three/RoundedBoxGeometry.js';
 import { mergeGeometries } from '../vendor/three/BufferGeometryUtils.js';
+import { buildEntrance, buildPlaza, buildRoof } from './campus.js';
 
 // ---------- 楼层尺寸（1 单位约 1 公尺） ----------
 const BW = 48, BD = 32;                 // x: -24..24，z: -16..16（z 越大越靠镜头）
@@ -15,6 +16,7 @@ const WT = 0.14;                         // 墙厚
 const H_TALL = 2.7, H_INT = 1.3, H_LOW = 0.35;
 const CELL = 0.5, GX = BW / CELL, GZ = BD / CELL;
 const BOSS_COLOR = '#C99A3B';
+const LOGO_URL = new URL('./brand/shuyi-logo-512.png', import.meta.url).href;   // 数易 Logo（去白底）
 const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -594,22 +596,44 @@ export function mountOffice(container, company, opts = {}) {
     spot('lobby', -11.0, 14.0, Math.PI / 2, true, '在大厅跟访客聊', '前台大厅');
     sofa(g, 6.5, 13.6, -Math.PI / 2, 2.2, M.sofa);
     plant(8.9, 15.2, 1.1);
-    const doormat = new THREE.Mesh(new THREE.PlaneGeometry(ENTRANCE.x1 - ENTRANCE.x0, 1.2), M.dark);
+    const doormat = new THREE.Mesh(new THREE.PlaneGeometry(ENTRANCE.x1 - ENTRANCE.x0, 1.2), colorMat('#B8AFA0'));
     doormat.rotation.x = -Math.PI / 2; doormat.position.set((ENTRANCE.x0 + ENTRANCE.x1) / 2, 0.03, BD / 2 - 0.8); scene.add(doormat);
     roomSign(OPEN[1], `<i style="background:#8A8174"></i>前台大厅`, 'room/lobby');
     artFrame(-12.4, 1.2, 10.25, 0, 1.5, 1.0, 3);
   }
+  const logoImg = new Image();
+  let logoName = '';
+  logoImg.onload = () => drawLogo(logoName);
+  logoImg.src = LOGO_URL;
   function drawLogo(name) {
+    logoName = name;
     const g = logoCanvas.getContext('2d');
     g.clearRect(0, 0, 1024, 220);
+    const hasImg = logoImg.complete && logoImg.naturalWidth > 0;
+    if (hasImg) { g.save(); g.beginPath(); g.arc(110, 110, 92, 0, Math.PI * 2); g.fillStyle = '#FFFDF8'; g.fill(); g.restore(); g.drawImage(logoImg, 24, 24, 172, 172); }
     g.fillStyle = '#FFFFFF'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const cx = hasImg ? 600 : 512;
     g.font = '700 108px "PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif';
-    g.fillText(name, 512, 104, 960);
+    g.fillText(name, cx, 104, hasImg ? 760 : 960);
     g.font = '500 30px "PingFang SC","Microsoft YaHei",sans-serif'; g.globalAlpha = 0.8;
-    g.fillText('客服部 · 审核 · AI 团队', 512, 186); g.globalAlpha = 1;
+    g.fillText('客服部 · 审核 · AI 团队', cx, 186); g.globalAlpha = 1;
     logoTex.needsUpdate = true;
   }
   drawLogo(opts.companyName || company.name);
+
+  // ---------- 公司外观：大门、门前广场、屋顶（hq/campus.js，跟指挥中心共用） ----------
+  const entrance = buildEntrance({ width: 6.4, height: 3.1, logoUrl: LOGO_URL });
+  entrance.group.position.set((ENTRANCE.x0 + ENTRANCE.x1) / 2, 0, BD / 2 + 0.32); scene.add(entrance.group);
+  const plaza = buildPlaza({ width: 20, depth: 6.6 });
+  plaza.group.position.set((ENTRANCE.x0 + ENTRANCE.x1) / 2, -0.05, BD / 2); scene.add(plaza.group);
+  const roof = buildRoof({ w: BW, d: BD, logoUrl: LOGO_URL });
+  const ROOF_Y = H_TALL + 0.32;
+  roof.group.position.set(0, ROOF_Y, 0); scene.add(roof.group);
+  // 一进来先看到公司外观（屋顶、招牌），2.5 秒后屋顶升起淡出，看到里面的员工
+  let roofOp = 1, roofTarget = 1;
+  labels.domElement.style.opacity = '0';
+  labels.domElement.style.transition = 'opacity .3s';
+  setTimeout(() => { roofTarget = 0; }, REDUCED ? 600 : 2500);
 
   // ---------- 休息区 ----------
   {
@@ -1315,6 +1339,14 @@ export function mountOffice(container, company, opts = {}) {
         if (settled && delta.length() < 0.004 && Math.abs(fly.zoom - camera.zoom) < 0.004) fly = null;
       }
     }
+    if (Math.abs(roofTarget - roofOp) > 0.001) {
+      roofOp += (roofTarget - roofOp) * (REDUCED ? 1 : 1 - Math.exp(-real * 2.2));
+      if (Math.abs(roofTarget - roofOp) < 0.002) roofOp = roofTarget;
+      roof.setOpacity(roofOp);
+      roof.group.position.y = ROOF_Y + (1 - roofOp) * 5;
+      labels.domElement.style.opacity = String(1 - roofOp);
+    }
+    if (!REDUCED) entrance.update(t);
     controls.update();
     const pxPerUnit = (container.clientHeight / (camera.top - camera.bottom)) * camera.zoom;
     container.classList.toggle('hq-near', pxPerUnit > 30);
@@ -1349,6 +1381,7 @@ export function mountOffice(container, company, opts = {}) {
     busy: () => !!job || jobs.length > 0,
     locked,
     setSpeed: (v) => { speed = v; },
+    setRoof: (on) => { roofTarget = on ? 1 : 0; },
     setWalls: (low) => {
       const k = low ? 0.12 : 1;
       [M.wall, M.frame].forEach((m) => { const mesh = mergedBy.get(m); if (mesh) mesh.scale.y = k; });
