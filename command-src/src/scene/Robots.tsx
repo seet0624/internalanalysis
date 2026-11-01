@@ -25,7 +25,7 @@ function recolor(root: THREE.Object3D, real: boolean) {
     else if (src.name === 'Black') mat.color.set('#5E5650');
     mat.metalness = 0.15; mat.roughness = 0.55;
     m.material = mat;
-    m.castShadow = false;
+    m.castShadow = true;
     m.frustumCulled = false;
   });
 }

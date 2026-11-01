@@ -17,7 +17,7 @@ const mat = (c: string, rough = 0.6) => {
   return m;
 };
 function part(geo: THREE.BufferGeometry, m: THREE.Material, sx: number, sy: number, sz: number, x: number, y: number, z: number, parent: THREE.Object3D) {
-  const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); o.castShadow = false; parent.add(o); return o;
+  const o = new THREE.Mesh(geo, m); o.scale.set(sx, sy, sz); o.position.set(x, y, z); o.castShadow = true; parent.add(o); return o;
 }
 
 // 脸：眼睛、眉毛、笑容（透明贴图贴在头的正面）

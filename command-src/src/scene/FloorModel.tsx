@@ -143,7 +143,7 @@ export function FloorModel({ floor }: { floor: Floor }) {
       ))}
       {/* 房间地砖（选楼层后可以点部门） */}
       {layout.tiles.map((tile, i) => (
-        <mesh key={tile.room.id} geometry={GEO.box} material={tileMats[i]} position={[tile.x, 0.01, tile.z]} scale={[tile.w, 0.02, tile.d]}
+        <mesh key={tile.room.id} geometry={GEO.box} material={tileMats[i]} position={[tile.x, 0.01, tile.z]} scale={[tile.w, 0.02, tile.d]} receiveShadow
           raycast={isSel ? undefined : () => null}
           onClick={isSel && tile.room.dept ? (e) => { e.stopPropagation(); s.selectDept(tile.room.dept ?? null); s.selectPerson(null); } : undefined}
           onPointerOver={isSel && tile.room.dept ? () => { document.body.style.cursor = 'pointer'; } : undefined}

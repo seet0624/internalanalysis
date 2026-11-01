@@ -1,4 +1,4 @@
-import { Component, useEffect, type ReactNode } from 'react';
+import { Component, useEffect, useMemo, type ReactNode } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -7,6 +7,8 @@ import { useStore } from '../lib/store';
 import { useLang } from '../lib/i18n';
 import { Building } from './Building';
 import { CameraRig } from './CameraRig';
+import { Surroundings } from './Surroundings';
+import { floorY } from './constants';
 
 // 环境反光（本地产生，不用下载 HDR）
 function Env() {
@@ -21,6 +23,25 @@ function Env() {
     return () => { env.dispose(); pm.dispose(); };
   }, [gl, scene]);
   return null;
+}
+
+// 太阳：看单层楼时开真实阴影（家具、人物投影到地板），整栋大楼时不开（上面的楼板会把下面整层遮暗）
+function SunLight({ high }: { high: boolean }) {
+  const s = useStore();
+  const f = s.floor ? s.model.floors.find((x) => x.id === s.floor) : null;
+  const y = f ? floorY(f.level) : 0;
+  const light = useMemo(() => new THREE.DirectionalLight('#FFF4E2', 1.8), []);
+  useEffect(() => {
+    light.position.set(18, y + 30, 22);
+    light.target.position.set(0, y, 0);
+    light.target.updateMatrixWorld();
+    light.castShadow = high && !!f;
+    Object.assign(light.shadow.camera, { left: -24, right: 24, top: 18, bottom: -18, near: 1, far: 90 });
+    light.shadow.camera.updateProjectionMatrix();
+    light.shadow.mapSize.set(2048, 2048);
+    light.shadow.bias = -0.0004; light.shadow.normalBias = 0.03; light.shadow.radius = 4;
+  }, [light, y, high, f]);
+  return <primitive object={light}><primitive object={light.target} /></primitive>;
 }
 
 class GLBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
@@ -45,16 +66,18 @@ export function Scene() {
     <GLBoundary fallback={fallback}>
       <Canvas
         frameloop={covered ? 'demand' : 'always'}
+        shadows={high ? 'soft' : false}
         dpr={high ? [1, 1.75] : [1, 1]}
         gl={{ antialias: high, alpha: false, powerPreference: 'high-performance' }}
         camera={{ position: [48, 31, 56], fov: 40, near: 0.5, far: 800 }}
         onPointerMissed={() => s.selectPerson(null)}
       >
         <Env />
-        <color attach="background" args={['#F1EADC']} />
-        <fog attach="fog" args={['#EFE7D8', 140, 360]} />
-        <hemisphereLight args={['#FFF8EC', '#D9D2C5', 1.0]} />
-        <directionalLight position={[30, 70, 28]} intensity={1.7} color="#FFF1DE" />
+        <color attach="background" args={['#D7E7F6']} />
+        <fog attach="fog" args={['#E3EDF6', 160, 420]} />
+        <Surroundings />
+        <hemisphereLight args={['#FFFFFF', '#D9D2C5', 0.85]} />
+        <SunLight high={high} />
         <directionalLight position={[-40, 25, -20]} intensity={0.3} color="#F3EAD3" />
         <Building />
         <OrbitControls makeDefault enableDamping dampingFactor={0.08} minDistance={6} maxDistance={160} />

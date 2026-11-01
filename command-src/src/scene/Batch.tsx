@@ -23,5 +23,5 @@ export function Batch({ prims, geometry, material }: { prims: Prim[]; geometry: 
     mesh.computeBoundingSphere();
   }, [prims]);
   if (!prims.length) return null;
-  return <instancedMesh key={prims.length} ref={ref} args={[geometry, material, prims.length]} raycast={() => null} />;
+  return <instancedMesh key={prims.length} ref={ref} args={[geometry, material, prims.length]} raycast={() => null} castShadow={!material.transparent} receiveShadow />;
 }
