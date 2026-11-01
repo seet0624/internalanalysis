@@ -30,8 +30,8 @@ export default {
       },
       fontSize: { '2xs': ['0.6875rem', '1rem'] },
       boxShadow: {
-        glass: '0 12px 40px -12px rgb(0 0 0 / .65), inset 0 1px 0 rgb(255 255 255 / .05)',
-        glow: '0 0 0 1px rgb(var(--accent) / .35), 0 0 24px -4px rgb(var(--accent) / .5)'
+        glass: '0 1px 2px rgb(60 45 20 / .06), 0 12px 32px -12px rgb(60 45 20 / .16), inset 0 1px 0 rgb(255 255 255 / .7)',
+        glow: '0 0 0 1px rgb(var(--brand) / .25), 0 6px 18px -6px rgb(var(--brand) / .45)'
       },
       keyframes: {
         pulseDot: { '0%,100%': { opacity: '1' }, '50%': { opacity: '.35' } },

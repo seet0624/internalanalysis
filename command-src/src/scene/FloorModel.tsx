@@ -1,5 +1,5 @@
 // 一层楼：楼板、房间地砖、玻璃隔间、家具（InstancedMesh）、员工、标签。
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -13,6 +13,10 @@ import { D, SLAB, W, WALL_H, floorY } from './constants';
 import { GEO, damp, makeFloorMats, setFloorOpacity } from './shared';
 import { surfaceTexture } from './textures';
 import { TreeField } from './Trees';
+import { Robots } from './Robots';
+import { buildLogoWall, buildRoofSign } from '../../../hq/campus.js';
+
+const LOGO = '../hq/brand/shuyi-logo-512.png';
 import { cn } from '../lib/cn';
 
 const invisible = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, colorWrite: false });
@@ -33,7 +37,18 @@ export function FloorModel({ floor }: { floor: Floor }) {
     x.userData.base = 1; x.userData.color = tile.color;
     return x;
   }), [layout]);
-  const fadeList = useMemo(() => [...mats.all, edgeMat, ...tileMats], [mats, edgeMat, tileMats]);
+  // 公司外观的一部分：天台的 Logo 招牌、1F 大厅的 Logo 墙（hq/campus.js，跟首页共用）
+  const extra = useMemo(() => {
+    if (floor.id === 'R') { const x = buildRoofSign({ width: 13, logoUrl: LOGO }); x.group.position.set(0, 0, D / 2 + 0.1); return x; }
+    if (floor.id === '1F') {
+      const r = floor.rooms.find((rm) => rm.kind === 'reception');
+      if (!r) return null;
+      const x = buildLogoWall({ width: r.w - 2, height: 2.3, logoUrl: LOGO });
+      x.group.position.set(r.x + r.w / 2 - W / 2, 0, r.z - D / 2 + 0.3); return x;
+    }
+    return null;
+  }, [floor]);
+  const fadeList = useMemo(() => [...mats.all, edgeMat, ...tileMats, ...(extra?.materials ?? [])], [mats, edgeMat, tileMats, extra]);
   const trees = useRef<THREE.Group>(null);
 
   // 员工排到自己部门房间的工位上；工位不够就站在房间中间
@@ -123,9 +138,16 @@ export function FloorModel({ floor }: { floor: Floor }) {
       <Batch prims={layout.glowCyl} geometry={GEO.cyl} material={mats.glow} />
       <Batch prims={layout.glass} geometry={GEO.box} material={mats.glass} />
       {layout.trees.length > 0 && <group ref={trees}><TreeField spots={layout.trees} /></group>}
+      {extra && <primitive object={extra.group} />}
 
-      <Avatars placements={visiblePlacements} mats={mats} active={overview || isSel} selected={isSel ? s.person : null}
+      {/* 看单层楼：AI 员工换成会动的机器人；整栋大楼时用轻量的发光人形 */}
+      <Avatars placements={isSel ? visiblePlacements.filter((p) => p.person.type === 'human') : visiblePlacements} mats={mats} active={overview || isSel} selected={isSel ? s.person : null}
         onPick={(id) => { if (isSel) { s.selectPerson(id); } }} onHover={isSel ? setHovered : () => undefined} />
+      {isSel && (
+        <Suspense fallback={null}>
+          <Robots placements={visiblePlacements.filter((p) => p.person.type === 'ai')} onPick={(id) => s.selectPerson(id)} onHover={setHovered} />
+        </Suspense>
+      )}
 
       {/* 整栋大楼时：一整层是一个点击区 */}
       {overview && (

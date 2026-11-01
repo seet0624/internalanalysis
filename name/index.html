@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>名字审核 · 名正言顺</title>
-<script src="../hq/auth.js"></script>
+<script src="../hq/auth.js" data-nobadge></script>
+<script src="../hq/tool-kit.js"></script>
 <script src="../hq/bus.js"></script>
 <meta name="theme-color" content="#FAF7F0">
 <script src="../vendor/exceljs.min.js"></script>
@@ -31,8 +32,8 @@ if(!window.JSZip) document.write('<script src="https://cdnjs.cloudflare.com/ajax
   --serif-sc:'Noto Serif SC','Noto Serif TC','Songti SC','SimSun',serif;
 }
 body.light{
-  --bg:#FAF7F0; --bg2:#FFFFFF; --panel:#FFFFFF; --panel2:#F9F8F5; --line:#E8E1D3; --line2:#D6D3CA;
-  --ink:#14110F; --ink2:#3A3430; --muted:#55544E; --gold:#8C6B24; --gold2:#74581C;
+  --bg:#F4EFE5; --bg2:#FFFDF8; --panel:#FFFDF8; --panel2:#F9F8F5; --line:#E8E1D3; --line2:#D6D3CA;
+  --ink:#2A2420; --ink2:#5E564C; --muted:#55544E; --gold:#8C6B24; --gold2:#74581C;
   --pri-bg:#8C6B24; --pri-ink:#FFFFFF;
   --accent-soft:#F3EAD3; --accent-ink:#6B511A; --hl:#EADBB4;
   --bad:#B3261E; --bad-bg:#FBE9E7; --bad-line:#EBB8B2; --bad-solid-ink:#FFFFFF;
@@ -57,7 +58,10 @@ header.top{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:12px;pad
 .logo{width:32px;height:32px;border-radius:8px;background:var(--gold);color:var(--pri-ink);display:flex;align-items:center;justify-content:center;font-family:var(--serif-tc);font-weight:700;font-size:17px}
 
 .brand b{font-size:15px;letter-spacing:.5px}
-.brand .home{font-size:13px;color:var(--muted);text-decoration:none;padding:6px 2px}
+.brand .home{font-size:13px;color:var(--muted);text-decoration:none;padding:6px 2px;white-space:nowrap}
+.swap{margin-left:8px;font-size:13px;font-weight:600;color:var(--gold);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:4px 10px;white-space:nowrap}
+.swap:hover{border-color:var(--gold)}
+@media (max-width:720px){.swap{display:none}}
 .brand .home:hover{color:var(--gold)}
 .brand .crumb{color:var(--line2)}
 .ctl{display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;min-height:40px;padding:0 12px;font-size:13px}
@@ -117,7 +121,8 @@ kbd{font-family:inherit;font-size:11px;color:var(--muted);border:1px solid var(-
 .qtabs{display:flex;gap:3px;background:var(--panel2);border-radius:9px;padding:3px;margin:10px 12px 8px}
 .qtabs button{flex:1;border:0;border-radius:7px;background:transparent;font-size:12px;padding:7px 0;color:var(--muted);white-space:nowrap}
 .qtabs button.on{background:var(--line2);color:var(--ink)}
-body.light .qtabs button.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+body.light .toast{background:#6B511A;color:#FFFDF8}
+body.light .qtabs button.on{background:#FFFDF8;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 .qtabs button[data-q=must]{color:var(--bad)} .qtabs button[data-q=check]{color:var(--warn)} .qtabs button[data-q=ok]{color:var(--ok)}
 .qinfo{display:flex;align-items:center;gap:8px;margin:0 14px 6px;font-size:12px;color:var(--muted)}
 .qinfo .shl{background:var(--soft-bg)}
@@ -419,7 +424,7 @@ body.light .itabs button.on{background:var(--bg2)}
 </svg>
 
 <header class="top">
-  <div class="brand"><a class="home" href="../" title="回到审核总部">审核总部</a><span class="crumb" aria-hidden="true">/</span><div class="logo">名</div><b id="t_title">名字审核</b><button type="button" class="verchip" id="verChip" data-act="changelog" title="看版本更新"></button></div>
+  <div class="brand"><a class="home" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="" width="22" height="22" style="vertical-align:-6px;margin-right:6px">审核总部</a><span class="crumb" aria-hidden="true">/</span><div class="logo">名</div><b id="t_title">名字审核</b><button type="button" class="verchip" id="verChip" data-act="changelog" title="看版本更新"></button><a class="swap" href="../tech/" title="切换到技术单审核">切换：技术单审核 →</a></div>
   <label class="ctl searchbox" id="searchWrap" style="display:none">
     <svg class="i" style="color:var(--muted)"><use href="#i-search"/></svg>
     <input id="searchBox" placeholder="搜学员、订单号、字…" aria-label="搜索学员、订单号、家人、字、拼音" title="可搜学员、订单号、家人、字、拼音" data-i18n-ph="search">
@@ -478,7 +483,7 @@ body.light .itabs button.on{background:var(--bg2)}
   <div class="home">
     <section class="dropcard" id="drop" aria-label="载入技术单">
       <div class="dicon"><svg class="i"><use href="#i-upload"/></svg></div>
-      <h2 id="t_drop1">把技术单拖到这里</h2>
+      <h2 id="t_drop1">把名正言顺技术单拖到这里</h2>
       <p id="t_drop2">拖到页面任何地方都行 · 可一次拖多份 · 会自动建「订单号 → 新名」总库做跨文件比对</p>
       <button type="button" class="btn pri" id="pickBtn"><svg class="i"><use href="#i-file"/></svg><span data-i18n="pick">选择文件</span></button>
     </section>
@@ -819,6 +824,8 @@ if(typeof module!=='undefined')module.exports={parseFile:parseFile,buildOrderDB:
 <script>
 /*==== state ====*/
 var parsedFiles=[], importedDB={}, activeFile=0;
+// 载入了名册就提醒：判定会存在浏览器，但文件要重新拖
+if(window.HQTool)HQTool.guard(function(){ return parsedFiles.length>0; });
 var queueFilter='all', searchTerm='', sortProblems=true;
 var curSid=null;
 var undoStack=[], redoStack=[], lang='cn';
@@ -882,7 +889,7 @@ async function loadWithBuffers(fileList){ var start=parsedFiles.length;
     if(!parsed){ alert('「'+f.name+'」找不到表头（需有「新名」「新名拼音」），略过。'); continue; }
     var om=load('mzys_overseas',{});
     parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
-  }catch(e){ alert('读「'+f.name+'」出错：'+e.message); } }
+  }catch(e){ alert(HQTool.friendly('读「'+f.name+'」的时候出错。',e)); } }
   if(parsedFiles.length>start){ activeFile=start; curSid=null; queueFilter='all'; }
   rebuild();
   if(parsedFiles.length>start) reportToHQ('loaded'); }
@@ -1380,7 +1387,7 @@ function importSupData(done){ var inp=document.createElement('input'); inp.type=
         msg.push('督导文件：督导 '+Object.keys(SUP.list).length+' 位（新加 '+nS+' 位）的分公司 / 群，店铺编号 '+Object.keys(SUP.center).length+' 个（同一个店铺编号会自动带出督导和店铺）。要全部店铺都能带出，请再导入系统的店铺表'); }
       else { var nG=0; for(var r3=0;r3<d.length;r3++){ var s3=g(r3,1), g3=g(r3,2); if(s3&&g3&&s3!=='督导'){ (SUP.list[s3]||(SUP.list[s3]={})).group=g3; nG++; } } if(nG)msg.push('督导的群 '+nG+' 条'); } });
     saveSup(); renderAll(); if(done)done(); alert(msg.length?('已导入：'+msg.join('；')+'。'):'这份文件里没认出店铺编号 / 督导 栏。'); }
-  catch(e){ alert('读文件出错：'+e.message); } }; inp.click(); }
+  catch(e){ alert(HQTool.friendly('读这份文件的时候出错。',e)); } }; inp.click(); }
 
 async function buildCleanWorkbook(x){ var au=x.audit, data=x.parsed.data, hd=au.header.map(function(h){return String(h).trim();});
   var src=UPLOAD_COLS.map(function(c){ for(var i=0;i<c[1].length;i++){ var k=hd.indexOf(c[1][i]); if(k>=0)return k; } return -1; });

@@ -9,6 +9,8 @@ import { peopleOfFloor, tasksOfFloor } from '../lib/company';
 import { FloorModel } from './FloorModel';
 import { TreeField, useWind, type TreeSpot } from './Trees';
 import { surfaceTexture } from './textures';
+import { useFrame } from '@react-three/fiber';
+import { buildEntrance, buildPlaza } from '../../../hq/campus.js';
 import { D, GAP, SLAB, W, floorY } from './constants';
 import { cn } from '../lib/cn';
 
@@ -30,6 +32,20 @@ const SITE_TREES: TreeSpot[] = (() => {
   return out;
 })();
 
+// 大门 + 门前广场：对着 1F 接待柜台（跟首页同一个 hq/campus.js）
+function Entrance() {
+  const parts = useMemo(() => {
+    const ent = buildEntrance({ width: 6.4, height: 3.1, logoUrl: '../hq/brand/shuyi-logo-512.png' });
+    const plaza = buildPlaza({ width: 22, depth: 4.6 });
+    const g = new THREE.Group();
+    ent.group.position.set(0, 0, 0.35); g.add(ent.group, plaza.group);
+    g.position.set(-8, -SLAB + 0.02, D / 2);
+    return { g, ent };
+  }, []);
+  useFrame(({ clock }) => parts.ent.update(clock.elapsedTime));
+  return <primitive object={parts.g} />;
+}
+
 function Ground({ trees }: { trees: boolean }) {
   const y = -SLAB - 0.03;
   const geo = useMemo(() => {
@@ -45,11 +61,10 @@ function Ground({ trees }: { trees: boolean }) {
   }, []);
   // ShapeGeometry 的 UV 就是公尺：重复 = 1 / 砖的大小
   const plazaTex = useMemo(() => { const t = surfaceTexture('stone', 1, 1); t.repeat.set(1 / 3, 1 / 3); return t; }, []);
-  const lawnTex = useMemo(() => { const t = surfaceTexture('grass', 1, 1); t.repeat.set(1 / 5, 1 / 5); return t; }, []);
   return (
     <group>
       <mesh geometry={geo.far} rotation={[-Math.PI / 2, 0, 0]} position={[0, y - 0.01, 0]} raycast={() => null}>
-        <meshStandardMaterial map={lawnTex} color="#7E8C6A" roughness={1} />
+        <meshStandardMaterial color="#DCE5C8" roughness={1} />
       </mesh>
       <mesh geometry={geo.plaza} rotation={[-Math.PI / 2, 0, 0]} position={[0, y, 0]} raycast={() => null}>
         <meshStandardMaterial map={plazaTex} color="#D9CFBE" roughness={0.5} />
@@ -57,24 +72,25 @@ function Ground({ trees }: { trees: boolean }) {
       {/* 马路：柏油 + 白色虚线 */}
       <mesh position={[0, y + 0.015, D / 2 + 11]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
         <planeGeometry args={[240, 8]} />
-        <meshStandardMaterial color="#2A2724" roughness={0.95} />
+        <meshStandardMaterial color="#B5ADA0" roughness={0.95} />
       </mesh>
       {Array.from({ length: 40 }, (_, i) => (
         <mesh key={i} position={[-117 + i * 6, y + 0.02, D / 2 + 11]} rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
           <planeGeometry args={[2.6, 0.16]} />
-          <meshBasicMaterial color="#D9CFBE" />
+          <meshBasicMaterial color="#FFFDF8" />
         </mesh>
       ))}
       {/* 地下室的坑：后、左两面墙 */}
       <mesh position={[0, -GAP / 2 - SLAB, -D / 2 - 0.55]} raycast={() => null}>
         <boxGeometry args={[W + 1.2, GAP, 0.1]} />
-        <meshStandardMaterial color="#4A443C" roughness={0.9} />
+        <meshStandardMaterial color="#D9D2C5" roughness={0.9} />
       </mesh>
       <mesh position={[-W / 2 - 0.55, -GAP / 2 - SLAB, 0]} raycast={() => null}>
         <boxGeometry args={[0.1, GAP, D + 1.2]} />
-        <meshStandardMaterial color="#4A443C" roughness={0.9} />
+        <meshStandardMaterial color="#D9D2C5" roughness={0.9} />
       </mesh>
       {trees && <TreeField spots={SITE_TREES} />}
+      {trees && <Entrance />}
     </group>
   );
 }
@@ -88,7 +104,7 @@ function Frame() {
       {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => (
         <mesh key={i} position={[sx * (W / 2 + 0.3), minY + h / 2, sz * (D / 2 + 0.3)]} raycast={() => null}>
           <boxGeometry args={[0.14, h, 0.14]} />
-          <meshBasicMaterial color={i === 3 ? '#E3CB8F' : '#8C6B24'} toneMapped={false} transparent opacity={0.8} />
+          <meshBasicMaterial color={i === 3 ? '#B8933F' : '#C9B68A'} toneMapped={false} transparent opacity={0.8} />
         </mesh>
       ))}
     </group>
