@@ -28,7 +28,7 @@ function answer(q: string, m: CompanyModel, lang: Lang): string {
   if (/审核|review|名册|技术单|roster|order/i.test(q)) {
     const ev = m.events.slice(-3).reverse();
     return ev.length ? (zh ? `最近的真实审核纪录：\n` : 'Latest live review events:\n') + ev.map((e) => `• ${e.tool === 'name' ? (zh ? '名字审核' : 'Name review') : (zh ? '技术单' : 'Order review')} · ${new Date(e.t).toLocaleTimeString()}`).join('\n')
-      : (zh ? '这台电脑的浏览器还没有审核纪录。打开名字审核或技术单审核处理一次，2F 的员工会马上更新。' : 'No review events in this browser yet. Process a file in Name or Order review and 2F updates instantly.');
+      : (zh ? '这台电脑的浏览器还没有审核纪录。打开名字审核或技术单审核处理一次，听竹轩的员工会马上更新。' : 'No review events in this browser yet. Process a file in Name or Order review and 2F updates instantly.');
   }
   const st = STATUS_WORDS.find(([, re]) => re.test(q));
   if (st) {
@@ -47,7 +47,7 @@ function answer(q: string, m: CompanyModel, lang: Lang): string {
   }
   const ai = m.people.filter((p) => p.type === 'ai').length;
   return zh
-    ? `公司有 ${m.floors.length} 层楼、${m.departments.length} 个部门、${m.people.length - ai} 位员工和 ${ai} 位 AI 员工。可以问我：「2F 谁在工作」「卡住的任务」「最近的审核」「财务部」。`
+    ? `公司有 ${m.floors.length} 栋建筑、${m.departments.length} 个部门、${m.people.length - ai} 位员工和 ${ai} 位 AI 员工。可以问我：「2F 谁在工作」「卡住的任务」「最近的审核」「财务部」。`
     : `${m.floors.length} floors, ${m.departments.length} departments, ${m.people.length - ai} people and ${ai} AI agents. Try: "who is working on 2F", "blocked tasks", "latest reviews", "Finance".`;
 }
 

@@ -34,3 +34,16 @@ export const COLORS = {
   white: '#F2F5FA',
   rug: '#D9CBB2'
 } as const;
+
+// ---------- 度假村园区：每一栋（原本的楼层）在园区里的位置。坐北朝南，围着中间的湖 ----------
+export const SITE: Record<string, { x: number; z: number }> = {
+  '5F': { x: 0, z: -78 },     // 听澜堂：最北的主楼
+  '4F': { x: -62, z: -42 },   // 格物楼
+  'R': { x: 62, z: -42 },     // 观云台
+  '2F': { x: -66, z: 14 },    // 听竹轩
+  '3F': { x: 66, z: 14 },     // 运筹院
+  '1F': { x: 0, z: 62 },      // 迎宾阁：一进大门
+  'B1': { x: -112, z: -84 }   // 云栖馆：山坡里
+};
+export const LAKE = { x: 0, z: -12, rx: 30, rz: 24 };
+export const siteOf = (id: string) => SITE[id] ?? { x: 0, z: 0 };

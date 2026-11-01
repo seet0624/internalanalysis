@@ -194,7 +194,7 @@ function QuickActions() {
   const acts: [string, ReactNode, () => void][] = [
     ['派任务', <Rocket key="r" className="size-5 text-brand" />, () => s.setSection('missions')],
     ['任务分配', <CheckCircle2 key="c" className="size-5 text-ok" />, () => s.setSection('tasks')],
-    ['楼层编辑', <Layers key="l" className="size-5 text-ai" />, () => s.setSection('building')],
+    ['园区建筑', <Layers key="l" className="size-5 text-ai" />, () => s.setSection('building')],
     ['客服视图', <Headphones key="h" className="size-5 text-warn" />, () => s.setCsView(true)]
   ];
   return (

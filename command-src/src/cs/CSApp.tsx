@@ -133,7 +133,7 @@ function CSTopBar({ onSearch }: { onSearch: (q: string) => void }) {
     <header className="flex h-16 shrink-0 items-center gap-4 border-b border-[#DADCE0] bg-surface px-5">
       <div className="flex items-center gap-3">
         <span className="grid size-10 place-items-center rounded-xl bg-[#E8F0FE] text-[#1967D2]"><Headphones className="size-5" /></span>
-        <div><h1 className="text-[19px] font-semibold leading-tight">2F 客服部（中国团队）</h1><p className="text-xs text-muted">Customer Service – China Team</p></div>
+        <div><h1 className="text-[19px] font-semibold leading-tight">听竹轩 · 客服部（中国团队）</h1><p className="text-xs text-muted">Customer Service – China Team</p></div>
       </div>
       <label className="ml-4 hidden h-11 max-w-xl flex-1 items-center gap-2 rounded-full bg-elevated px-4 text-sm focus-within:bg-surface focus-within:shadow-glass md:flex">
         <Search className="size-4 text-muted" /><input onChange={(e) => onSearch(e.target.value)} placeholder="搜索客户、工单、同事…" aria-label="搜索" className="min-w-0 flex-1 bg-transparent placeholder:text-faint focus:outline-none" />
@@ -494,15 +494,15 @@ export function CSApp() {
           <div className="flex min-w-0 flex-1 flex-col gap-3">
             {view === 'desk' ? (
               <>
-                <section className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-[#DADCE0] bg-[#F1EADC] shadow-glass" aria-label="2F 3D 办公室">
+                <section className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-[#DADCE0] bg-[#F1EADC] shadow-glass" aria-label="听竹轩 3D 办公室">
                   <Scene />
                   <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2">
-                    <span className="pointer-events-auto flex items-center gap-2 rounded-full bg-surface/95 px-3 py-1.5 text-sm font-semibold shadow-glass"><Box className="size-4 text-brand" />2F 客服部（中国团队）</span>
+                    <span className="pointer-events-auto flex items-center gap-2 rounded-full bg-surface/95 px-3 py-1.5 text-sm font-semibold shadow-glass"><Box className="size-4 text-brand" />听竹轩 · 客服部（中国团队）</span>
                   </div>
                   <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-surface/95 p-1 shadow-glass">
                     <button type="button" onClick={() => setMode3d(true)} aria-pressed={mode3d} className={cn('rounded-full px-3 py-1 text-xs font-semibold', mode3d ? 'bg-brand text-white' : 'text-muted')}>3D</button>
                     <button type="button" onClick={() => setMode3d(false)} aria-pressed={!mode3d} className={cn('flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold', !mode3d ? 'bg-brand text-white' : 'text-muted')}><Map className="size-3" />2D</button>
-                    <button type="button" onClick={() => { const el = document.querySelector('[aria-label="2F 3D 办公室"]'); if (document.fullscreenElement) void document.exitFullscreen(); else void (el as HTMLElement | null)?.requestFullscreen?.(); }} className="grid size-7 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="全屏"><Maximize2 className="size-3.5" /></button>
+                    <button type="button" onClick={() => { const el = document.querySelector('[aria-label="听竹轩 3D 办公室"]'); if (document.fullscreenElement) void document.exitFullscreen(); else void (el as HTMLElement | null)?.requestFullscreen?.(); }} className="grid size-7 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="全屏"><Maximize2 className="size-3.5" /></button>
                   </div>
                   {s.toast && <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#202124] px-4 py-2 text-xs text-white shadow-glass" role="status">{s.toast}</div>}
                 </section>
