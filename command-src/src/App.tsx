@@ -13,6 +13,7 @@ import { STATUS_COLOR } from './scene/Avatars';
 import { FeaturesView } from './views/FeaturesView';
 import { DepartmentsView } from './views/DepartmentsView';
 import { AIView } from './views/AIView';
+import { MissionsView } from './views/MissionsView';
 import { TasksView } from './views/TasksView';
 import { ProjectsView } from './views/ProjectsView';
 import { CommsView } from './views/CommsView';
@@ -84,6 +85,7 @@ function Workspace() {
   const s = useStore();
   switch (s.section) {
     case 'features': return <FeaturesView />;
+    case 'missions': return <MissionsView />;
     case 'departments': return <DepartmentsView />;
     case 'ai': return <AIView />;
     case 'tasks': return <TasksView />;

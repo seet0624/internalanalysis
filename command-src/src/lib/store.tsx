@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { buildCompany, type CompanyModel, type HQEvent } from './company';
 
-export type Section = 'features' | 'overview' | 'building' | 'departments' | 'ai' | 'tasks' | 'projects' | 'comms' | 'kb' | 'analytics' | 'settings';
+export type Section = 'features' | 'missions' | 'overview' | 'building' | 'departments' | 'ai' | 'tasks' | 'projects' | 'comms' | 'kb' | 'analytics' | 'settings';
 export type CamCmd = { kind: 'zoomIn' | 'zoomOut' | 'reset'; n: number };
 export type Settings = { quality: 'high' | 'low'; labels: boolean; seatIds: boolean; autoRotate: boolean };
 export type Filters = { humans: boolean; ai: boolean; dept: string };

@@ -167,7 +167,7 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
     const ev = s.model.events.slice(-20).map((e) => ({ id: 'ev' + e.id, ch: 'notice' as const, from: e.tool === 'name' ? 'cs-r0' : 'techsup-r0', text: tr(describeEvent(e)), t: e.t, demo: false }));
     return [...chat.filter((m) => m.ch === 'notice'), ...ev].sort((a, b) => a.t - b.t);
   }, [chat, s.model.events, tr]);
-  const msgs = tab === 'notice' ? notices : chat.filter((m) => m.ch === tab);
+  const msgs = tab === 'notice' ? notices : chat.filter((m) => m.ch === tab || (tab === 'team' && m.ch === 'mission'));
   useEffect(() => { list.current?.scrollTo({ top: list.current.scrollHeight }); }, [msgs.length, tab]);
   const send = () => {
     const v = text.trim();
@@ -194,7 +194,7 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
             <div key={m.id} className="flex gap-3">
               {p ? <Avatar p={p} size={34} ring={false} /> : <span className="grid size-[34px] place-items-center rounded-full bg-elevated text-[10px] text-muted">系统</span>}
               <div className="min-w-0">
-                <div className="flex items-baseline gap-2 text-sm"><b className="font-semibold">{p ? tr(p.name) : '系统'}</b><span className="text-xs text-faint">{fmtTime(m.t)}</span>{m.demo && <span className="rounded bg-warn/15 px-1 text-[10px] text-[#B06000]">示范</span>}</div>
+                <div className="flex items-baseline gap-2 text-sm"><b className="font-semibold">{p ? tr(p.name) : '系统'}</b><span className="text-xs text-faint">{fmtTime(m.t)}</span>{m.demo && <span className="rounded bg-warn/15 px-1 text-[10px] text-[#B06000]">示范</span>}{'smallTalk' in m && m.smallTalk && <span className="rounded bg-[#E6F4EA] px-1 text-[10px] text-[#137333]">闲聊</span>}{m.ch === 'mission' && <span className="rounded bg-[#F3E8FD] px-1 text-[10px] text-[#8430CE]">任务</span>}</div>
                 <p className="text-sm leading-relaxed text-fg">{m.text}</p>
                 {'files' in m && m.files?.map((f) => <span key={f.name} className="mt-1 inline-flex items-center gap-1 rounded-lg bg-elevated px-2 py-1 text-xs text-muted"><Paperclip className="size-3" />{f.name}</span>)}
               </div>

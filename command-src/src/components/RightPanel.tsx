@@ -1,12 +1,13 @@
 // 右侧「公司情报」：没选东西看全公司；选了楼层 / 部门 / 员工就看那一个。
 import { useState, type ReactNode } from 'react';
-import { Activity, AlertTriangle, ArrowLeft, Bell, Bot, Building2, CheckCircle2, Clock, Copy, ExternalLink, Headphones, Layers, Lightbulb, ListChecks, Sparkles, Users, X } from 'lucide-react';
+import { Rocket, Activity, AlertTriangle, ArrowLeft, Bell, Bot, Building2, CheckCircle2, Clock, Copy, ExternalLink, Headphones, Layers, Lightbulb, ListChecks, Sparkles, Users, X } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { useAgo, useLang } from '../lib/i18n';
 import { deptById, deptsOfFloor, floorById, peopleOfDept, peopleOfFloor, personById, tasksOfFloor } from '../lib/company';
 import { Avatar, Badge, Kpi, PanelTitle, PRIORITY_DOT, Progress, SourceTag, StatusPill, TaskStatusBadge } from './ui';
 import type { Person, Task } from '../types';
 import { cn } from '../lib/cn';
+import { useLive, missionTaskOf } from '../lib/live';
 
 function PersonRow({ p }: { p: Person }) {
   const s = useStore();
@@ -17,7 +18,7 @@ function PersonRow({ p }: { p: Person }) {
       <Avatar person={p} size="sm" />
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5 text-xs font-medium">{tr(p.name)}{p.type === 'ai' && <Badge tone="ai">AI</Badge>}</span>
-        <span className="block truncate text-2xs text-faint">{tr(p.task)}</span>
+        <span className="block truncate text-2xs text-faint">{missionTaskOf(useLive().missions, p.id) ?? tr(p.task)}</span>
       </span>
       <StatusPill status={p.status} compact />
     </button>
@@ -57,6 +58,7 @@ function Intel() {
         <Kpi label={t('departments')} value={m.departments.length} icon={<Building2 className="size-3.5 text-ok" />} />
         <Kpi label={t('floor')} value={m.floors.length} icon={<Layers className="size-3.5 text-warn" />} />
       </div>
+      <CeoCard />
       <TaskDonut />
       <DeptPerformance />
       <QuickActions />
@@ -157,10 +159,40 @@ function DeptPerformance() {
   );
 }
 
+// AI CEO（Aria）：每小时看全公司运作，写一段报告；也显示派出去的任务走到哪
+function CeoCard() {
+  const s = useStore();
+  const { missions, reports, mode } = useLive();
+  const aria = personById(s.model, 'ceo-02');
+  const last = reports[reports.length - 1];
+  const open = missions.filter((m) => m.status !== 'done' && m.status !== 'cancelled');
+  const waitingReview = open.filter((m) => m.status === 'plan_review' || m.status === 'result_review').length;
+  const done = missions.filter((m) => m.status === 'done').length;
+  const mins = last ? Math.round((Date.now() - last.t) / 60000) : 0;
+  return (
+    <section className="rounded-xl border border-[#E9D2FD] bg-gradient-to-br from-[#F3E8FD] to-white p-3">
+      <div className="flex items-center gap-2">
+        {aria && <Avatar person={aria} size="sm" />}
+        <div className="min-w-0 flex-1"><div className="text-sm font-semibold">AI CEO · Aria</div><div className="text-[11px] text-muted">每小时看一次全公司运作</div></div>
+        <button type="button" onClick={() => s.setSection('missions')} className="rounded-full bg-brand px-2.5 py-1 text-[11px] font-semibold text-white hover:brightness-110">派任务</button>
+      </div>
+      <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
+        {([['进行中', open.length, 'text-[#1967D2]'], ['等审核', waitingReview, 'text-[#C5221F]'], ['已完成', done, 'text-[#137333]']] as const).map(([l, n, c]) => (
+          <div key={l} className="rounded-lg bg-white/80 py-1.5"><div className={cn('num text-lg font-bold', c)}>{n}</div><div className="text-[10px] text-muted">{l}</div></div>
+        ))}
+      </div>
+      <p className="mt-2.5 line-clamp-4 whitespace-pre-wrap text-xs leading-relaxed text-fg">
+        {last ? last.text : mode === 'cloud' ? '还没有报告。派第一个任务后，Aria 下一个整点会开始工作并写报告。' : mode === 'connecting' ? '连云端中…' : '现在是本机模式，Aria 看不到资料。请登出再登入一次连上云端。'}
+      </p>
+      {last && <div className="mt-1 text-[10px] text-faint">{mins < 60 ? `${mins} 分钟前` : `${Math.round(mins / 60)} 小时前`}的报告</div>}
+    </section>
+  );
+}
+
 function QuickActions() {
   const s = useStore();
   const acts: [string, ReactNode, () => void][] = [
-    ['员工管理', <Users key="u" className="size-5 text-brand" />, () => s.setSection('ai')],
+    ['派任务', <Rocket key="r" className="size-5 text-brand" />, () => s.setSection('missions')],
     ['任务分配', <CheckCircle2 key="c" className="size-5 text-ok" />, () => s.setSection('tasks')],
     ['楼层编辑', <Layers key="l" className="size-5 text-ai" />, () => s.setSection('building')],
     ['客服视图', <Headphones key="h" className="size-5 text-warn" />, () => s.setCsView(true)]
@@ -278,6 +310,7 @@ export function Profile({ id, onClose }: { id: string; onClose: () => void }) {
   const { t, tr } = useLang();
   const ago = useAgo();
   const [copied, setCopied] = useState(false);
+  const { missions } = useLive();
   const m = s.model;
   const p = personById(m, id);
   if (!p) return null;
@@ -307,7 +340,7 @@ export function Profile({ id, onClose }: { id: string; onClose: () => void }) {
       <div className="rounded-xl border border-line/10 bg-elevated/40 p-3">
         <div className="flex items-center justify-between"><span className="text-2xs text-muted">{t('status')}</span><StatusPill status={p.status} /></div>
         <div className="mt-2.5 text-2xs text-muted">{t('currentTask')}</div>
-        <div className="mt-0.5 text-sm leading-snug">{tr(p.task)}</div>
+        <div className="mt-0.5 text-sm leading-snug">{missionTaskOf(missions, p.id) ?? tr(p.task)}</div>
         <div className="mt-3 flex items-center justify-between text-2xs text-muted"><span>{t('performance')}</span><span className="num font-semibold text-fg">{p.perf}</span></div>
         <div className="mt-1"><Progress value={p.perf} tone={p.perf >= 90 ? 'ok' : p.perf >= 82 ? 'accent' : 'warn'} /></div>
       </div>

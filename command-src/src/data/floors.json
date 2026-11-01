@@ -1,786 +1,800 @@
 [
- {
-  "id": "R",
-  "code": "R",
-  "level": 5,
-  "accent": "#34A853",
-  "name": {
-   "zh": "天台 · 高管休息区与创新花园",
-   "en": "Rooftop · Executive Lounge & Innovation Garden"
+  {
+    "id": "R",
+    "code": "R",
+    "level": 5,
+    "accent": "#34A853",
+    "name": {
+      "zh": "天台 · 高管休息区与创新花园",
+      "en": "Rooftop · Executive Lounge & Innovation Garden"
+    },
+    "description": {
+      "zh": "玻璃凉亭的高管休息区、种满植物的创新花园和太阳能板，适合脑力激荡和非正式会谈。",
+      "en": "A glass-pavilion executive lounge, a planted innovation garden and solar arrays — for brainstorming and informal talks."
+    },
+    "rooms": [
+      {
+        "id": "r-lounge",
+        "name": {
+          "zh": "高管休息区",
+          "en": "Executive Lounge"
+        },
+        "kind": "pavilion",
+        "x": 0,
+        "z": 0,
+        "w": 15,
+        "d": 9.5
+      },
+      {
+        "id": "r-core",
+        "name": {
+          "zh": "电梯 · 楼梯",
+          "en": "Elevators & Stairs"
+        },
+        "kind": "core",
+        "x": 15,
+        "z": 0,
+        "w": 6,
+        "d": 9.5
+      },
+      {
+        "id": "r-solar",
+        "name": {
+          "zh": "太阳能板",
+          "en": "Solar Array"
+        },
+        "kind": "solar",
+        "x": 21,
+        "z": 0,
+        "w": 15,
+        "d": 9.5
+      },
+      {
+        "id": "r-garden",
+        "name": {
+          "zh": "创新花园",
+          "en": "Innovation Garden"
+        },
+        "kind": "garden",
+        "x": 0,
+        "z": 12.5,
+        "w": 24,
+        "d": 9.5
+      },
+      {
+        "id": "r-deck",
+        "name": {
+          "zh": "观景平台",
+          "en": "Sky Deck"
+        },
+        "kind": "lounge",
+        "x": 24,
+        "z": 12.5,
+        "w": 12,
+        "d": 9.5
+      }
+    ]
   },
-  "description": {
-   "zh": "玻璃凉亭的高管休息区、种满植物的创新花园和太阳能板，适合脑力激荡和非正式会谈。",
-   "en": "A glass-pavilion executive lounge, a planted innovation garden and solar arrays — for brainstorming and informal talks."
+  {
+    "id": "5F",
+    "code": "5F",
+    "level": 4,
+    "accent": "#FBBC04",
+    "name": {
+      "zh": "5F · 高层与管理",
+      "en": "5F · Executive & Management"
+    },
+    "description": {
+      "zh": "老板办公室、AI CEO、审核部、高管团队、战略部和董事会议室。每个任务都在这一层规划和审核。",
+      "en": "CEO office, AI CEO, review department, executives, strategy and the boardroom — every mission is planned and reviewed here."
+    },
+    "rooms": [
+      {
+        "id": "5f-ceo",
+        "name": {
+          "zh": "老板办公室",
+          "en": "CEO Office"
+        },
+        "kind": "exec",
+        "x": 0,
+        "z": 0,
+        "w": 8,
+        "d": 9.5,
+        "dept": "ceo"
+      },
+      {
+        "id": "5f-private",
+        "name": {
+          "zh": "私人会议室",
+          "en": "Private Conference"
+        },
+        "kind": "meeting",
+        "x": 8,
+        "z": 0,
+        "w": 7,
+        "d": 9.5
+      },
+      {
+        "id": "5f-core",
+        "name": {
+          "zh": "电梯 · 楼梯",
+          "en": "Elevators & Stairs"
+        },
+        "kind": "core",
+        "x": 15,
+        "z": 0,
+        "w": 6,
+        "d": 9.5
+      },
+      {
+        "id": "5f-review",
+        "name": {
+          "zh": "审核部",
+          "en": "Review Department"
+        },
+        "kind": "office",
+        "x": 21,
+        "z": 0,
+        "w": 8,
+        "d": 9.5,
+        "dept": "review",
+        "seats": 8
+      },
+      {
+        "id": "5f-board",
+        "name": {
+          "zh": "董事会议室",
+          "en": "Board Meeting Room"
+        },
+        "kind": "board",
+        "x": 29,
+        "z": 0,
+        "w": 7,
+        "d": 9.5
+      },
+      {
+        "id": "5f-exec",
+        "name": {
+          "zh": "高管团队",
+          "en": "Executive Management"
+        },
+        "kind": "office",
+        "x": 0,
+        "z": 12.5,
+        "w": 13,
+        "d": 9.5,
+        "dept": "exec",
+        "seats": 8
+      },
+      {
+        "id": "5f-strategy",
+        "name": {
+          "zh": "战略部",
+          "en": "Strategy Department"
+        },
+        "kind": "office",
+        "x": 13,
+        "z": 12.5,
+        "w": 12,
+        "d": 9.5,
+        "dept": "strategy",
+        "seats": 8
+      },
+      {
+        "id": "5f-recep",
+        "name": {
+          "zh": "高管接待区",
+          "en": "Executive Reception"
+        },
+        "kind": "lounge",
+        "x": 25,
+        "z": 12.5,
+        "w": 11,
+        "d": 9.5
+      }
+    ]
   },
-  "rooms": [
-   {
-    "id": "r-lounge",
+  {
+    "id": "4F",
+    "code": "4F",
+    "level": 3,
+    "accent": "#A142F4",
     "name": {
-     "zh": "高管休息区",
-     "en": "Executive Lounge"
+      "zh": "4F · 产品与研发",
+      "en": "4F · Product & Research"
     },
-    "kind": "pavilion",
-    "x": 0,
-    "z": 0,
-    "w": 15,
-    "d": 9.5
-   },
-   {
-    "id": "r-core",
-    "name": {
-     "zh": "电梯 · 楼梯",
-     "en": "Elevators & Stairs"
+    "description": {
+      "zh": "产品、设计、软件开发、AI 研究、测试和技术部。新功能从这里诞生。",
+      "en": "Product, design, software, AI research, QA and engineering — where new features are born."
     },
-    "kind": "core",
-    "x": 15,
-    "z": 0,
-    "w": 6,
-    "d": 9.5
-   },
-   {
-    "id": "r-solar",
-    "name": {
-     "zh": "太阳能板",
-     "en": "Solar Array"
-    },
-    "kind": "solar",
-    "x": 21,
-    "z": 0,
-    "w": 15,
-    "d": 9.5
-   },
-   {
-    "id": "r-garden",
-    "name": {
-     "zh": "创新花园",
-     "en": "Innovation Garden"
-    },
-    "kind": "garden",
-    "x": 0,
-    "z": 12.5,
-    "w": 24,
-    "d": 9.5
-   },
-   {
-    "id": "r-deck",
-    "name": {
-     "zh": "观景平台",
-     "en": "Sky Deck"
-    },
-    "kind": "lounge",
-    "x": 24,
-    "z": 12.5,
-    "w": 12,
-    "d": 9.5
-   }
-  ]
- },
- {
-  "id": "5F",
-  "code": "5F",
-  "level": 4,
-  "accent": "#FBBC04",
-  "name": {
-   "zh": "5F · 高层与管理",
-   "en": "5F · Executive & Management"
+    "rooms": [
+      {
+        "id": "4f-product",
+        "name": {
+          "zh": "产品开发部",
+          "en": "Product Development"
+        },
+        "kind": "office",
+        "x": 0,
+        "z": 0,
+        "w": 15,
+        "d": 9.5,
+        "dept": "product",
+        "seats": 10
+      },
+      {
+        "id": "4f-core",
+        "name": {
+          "zh": "电梯 · 楼梯",
+          "en": "Elevators & Stairs"
+        },
+        "kind": "core",
+        "x": 15,
+        "z": 0,
+        "w": 6,
+        "d": 9.5
+      },
+      {
+        "id": "4f-ai",
+        "name": {
+          "zh": "AI 研究部",
+          "en": "AI Research"
+        },
+        "kind": "office",
+        "x": 21,
+        "z": 0,
+        "w": 15,
+        "d": 9.5,
+        "dept": "airesearch",
+        "seats": 10
+      },
+      {
+        "id": "4f-uiux",
+        "name": {
+          "zh": "UI/UX 设计",
+          "en": "UI/UX Design"
+        },
+        "kind": "office",
+        "x": 0,
+        "z": 12.5,
+        "w": 9,
+        "d": 9.5,
+        "dept": "uiux",
+        "seats": 6
+      },
+      {
+        "id": "4f-dev",
+        "name": {
+          "zh": "软件开发部",
+          "en": "Software Development"
+        },
+        "kind": "office",
+        "x": 9,
+        "z": 12.5,
+        "w": 12,
+        "d": 9.5,
+        "dept": "dev",
+        "seats": 12
+      },
+      {
+        "id": "4f-qa",
+        "name": {
+          "zh": "测试部",
+          "en": "Quality Assurance"
+        },
+        "kind": "office",
+        "x": 21,
+        "z": 12.5,
+        "w": 8,
+        "d": 9.5,
+        "dept": "qa",
+        "seats": 6
+      },
+      {
+        "id": "4f-tech",
+        "name": {
+          "zh": "技术部",
+          "en": "Technical Department"
+        },
+        "kind": "office",
+        "x": 29,
+        "z": 12.5,
+        "w": 7,
+        "d": 9.5,
+        "dept": "tech",
+        "seats": 4
+      }
+    ]
   },
-  "description": {
-   "zh": "老板办公室、高管团队、战略部和董事会议室。全公司的决策都在这一层。",
-   "en": "CEO office, executive team, strategy and the boardroom — where company decisions are made."
+  {
+    "id": "3F",
+    "code": "3F",
+    "level": 2,
+    "accent": "#4285F4",
+    "name": {
+      "zh": "3F · 营运与支援",
+      "en": "3F · Operations & Support"
+    },
+    "description": {
+      "zh": "营运、人事、财务、行政、法务和采购。让公司每天顺利运转。",
+      "en": "Operations, HR, finance, administration, legal and procurement — keeping the company running."
+    },
+    "rooms": [
+      {
+        "id": "3f-ops",
+        "name": {
+          "zh": "营运部",
+          "en": "Operations"
+        },
+        "kind": "office",
+        "x": 0,
+        "z": 0,
+        "w": 15,
+        "d": 9.5,
+        "dept": "ops",
+        "seats": 10
+      },
+      {
+        "id": "3f-core",
+        "name": {
+          "zh": "电梯 · 楼梯",
+          "en": "Elevators & Stairs"
+        },
+        "kind": "core",
+        "x": 15,
+        "z": 0,
+        "w": 6,
+        "d": 9.5
+      },
+      {
+        "id": "3f-fin",
+        "name": {
+          "zh": "财务部",
+          "en": "Finance"
+        },
+        "kind": "office",
+        "x": 21,
+        "z": 0,
+        "w": 15,
+        "d": 9.5,
+        "dept": "finance",
+        "seats": 8
+      },
+      {
+        "id": "3f-hr",
+        "name": {
+          "zh": "人事部",
+          "en": "Human Resources"
+        },
+        "kind": "office",
+        "x": 0,
+        "z": 12.5,
+        "w": 9,
+        "d": 9.5,
+        "dept": "hr",
+        "seats": 6
+      },
+      {
+        "id": "3f-admin",
+        "name": {
+          "zh": "行政部",
+          "en": "Administration"
+        },
+        "kind": "office",
+        "x": 9,
+        "z": 12.5,
+        "w": 9,
+        "d": 9.5,
+        "dept": "admin",
+        "seats": 6
+      },
+      {
+        "id": "3f-legal",
+        "name": {
+          "zh": "法务部",
+          "en": "Legal"
+        },
+        "kind": "office",
+        "x": 18,
+        "z": 12.5,
+        "w": 9,
+        "d": 9.5,
+        "dept": "legal",
+        "seats": 4
+      },
+      {
+        "id": "3f-proc",
+        "name": {
+          "zh": "采购部",
+          "en": "Procurement"
+        },
+        "kind": "office",
+        "x": 27,
+        "z": 12.5,
+        "w": 9,
+        "d": 9.5,
+        "dept": "procurement",
+        "seats": 4
+      }
+    ]
   },
-  "rooms": [
-   {
-    "id": "5f-ceo",
+  {
+    "id": "2F",
+    "code": "2F",
+    "level": 1,
+    "accent": "#1A73E8",
     "name": {
-     "zh": "老板办公室",
-     "en": "CEO Office"
+      "zh": "2F · 客服部（中国团队）",
+      "en": "2F · Customer Service (China Team)"
     },
-    "kind": "exec",
-    "x": 0,
-    "z": 0,
-    "w": 8,
-    "d": 9.5,
-    "dept": "ceo"
-   },
-   {
-    "id": "5f-private",
-    "name": {
-     "zh": "私人会议室",
-     "en": "Private Conference"
+    "description": {
+      "zh": "国内客服部的楼层：客服主工位区、组长办公室、技术支持、订单管理、投诉处理、AI 助手区、会议室、培训室、休息区和咖啡角。名字审核、技术单审核处理文件后，员工状态和任务即时更新。",
+      "en": "The China CS floor: main workstations, team-lead office, technical support, order management, complaints, AI assistant area, meeting room, training room, lounge and coffee corner."
     },
-    "kind": "meeting",
-    "x": 8,
-    "z": 0,
-    "w": 7,
-    "d": 9.5
-   },
-   {
-    "id": "5f-core",
-    "name": {
-     "zh": "电梯 · 楼梯",
-     "en": "Elevators & Stairs"
-    },
-    "kind": "core",
-    "x": 15,
-    "z": 0,
-    "w": 6,
-    "d": 9.5
-   },
-   {
-    "id": "5f-board",
-    "name": {
-     "zh": "董事会议室",
-     "en": "Board Meeting Room"
-    },
-    "kind": "board",
-    "x": 21,
-    "z": 0,
-    "w": 15,
-    "d": 9.5
-   },
-   {
-    "id": "5f-exec",
-    "name": {
-     "zh": "高管团队",
-     "en": "Executive Management"
-    },
-    "kind": "office",
-    "x": 0,
-    "z": 12.5,
-    "w": 13,
-    "d": 9.5,
-    "dept": "exec",
-    "seats": 8
-   },
-   {
-    "id": "5f-strategy",
-    "name": {
-     "zh": "战略部",
-     "en": "Strategy Department"
-    },
-    "kind": "office",
-    "x": 13,
-    "z": 12.5,
-    "w": 12,
-    "d": 9.5,
-    "dept": "strategy",
-    "seats": 8
-   },
-   {
-    "id": "5f-recep",
-    "name": {
-     "zh": "高管接待区",
-     "en": "Executive Reception"
-    },
-    "kind": "lounge",
-    "x": 25,
-    "z": 12.5,
-    "w": 11,
-    "d": 9.5
-   }
-  ]
- },
- {
-  "id": "4F",
-  "code": "4F",
-  "level": 3,
-  "accent": "#A142F4",
-  "name": {
-   "zh": "4F · 产品与研发",
-   "en": "4F · Product & Research"
+    "rooms": [
+      {
+        "id": "2f-cs",
+        "name": {
+          "zh": "客服主工位区",
+          "en": "CS Main Workstations"
+        },
+        "kind": "office",
+        "x": 0,
+        "z": 0,
+        "w": 15,
+        "d": 9.5,
+        "dept": "cs",
+        "seats": 12
+      },
+      {
+        "id": "2f-core",
+        "name": {
+          "zh": "电梯 · 楼梯",
+          "en": "Elevators & Stairs"
+        },
+        "kind": "core",
+        "x": 15,
+        "z": 0,
+        "w": 6,
+        "d": 9.5
+      },
+      {
+        "id": "2f-claude",
+        "name": {
+          "zh": "AI 助手工作区",
+          "en": "AI Assistant Workstations"
+        },
+        "kind": "office",
+        "x": 21,
+        "z": 0,
+        "w": 8,
+        "d": 9.5,
+        "dept": "claude",
+        "seats": 4
+      },
+      {
+        "id": "2f-lead",
+        "name": {
+          "zh": "组长办公室",
+          "en": "Team Lead Office"
+        },
+        "kind": "exec",
+        "x": 29,
+        "z": 0,
+        "w": 7,
+        "d": 9.5,
+        "dept": "cslead"
+      },
+      {
+        "id": "2f-complaint",
+        "name": {
+          "zh": "投诉处理区",
+          "en": "Complaint Handling"
+        },
+        "kind": "office",
+        "x": 0,
+        "z": 12.5,
+        "w": 6,
+        "d": 9.5,
+        "dept": "complaint",
+        "seats": 4
+      },
+      {
+        "id": "2f-techsup",
+        "name": {
+          "zh": "技术支持区",
+          "en": "Technical Support"
+        },
+        "kind": "office",
+        "x": 6,
+        "z": 12.5,
+        "w": 7,
+        "d": 9.5,
+        "dept": "techsup",
+        "seats": 4
+      },
+      {
+        "id": "2f-orders",
+        "name": {
+          "zh": "订单管理区",
+          "en": "Order Management"
+        },
+        "kind": "office",
+        "x": 13,
+        "z": 12.5,
+        "w": 7,
+        "d": 9.5,
+        "dept": "orders",
+        "seats": 6
+      },
+      {
+        "id": "2f-meet",
+        "name": {
+          "zh": "会议室",
+          "en": "Meeting Room"
+        },
+        "kind": "meeting",
+        "x": 20,
+        "z": 12.5,
+        "w": 6,
+        "d": 9.5
+      },
+      {
+        "id": "2f-train",
+        "name": {
+          "zh": "培训室",
+          "en": "Training Room"
+        },
+        "kind": "training",
+        "x": 26,
+        "z": 12.5,
+        "w": 5,
+        "d": 4.75,
+        "seats": 4
+      },
+      {
+        "id": "2f-coffee",
+        "name": {
+          "zh": "咖啡角",
+          "en": "Coffee Corner"
+        },
+        "kind": "coffee",
+        "x": 26,
+        "z": 17.25,
+        "w": 5,
+        "d": 4.75
+      },
+      {
+        "id": "2f-lounge",
+        "name": {
+          "zh": "员工休息区",
+          "en": "Employee Lounge"
+        },
+        "kind": "lounge",
+        "x": 31,
+        "z": 12.5,
+        "w": 5,
+        "d": 9.5
+      }
+    ]
   },
-  "description": {
-   "zh": "产品、设计、软件开发、AI 研究、测试和技术部。新功能从这里诞生。",
-   "en": "Product, design, software, AI research, QA and engineering — where new features are born."
+  {
+    "id": "1F",
+    "code": "1F",
+    "level": 0,
+    "accent": "#12B5CB",
+    "name": {
+      "zh": "1F · 大堂与公共区",
+      "en": "1F · Reception & Public Area"
+    },
+    "description": {
+      "zh": "接待柜台、等候区、保安、公共会议室、洽谈区、展示厅和咖啡厅。客人第一眼看到的公司。",
+      "en": "Reception, waiting lounge, security, public meeting rooms, business discussion, showroom and coffee lounge — the company's first impression."
+    },
+    "rooms": [
+      {
+        "id": "1f-show",
+        "name": {
+          "zh": "展示厅",
+          "en": "Showroom"
+        },
+        "kind": "showroom",
+        "x": 0,
+        "z": 0,
+        "w": 15,
+        "d": 9.5
+      },
+      {
+        "id": "1f-core",
+        "name": {
+          "zh": "电梯 · 楼梯",
+          "en": "Elevators & Stairs"
+        },
+        "kind": "core",
+        "x": 15,
+        "z": 0,
+        "w": 6,
+        "d": 9.5
+      },
+      {
+        "id": "1f-coffee",
+        "name": {
+          "zh": "咖啡厅",
+          "en": "Coffee Lounge"
+        },
+        "kind": "coffee",
+        "x": 21,
+        "z": 0,
+        "w": 15,
+        "d": 9.5
+      },
+      {
+        "id": "1f-sec",
+        "name": {
+          "zh": "保安",
+          "en": "Security"
+        },
+        "kind": "security",
+        "x": 0,
+        "z": 12.5,
+        "w": 5,
+        "d": 9.5,
+        "dept": "security"
+      },
+      {
+        "id": "1f-recep",
+        "name": {
+          "zh": "接待柜台",
+          "en": "Reception Counter"
+        },
+        "kind": "reception",
+        "x": 5,
+        "z": 12.5,
+        "w": 10,
+        "d": 9.5,
+        "dept": "reception"
+      },
+      {
+        "id": "1f-wait",
+        "name": {
+          "zh": "等候区",
+          "en": "Waiting Lounge"
+        },
+        "kind": "waiting",
+        "x": 15,
+        "z": 12.5,
+        "w": 8,
+        "d": 9.5
+      },
+      {
+        "id": "1f-meet",
+        "name": {
+          "zh": "公共会议室",
+          "en": "Public Meeting Rooms"
+        },
+        "kind": "meeting",
+        "x": 23,
+        "z": 12.5,
+        "w": 7,
+        "d": 9.5
+      },
+      {
+        "id": "1f-biz",
+        "name": {
+          "zh": "洽谈区",
+          "en": "Business Discussion"
+        },
+        "kind": "lounge",
+        "x": 30,
+        "z": 12.5,
+        "w": 6,
+        "d": 9.5
+      }
+    ]
   },
-  "rooms": [
-   {
-    "id": "4f-product",
+  {
+    "id": "B1",
+    "code": "B1",
+    "level": -1,
+    "accent": "#5F6368",
     "name": {
-     "zh": "产品开发部",
-     "en": "Product Development"
+      "zh": "B1 · 数据中心",
+      "en": "B1 · Data Center"
     },
-    "kind": "office",
-    "x": 0,
-    "z": 0,
-    "w": 15,
-    "d": 9.5,
-    "dept": "product",
-    "seats": 10
-   },
-   {
-    "id": "4f-core",
-    "name": {
-     "zh": "电梯 · 楼梯",
-     "en": "Elevators & Stairs"
+    "description": {
+      "zh": "机房、AI 运算区、网络控制、IT 维护、备用电力和安全监控。全公司的系统和 AI 员工都跑在这里。",
+      "en": "Server room, AI computing, network control, IT maintenance, backup power and security monitoring — every system and AI employee runs here."
     },
-    "kind": "core",
-    "x": 15,
-    "z": 0,
-    "w": 6,
-    "d": 9.5
-   },
-   {
-    "id": "4f-ai",
-    "name": {
-     "zh": "AI 研究部",
-     "en": "AI Research"
-    },
-    "kind": "office",
-    "x": 21,
-    "z": 0,
-    "w": 15,
-    "d": 9.5,
-    "dept": "airesearch",
-    "seats": 10
-   },
-   {
-    "id": "4f-uiux",
-    "name": {
-     "zh": "UI/UX 设计",
-     "en": "UI/UX Design"
-    },
-    "kind": "office",
-    "x": 0,
-    "z": 12.5,
-    "w": 9,
-    "d": 9.5,
-    "dept": "uiux",
-    "seats": 6
-   },
-   {
-    "id": "4f-dev",
-    "name": {
-     "zh": "软件开发部",
-     "en": "Software Development"
-    },
-    "kind": "office",
-    "x": 9,
-    "z": 12.5,
-    "w": 12,
-    "d": 9.5,
-    "dept": "dev",
-    "seats": 12
-   },
-   {
-    "id": "4f-qa",
-    "name": {
-     "zh": "测试部",
-     "en": "Quality Assurance"
-    },
-    "kind": "office",
-    "x": 21,
-    "z": 12.5,
-    "w": 8,
-    "d": 9.5,
-    "dept": "qa",
-    "seats": 6
-   },
-   {
-    "id": "4f-tech",
-    "name": {
-     "zh": "技术部",
-     "en": "Technical Department"
-    },
-    "kind": "office",
-    "x": 29,
-    "z": 12.5,
-    "w": 7,
-    "d": 9.5,
-    "dept": "tech",
-    "seats": 4
-   }
-  ]
- },
- {
-  "id": "3F",
-  "code": "3F",
-  "level": 2,
-  "accent": "#4285F4",
-  "name": {
-   "zh": "3F · 营运与支援",
-   "en": "3F · Operations & Support"
-  },
-  "description": {
-   "zh": "营运、人事、财务、行政、法务和采购。让公司每天顺利运转。",
-   "en": "Operations, HR, finance, administration, legal and procurement — keeping the company running."
-  },
-  "rooms": [
-   {
-    "id": "3f-ops",
-    "name": {
-     "zh": "营运部",
-     "en": "Operations"
-    },
-    "kind": "office",
-    "x": 0,
-    "z": 0,
-    "w": 15,
-    "d": 9.5,
-    "dept": "ops",
-    "seats": 10
-   },
-   {
-    "id": "3f-core",
-    "name": {
-     "zh": "电梯 · 楼梯",
-     "en": "Elevators & Stairs"
-    },
-    "kind": "core",
-    "x": 15,
-    "z": 0,
-    "w": 6,
-    "d": 9.5
-   },
-   {
-    "id": "3f-fin",
-    "name": {
-     "zh": "财务部",
-     "en": "Finance"
-    },
-    "kind": "office",
-    "x": 21,
-    "z": 0,
-    "w": 15,
-    "d": 9.5,
-    "dept": "finance",
-    "seats": 8
-   },
-   {
-    "id": "3f-hr",
-    "name": {
-     "zh": "人事部",
-     "en": "Human Resources"
-    },
-    "kind": "office",
-    "x": 0,
-    "z": 12.5,
-    "w": 9,
-    "d": 9.5,
-    "dept": "hr",
-    "seats": 6
-   },
-   {
-    "id": "3f-admin",
-    "name": {
-     "zh": "行政部",
-     "en": "Administration"
-    },
-    "kind": "office",
-    "x": 9,
-    "z": 12.5,
-    "w": 9,
-    "d": 9.5,
-    "dept": "admin",
-    "seats": 6
-   },
-   {
-    "id": "3f-legal",
-    "name": {
-     "zh": "法务部",
-     "en": "Legal"
-    },
-    "kind": "office",
-    "x": 18,
-    "z": 12.5,
-    "w": 9,
-    "d": 9.5,
-    "dept": "legal",
-    "seats": 4
-   },
-   {
-    "id": "3f-proc",
-    "name": {
-     "zh": "采购部",
-     "en": "Procurement"
-    },
-    "kind": "office",
-    "x": 27,
-    "z": 12.5,
-    "w": 9,
-    "d": 9.5,
-    "dept": "procurement",
-    "seats": 4
-   }
-  ]
- },
- {
-  "id": "2F",
-  "code": "2F",
-  "level": 1,
-  "accent": "#1A73E8",
-  "name": {
-   "zh": "2F · 客服部（中国团队）",
-   "en": "2F · Customer Service (China Team)"
-  },
-  "description": {
-   "zh": "国内客服部的楼层：客服主工位区、组长办公室、技术支持、订单管理、投诉处理、AI 助手区、会议室、培训室、休息区和咖啡角。名字审核、技术单审核处理文件后，员工状态和任务即时更新。",
-   "en": "The China CS floor: main workstations, team-lead office, technical support, order management, complaints, AI assistant area, meeting room, training room, lounge and coffee corner."
-  },
-  "rooms": [
-   {
-    "id": "2f-cs",
-    "name": {
-     "zh": "客服主工位区",
-     "en": "CS Main Workstations"
-    },
-    "kind": "office",
-    "x": 0,
-    "z": 0,
-    "w": 15,
-    "d": 9.5,
-    "dept": "cs",
-    "seats": 12
-   },
-   {
-    "id": "2f-core",
-    "name": {
-     "zh": "电梯 · 楼梯",
-     "en": "Elevators & Stairs"
-    },
-    "kind": "core",
-    "x": 15,
-    "z": 0,
-    "w": 6,
-    "d": 9.5
-   },
-   {
-    "id": "2f-claude",
-    "name": {
-     "zh": "AI 助手工作区",
-     "en": "AI Assistant Workstations"
-    },
-    "kind": "office",
-    "x": 21,
-    "z": 0,
-    "w": 8,
-    "d": 9.5,
-    "dept": "claude",
-    "seats": 4
-   },
-   {
-    "id": "2f-lead",
-    "name": {
-     "zh": "组长办公室",
-     "en": "Team Lead Office"
-    },
-    "kind": "exec",
-    "x": 29,
-    "z": 0,
-    "w": 7,
-    "d": 9.5,
-    "dept": "cslead"
-   },
-   {
-    "id": "2f-complaint",
-    "name": {
-     "zh": "投诉处理区",
-     "en": "Complaint Handling"
-    },
-    "kind": "office",
-    "x": 0,
-    "z": 12.5,
-    "w": 6,
-    "d": 9.5,
-    "dept": "complaint",
-    "seats": 4
-   },
-   {
-    "id": "2f-techsup",
-    "name": {
-     "zh": "技术支持区",
-     "en": "Technical Support"
-    },
-    "kind": "office",
-    "x": 6,
-    "z": 12.5,
-    "w": 7,
-    "d": 9.5,
-    "dept": "techsup",
-    "seats": 4
-   },
-   {
-    "id": "2f-orders",
-    "name": {
-     "zh": "订单管理区",
-     "en": "Order Management"
-    },
-    "kind": "office",
-    "x": 13,
-    "z": 12.5,
-    "w": 7,
-    "d": 9.5,
-    "dept": "orders",
-    "seats": 6
-   },
-   {
-    "id": "2f-meet",
-    "name": {
-     "zh": "会议室",
-     "en": "Meeting Room"
-    },
-    "kind": "meeting",
-    "x": 20,
-    "z": 12.5,
-    "w": 6,
-    "d": 9.5
-   },
-   {
-    "id": "2f-train",
-    "name": {
-     "zh": "培训室",
-     "en": "Training Room"
-    },
-    "kind": "training",
-    "x": 26,
-    "z": 12.5,
-    "w": 5,
-    "d": 4.75,
-    "seats": 4
-   },
-   {
-    "id": "2f-coffee",
-    "name": {
-     "zh": "咖啡角",
-     "en": "Coffee Corner"
-    },
-    "kind": "coffee",
-    "x": 26,
-    "z": 17.25,
-    "w": 5,
-    "d": 4.75
-   },
-   {
-    "id": "2f-lounge",
-    "name": {
-     "zh": "员工休息区",
-     "en": "Employee Lounge"
-    },
-    "kind": "lounge",
-    "x": 31,
-    "z": 12.5,
-    "w": 5,
-    "d": 9.5
-   }
-  ]
- },
- {
-  "id": "1F",
-  "code": "1F",
-  "level": 0,
-  "accent": "#12B5CB",
-  "name": {
-   "zh": "1F · 大堂与公共区",
-   "en": "1F · Reception & Public Area"
-  },
-  "description": {
-   "zh": "接待柜台、等候区、保安、公共会议室、洽谈区、展示厅和咖啡厅。客人第一眼看到的公司。",
-   "en": "Reception, waiting lounge, security, public meeting rooms, business discussion, showroom and coffee lounge — the company's first impression."
-  },
-  "rooms": [
-   {
-    "id": "1f-show",
-    "name": {
-     "zh": "展示厅",
-     "en": "Showroom"
-    },
-    "kind": "showroom",
-    "x": 0,
-    "z": 0,
-    "w": 15,
-    "d": 9.5
-   },
-   {
-    "id": "1f-core",
-    "name": {
-     "zh": "电梯 · 楼梯",
-     "en": "Elevators & Stairs"
-    },
-    "kind": "core",
-    "x": 15,
-    "z": 0,
-    "w": 6,
-    "d": 9.5
-   },
-   {
-    "id": "1f-coffee",
-    "name": {
-     "zh": "咖啡厅",
-     "en": "Coffee Lounge"
-    },
-    "kind": "coffee",
-    "x": 21,
-    "z": 0,
-    "w": 15,
-    "d": 9.5
-   },
-   {
-    "id": "1f-sec",
-    "name": {
-     "zh": "保安",
-     "en": "Security"
-    },
-    "kind": "security",
-    "x": 0,
-    "z": 12.5,
-    "w": 5,
-    "d": 9.5,
-    "dept": "security"
-   },
-   {
-    "id": "1f-recep",
-    "name": {
-     "zh": "接待柜台",
-     "en": "Reception Counter"
-    },
-    "kind": "reception",
-    "x": 5,
-    "z": 12.5,
-    "w": 10,
-    "d": 9.5,
-    "dept": "reception"
-   },
-   {
-    "id": "1f-wait",
-    "name": {
-     "zh": "等候区",
-     "en": "Waiting Lounge"
-    },
-    "kind": "waiting",
-    "x": 15,
-    "z": 12.5,
-    "w": 8,
-    "d": 9.5
-   },
-   {
-    "id": "1f-meet",
-    "name": {
-     "zh": "公共会议室",
-     "en": "Public Meeting Rooms"
-    },
-    "kind": "meeting",
-    "x": 23,
-    "z": 12.5,
-    "w": 7,
-    "d": 9.5
-   },
-   {
-    "id": "1f-biz",
-    "name": {
-     "zh": "洽谈区",
-     "en": "Business Discussion"
-    },
-    "kind": "lounge",
-    "x": 30,
-    "z": 12.5,
-    "w": 6,
-    "d": 9.5
-   }
-  ]
- },
- {
-  "id": "B1",
-  "code": "B1",
-  "level": -1,
-  "accent": "#5F6368",
-  "name": {
-   "zh": "B1 · 数据中心",
-   "en": "B1 · Data Center"
-  },
-  "description": {
-   "zh": "机房、AI 运算区、网络控制、IT 维护、备用电力和安全监控。全公司的系统和 AI 员工都跑在这里。",
-   "en": "Server room, AI computing, network control, IT maintenance, backup power and security monitoring — every system and AI employee runs here."
-  },
-  "rooms": [
-   {
-    "id": "b1-server",
-    "name": {
-     "zh": "机房",
-     "en": "Server Room"
-    },
-    "kind": "server",
-    "x": 0,
-    "z": 0,
-    "w": 15,
-    "d": 9.5,
-    "dept": "infra"
-   },
-   {
-    "id": "b1-core",
-    "name": {
-     "zh": "电梯 · 楼梯",
-     "en": "Elevators & Stairs"
-    },
-    "kind": "core",
-    "x": 15,
-    "z": 0,
-    "w": 6,
-    "d": 9.5
-   },
-   {
-    "id": "b1-compute",
-    "name": {
-     "zh": "AI 运算区",
-     "en": "AI Computing Area"
-    },
-    "kind": "compute",
-    "x": 21,
-    "z": 0,
-    "w": 15,
-    "d": 9.5,
-    "dept": "aiops"
-   },
-   {
-    "id": "b1-net",
-    "name": {
-     "zh": "网络控制中心",
-     "en": "Network Control Center"
-    },
-    "kind": "network",
-    "x": 0,
-    "z": 12.5,
-    "w": 9,
-    "d": 9.5,
-    "dept": "network"
-   },
-   {
-    "id": "b1-it",
-    "name": {
-     "zh": "IT 维护室",
-     "en": "IT Maintenance Room"
-    },
-    "kind": "maintenance",
-    "x": 9,
-    "z": 12.5,
-    "w": 9,
-    "d": 9.5,
-    "dept": "itmaint"
-   },
-   {
-    "id": "b1-mon",
-    "name": {
-     "zh": "安全监控室",
-     "en": "Security Monitoring Room"
-    },
-    "kind": "monitor",
-    "x": 18,
-    "z": 12.5,
-    "w": 9,
-    "d": 9.5,
-    "dept": "secops"
-   },
-   {
-    "id": "b1-power",
-    "name": {
-     "zh": "备用电力",
-     "en": "Backup Power"
-    },
-    "kind": "power",
-    "x": 27,
-    "z": 12.5,
-    "w": 9,
-    "d": 9.5
-   }
-  ]
- }
+    "rooms": [
+      {
+        "id": "b1-server",
+        "name": {
+          "zh": "机房",
+          "en": "Server Room"
+        },
+        "kind": "server",
+        "x": 0,
+        "z": 0,
+        "w": 15,
+        "d": 9.5,
+        "dept": "infra"
+      },
+      {
+        "id": "b1-core",
+        "name": {
+          "zh": "电梯 · 楼梯",
+          "en": "Elevators & Stairs"
+        },
+        "kind": "core",
+        "x": 15,
+        "z": 0,
+        "w": 6,
+        "d": 9.5
+      },
+      {
+        "id": "b1-compute",
+        "name": {
+          "zh": "AI 运算区",
+          "en": "AI Computing Area"
+        },
+        "kind": "compute",
+        "x": 21,
+        "z": 0,
+        "w": 15,
+        "d": 9.5,
+        "dept": "aiops"
+      },
+      {
+        "id": "b1-net",
+        "name": {
+          "zh": "网络控制中心",
+          "en": "Network Control Center"
+        },
+        "kind": "network",
+        "x": 0,
+        "z": 12.5,
+        "w": 9,
+        "d": 9.5,
+        "dept": "network"
+      },
+      {
+        "id": "b1-it",
+        "name": {
+          "zh": "IT 维护室",
+          "en": "IT Maintenance Room"
+        },
+        "kind": "maintenance",
+        "x": 9,
+        "z": 12.5,
+        "w": 9,
+        "d": 9.5,
+        "dept": "itmaint"
+      },
+      {
+        "id": "b1-mon",
+        "name": {
+          "zh": "安全监控室",
+          "en": "Security Monitoring Room"
+        },
+        "kind": "monitor",
+        "x": 18,
+        "z": 12.5,
+        "w": 9,
+        "d": 9.5,
+        "dept": "secops"
+      },
+      {
+        "id": "b1-power",
+        "name": {
+          "zh": "备用电力",
+          "en": "Backup Power"
+        },
+        "kind": "power",
+        "x": 27,
+        "z": 12.5,
+        "w": 9,
+        "d": 9.5
+      }
+    ]
+  }
 ]
