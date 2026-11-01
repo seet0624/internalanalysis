@@ -1,7 +1,7 @@
 // 大楼尺寸（公尺）。楼层平面 36 × 22，整栋时每层间隔 GAP（剖面图的爆炸间距）。
 export const W = 36;
 export const D = 22;
-export const GAP = 6.2;
+export const GAP = 3.6;          // 一层楼高：楼层叠在一起，像一栋真的大楼（以前是分开飘着的剖面）
 export const SLAB = 0.35;
 export const WALL_H = 2.5;          // 内墙切到这个高度（剖面）
 export const floorY = (level: number) => level * GAP;

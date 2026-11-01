@@ -7,6 +7,7 @@ import { useStore } from '../lib/store';
 import { useLang } from '../lib/i18n';
 import { peopleOfFloor, tasksOfFloor } from '../lib/company';
 import { FloorModel } from './FloorModel';
+import { Street } from './Street';
 import { TreeField, useWind, type TreeSpot } from './Trees';
 import { surfaceTexture } from './textures';
 import { useFrame } from '@react-three/fiber';
@@ -91,22 +92,7 @@ function Ground({ trees }: { trees: boolean }) {
       </mesh>
       {trees && <TreeField spots={SITE_TREES} />}
       {trees && <Entrance />}
-    </group>
-  );
-}
-
-// 四角的发光柱，让七层楼看起来是同一栋
-function Frame() {
-  const minY = floorY(-1) - SLAB, maxY = floorY(5) + 3;
-  const h = maxY - minY;
-  return (
-    <group>
-      {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => (
-        <mesh key={i} position={[sx * (W / 2 + 0.3), minY + h / 2, sz * (D / 2 + 0.3)]} raycast={() => null}>
-          <boxGeometry args={[0.14, h, 0.14]} />
-          <meshBasicMaterial color={i === 3 ? '#B8933F' : '#C9B68A'} toneMapped={false} transparent opacity={0.8} />
-        </mesh>
-      ))}
+      {trees && <Street />}
     </group>
   );
 }
@@ -124,7 +110,7 @@ function FloorMarkers() {
         const locked = !s.canEnter(f.id);
         const hot = s.hoverFloor === f.id;
         return (
-          <Html key={f.id} position={[W / 2 + 1.2, floorY(f.level) + 1.4, D / 2 + 0.4]} zIndexRange={[8, 0]} className="tag3d click">
+          <Html key={f.id} position={[W / 2 + 9, floorY(f.level) + 1.6, -1]} zIndexRange={[8, 0]} className="tag3d click">
             <button type="button"
               onMouseEnter={() => s.setHoverFloor(f.id)} onMouseLeave={() => s.setHoverFloor(null)}
               onClick={() => (locked ? s.flash(t('locked')) : s.selectFloor(f.id))}
@@ -151,7 +137,6 @@ export function Building() {
     <group>
       {/* 看单层楼（2F 以上）时园区的树会挡到，先藏起来 */}
       <Ground trees={!s.floor || (s.model.floors.find((f) => f.id === s.floor)?.level ?? 0) <= 0} />
-      {!s.csView && <Frame />}
       {/* 客服中国仪表板：只有 2F（看不到其他楼层）；老板：整栋 */}
       {s.model.floors.filter((f) => !s.csView || f.id === '2F').map((f) => <FloorModel key={f.id} floor={f} />)}
       {!s.csView && <FloorMarkers />}

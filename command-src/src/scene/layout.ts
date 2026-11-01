@@ -7,6 +7,10 @@ import type { Surface } from './textures';
 export type Prim = { p: [number, number, number]; s: [number, number, number]; c: string; r?: [number, number, number] };
 export type Seat = { x: number; z: number; ry: number; id: string; room: string; sit: boolean };
 export type RoomLabel = { room: Room; x: number; z: number };
+// 门：门洞中心（世界座标）、门往外（走廊那边）的方向
+export type Door = { room: string; x: number; z: number; nx: number; nz: number };
+// 门上的房号牌（像旅馆：201、202…）
+export type Plaque = { room: Room; no: string; x: number; y: number; z: number; ry: number; color: string };
 
 export type FloorLayout = {
   box: Prim[]; cyl: Prim[]; sph: Prim[]; glow: Prim[]; glowCyl: Prim[]; glass: Prim[];
@@ -14,6 +18,8 @@ export type FloorLayout = {
   trees: TreeSpot[];   // 盆栽、花园的树（真实树模型）
   seats: Record<string, Seat[]>;   // room id → 工位
   labels: RoomLabel[];
+  doors: Record<string, Door>;     // room id → 门（员工走路一定从门进出）
+  plaques: Plaque[];
 };
 
 const mix = (a: string, b: string, t: number) => {
@@ -23,7 +29,7 @@ const mix = (a: string, b: string, t: number) => {
 };
 
 class Builder {
-  L: FloorLayout = { box: [], cyl: [], sph: [], glow: [], glowCyl: [], glass: [], tiles: [], trees: [], seats: {}, labels: [] };
+  L: FloorLayout = { box: [], cyl: [], sph: [], glow: [], glowCyl: [], glass: [], tiles: [], trees: [], seats: {}, labels: [], doors: {}, plaques: [] };
   tree(x: number, y: number, z: number, kind: TreeKind, h: number) {
     this.L.trees.push({ x, y, z, kind, h, ry: ((x * 7.3 + z * 3.1) % 6.28) });
   }
@@ -352,53 +358,153 @@ export function buildFloorLayout(floor: Floor, deptColor: (id?: string) => strin
     const cx = (r.x0 + r.x1) / 2, cz = (r.z0 + r.z1) / 2;
     const dc = deptColor(room.dept) || floor.accent;
     if (room.kind === 'core') {
-      b.box(cx, 0, cz, room.w - 0.3, WALL_H + 0.2, room.d - 0.3, C.core);
-      for (let i = 0; i < 3; i++) b.glow(r.x0 + 1 + i * 1.6, 0.05, r.z1 - 0.12, 1.0, 2.1, 0.02, '#B8AFA0');
-      b.glow(cx, WALL_H + 0.2, cz, room.w - 0.5, 0.02, room.d - 0.5, '#8C6B24');
+      elevatorLobby(b, r, floor);
       continue;
     }
     const surface = SURFACE[room.kind] ?? 'stone';
     // 地板本身有贴图；颜色只轻轻带一点部门色
     const tint = surface === 'grass' ? '#FFFFFF' : mix('#FFFFFF', dc, 0.12);
     b.L.tiles.push({ room, x: cx, z: cz, w: room.w - 0.12, d: room.d - 0.12, color: tint, surface });
-    // 玻璃隔间（靠走廊那边留门）+ 顶边发光
-    const touchesHall = Math.abs(room.z + room.d - 9.5) < 0.01 || Math.abs(room.z - 12.5) < 0.01;
-    const doorZ = Math.abs(room.z + room.d - 9.5) < 0.01 ? r.z1 : r.z0;
-    const edges: [number, number, number, number][] = [[r.x0, r.z0, r.x1, r.z0], [r.x0, r.z1, r.x1, r.z1], [r.x0, r.z0, r.x0, r.z1], [r.x1, r.z0, r.x1, r.z1]];
-    const isOpen = room.kind === 'garden' || room.kind === 'solar' || room.kind === 'pavilion';
-    for (const [ax, az, bx, bz] of edges) {
-      if (isOpen) break;
-      const horizontal = az === bz;
-      const inset = 0.08;
-      const doorHere = touchesHall ? horizontal && Math.abs(az - doorZ) < 0.01 : !horizontal && Math.abs(ax - r.x0) < 0.01;
-      const len = horizontal ? bx - ax : bz - az;
-      const segs: [number, number][] = doorHere ? [[0, len / 2 - 0.8], [len / 2 + 0.8, len]] : [[0, len]];
-      for (const [s0, s1] of segs) {
-        const l = s1 - s0 - 0.1;
-        if (l <= 0.1) continue;
-        const mid = (s0 + s1) / 2;
-        if (horizontal) {
-          const z = az + (az === r.z0 ? inset : -inset);
-          b.glass(ax + mid, 0, z, l, WALL_H, 0.04);
-          b.glow(ax + mid, WALL_H, z, l, 0.025, 0.05, dc);
-        } else {
-          const x = ax + (ax === r.x0 ? inset : -inset);
-          b.glass(x, 0, az + mid, 0.04, WALL_H, l);
-          b.glow(x, WALL_H, az + mid, 0.05, 0.025, l, dc);
-        }
-      }
-    }
     furnish(b, r, dc);
     // 工位编号：楼层-部门-序号
     (b.L.seats[room.id] || []).forEach((s, i) => { s.id = `${floor.code}-${deptShort(room)}-${String(i + 1).padStart(2, '0')}`; });
     b.L.labels.push({ room, x: cx, z: cz });
   }
-  // 外墙：后面和左边是玻璃帷幕（前、右切开看得到里面）
-  for (let x = -W / 2; x <= W / 2 + 0.01; x += 3) b.box(x, 0, -D / 2, 0.12, WALL_H + 0.4, 0.12, '#B8AFA0');
-  for (let z = -D / 2; z <= D / 2 + 0.01; z += 3) b.box(-W / 2, 0, z, 0.12, WALL_H + 0.4, 0.12, '#B8AFA0');
-  b.glass(0, 0, -D / 2 - 0.02, W, WALL_H + 0.4, 0.06);
-  b.glass(-W / 2 - 0.02, 0, 0, 0.06, WALL_H + 0.4, D);
-  b.glow(0, WALL_H + 0.4, -D / 2, W, 0.04, 0.08, '#E3CB8F');
-  b.glow(-W / 2, WALL_H + 0.4, 0, 0.08, 0.04, D, '#E3CB8F');
+  buildWalls(b, floor, ox, oz, deptColor);
+  corridor(b, floor, ox, oz);
   return b.L;
+}
+
+// ---------- 墙、门、走廊、电梯厅（旅馆式：走廊两边一间一间，有门、有房号） ----------
+const WALL_LOW = 1.2;          // 实心墙的高度；上面是玻璃（剖面看得到里面）
+const WALL_T = 0.14;
+const DOOR_W = 1.0;
+const HALL_Z0 = 9.5, HALL_Z1 = 12.5;
+const OPEN_KINDS: Room['kind'][] = ['garden', 'solar', 'pavilion', 'core'];
+
+type DoorSpec = { room: Room; horizontal: boolean; x: number; z: number; into: 1 | -1 };   // 楼层座标；into：房间在门的哪一边（+ = 座标变大那边）
+
+function doorSpec(room: Room): DoorSpec | null {
+  if (OPEN_KINDS.includes(room.kind)) return null;
+  const x = room.x + Math.min(1.6, room.w / 2);
+  const back = room.z + room.d <= HALL_Z0 + 0.01;
+  // 靠走廊：门开在走廊那面；不靠走廊（例如咖啡角在培训室后面）：开在靠走廊那一边，穿过隔壁房间出去
+  if (back) return { room, horizontal: true, x, z: room.z + room.d, into: -1 };
+  return { room, horizontal: true, x, z: room.z, into: 1 };
+}
+
+export function roomNumber(floor: Floor, i: number) {
+  const n = String(i + 1).padStart(2, '0');
+  if (floor.code === 'B1') return 'B1' + n;
+  if (floor.code === 'R') return 'R' + n;
+  return floor.code.replace('F', '') + n;
+}
+
+function buildWalls(b: Builder, floor: Floor, ox: number, oz: number, deptColor: (id?: string) => string | undefined) {
+  const specs = floor.rooms.map(doorSpec).filter(Boolean) as DoorSpec[];
+  // 门（世界座标）+ 门框 + 门板 + 门上的房号牌
+  let no = 0;
+  for (const d of specs) {
+    const wx = d.x + ox, wz = d.z + oz;
+    b.L.doors[d.room.id] = { room: d.room.id, x: wx, z: wz, nx: 0, nz: -d.into };
+    const frame = '#6B4A33', leaf = '#B08458';
+    const hw = DOOR_W / 2;
+    b.box(wx - hw - 0.04, 0, wz, 0.08, 2.22, 0.2, frame);
+    b.box(wx + hw + 0.04, 0, wz, 0.08, 2.22, 0.2, frame);
+    b.box(wx, 2.22, wz, DOOR_W + 0.16, 0.1, 0.2, frame);
+    b.glass(wx, 2.32, wz, DOOR_W, 2.5 - 2.32, 0.04);
+    // 门板：开着 100°，往房间里推开
+    const a = (100 * Math.PI) / 180;
+    const dir = { x: Math.cos(a), z: d.into * Math.sin(a) };
+    const hx = wx - hw + 0.02, hz = wz;
+    b.box(hx + dir.x * 0.46, 0.02, hz + dir.z * 0.46, 0.92, 2.12, 0.05, leaf, Math.atan2(-dir.z, dir.x));
+    b.box(hx + dir.x * 0.82, 1.0, hz + dir.z * 0.82 + 0.04 * d.into, 0.12, 0.03, 0.03, '#C9CDD1', Math.atan2(-dir.z, dir.x));
+    // 地上的门槛
+    b.box(wx, 0, wz, DOOR_W, 0.025, 0.2, '#9C8C78');
+    const label = d.room.dept ? roomNumber(floor, no++) : '';
+    if (label) b.L.plaques.push({ room: d.room, no: label, x: wx, y: 2.42, z: wz + 0.11, ry: 0, color: deptColor(d.room.dept) || floor.accent });
+  }
+  // 墙：每间房四边（外墙交给外观；相邻两间的共用墙只画一次），门的位置挖洞
+  const edges: { ax: number; az: number; bx: number; bz: number; h: boolean }[] = [];
+  const key = new Set<string>();
+  const add = (ax: number, az: number, bx: number, bz: number) => {
+    const h = Math.abs(az - bz) < 1e-6;
+    if (h && (az <= 0.01 || az >= D - 0.01)) return;      // 前后外墙
+    if (!h && (ax <= 0.01 || ax >= W - 0.01)) return;     // 左右外墙
+    const k = [ax, az, bx, bz].map((v) => v.toFixed(2)).join(',');
+    if (key.has(k)) return;
+    key.add(k);
+    edges.push({ ax, az, bx, bz, h });
+  };
+  for (const r of floor.rooms) {
+    if (r.kind === 'core' || r.kind === 'garden' || r.kind === 'solar') continue;
+    add(r.x, r.z, r.x + r.w, r.z); add(r.x, r.z + r.d, r.x + r.w, r.z + r.d);
+    add(r.x, r.z, r.x, r.z + r.d); add(r.x + r.w, r.z, r.x + r.w, r.z + r.d);
+  }
+  // 共用墙：两间房的墙在同一条线上、重叠的部分只留一段
+  const merged: typeof edges = [];
+  for (const e of edges) {
+    const same = merged.find((m) => m.h === e.h && (e.h ? Math.abs(m.az - e.az) < 0.01 && e.ax < m.bx - 0.01 && m.ax < e.bx - 0.01 : Math.abs(m.ax - e.ax) < 0.01 && e.az < m.bz - 0.01 && m.az < e.bz - 0.01));
+    if (same) { if (e.h) { same.ax = Math.min(same.ax, e.ax); same.bx = Math.max(same.bx, e.bx); } else { same.az = Math.min(same.az, e.az); same.bz = Math.max(same.bz, e.bz); } }
+    else merged.push({ ...e });
+  }
+  for (const e of merged) {
+    const len = e.h ? e.bx - e.ax : e.bz - e.az;
+    const holes = specs.filter((d) => e.h && Math.abs(d.z - e.az) < 0.02 && d.x > e.ax && d.x < e.bx).map((d) => d.x - e.ax).sort((p, q) => p - q);
+    const segs: [number, number][] = [];
+    let s0 = 0;
+    for (const hx of holes) { segs.push([s0, hx - DOOR_W / 2 - 0.08]); s0 = hx + DOOR_W / 2 + 0.08; }
+    segs.push([s0, len]);
+    for (const [a0, a1] of segs) {
+      const l = a1 - a0;
+      if (l < 0.12) continue;
+      const mid = (a0 + a1) / 2;
+      const cx = e.h ? e.ax + mid + ox : e.ax + ox, cz = e.h ? e.az + oz : e.az + mid + oz;
+      const sx = e.h ? l : WALL_T, sz = e.h ? WALL_T : l;
+      b.box(cx, 0, cz, sx, WALL_LOW, sz, '#EFEBE4');                                       // 实心墙（乳胶漆）
+      b.box(cx, 0, cz, e.h ? l : WALL_T + 0.03, 0.1, e.h ? WALL_T + 0.03 : l, '#A08C76');    // 踢脚板
+      b.box(cx, WALL_LOW, cz, e.h ? l : WALL_T + 0.05, 0.05, e.h ? WALL_T + 0.05 : l, '#B8956A');   // 木扶手收边
+      b.glass(cx, WALL_LOW + 0.05, cz, e.h ? l : 0.04, 2.5 - WALL_LOW - 0.05, e.h ? 0.04 : l);
+      b.box(cx, 2.5, cz, e.h ? l : 0.07, 0.06, e.h ? 0.07 : l, '#A7ADB3');                    // 铝框
+      const n = Math.max(1, Math.round(l / 1.5));
+      for (let i = 1; i < n; i++) {
+        const t = a0 + (l * i) / n;
+        b.box(e.h ? e.ax + t + ox : cx, WALL_LOW + 0.05, e.h ? cz : e.az + t + oz, 0.05, 2.5 - WALL_LOW - 0.05, 0.05, '#A7ADB3');
+      }
+    }
+  }
+}
+
+// 走廊：地毯、长凳、植物、两头的消防箱和逃生指示
+function corridor(b: Builder, floor: Floor, ox: number, oz: number) {
+  if (floor.id === 'R') return;
+  const z = (HALL_Z0 + HALL_Z1) / 2 + oz;
+  b.box(ox + W / 2, 0.012, z, W - 1.2, 0.015, 1.5, '#8E9AAF');           // 地毯
+  b.box(ox + W / 2, 0.02, z - 0.72, W - 1.2, 0.012, 0.06, '#C9A86A');    // 地毯金边
+  b.box(ox + W / 2, 0.02, z + 0.72, W - 1.2, 0.012, 0.06, '#C9A86A');
+  b.plant(ox + 0.7, z - 1.0, 1.1);
+  b.plant(ox + W - 0.7, z + 1.0, 1.1);
+  b.box(ox + 0.25, 0.9, z + 0.9, 0.2, 0.55, 0.4, '#D93025');              // 消防箱
+  b.glow(ox + 0.36, 2.2, z, 0.02, 0.18, 0.5, '#1E8E3E');                 // 逃生指示（绿）
+  b.glow(ox + W - 0.36, 2.2, z, 0.02, 0.18, 0.5, '#1E8E3E');
+  b.box(ox + W - 0.4, 0, z - 0.9, 0.5, 0.82, 1.2, '#6B4A33');            // 走廊尽头的边桌
+  b.cyl(ox + W - 0.4, 0.82, z - 0.9, 0.12, 0.3, '#E8EAED');
+}
+
+// 电梯厅：三部电梯（不锈钢门、楼层灯）、楼梯门
+function elevatorLobby(b: Builder, r: RR, floor: Floor) {
+  const cx = (r.x0 + r.x1) / 2, cz = (r.z0 + r.z1) / 2;
+  b.box(cx, 0, cz - 0.4, r.w - 0.3, 2.7, r.d - 1.1, '#D9D3C9');
+  const face = r.z1 - 0.95;
+  const n = 3, gap = (r.w - 0.8) / n;
+  for (let i = 0; i < n; i++) {
+    const x = r.x0 + 0.4 + gap * (i + 0.5);
+    b.box(x, 0, face, 1.2, 2.3, 0.08, '#8A8F94');                        // 门框
+    b.box(x - 0.27, 0.02, face + 0.05, 0.52, 2.15, 0.03, '#C7CBD0');      // 不锈钢门（左右两片）
+    b.box(x + 0.27, 0.02, face + 0.05, 0.52, 2.15, 0.03, '#C7CBD0');
+    b.glow(x, 2.38, face + 0.06, 0.34, 0.12, 0.01, i === 1 ? '#F9AB00' : '#FFE9B0');   // 楼层灯
+    b.glow(x + 0.72, 1.1, face + 0.06, 0.05, 0.1, 0.01, '#FFFFFF');      // 叫梯按钮
+  }
+  b.box(cx, 0.005, r.z1 - 0.45, r.w - 0.4, 0.01, 0.9, '#C8BFB2');         // 电梯厅地垫
+  if (floor.id !== 'B1') b.plant(r.x0 + 0.4, r.z1 - 0.4, 0.9);
 }
