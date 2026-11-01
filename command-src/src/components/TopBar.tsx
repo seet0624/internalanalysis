@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, Bot, Box, ChevronRight, Filter, Languages, Map, Maximize2, Menu, Minimize2, PanelRight, RotateCcw, Search, ZoomIn, ZoomOut } from 'lucide-react';
+import { ClipboardCheck, FileSpreadsheet, LayoutGrid, Bell, Bot, Box, ChevronRight, Filter, Languages, Map, Maximize2, Menu, Minimize2, PanelRight, RotateCcw, Search, ZoomIn, ZoomOut } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { useLang } from '../lib/i18n';
 import { deptById, floorById } from '../lib/company';
@@ -40,7 +40,7 @@ function SearchBox() {
   const done = () => { setOpen(false); setQ(''); };
 
   return (
-    <div ref={box} className="relative min-w-32 flex-1 md:max-w-md">
+    <div ref={box} className="relative min-w-36 flex-1 md:max-w-md">
       <label className="flex h-9 items-center gap-2 rounded-lg border border-line/15 bg-canvas/50 px-3 text-sm focus-within:border-accent/50">
         <Search className="size-4 shrink-0 text-faint" aria-hidden />
         <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}
@@ -166,16 +166,22 @@ export function TopBar({ onMenu, onIntel, intelOpen }: { onMenu: () => void; onI
   return (
     <header className="glass relative z-30 flex h-14 shrink-0 items-center gap-2 rounded-none border-x-0 border-t-0 px-2 md:px-3">
       <IconButton label="Menu" onClick={onMenu} className="lg:hidden"><Menu className="size-5" /></IconButton>
-      <nav className="hidden min-w-0 items-center gap-1 text-sm 2xl:flex" aria-label="breadcrumb">
+      <nav className="hidden min-w-0 items-center gap-1 text-sm min-[1900px]:flex" aria-label="breadcrumb">
         <button type="button" onClick={() => { s.selectFloor(null); s.selectPerson(null); }} className={cn('whitespace-nowrap rounded-md px-1.5 py-1 hover:text-fg', f ? 'text-muted' : 'font-semibold text-fg')}>{t('wholeBuilding')}</button>
         {f && <><ChevronRight className="size-3.5 text-faint" /><button type="button" onClick={() => s.selectDept(null)} className={cn('whitespace-nowrap rounded-md px-1.5 py-1', d ? 'text-muted hover:text-fg' : 'font-semibold')}>{f.code}</button></>}
         {d && <><ChevronRight className="size-3.5 text-faint" /><span className="max-w-40 truncate font-semibold">{tr(d.name)}</span></>}
       </nav>
       <SearchBox />
+      {/* 两个审核工具：不管在哪个画面都看得到、按得到 */}
+      <div className="hidden items-center gap-1.5 lg:flex">
+        <a href="../name/" className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-3 text-sm font-bold text-canvas transition-colors hover:bg-accent"><ClipboardCheck className="size-4" />{lang === 'zh' ? '名字审核' : 'Name review'}</a>
+        <a href="../tech/" className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-brand/60 px-3 text-sm font-bold text-accent transition-colors hover:bg-brand/15"><FileSpreadsheet className="size-4" />{lang === 'zh' ? '技术单审核' : 'Order review'}</a>
+      </div>
+      <IconButton label={t('nav_features')} onClick={() => s.setSection('features')} active={s.section === 'features'} className="lg:hidden"><LayoutGrid className="size-4" /></IconButton>
       <div className="ml-auto flex items-center gap-0.5 md:gap-1">
         <select value={s.floor ?? ''} aria-label={t('floor')}
           onChange={(e) => { const v = e.target.value || null; if (v && !s.canEnter(v)) { s.flash(t('locked')); return; } s.selectFloor(v); s.selectPerson(null); }}
-          className="hidden h-9 w-40 rounded-lg border border-line/15 bg-canvas/50 px-2 text-sm text-fg md:block 2xl:w-48">
+          className="hidden h-9 w-44 rounded-lg border border-line/15 bg-canvas/50 px-2 text-sm text-fg min-[1800px]:block">
           <option value="">{t('wholeBuilding')}</option>
           {[...s.model.floors].sort((a, b) => b.level - a.level).map((x) => <option key={x.id} value={x.id}>{x.code} · {tr(x.name).replace(/^\w+ · /, '')}</option>)}
         </select>
@@ -191,7 +197,7 @@ export function TopBar({ onMenu, onIntel, intelOpen }: { onMenu: () => void; onI
         <IconButton label={t('zoomIn')} onClick={() => s.camera('zoomIn')} className="hidden xl:inline-grid"><ZoomIn className="size-4" /></IconButton>
         <IconButton label={t('zoomOut')} onClick={() => s.camera('zoomOut')} className="hidden xl:inline-grid"><ZoomOut className="size-4" /></IconButton>
         <IconButton label={t('resetCam')} onClick={() => s.camera('reset')}><RotateCcw className="size-4" /></IconButton>
-        <IconButton label={t('fullscreen')} onClick={toggleFs} className="hidden xl:inline-grid">{fs ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}</IconButton>
+        <IconButton label={t('fullscreen')} onClick={toggleFs} className="hidden 2xl:inline-grid">{fs ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}</IconButton>
         <FiltersMenu />
         <IconButton label={t('language')} onClick={() => setLang(lang === 'zh' ? 'en' : 'zh')} className="hidden sm:inline-grid">
           <span className="flex items-center gap-0.5 text-[11px] font-bold"><Languages className="size-3.5" />{lang === 'zh' ? 'EN' : '中'}</span>
@@ -199,7 +205,7 @@ export function TopBar({ onMenu, onIntel, intelOpen }: { onMenu: () => void; onI
         <Notifications />
         <button type="button" onClick={() => s.setAssistantOpen(!s.assistantOpen)} aria-pressed={s.assistantOpen}
           aria-label={t('aiAssistant')} title={t('aiAssistant')} className="ml-1 hidden h-9 items-center gap-1.5 rounded-lg bg-gradient-to-r from-brand to-accent px-3 text-sm font-semibold text-canvas shadow-glow transition-transform active:scale-95 sm:flex">
-          <Bot className="size-4" /><span className="hidden whitespace-nowrap 2xl:inline">{t('aiAssistant')}</span>
+          <Bot className="size-4" /><span className="hidden whitespace-nowrap min-[1900px]:inline">{t('aiAssistant')}</span>
         </button>
         <IconButton label={t('intel')} onClick={onIntel} active={intelOpen} className="xl:hidden"><PanelRight className="size-4" /></IconButton>
       </div>

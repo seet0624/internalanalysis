@@ -137,13 +137,13 @@ function screenTexture(kind, color) {
     } else if (kind === 'calendar') {
       g.strokeStyle = '#D9D6CE';
       for (let c = 0; c < 6; c++) for (let r = 0; r < 4; r++) g.strokeRect(10 + c * 40, 26 + r * 30, 40, 30);
-      [[1, 0, '#3A6EA5'], [3, 1, color], [0, 2, '#2C6A37'], [4, 3, '#B83A6E'], [2, 2, color]].forEach(([c, r, f]) => { g.fillStyle = f; g.fillRect(13 + c * 40, 30 + r * 30, 34, 10); });
+      [[1, 0, '#B8933F'], [3, 1, color], [0, 2, '#2C6A37'], [4, 3, '#9A5B3F'], [2, 2, color]].forEach(([c, r, f]) => { g.fillStyle = f; g.fillRect(13 + c * 40, 30 + r * 30, 34, 10); });
     }
   });
 }
 function abstractArt(seed) {
   return canvasTex(256, 192, (g) => {
-    const pal = [['#E8D7C3', '#0E6B66', '#F2B866', '#B83A6E'], ['#DCE6EC', '#3A6EA5', '#C99A3B', '#55544E'], ['#EFE6DA', '#C26A00', '#1F7A8C', '#6B4FA0'], ['#E4EEE6', '#2C6A37', '#F2B866', '#0E6B66']][seed % 4];
+    const pal = [['#E8D7C3', '#8C6B24', '#F2B866', '#9A5B3F'], ['#EDE5D8', '#B8933F', '#C99A3B', '#55544E'], ['#EFE6DA', '#C26A00', '#6B6250', '#7A6A55'], ['#E4EEE6', '#2C6A37', '#F2B866', '#8C6B24']][seed % 4];
     g.fillStyle = pal[0]; g.fillRect(0, 0, 256, 192);
     g.fillStyle = pal[1]; g.beginPath(); g.arc(90, 100, 56, 0, Math.PI * 2); g.fill();
     g.fillStyle = pal[2]; g.fillRect(140, 40, 70, 90);
@@ -155,11 +155,11 @@ function abstractArt(seed) {
 const mat = (color, extra) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.8, metalness: 0 }, extra));
 const M = {
   slab: mat('#E2DCD1'), corridor: mat('#F2EFEA', { roughness: 0.9 }),
-  wall: mat('#FBFAF7', { roughness: 0.95 }), window: mat('#CFE3EA', { roughness: 0.1, metalness: 0.1, emissive: '#BFD9E2', emissiveIntensity: 0.25 }),
-  glass: new THREE.MeshStandardMaterial({ color: '#DCEEF2', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.28, depthWrite: false }),
+  wall: mat('#FBFAF7', { roughness: 0.95 }), window: mat('#EADFCB', { roughness: 0.1, metalness: 0.1, emissive: '#E3D5BC', emissiveIntensity: 0.25 }),
+  glass: new THREE.MeshStandardMaterial({ color: '#F3EAD3', roughness: 0.05, metalness: 0, transparent: true, opacity: 0.28, depthWrite: false }),
   frame: mat('#A8AEB2', { roughness: 0.4, metalness: 0.4 }),
   desk: mat('#EDE6DA', { roughness: 0.6 }), oak: mat('#C9A97E', { roughness: 0.6 }), walnut: mat('#7A5A3C', { roughness: 0.55 }),
-  leg: mat('#B9BDC1', { roughness: 0.35, metalness: 0.5 }), chair: mat('#2F3439', { roughness: 0.7 }), monitor: mat('#1D2125', { roughness: 0.35 }),
+  leg: mat('#B9BDC1', { roughness: 0.35, metalness: 0.5 }), chair: mat('#2F3439', { roughness: 0.7 }), monitor: mat('#14110F', { roughness: 0.35 }),
   sofa: mat('#8E9E9F', { roughness: 0.95 }), sofa2: mat('#CDBBA3', { roughness: 0.95 }), cushion: mat('#E7DCCB', { roughness: 1 }),
   leaf: mat('#5E8F5B', { roughness: 0.9 }), leaf2: mat('#7BA66E', { roughness: 0.9 }), pot: mat('#D9D0C3', { roughness: 0.7 }),
   white: mat('#FFFFFF', { roughness: 0.4 }), steel: mat('#C9CED2', { roughness: 0.25, metalness: 0.7 }), counter: mat('#F6F4F0', { roughness: 0.3 }),
@@ -405,7 +405,7 @@ export function mountOffice(container, company, opts = {}) {
     const bc = new THREE.Group(); bc.position.copy(bossSeat); g.add(bc);
     rbox(0.66, 0.1, 0.6, M.dark, 0, 0.48, 0, bc, 0.04); rbox(0.66, 0.85, 0.1, M.dark, 0, 0.95, -0.3, bc, 0.04);
     rbox(3.6, 2.1, 0.45, M.shelf, -18.5, 1.08, -15.5, g, 0.03); blockRect(-20.3, -15.9, -16.7, -15.2);
-    const books = ['#0E6B66', '#3A6EA5', '#C26A00', '#B83A6E', '#2C6A37', '#6B4FA0', '#C99A3B'];
+    const books = ['#8C6B24', '#B8933F', '#C26A00', '#9A5B3F', '#2C6A37', '#7A6A55', '#C99A3B'];
     for (let row = 0; row < 3; row++) for (let i = 0; i < 11; i++) box(0.2, 0.42, 0.28, colorMat(books[(i + row * 3) % 7]), -20.05 + i * 0.3 + (row % 2) * 0.06, 0.42 + row * 0.62, -15.4);
     sofa(g, -22.4, -9.6, Math.PI / 2, 2.2, M.sofa2);
     rbox(0.9, 0.35, 1.4, M.oak, -21.1, 0.2, -9.6, g, 0.04); blockRect(-21.6, -10.3, -20.6, -8.9);
@@ -428,7 +428,7 @@ export function mountOffice(container, company, opts = {}) {
       spot('meeting', x, -10.2, Math.PI, true, '在会议室开会', '会议室');
     }
     rbox(3.0, 1.6, 0.08, M.monitor, -8, 1.55, -15.85, g, 0.03);
-    const tv = new THREE.Mesh(new THREE.PlaneGeometry(2.86, 1.46), new THREE.MeshBasicMaterial({ map: screenTexture('calendar', '#0E6B66'), toneMapped: false }));
+    const tv = new THREE.Mesh(new THREE.PlaneGeometry(2.86, 1.46), new THREE.MeshBasicMaterial({ map: screenTexture('calendar', '#8C6B24'), toneMapped: false }));
     tv.position.set(-8, 1.55, -15.8); scene.add(tv);
     plant(-12.4, -7.8, 1); plant(-3.7, -15.2, 1.1);
   }
@@ -496,7 +496,7 @@ export function mountOffice(container, company, opts = {}) {
       });
     });
     rbox(0.4, 1.0, 0.4, M.white, 15.6, 0.5, -8.0, g, 0.05);
-    cyl(0.17, 0.17, 0.45, new THREE.MeshStandardMaterial({ color: '#9CCBE0', transparent: true, opacity: 0.7, roughness: 0.1 }), 15.6, 1.23, -8.0, g);
+    cyl(0.17, 0.17, 0.45, new THREE.MeshStandardMaterial({ color: '#E8DCC6', transparent: true, opacity: 0.7, roughness: 0.1 }), 15.6, 1.23, -8.0, g);
     blockRect(15.3, -8.3, 15.9, -7.7);
     spot('water', 16.4, -8.0, -Math.PI / 2, false, '在饮水机倒水', '茶水间');
     plant(23.3, -7.8, 1);
@@ -546,7 +546,7 @@ export function mountOffice(container, company, opts = {}) {
   {
     const o = OPEN[0];
     const cx = (o.x0 + o.x1) / 2;
-    const s = label(`<i style="background:${cs.color || '#0E6B66'}"></i>${esc(cs.name || '客服部')}<small>主要办公区</small>`, 'hq-room hq-room-main', 'dept/cs');
+    const s = label(`<i style="background:${cs.color || '#8C6B24'}"></i>${esc(cs.name || '客服部')}<small>主要办公区</small>`, 'hq-room hq-room-main', 'dept/cs');
     s.position.set(cx, 2.6, o.z0 + 0.6); scene.add(s);
     register('dept/cs', { el: s.element, pos: new THREE.Vector3(cx, 0.5, (o.z0 + o.z1) / 2) });
     const quads = [[-13, -4.2, -2.5, 1.2], [-1.5, -4.2, 9, 1.2], [-13, 2.2, -2.5, 7.6], [-1.5, 2.2, 9, 7.6]];
@@ -580,7 +580,7 @@ export function mountOffice(container, company, opts = {}) {
   {
     const g = statics;
     // 公司名称墙（跟着公司名称改）
-    rbox(7.5, 1.7, 0.25, colorMat('#0E6B66'), -3, 0.87, 10.7, g, 0.04); blockRect(-6.8, 10.5, 0.8, 10.9);
+    rbox(7.5, 1.7, 0.25, colorMat('#8C6B24'), -3, 0.87, 10.7, g, 0.04); blockRect(-6.8, 10.5, 0.8, 10.9);
     const lp = new THREE.Mesh(new THREE.PlaneGeometry(7.2, 1.55), new THREE.MeshBasicMaterial({ map: logoTex, transparent: true, toneMapped: false }));
     lp.position.set(-3, 0.9, 10.84); scene.add(lp);
     // 前台桌
@@ -620,7 +620,7 @@ export function mountOffice(container, company, opts = {}) {
     spot('lounge', 15.4, 13.0, Math.PI / 2, true, '在休息区放空', '休息区');
     spot('lounge', 15.4, 14.2, Math.PI / 2, true, '在休息区看书', '休息区');
     spot('lounge', 17.4, 15.1, Math.PI, true, '在休息区聊天', '休息区');
-    [[21.2, 12.6, '#C26A00'], [22.6, 13.4, '#0E6B66']].forEach(([x, z, c]) => { sph(0.55, colorMat(c), x, 0.32, z, g, 0.6); blockRect(x - 0.4, z - 0.4, x + 0.4, z + 0.4, 0); spot('lounge', x, z + 0.7, Math.PI, false, '在休息区伸懒腰', '休息区'); });
+    [[21.2, 12.6, '#C26A00'], [22.6, 13.4, '#8C6B24']].forEach(([x, z, c]) => { sph(0.55, colorMat(c), x, 0.32, z, g, 0.6); blockRect(x - 0.4, z - 0.4, x + 0.4, z + 0.4, 0); spot('lounge', x, z + 0.7, Math.PI, false, '在休息区伸懒腰', '休息区'); });
     rbox(1.6, 0.18, 0.9, M.walnut, 21.5, 0.85, 15.0, g, 0.03); [[-0.7, -0.35], [0.7, -0.35], [-0.7, 0.35], [0.7, 0.35]].forEach(([a, b]) => box(0.07, 0.78, 0.07, M.dark, 21.5 + a, 0.39, 15.0 + b));
     for (let k = 0; k < 4; k++) cyl(0.015, 0.015, 1.3, M.steel, 21.5 - 0.5 + k * 0.33, 0.95, 15.0, g, 6).rotation.x = Math.PI / 2;
     blockRect(20.6, 14.5, 22.4, 15.5);
@@ -673,7 +673,7 @@ export function mountOffice(container, company, opts = {}) {
       sph(0.12 + (i % 3) * 0.04, i % 2 ? M.leaf : M.leaf2, -13.7, y, z, g, 0.8);
     }
     // 四色吊灯
-    const shades = ['#4E86E8', '#E2574C', '#F2B940', '#3FA45B'];
+    const shades = ['#C9A86A', '#E2574C', '#F2B940', '#3FA45B'];
     const lampMat = new THREE.MeshStandardMaterial({ color: '#FFF4D6', emissive: '#FFE7B0', emissiveIntensity: 1.4 });
     const pendant = (x, z, k, y = 2.25) => {
       cyl(0.008, 0.008, 0.6, M.dark, x, y + 0.45, z, g, 6);
@@ -782,7 +782,7 @@ export function mountOffice(container, company, opts = {}) {
   const SKIN = ['#F1D3B8', '#E2B48E', '#C68D63', '#8F5B3B', '#F4DCC6', '#D9A47E'];
   const HAIR = ['#2A211C', '#3B2A20', '#1E1E1E', '#6B4A2E', '#9A7350', '#4A3A30', '#2F2A28'];
   const PANTS = ['#2B2F36', '#3C4654', '#4A4036', '#2F3B33', '#5A6370', '#7A6A58'];
-  const SHOES = ['#1E1E1E', '#F2F2F2', '#6B4A2E', '#3A3F44'];
+  const SHOES = ['#1E1E1E', '#F2F2F2', '#6B4A2E', '#3A3430'];
   const HAIR_STYLES = ['short', 'long', 'bob', 'bun', 'pony', 'buzz', 'curly'];
   const OUTFITS = ['shirt', 'hoodie', 'blazer', 'polo', 'dress', 'cardigan'];
   const VC = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7 });   // 头、手、鞋这些合成一块的部件

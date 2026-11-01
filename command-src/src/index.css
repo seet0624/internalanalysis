@@ -3,27 +3,27 @@
 @tailwind utilities;
 
 @layer base {
-  /* 唯一的颜色来源：深海军蓝 + 电光蓝 / 青色 */
+  /* 唯一的颜色来源：数易品牌（深色版）—— 墨黑底、米白字、金色是唯一的强调色 */
   :root {
-    --canvas: 4 9 24;
-    --surface: 10 20 46;
-    --elevated: 18 32 68;
-    --line: 96 140 220;
-    --fg: 230 238 255;
-    --muted: 148 166 204;
-    --faint: 92 110 150;
-    --brand: 59 130 246;
-    --accent: 34 211 238;
-    --ai: 167 139 250;
-    --warn: 251 191 36;
-    --danger: 248 113 113;
-    --ok: 52 211 153;
-    --st-working: 56 189 248;
-    --st-available: 52 211 153;
-    --st-thinking: 167 139 250;
-    --st-waiting: 251 191 36;
-    --st-completed: 45 212 191;
-    --st-error: 248 113 113;
+    --canvas: 20 17 15;      /* --ink #14110F */
+    --surface: 30 26 23;
+    --elevated: 44 38 33;
+    --line: 250 247 240;     /* 米白，配透明度当细线 */
+    --fg: 250 247 240;       /* --paper #FAF7F0 */
+    --muted: 196 186 170;
+    --faint: 140 130 116;
+    --brand: 184 147 63;     /* --gold #B8933F */
+    --accent: 212 175 95;    /* 深底上用亮一点的金 */
+    --ai: 227 203 143;       /* 香槟金：AI 员工 */
+    --warn: 214 154 58;
+    --danger: 194 85 63;     /* --risk 提亮 */
+    --ok: 110 158 120;       /* --ok 提亮 */
+    --st-working: 212 175 95;
+    --st-available: 110 158 120;
+    --st-thinking: 184 175 160;
+    --st-waiting: 201 119 58;
+    --st-completed: 143 179 154;
+    --st-error: 194 85 63;
     color-scheme: dark;
   }
   html, body, #root { height: 100%; }

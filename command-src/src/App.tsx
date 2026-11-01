@@ -10,6 +10,7 @@ import { CommPanel } from './components/CommPanel';
 import { Assistant } from './components/Assistant';
 import { Scene } from './scene/Scene';
 import { STATUS_COLOR } from './scene/Avatars';
+import { FeaturesView } from './views/FeaturesView';
 import { DepartmentsView } from './views/DepartmentsView';
 import { AIView } from './views/AIView';
 import { TasksView } from './views/TasksView';
@@ -63,8 +64,8 @@ function SceneOverlay() {
       {/* 状态图例 */}
       <div className="glass absolute bottom-3 left-3 z-10 hidden flex-wrap gap-x-3 gap-y-1 rounded-lg px-3 py-2 text-2xs text-muted md:flex">
         {STATUSES.map((st) => <span key={st} className="flex items-center gap-1"><span className="size-2 rounded-full" style={{ background: STATUS_COLOR[st] }} />{t(`st_${st}`)}</span>)}
-        <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-accent shadow-glow" />AI · {t('real')}</span>
-        <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-ai" />AI · {t('demo')}</span>
+        <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-ai shadow-glow" />AI · {t('real')}</span>
+        <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-muted" />AI · {t('demo')}</span>
       </div>
       {live && (
         <div className="glass absolute left-1/2 top-3 z-20 flex max-w-[90%] -translate-x-1/2 animate-slideUp items-center gap-2 rounded-full border-ok/40 px-4 py-2 text-xs" role="status">
@@ -81,6 +82,7 @@ function SceneOverlay() {
 function Workspace() {
   const s = useStore();
   switch (s.section) {
+    case 'features': return <FeaturesView />;
     case 'departments': return <DepartmentsView />;
     case 'ai': return <AIView />;
     case 'tasks': return <TasksView />;

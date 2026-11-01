@@ -16,11 +16,11 @@ window.COMPANY = {
 
   departments: [
     {
-      id: 'cs', name: '客服部', main: true, color: '#0E6B66',
+      id: 'cs', name: '客服部', main: true, color: '#8C6B24',
       summary: '公司的主力：审核名字、审核技术单、回客人。',
       teams: [
         {
-          id: 'name', name: '名字审核组', kind: 'site', href: 'name/', color: '#0E6B66',
+          id: 'name', name: '名字审核组', kind: 'site', href: 'name/', color: '#8C6B24',
           summary: '名正言顺名册：逐位学员核对新名，判定没问题 / 有问题；国内单另外可以下载给督导的文件。',
           agents: [
             { name: '阿名', trait: '细心', role: '核名专员', duty: '新名和家人撞字、撞音，连姓念的不雅谐音，逐位标出来。' },
@@ -29,7 +29,7 @@ window.COMPANY = {
           ]
         },
         {
-          id: 'tech', name: '技术单审核组', kind: 'site', href: 'tech/', color: '#3A6EA5',
+          id: 'tech', name: '技术单审核组', kind: 'site', href: 'tech/', color: '#B8933F',
           summary: '按审核规则自动标红、分文件、改页脚，下载转发给专家。',
           agents: [
             { name: '阿技', trait: '认真', role: '审单专员', duty: '按规则把要注意的格子标红：子时、备注、暂缓、换购单……' },
@@ -47,11 +47,11 @@ window.COMPANY = {
             { name: '阿升', trait: '外向', role: '升级处理', skill: 'customer-support:customer-escalation', duty: '处理棘手的客诉，整理要往上报的内容。' }
           ]
         },
-        { id: 'next', name: '新功能工位', kind: 'planned', color: '#8E949A', summary: '空着的工位，以后加的功能坐这里。', agents: [] }
+        { id: 'next', name: '新功能工位', kind: 'planned', color: '#9A8F80', summary: '空着的工位，以后加的功能坐这里。', agents: [] }
       ]
     },
     {
-      id: 'marketing', name: '营销部', kind: 'claude', color: '#B83A6E',
+      id: 'marketing', name: '营销部', kind: 'claude', color: '#9A5B3F',
       summary: '写文案、排活动、做社群内容。',
       agents: [
         { name: '小文', role: '内容写手', skill: 'marketing:content-creation', duty: '写推文、文章、宣传文案。' },
@@ -70,7 +70,7 @@ window.COMPANY = {
       ]
     },
     {
-      id: 'hr', name: '人事部', kind: 'claude', color: '#6B4FA0',
+      id: 'hr', name: '人事部', kind: 'claude', color: '#7A6A55',
       summary: '招人、带新人、做考核。',
       agents: [
         { name: '小招', role: '招聘', skill: 'human-resources:recruiting-pipeline', duty: '整理招聘进度，每个候选人走到哪一步。' },
@@ -87,14 +87,14 @@ window.COMPANY = {
       ]
     },
     {
-      id: 'data', name: '数据部', kind: 'claude', color: '#1F7A8C',
+      id: 'data', name: '数据部', kind: 'claude', color: '#6B6250',
       summary: '分析数据、做看板。',
       agents: [
         { name: '阿析', role: '数据分析', skill: 'data:analyze', duty: '回答数据问题，找出趋势和原因。' },
         { name: '小板', role: '看板制作', skill: 'data:build-dashboard', duty: '把数字做成一页看板。' }
       ]
     },
-    { id: 'next-dept', name: '新部门', kind: 'planned', color: '#8E949A', summary: '空办公室，以后开新部门用。', agents: [] }
+    { id: 'next-dept', name: '新部门', kind: 'planned', color: '#9A8F80', summary: '空办公室，以后开新部门用。', agents: [] }
   ],
 
   // 连接器按用途放进设施。会议室同时是 Google Calendar 和简报工具的设施

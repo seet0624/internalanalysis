@@ -1,11 +1,13 @@
-import { BarChart3, BookOpen, Bot, Building2, FolderKanban, LayoutDashboard, ListChecks, Lock, LogOut, MessagesSquare, Settings, Users, X } from 'lucide-react';
+import { LayoutGrid, BarChart3, BookOpen, Bot, Building2, FolderKanban, LayoutDashboard, ListChecks, Lock, LogOut, MessagesSquare, Settings, Users, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useStore, type Section } from '../lib/store';
 import { useLang, type UIKey } from '../lib/i18n';
 import { peopleOfFloor } from '../lib/company';
+import { buildFeatures } from '../lib/features';
 import { cn } from '../lib/cn';
 
 const NAV: { id: Section; key: UIKey; icon: ReactNode }[] = [
+  { id: 'features', key: 'nav_features', icon: <LayoutGrid className="size-4" /> },
   { id: 'overview', key: 'nav_overview', icon: <LayoutDashboard className="size-4" /> },
   { id: 'building', key: 'nav_building', icon: <Building2 className="size-4" /> },
   { id: 'departments', key: 'nav_departments', icon: <Users className="size-4" /> },
@@ -21,6 +23,7 @@ const NAV: { id: Section; key: UIKey; icon: ReactNode }[] = [
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const s = useStore();
   const { t, tr } = useLang();
+  const featureCount = buildFeatures(s.role).length;
   const floorsTopDown = [...s.model.floors].sort((a, b) => b.level - a.level);
   const go = (id: Section) => {
     s.setSection(id);
@@ -56,6 +59,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                     on ? 'bg-gradient-to-r from-accent/15 to-transparent font-semibold text-fg shadow-[inset_2px_0_0_rgb(var(--accent))]' : 'text-muted hover:bg-elevated/60 hover:text-fg')}>
                   <span className={on ? 'text-accent' : ''}>{n.icon}</span>
                   {t(n.key)}
+                  {n.id === 'features' && <span className="num ml-auto rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-canvas">{featureCount}</span>}
                 </button>
               </li>
             );
@@ -76,7 +80,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                   className={cn('group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors',
                     on ? 'bg-elevated text-fg' : 'text-muted hover:bg-elevated/50 hover:text-fg')}>
                   <span className="grid h-6 w-8 shrink-0 place-items-center rounded-md text-[10px] font-bold"
-                    style={{ background: on ? f.accent : `${f.accent}22`, color: on ? '#04101F' : f.accent }}>{f.code}</span>
+                    style={{ background: on ? f.accent : `${f.accent}22`, color: on ? '#14110F' : f.accent }}>{f.code}</span>
                   <span className="min-w-0 flex-1 truncate">{tr(f.name).replace(/^\w+ · /, '')}</span>
                   {locked ? <Lock className="size-3 text-faint" aria-label={t('locked')} /> : <span className="num text-2xs text-faint">{n}</span>}
                 </button>

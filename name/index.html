@@ -6,7 +6,7 @@
 <title>名字审核 · 名正言顺</title>
 <script src="../hq/auth.js"></script>
 <script src="../hq/bus.js"></script>
-<meta name="theme-color" content="#F4F3EF">
+<meta name="theme-color" content="#FAF7F0">
 <script src="../vendor/exceljs.min.js"></script>
 <script src="../vendor/jszip.min.js"></script>
 <script src="shops.js"></script>
@@ -17,29 +17,29 @@ if(!window.JSZip) document.write('<script src="https://cdnjs.cloudflare.com/ajax
 </script>
 <style>
 :root{
-  --bg:#121518; --bg2:#151A1D; --panel:#1B1F23; --panel2:#20252A; --line:#2D3338; --line2:#3A4147;
-  --ink:#E9EBEC; --ink2:#C5CACE; --muted:#A3A8AD; --gold:#4FB3AC; --gold2:#6CC4BD;
-  --pri-bg:#4FB3AC; --pri-ink:#0B1615;
-  --accent-soft:#17312F; --accent-ink:#8FD6CF; --hl:rgba(79,179,172,.3);
+  --bg:#14110F; --bg2:#1A1714; --panel:#1E1A17; --panel2:#25201C; --line:#3A3430; --line2:#4A433D;
+  --ink:#FAF7F0; --ink2:#E8E1D3; --muted:#BDB3A3; --gold:#D4AF5F; --gold2:#E3CB8F;
+  --pri-bg:#D4AF5F; --pri-ink:#14110F;
+  --accent-soft:#3A2F1E; --accent-ink:#E3CB8F; --hl:rgba(212,175,95,.3);
   --bad:#FF8A80; --bad-bg:#3A1C1A; --bad-line:rgba(255,138,128,.45); --bad-solid-ink:#1A0A0C;
   --warn:#F2B866; --warn-bg:#33270F; --warn-line:rgba(242,184,102,.45); --warn-solid-ink:#1E1302;
   --ok:#7FCC8C; --ok-bg:#183020;
   --clash-bg:#3A1C1A; --clash-ink:#FFD9DD; --clash-sub:#FFB3AB; --soft-bg:#33270F;
-  --sel:#17312F; --sel-line:#2F6F6A; --shadow:0 18px 50px rgba(0,0,0,.45);
+  --sel:#3A2F1E; --sel-line:#8C6B24; --shadow:0 18px 50px rgba(0,0,0,.45);
   --sans:'PingFang SC','Microsoft YaHei','Noto Sans SC',system-ui,sans-serif;
   --serif-tc:'Noto Serif TC','Noto Serif SC','Songti TC','PMingLiU','MingLiU','SimSun',serif;
   --serif-sc:'Noto Serif SC','Noto Serif TC','Songti SC','SimSun',serif;
 }
 body.light{
-  --bg:#F4F3EF; --bg2:#FFFFFF; --panel:#FFFFFF; --panel2:#F9F8F5; --line:#E3E1DA; --line2:#D6D3CA;
-  --ink:#1D2125; --ink2:#3A3F44; --muted:#55544E; --gold:#0E6B66; --gold2:#0B5753;
-  --pri-bg:#0E6B66; --pri-ink:#FFFFFF;
-  --accent-soft:#E3F0EE; --accent-ink:#0B4F4B; --hl:#CDE6E3;
+  --bg:#FAF7F0; --bg2:#FFFFFF; --panel:#FFFFFF; --panel2:#F9F8F5; --line:#E8E1D3; --line2:#D6D3CA;
+  --ink:#14110F; --ink2:#3A3430; --muted:#55544E; --gold:#8C6B24; --gold2:#74581C;
+  --pri-bg:#8C6B24; --pri-ink:#FFFFFF;
+  --accent-soft:#F3EAD3; --accent-ink:#6B511A; --hl:#EADBB4;
   --bad:#B3261E; --bad-bg:#FBE9E7; --bad-line:#EBB8B2; --bad-solid-ink:#FFFFFF;
   --warn:#7A4300; --warn-bg:#FFF1DC; --warn-line:#E7C99A; --warn-solid-ink:#FFFFFF;
   --ok:#2C6A37; --ok-bg:#E6F2E8;
   --clash-bg:#FBE9E7; --clash-ink:#8C1D18; --clash-sub:#8C1D18; --soft-bg:#FFF1DC;
-  --sel:#EEF6F5; --sel-line:#9ECFCA; --shadow:0 18px 50px rgba(29,33,37,.12);
+  --sel:#F7F0DF; --sel-line:#D9C38E; --shadow:0 18px 50px rgba(29,33,37,.12);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
@@ -1438,7 +1438,7 @@ function openReport(){ if(!parsedFiles.length)return;
       return '<tr><td>'+esc(String(r.sid))+'</td><td>'+esc(r.disp||'')+'</td><td>'+esc(names)+'</td><td>'+(reasons||'—')+'</td><td style="color:'+color+';font-weight:700">'+r.verdict+'</td></tr>'; }).join('');
     return '<h2>'+esc(x.name)+' <small style="color:#888;font-weight:400">共 '+res.length+' 位 · '+nbad+' 有问题</small></h2><table><thead><tr><th>序号</th><th>使用人</th><th>新名（拼音）</th><th>原因/提示</th><th>判定</th></tr></thead><tbody>'+rows+'</tbody></table>'; }).join('<hr>');
   var totS=0,totB=0; parsedFiles.forEach(function(x){ x.audit.results.forEach(function(r){ totS++; if(r.problem)totB++; }); });
-  var html='<html><head><meta charset="utf-8"><title>名字审核报告</title><style>body{font-family:-apple-system,"Microsoft YaHei",sans-serif;padding:24px;color:#1c2333}h1{font-size:22px}h2{font-size:16px;margin-top:24px}table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}th,td{border:1px solid #ccc;padding:7px 9px;text-align:left;vertical-align:top}th{background:#f0f0f0}hr{border:none;border-top:1px dashed #ccc;margin:24px 0}@media print{button{display:none}}</style></head><body><h1>名字审核报告</h1><div style="color:#555;margin:6px 0 4px">共 '+parsedFiles.length+' 个文件 · '+totS+' 位学员 · <b style="color:#c0334a">'+totB+' 位有问题</b> · '+dateStr()+'</div><button onclick="window.print()" style="margin:10px 0 16px;padding:8px 14px">打印 / 存成 PDF</button>'+secs+'</body></html>';
+  var html='<html><head><meta charset="utf-8"><title>名字审核报告</title><style>body{font-family:-apple-system,"Microsoft YaHei",sans-serif;padding:24px;color:#14110F}h1{font-size:22px}h2{font-size:16px;margin-top:24px}table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}th,td{border:1px solid #ccc;padding:7px 9px;text-align:left;vertical-align:top}th{background:#f0f0f0}hr{border:none;border-top:1px dashed #ccc;margin:24px 0}@media print{button{display:none}}</style></head><body><h1>名字审核报告</h1><div style="color:#555;margin:6px 0 4px">共 '+parsedFiles.length+' 个文件 · '+totS+' 位学员 · <b style="color:#c0334a">'+totB+' 位有问题</b> · '+dateStr()+'</div><button onclick="window.print()" style="margin:10px 0 16px;padding:8px 14px">打印 / 存成 PDF</button>'+secs+'</body></html>';
   var w=window.open('','_blank'); w.document.write(html); w.document.close(); }
 
 /*==== order DB manager ====*/
@@ -1516,6 +1516,10 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-01', title:'换成数易品牌配色', items:[
+    '配色换成数易品牌：米白底、墨黑字、金色按钮（深色模式是墨黑底），跟首页、技术单审核台、指挥中心同一套',
+    '首页和指挥中心一打开就有「功能」：名字审核、技术单审核放在最上面，点了直接进来'
+  ]},
   {date:'2026-10-31', title:'店铺资料放进网站，不用导入', items:[
     '网站内置 5092 家店（name/shops.js），国内技术单打开就按店铺编号自动带出督导、管理分公司、店铺名称；已知督导的群也内置',
     '网站如果有 name/shops.js（店铺编号 → 店铺名称、管理分公司、督导，以及督导 → 群），国内技术单打开就按店铺编号自动带出督导，不用每台电脑导入',

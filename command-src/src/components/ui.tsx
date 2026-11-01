@@ -66,7 +66,7 @@ export function IconButton({ label, size, active, className, children, ...rest }
   );
 }
 
-const PALETTE = ['#2563EB', '#0891B2', '#7C3AED', '#DB2777', '#059669', '#D97706', '#4F46E5', '#0D9488'];
+const PALETTE = ['#8C6B24', '#5B4A3A', '#4F7A5A', '#7A5A44', '#6B6250', '#A07C30', '#3A3430', '#8E6A4A'];
 const hash = (s: string) => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); };
 
 export function Avatar({ person, size = 'md' }: { person: Person; size?: 'sm' | 'md' | 'lg' }) {

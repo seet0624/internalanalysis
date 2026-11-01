@@ -3,7 +3,7 @@
   "id": "R",
   "code": "R",
   "level": 5,
-  "accent": "#34D399",
+  "accent": "#8FB39A",
   "name": {
    "zh": "天台 · 高管休息区与创新花园",
    "en": "Rooftop · Executive Lounge & Innovation Garden"
@@ -79,7 +79,7 @@
   "id": "5F",
   "code": "5F",
   "level": 4,
-  "accent": "#F59E0B",
+  "accent": "#E3CB8F",
   "name": {
    "zh": "5F · 高层与管理",
    "en": "5F · Executive & Management"
@@ -184,7 +184,7 @@
   "id": "4F",
   "code": "4F",
   "level": 3,
-  "accent": "#8B5CF6",
+  "accent": "#C9A86A",
   "name": {
    "zh": "4F · 产品与研发",
    "en": "4F · Product & Research"
@@ -296,7 +296,7 @@
   "id": "3F",
   "code": "3F",
   "level": 2,
-  "accent": "#3B82F6",
+  "accent": "#B8933F",
   "name": {
    "zh": "3F · 营运与支援",
    "en": "3F · Operations & Support"
@@ -408,7 +408,7 @@
   "id": "2F",
   "code": "2F",
   "level": 1,
-  "accent": "#22D3EE",
+  "accent": "#D4AF5F",
   "name": {
    "zh": "2F · 客服与服务中心",
    "en": "2F · Customer Service & Service Center"
@@ -545,7 +545,7 @@
   "id": "1F",
   "code": "1F",
   "level": 0,
-  "accent": "#60A5FA",
+  "accent": "#BDB3A3",
   "name": {
    "zh": "1F · 大堂与公共区",
    "en": "1F · Reception & Public Area"
@@ -659,7 +659,7 @@
   "id": "B1",
   "code": "B1",
   "level": -1,
-  "accent": "#38BDF8",
+  "accent": "#A07C30",
   "name": {
    "zh": "B1 · 数据中心",
    "en": "B1 · Data Center"
