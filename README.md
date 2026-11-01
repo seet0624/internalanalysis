@@ -125,6 +125,19 @@ npm run build    # 检查 + 型别检查 + 打包到 ../command/
 
 树是 [ez-tree](https://github.com/dgreenheck/ez-tree)（MIT）程序化产生的真实树（树皮、树叶贴图、会随风摆），内嵌在 `command-src/src/vendor/ez-tree/`，只留几张缩小的贴图（约 400KB）；地板的木纹、石材、地毯、机房地板是 canvas 当场画的，不用下载图片。Claude 的专用 skill：`.claude/skills/command-center`（加楼层 / 部门 / AI 员工）、`.claude/skills/hq-new-tool`（加新审核工具并接进登入、3D 总部、指挥中心）。
 
+## 派任务给 AI 团队（云端 + 每小时自动执行）
+
+流程：**你派任务 → AI CEO（Aria）规划、分团队 → 审核部看计划、给意见 → 团队执行（开发组写程序）→ 审核部验收 → 你看成果**。
+
+- 入口：指挥中心左边「派任务给 AI 团队」，或右边 AI CEO 卡片的「派任务」。
+- 资料在 **Supabase**（免费版，新加坡机房，项目 `shuyi-hq` / `xmtljgxdzhrptsazklls`）：对话、工单、任务、missions、mission_events、CEO 报告。
+  - 登入首页时顺便登入云端（`hq/auth.js` 的 `cloudLogin`）。第一次登入，后端用同一套密码 hash 再验一次才建立云端账号；密码不存在任何地方。
+  - 谁能看什么由**后端权限（RLS）**把关：客服账号只看得到 2F 的对话和任务，老板看全部。
+  - 连不上云端（例如网络问题，或这次更新前就登入了）→ 自动用**本机模式**，右上角会提示「请重新登入」。AI 团队只看得到云端资料。
+- AI 团队：每小时由自动执行的 Claude 跑一轮，规则在 `.claude/skills/company-worker/SKILL.md`。写程序的任务会开 PR，**你说「合并」才会上线**，AI 团队不能自己合并。
+- 3D 办公室：AI 团队把讨论写进对话、时间排在接下来一小时，所以整个小时都看得到他们在讨论；没有任务时偶尔「闲聊」（会标示）。
+- 5F 新增**审核部**；每个 AI 员工的 `skill` 就是他真正用的 agent / skill（`command-src/src/data/people.json`）。
+
 ## 公司外观、Logo、人物
 
 - **Logo**：`hq/brand/shuyi-logo-*.png`（去白底、放大过），网页小图示、首页、登入卡、指挥中心、两个审核工具都用这一份
