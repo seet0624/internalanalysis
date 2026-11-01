@@ -17,7 +17,7 @@
   // 每个身份能进的页面（网站根目录下的路径开头）
   var ACCESS = {
     boss: ['*'],
-    cs: ['', 'index.html', 'name/', 'tech/', 'handbook/', 'guide/', 'numera/', 'docs/']
+    cs: ['', 'index.html', 'name/', 'tech/', 'handbook/', 'guide/', 'numera/', 'docs/', 'command/']
   };
 
   // ---------- SHA-256（不靠 crypto.subtle，http 网址也能用） ----------
@@ -60,6 +60,7 @@
   var me = document.currentScript;
   var ROOT = new URL('..', me.src).href;          // 网站根目录（hq/ 的上一层）
   var isHQ = me.getAttribute('data-page') === 'hq';
+  var noBadge = me.hasAttribute('data-nobadge');   // 页面自己有返回按钮、账号栏（例如指挥中心）
 
   function read() { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } }
   function session() {
@@ -96,6 +97,7 @@
     return;
   }
   // 左下角小标签：回审核总部、目前身份
+  if (noBadge) return;
   document.addEventListener('DOMContentLoaded', function () {
     var a = document.createElement('a');
     a.href = ROOT;

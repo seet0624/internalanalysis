@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 // 不放上网站的文件夹：仓库设置、上线工具
-const SKIP_DIRS = new Set(['.git', '.github', 'deploy', 'node_modules']);
+const SKIP_DIRS = new Set(['.git', '.github', 'deploy', 'node_modules', 'command-src']);
 
 // 只上传网页用得到的文件类型。.xlsx / .zip / .json（名字审核存档）这类可能有客户资料，一律不传
 const TYPES = {

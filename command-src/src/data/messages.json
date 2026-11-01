@@ -1,0 +1,137 @@
+[
+ {
+  "id": "m01",
+  "ch": "company",
+  "from": "ceo-01",
+  "text": {
+   "zh": "本周重点：客服扩编和指挥中心上线。",
+   "en": "This week: CS expansion and command-center launch."
+  },
+  "ago": 95,
+  "demo": true
+ },
+ {
+  "id": "m02",
+  "ch": "company",
+  "from": "exec-04",
+  "text": {
+   "zh": "指挥中心测试版今天开放给各部门试用。",
+   "en": "Command center beta opens to all departments today."
+  },
+  "ago": 40,
+  "demo": true
+ },
+ {
+  "id": "m03",
+  "ch": "dept",
+  "from": "dev-19",
+  "text": {
+   "zh": "楼层 3D 视图完成 75%，明天给设计看。",
+   "en": "3D floor view is 75% done; design review tomorrow."
+  },
+  "ago": 22,
+  "demo": true,
+  "dept": "dev"
+ },
+ {
+  "id": "m04",
+  "ch": "dept",
+  "from": "complaint-39",
+  "text": {
+   "zh": "三宗改名投诉都已回复，等客人确认。",
+   "en": "Replied to all three rename complaints; awaiting customers."
+  },
+  "ago": 18,
+  "demo": true,
+  "dept": "complaint"
+ },
+ {
+  "id": "m05",
+  "ch": "dept",
+  "from": "ops-28",
+  "text": {
+   "zh": "下周班表已发到群组，请确认。",
+   "en": "Next week's shifts are posted — please confirm."
+  },
+  "ago": 64,
+  "demo": true,
+  "dept": "ops"
+ },
+ {
+  "id": "m06",
+  "ch": "ai",
+  "from": "aiops-53",
+  "text": {
+   "zh": "已为 Forge 加配 2 张 GPU，测试速度提升 40%。",
+   "en": "Allocated 2 more GPUs to Forge; tests 40% faster."
+  },
+  "ago": 12,
+  "demo": true
+ },
+ {
+  "id": "m07",
+  "ch": "ai",
+  "from": "orders-44",
+  "text": {
+   "zh": "有 5 张订单超过 48 小时没更新，已通知订单组。",
+   "en": "5 orders idle for 48h+; notified Order Management."
+  },
+  "ago": 9,
+  "demo": true
+ },
+ {
+  "id": "m08",
+  "ch": "ai",
+  "from": "ceo-02",
+  "text": {
+   "zh": "今天有 3 件事等老板拍板：Q4 预算、合约、排班。",
+   "en": "3 items await the CEO: Q4 budget, contract, shifts."
+  },
+  "ago": 6,
+  "demo": true
+ },
+ {
+  "id": "m09",
+  "ch": "task",
+  "from": "strategy-07",
+  "text": {
+   "zh": "「双十一活动文案」已完成。",
+   "en": "\"Singles' Day campaign copy\" completed."
+  },
+  "ago": 30,
+  "demo": true
+ },
+ {
+  "id": "m10",
+  "ch": "task",
+  "from": "dev-21",
+  "text": {
+   "zh": "「修复部署脚本」被卡住：缺少上线钥匙。",
+   "en": "\"Fix deploy script\" blocked: missing deploy keys."
+  },
+  "ago": 15,
+  "demo": true
+ },
+ {
+  "id": "m11",
+  "ch": "notice",
+  "from": "system",
+  "text": {
+   "zh": "网络：华南线路延迟过高，Pulse 已发出警报。",
+   "en": "Network: high latency on South China link — alert raised by Pulse."
+  },
+  "ago": 8,
+  "demo": true
+ },
+ {
+  "id": "m12",
+  "ch": "notice",
+  "from": "system",
+  "text": {
+   "zh": "资安：发现 2 次异常登入尝试，已锁定来源。",
+   "en": "Security: 2 abnormal login attempts blocked."
+  },
+  "ago": 26,
+  "demo": true
+ }
+]
