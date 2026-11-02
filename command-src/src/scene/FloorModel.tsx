@@ -9,7 +9,7 @@ import { useLang } from '../lib/i18n';
 import { buildFloorLayout } from './layout';
 import { Batch } from './Batch';
 import { Avatars, STATUS_COLOR, type Placement } from './Avatars';
-import { D, SLAB, W, WALL_H, floorY } from './constants';
+import { D, SLAB, W, WALL_H, siteOf } from './constants';
 import { GEO, damp, makeFloorMats, setFloorOpacity } from './shared';
 import { surfaceTexture } from './textures';
 import { TreeField } from './Trees';
@@ -17,9 +17,10 @@ import { Robots } from './Robots';
 import { Crew } from './Crew';
 import { useLive, recentLine } from '../lib/live';
 import { describeEvent } from '../lib/company';
-import { buildLogoWall, buildRoofSign } from '../../../hq/campus.js';
-import { Facade, makeFacadeMats, type FacadeMode } from './Facade';
-import type { Plaque } from './layout';
+import { buildLogoWall } from '../../../hq/campus.js';
+import { Pavilion, makeShellMats, type ShellMode, type ShellKind } from './Pavilion';
+import type { Art, Plaque, Prim } from './layout';
+import { photoTexture } from './textures';
 
 const LOGO = '../hq/brand/shuyi-logo-512.png';
 import { cn } from '../lib/cn';
@@ -45,7 +46,6 @@ export function FloorModel({ floor }: { floor: Floor }) {
   }), [layout]);
   // 公司外观的一部分：天台的 Logo 招牌、1F 大厅的 Logo 墙（hq/campus.js，跟首页共用）
   const extra = useMemo(() => {
-    if (floor.id === 'R') { const x = buildRoofSign({ width: 13, logoUrl: LOGO }); x.group.position.set(0, 0, D / 2 + 0.1); return x; }
     if (floor.id === '1F') {
       const r = floor.rooms.find((rm) => rm.kind === 'reception');
       if (!r) return null;
@@ -54,8 +54,23 @@ export function FloorModel({ floor }: { floor: Floor }) {
     }
     return null;
   }, [floor]);
-  const fmats = useMemo(makeFacadeMats, []);
-  const fadeList = useMemo(() => [...mats.all, edgeMat, ...tileMats, ...fmats.all, ...(extra?.materials ?? [])], [mats, edgeMat, tileMats, fmats, extra]);
+  const seaside = floor.id === '2F';   // 听竹轩在海边：闽南红瓦燕尾脊
+  const fmats = useMemo(() => makeShellMats(seaside ? 'red' : 'grey'), [seaside]);
+  // 木头家具用胡桃木纹、台面用大理石纹（Krea 材质）；其他维持纯色
+  const looks = useMemo(() => {
+    const wood = new THREE.MeshStandardMaterial({ map: photoTexture('walnut', 1, 1), roughness: 0.55, metalness: 0.05 });
+    const marble = new THREE.MeshStandardMaterial({ map: photoTexture('marble', 1, 1), roughness: 0.25, metalness: 0.05 });
+    [wood, marble].forEach((x) => { x.userData.base = 1; });
+    return { wood, marble };
+  }, []);
+  const split = useMemo(() => splitByMaterial(layout.box), [layout]);
+  const shellKind: ShellKind = floor.id === 'R' ? 'garden' : floor.id === 'B1' ? 'earth' : 'hall';
+  const site = siteOf(floor.id);
+  const artMats = useMemo(() => layout.art.map((a) => {
+    const x = new THREE.MeshStandardMaterial({ map: photoTexture(a.kind, 1, 1, false), roughness: a.kind === 'rug' ? 0.95 : 0.8 });
+    x.userData.base = 1; return x;
+  }), [layout]);
+  const fadeList = useMemo(() => [...mats.all, edgeMat, ...tileMats, ...fmats.all, looks.wood, looks.marble, ...artMats, ...(extra?.materials ?? [])], [mats, edgeMat, tileMats, fmats, looks, artMats, extra]);
   const trees = useRef<THREE.Group>(null);
 
   // 公司资料每分钟重算一次（新物件）；人员没变就不要重排，不然走到一半的人会被拉回座位
@@ -68,12 +83,26 @@ export function FloorModel({ floor }: { floor: Floor }) {
       if (!room) continue;
       const seats = layout.seats[room.id] ?? [];
       const ppl = m.people.filter((p) => p.dept === d.id);
-      ppl.forEach((p, i) => {
+      // 人坐工位；AI 机器人不坐椅子（会卡进桌椅）→ 站在靠外墙那一排的 AI 工作站
+      const humans = ppl.filter((p) => p.type === 'human'), bots = ppl.filter((p) => p.type === 'ai');
+      const rx0 = room.x - W / 2, rz0 = room.z - D / 2, rx1 = rx0 + room.w, rz1 = rz0 + room.d;
+      const back = room.z <= 0.01, front = room.z + room.d >= D - 0.01;
+      const spots: { x: number; z: number; ry: number }[] = [];
+      if (back || front) {
+        const z = back ? rz0 + 0.65 : rz1 - 0.65, ry = back ? 0 : Math.PI;
+        for (let row = 0; row < 2; row++) for (let x = rx0 + 1.5; x <= rx1 - 1.4; x += 0.95) spots.push({ x, z: back ? z + row * 0.85 : z - row * 0.85, ry });
+      } else {
+        for (let col = 0; col < 2; col++) for (let z = rz0 + 1.2; z <= rz1 - 1.0; z += 0.95) spots.push({ x: rx1 - 0.65 - col * 0.85, z, ry: -Math.PI / 2 });
+      }
+      humans.forEach((p, i) => {
         const seat = seats[i];
         if (seat) { out.push({ person: p, x: seat.x, z: seat.z, ry: seat.ry, sit: seat.sit, seatId: seat.id }); return; }
-        const k = i - seats.length;
-        const cx = room.x + room.w / 2 - W / 2, cz = room.z + room.d / 2 - D / 2;
-        out.push({ person: p, x: cx - 1.2 + (k % 4) * 0.8, z: cz + room.d / 2 - 1.2 - Math.floor(k / 4) * 0.8, ry: Math.PI, sit: false, seatId: `${floor.code}-${d.id.toUpperCase().slice(0, 4)}-S${k + 1}` });
+        const sp = spots.pop() ?? { x: rx0 + 1, z: rz0 + 1, ry: 0 };
+        out.push({ person: p, x: sp.x, z: sp.z, ry: sp.ry, sit: false, seatId: `${floor.code}-${d.id.toUpperCase().slice(0, 4)}-S${i + 1}` });
+      });
+      bots.forEach((p, i) => {
+        const sp = spots[i] ?? { x: rx0 + 1 + (i % 4) * 0.9, z: (rz0 + rz1) / 2, ry: 0 };
+        out.push({ person: p, x: sp.x, z: sp.z, ry: sp.ry, sit: false, seatId: `${floor.code}-${d.id.toUpperCase().slice(0, 4)}-AI${i + 1}` });
       });
     }
     return out;
@@ -91,33 +120,33 @@ export function FloorModel({ floor }: { floor: Floor }) {
   const bots = useMemo(() => visiblePlacements.filter((p) => p.person.type === 'ai'), [visiblePlacements]);
 
   const focus = s.floor ? m.floors.find((f) => f.id === s.floor) : null;
-  const isSel = focus?.id === floor.id;
+  // 客服视图在外面看的时候：屋顶盖着（看得到海边的外观）
+  const isSel = focus?.id === floor.id && !(s.csView && s.csOutside);
   const overview = !focus;
-  const above = focus ? floor.level > focus.level : false;
-  const targetOffset = above ? 46 : 0;
-  // 楼层叠在一起像真的大楼：上面的楼层飞走，下面的楼层留着（看得到外墙）；2D 平面只留这一层
-  const targetOpacity = overview || isSel ? 1 : above || s.mode === '2d' || floor.level < 0 ? 0 : 1;
-  const facadeMode: FacadeMode = s.mode === '2d' && isSel ? 'hidden' : isSel ? 'cut' : 'closed';
+  // 度假村：每栋都在地面上；点进一栋 → 屋顶掀开、看里面；其他栋屋顶盖着（里面不用画，省效能）。2D 平面只留这一栋
+  const targetOpacity = s.mode === '2d' && !isSel && focus ? 0 : 1;
+  const facadeMode: ShellMode = s.mode === '2d' && isSel ? 'hidden' : isSel ? 'cut' : 'closed';
   const hoverPeek = overview && s.hoverFloor === floor.id;
-  // 下面的楼层被这层楼板盖住，里面的家具不用画（省效能）
-  const interior = overview || isSel;
+  const interior = isSel || hoverPeek;
+  const targetLift = isSel ? 60 : hoverPeek ? 6 : 0;
   // 名牌：每个房号牌一张小贴图
   const plaqueTex = useMemo(() => layout.plaques.map((pq) => plaqueTexture(pq, tr(pq.room.name))), [layout, tr]);
 
   const group = useRef<THREE.Group>(null);
-  const cur = useRef({ off: 0, op: 1 });
+  const cur = useRef({ lift: 0, op: 1 });
+  const [lift, setLift] = useState(0);
   useFrame((_, dt) => {
     const g = group.current;
     if (!g) return;
     const k = damp(Math.min(dt, 0.1), 4.5);
-    cur.current.off += (targetOffset - cur.current.off) * k;
     cur.current.op += (targetOpacity - cur.current.op) * k;
     if (Math.abs(targetOpacity - cur.current.op) < 0.002) cur.current.op = targetOpacity;
-    g.position.y = floorY(floor.level) + cur.current.off;
+    const nl = cur.current.lift + (targetLift - cur.current.lift) * k;
+    cur.current.lift = Math.abs(nl - targetLift) < 0.02 ? targetLift : nl;
+    if (Math.abs(cur.current.lift - lift) > 0.05 || (cur.current.lift === targetLift && lift !== targetLift)) setLift(cur.current.lift);
     g.visible = cur.current.op > 0.01;
-    // 整栋看时，滑鼠移到哪一层，那层的窗户变透明，可以偷看里面
-    const peek = hoverPeek ? 0.25 : 0.94;
-    for (const fm of [fmats.outerH, fmats.outerV]) fm.userData.base += (peek - fm.userData.base) * k;
+    // 滑鼠移到哪一栋，那栋的屋顶升起变透明，可以偷看里面
+    fmats.roof.userData.base += ((hoverPeek ? 0.35 : 1) - fmats.roof.userData.base) * k;
     setFloorOpacity(fadeList, cur.current.op);
     if (trees.current) trees.current.visible = cur.current.op > 0.5;   // 树不跟着半透明，淡出时直接藏
   });
@@ -156,13 +185,10 @@ export function FloorModel({ floor }: { floor: Floor }) {
   const labelsOn = s.section === 'overview' || s.section === 'building';
 
   return (
-    <group ref={group} position={[0, floorY(floor.level), 0]}>
+    <group ref={group} position={[site.x, 0, site.z]}>
       {/* 楼板 + 发光边 */}
       <mesh geometry={GEO.box} material={mats.slab} position={[0, -SLAB / 2, 0]} scale={[W + 0.6, SLAB, D + 0.6]} raycast={() => null} />
-      {[[0, D / 2 + 0.3, W + 0.6, 0.06], [0, -D / 2 - 0.3, W + 0.6, 0.06], [W / 2 + 0.3, 0, 0.06, D + 0.6], [-W / 2 - 0.3, 0, 0.06, D + 0.6]].map(([x, z, sx, sz], i) => (
-        <mesh key={i} geometry={GEO.box} material={edgeMat} position={[x, -0.02, z]} scale={[sx, 0.05, sz]} raycast={() => null} />
-      ))}
-      <Facade level={floor.level} mode={facadeMode} mats={fmats} />
+      <Pavilion kind={shellKind} mode={facadeMode} mats={fmats} roofLift={lift} swallowtail={seaside} />
       <group visible={interior}>
       {/* 房间地砖（选楼层后可以点部门） */}
       {layout.tiles.map((tile, i) => (
@@ -173,7 +199,10 @@ export function FloorModel({ floor }: { floor: Floor }) {
           onPointerOut={isSel ? () => { document.body.style.cursor = ''; } : undefined}
         />
       ))}
-      <Batch prims={layout.box} geometry={GEO.box} material={mats.std} />
+      <Batch prims={split.other} geometry={GEO.box} material={mats.std} />
+      <Batch prims={split.wood} geometry={GEO.box} material={looks.wood} />
+      <Batch prims={split.marble} geometry={GEO.box} material={looks.marble} />
+      {layout.art.map((a, i) => <ArtPiece key={i} a={a} mat={artMats[i]} />)}
       <Batch prims={layout.cyl} geometry={GEO.cyl} material={mats.std} />
       <Batch prims={layout.sph} geometry={GEO.sph} material={mats.std} />
       <Batch prims={layout.glow} geometry={GEO.box} material={mats.glow} />
@@ -209,6 +238,13 @@ export function FloorModel({ floor }: { floor: Floor }) {
       {/* 部门 / 房间标签 */}
       {isSel && labelsOn && s.settings.labels && layout.labels.map(({ room, x, z }) => {
         const d = room.dept ? m.departments.find((dd) => dd.id === room.dept) : undefined;
+        if (room.id === '2f-train') {
+          return (
+            <Html key={room.id} position={[x, accentY, z]} center zIndexRange={[7, 0]} className="tag3d click">
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-handbook'))} className="flex items-center gap-1.5 rounded-lg border border-[#C9A86A] bg-[#FFF8E7]/95 px-2.5 py-1.5 text-xs font-semibold text-[#7A4A1E] shadow-glass hover:bg-[#FFEFC7]">📚 藏书阁 · 业务手册</button>
+            </Html>
+          );
+        }
         if (!d) {
           return (
             <Html key={room.id} position={[x, accentY - 0.3, z]} center zIndexRange={[6, 0]} className="tag3d">
@@ -241,13 +277,34 @@ export function FloorModel({ floor }: { floor: Floor }) {
           </Html>
         );
       })}
-      {isSel && labelsOn && s.settings.seatIds && placements.map((p) => (
+      {isSel && labelsOn && s.settings.seatIds && s.dept && placements.filter((p) => p.person.dept === s.dept && p.person.type === 'human').map((p) => (
         <Html key={p.seatId + p.person.id} position={[p.x, 0.15, p.z]} center zIndexRange={[5, 0]} className="tag3d">
           <div className="num rounded bg-canvas/80 px-1 font-mono text-[9px] text-faint">{p.seatId}</div>
         </Html>
       ))}
       {isSel && labelsOn && hovered && <PersonTip p={hovered.person} x={hovered.x} z={hovered.z} />}
     </group>
+  );
+}
+
+// 哪些颜色是木头、哪些是大理石：改用照片材质；颜色换成明暗（照片本身就有颜色）
+const WOOD: Record<string, string> = { '#6B4A33': '#FFFFFF', '#5A3A28': '#D9CFC7', '#8C6A4C': '#FFF1E2', '#4A3326': '#BFB2A6', '#3A2A20': '#A89B90', '#B8956A': '#FFF6EA', '#A08C76': '#F5EDE4' };
+const MARBLE: Record<string, string> = { '#EDEAE4': '#FFFFFF', '#F6F3EE': '#FFFFFF', '#ECE8E1': '#F7F5F2', '#ECE6DC': '#FFFFFF' };
+function splitByMaterial(prims: Prim[]) {
+  const wood: Prim[] = [], marble: Prim[] = [], other: Prim[] = [];
+  for (const p of prims) {
+    const k = p.c.toUpperCase();
+    if (WOOD[k]) wood.push({ ...p, c: WOOD[k] });
+    else if (MARBLE[k]) marble.push({ ...p, c: MARBLE[k] });
+    else other.push(p);
+  }
+  return { wood, marble, other };
+}
+function ArtPiece({ a, mat }: { a: Art; mat: THREE.Material }) {
+  return (
+    <mesh position={[a.x, a.y, a.z]} rotation={a.flat ? [-Math.PI / 2, 0, 0] : [0, 0, 0]} material={mat} receiveShadow raycast={() => null}>
+      <planeGeometry args={[a.w, a.h]} />
+    </mesh>
   );
 }
 

@@ -14,6 +14,7 @@ import { DEMO_SCRIPT, live, useLive, type ChatChannel, type Ticket, type TicketS
 import { describeEvent } from '../lib/company';
 import type { Person } from '../types';
 import { cn } from '../lib/cn';
+import { HandbookView } from './Handbook';
 
 type View = 'desk' | 'customers' | 'tickets' | 'tasks' | 'team' | 'kb' | 'training' | 'notices' | 'settings';
 const NAV: { id: View; label: string; icon: ReactNode }[] = [
@@ -22,7 +23,7 @@ const NAV: { id: View; label: string; icon: ReactNode }[] = [
   { id: 'tickets', label: '工单管理', icon: <TicketIcon className="size-[18px]" /> },
   { id: 'tasks', label: '任务清单', icon: <ListTodo className="size-[18px]" /> },
   { id: 'team', label: '团队成员', icon: <Users className="size-[18px]" /> },
-  { id: 'kb', label: '知识库', icon: <BookOpen className="size-[18px]" /> },
+  { id: 'kb', label: '业务手册', icon: <BookOpen className="size-[18px]" /> },
   { id: 'training', label: '培训中心', icon: <GraduationCap className="size-[18px]" /> },
   { id: 'notices', label: '公告通知', icon: <Megaphone className="size-[18px]" /> }
 ];
@@ -133,7 +134,7 @@ function CSTopBar({ onSearch }: { onSearch: (q: string) => void }) {
     <header className="flex h-16 shrink-0 items-center gap-4 border-b border-[#DADCE0] bg-surface px-5">
       <div className="flex items-center gap-3">
         <span className="grid size-10 place-items-center rounded-xl bg-[#E8F0FE] text-[#1967D2]"><Headphones className="size-5" /></span>
-        <div><h1 className="text-[19px] font-semibold leading-tight">2F 客服部（中国团队）</h1><p className="text-xs text-muted">Customer Service – China Team</p></div>
+        <div><h1 className="text-[19px] font-semibold leading-tight">听竹轩 · 客服部（中国团队）</h1><p className="text-xs text-muted">Customer Service – China Team</p></div>
       </div>
       <label className="ml-4 hidden h-11 max-w-xl flex-1 items-center gap-2 rounded-full bg-elevated px-4 text-sm focus-within:bg-surface focus-within:shadow-glass md:flex">
         <Search className="size-4 text-muted" /><input onChange={(e) => onSearch(e.target.value)} placeholder="搜索客户、工单、同事…" aria-label="搜索" className="min-w-0 flex-1 bg-transparent placeholder:text-faint focus:outline-none" />
@@ -269,8 +270,12 @@ function AICard() {
         <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-white/20"><Bot className="size-7" /></span>
         <div><h3 className="text-lg font-semibold">AI 助手</h3><p className="text-sm text-white/85">智能客服协助</p><p className="mt-1 text-xs text-white/70">自动回复 · 工单分类 · 资料查询</p></div>
       </div>
+      {/* 问手册：按 Enter 打开业务手册并显示最相关的段落 */}
+      <form className="relative mt-2" onSubmit={(e) => { e.preventDefault(); const v = String(new FormData(e.currentTarget).get('q') || '').trim(); if (v) window.dispatchEvent(new CustomEvent('open-handbook', { detail: v })); }}>
+        <input name="q" placeholder="问手册：天尊手表多久发货？" aria-label="问手册" className="h-9 w-full rounded-full border border-white/30 bg-white/15 px-3.5 text-sm text-white placeholder:text-white/60 focus:bg-white/25 focus:outline-none" />
+      </form>
       <ul className="relative mt-2 space-y-1 text-xs">
-        {ai.slice(0, 3).map((p) => <li key={p.id} className="flex items-center gap-2 text-white/90"><span className="size-1.5 rounded-full" style={{ background: STATUS_COLOR[p.status] }} />{tr(p.name)} · {tr(p.title)}<span className="ml-auto truncate text-white/60">{tr(p.task)}</span></li>)}
+        {ai.slice(0, 2).map((p) => <li key={p.id} className="flex items-center gap-2 text-white/90"><span className="size-1.5 rounded-full" style={{ background: STATUS_COLOR[p.status] }} />{tr(p.name)} · {tr(p.title)}<span className="ml-auto truncate text-white/60">{tr(p.task)}</span></li>)}
       </ul>
       <button type="button" onClick={copy} className="relative mt-3 flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-[#1967D2] hover:bg-[#E8F0FE]"><Copy className="size-4" />立即使用（复制 Claude 指令）</button>
     </section>
@@ -468,7 +473,7 @@ function CSSettings() {
       <h2 className="text-lg font-semibold">系统设置</h2>
       <div className="mt-4 max-w-lg divide-y divide-[#F1F3F4] text-sm">
         <label className="flex items-center justify-between py-3">语言<select value={lang} onChange={(e) => setLang(e.target.value as 'zh' | 'en')} className="rounded-lg border border-[#DADCE0] px-2 py-1"><option value="zh">中文</option><option value="en">English</option></select></label>
-        <label className="flex items-center justify-between py-3">3D 画质<select value={s.settings.quality} onChange={(e) => s.setSettings({ quality: e.target.value as 'high' | 'low' })} className="rounded-lg border border-[#DADCE0] px-2 py-1"><option value="high">高</option><option value="low">省电</option></select></label>
+        <label className="flex items-center justify-between py-3">3D 画质<select value={s.settings.quality} onChange={(e) => s.setSettings({ quality: e.target.value as 'ultra' | 'balanced' | 'low' })} className="rounded-lg border border-[#DADCE0] px-2 py-1"><option value="ultra">极致</option><option value="balanced">标准</option><option value="low">省电</option></select></label>
         <div className="py-3 text-xs leading-relaxed text-faint">对话、工单、任务现在存在这台电脑的浏览器，同一台电脑的分页会同步。接上 Supabase 后会变成全公司即时同步，权限也会在服务器端检查。</div>
       </div>
     </Card>
@@ -484,7 +489,15 @@ export function CSApp() {
   const [mode3d, setMode3d] = useState(true);
   useEffect(() => { live.seedDemo(); if (s.floor !== '2F') s.selectFloor('2F'); s.setSection('building'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { s.setMode(mode3d ? '3d' : '2d'); }, [mode3d]); // eslint-disable-line react-hooks/exhaustive-deps
-  const kb = ((window.COMPANY as unknown as { library?: { href: string; title: string; desc: string }[] } | undefined)?.library ?? []).map((x) => ({ ...x, href: '../' + x.href }));
+  const me = useMe();
+  const { tr } = useLang();
+  const meName = me ? tr(me.name) : '客服';
+  // 3D 里点「藏书阁」→ 打开业务手册
+  const [hbQuery, setHbQuery] = useState('');
+  useEffect(() => {
+    const h = (e: Event) => { setView('kb'); const d = (e as CustomEvent).detail; if (typeof d === 'string') setHbQuery(d); };
+    window.addEventListener('open-handbook', h); return () => window.removeEventListener('open-handbook', h);
+  }, []);
   return (
     <div className="flex h-full bg-canvas text-fg">
       <CSSidebar view={view} setView={setView} />
@@ -494,15 +507,20 @@ export function CSApp() {
           <div className="flex min-w-0 flex-1 flex-col gap-3">
             {view === 'desk' ? (
               <>
-                <section className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-[#DADCE0] bg-[#F1EADC] shadow-glass" aria-label="2F 3D 办公室">
+                <section className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-[#DADCE0] bg-[#F1EADC] shadow-glass" aria-label="听竹轩 3D 办公室">
                   <Scene />
                   <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2">
-                    <span className="pointer-events-auto flex items-center gap-2 rounded-full bg-surface/95 px-3 py-1.5 text-sm font-semibold shadow-glass"><Box className="size-4 text-brand" />2F 客服部（中国团队）</span>
+                    <span className="pointer-events-auto flex items-center gap-2 rounded-full bg-surface/95 px-3 py-1.5 text-sm font-semibold shadow-glass"><Box className="size-4 text-brand" />听竹轩 · 客服部（中国团队）</span>
                   </div>
+                  {/* 先在外面看海边的听竹轩（红瓦屋顶）；按一下走进去，屋顶掀开看到办公室 */}
+                  <button type="button" onClick={() => s.setCsOutside(!s.csOutside)}
+                    className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#1A73E8] px-5 py-2.5 text-sm font-semibold text-white shadow-glass hover:brightness-110">
+                    {s.csOutside ? '🚪 走进听竹轩' : '🌊 到外面看海'}
+                  </button>
                   <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-surface/95 p-1 shadow-glass">
                     <button type="button" onClick={() => setMode3d(true)} aria-pressed={mode3d} className={cn('rounded-full px-3 py-1 text-xs font-semibold', mode3d ? 'bg-brand text-white' : 'text-muted')}>3D</button>
                     <button type="button" onClick={() => setMode3d(false)} aria-pressed={!mode3d} className={cn('flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold', !mode3d ? 'bg-brand text-white' : 'text-muted')}><Map className="size-3" />2D</button>
-                    <button type="button" onClick={() => { const el = document.querySelector('[aria-label="2F 3D 办公室"]'); if (document.fullscreenElement) void document.exitFullscreen(); else void (el as HTMLElement | null)?.requestFullscreen?.(); }} className="grid size-7 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="全屏"><Maximize2 className="size-3.5" /></button>
+                    <button type="button" onClick={() => { const el = document.querySelector('[aria-label="听竹轩 3D 办公室"]'); if (document.fullscreenElement) void document.exitFullscreen(); else void (el as HTMLElement | null)?.requestFullscreen?.(); }} className="grid size-7 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="全屏"><Maximize2 className="size-3.5" /></button>
                   </div>
                   {s.toast && <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#202124] px-4 py-2 text-xs text-white shadow-glass" role="status">{s.toast}</div>}
                 </section>
@@ -517,7 +535,7 @@ export function CSApp() {
               : view === 'tasks' ? <TodayTasks full />
               : view === 'team' ? <Team q={q} />
               : view === 'customers' ? <Customers />
-              : view === 'kb' ? <Links title="知识库" items={[...kb, { href: '../name/', title: '名字审核', desc: '名正言顺技术单：核对新名、转繁体、下载结果。' }, { href: '../tech/', title: '技术单审核', desc: '按规则标红、分文件、改页脚，下载给专家。' }]} />
+              : view === 'kb' ? <HandbookView me={meName} initialQ={hbQuery} key={hbQuery} />
               : view === 'training' ? <Links title="培训中心" items={[{ href: '../handbook/', title: '客服业务门户（含售后培训）', desc: '标准流程、话术库、改线判定器、服务中心判定器、售后服务培训。' }, { href: '../guide/', title: '工具启动教程', desc: '工具怎么启动、怎么用。' }, { href: '../docs/dongfang/', title: '东方药林健康商城 · 手机端教程', desc: '登录、下单、订单管理、提现，31 页图文。' }]} />
               : view === 'notices' ? <Notices />
               : <CSSettings />}

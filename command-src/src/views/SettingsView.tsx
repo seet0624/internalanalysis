@@ -34,7 +34,7 @@ export function SettingsView() {
     <ViewShell title={t('settingsTitle')} icon={<Settings className="size-5" />}>
       <div className="max-w-xl">
         <Row label={t('language')}><Seg value={lang} onChange={setLang} options={[{ v: 'zh', label: '中文' }, { v: 'en', label: 'English' }]} /></Row>
-        <Row label={t('quality')}><Seg value={s.settings.quality} onChange={(v) => s.setSettings({ quality: v })} options={[{ v: 'high', label: t('qHigh') }, { v: 'low', label: t('qLow') }]} /></Row>
+        <Row label={t('quality')}><Seg value={s.settings.quality} onChange={(v) => s.setSettings({ quality: v })} options={[{ v: 'ultra', label: '极致' }, { v: 'balanced', label: '标准' }, { v: 'low', label: t('qLow') }]} /></Row>
         <Row label={t('showLabels')}><Toggle label={t('showLabels')} on={s.settings.labels} onChange={(v) => s.setSettings({ labels: v })} /></Row>
         <Row label={t('showSeatIds')}><Toggle label={t('showSeatIds')} on={s.settings.seatIds} onChange={(v) => s.setSettings({ seatIds: v })} /></Row>
         <Row label={t('autoRotate')}><Toggle label={t('autoRotate')} on={s.settings.autoRotate} onChange={(v) => s.setSettings({ autoRotate: v })} /></Row>

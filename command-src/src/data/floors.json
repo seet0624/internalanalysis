@@ -1,15 +1,15 @@
 [
   {
     "id": "R",
-    "code": "R",
+    "code": "观云",
     "level": 5,
     "accent": "#34A853",
     "name": {
-      "zh": "天台 · 高管休息区与创新花园",
-      "en": "Rooftop · Executive Lounge & Innovation Garden"
+      "zh": "观云台 · 茶室花园",
+      "en": "Guanyun Terrace · Tea Garden"
     },
     "description": {
-      "zh": "玻璃凉亭的高管休息区、种满植物的创新花园和太阳能板，适合脑力激荡和非正式会谈。",
+      "zh": "湖东边的茶室与花园，休息、聊天、想事情的地方。",
       "en": "A glass-pavilion executive lounge, a planted innovation garden and solar arrays — for brainstorming and informal talks."
     },
     "rooms": [
@@ -77,15 +77,15 @@
   },
   {
     "id": "5F",
-    "code": "5F",
+    "code": "听澜",
     "level": 4,
     "accent": "#FBBC04",
     "name": {
-      "zh": "5F · 高层与管理",
-      "en": "5F · Executive & Management"
+      "zh": "听澜堂 · 高层与管理",
+      "en": "Tinglan Hall · Executive & Management"
     },
     "description": {
-      "zh": "老板办公室、AI CEO、审核部、高管团队、战略部和董事会议室。每个任务都在这一层规划和审核。",
+      "zh": "园区最北边的主楼，坐北朝南、面向湖。老板办公室、AI CEO、审核部、高管和战略部都在这里。",
       "en": "CEO office, AI CEO, review department, executives, strategy and the boardroom — every mission is planned and reviewed here."
     },
     "rooms": [
@@ -196,15 +196,15 @@
   },
   {
     "id": "4F",
-    "code": "4F",
+    "code": "格物",
     "level": 3,
     "accent": "#A142F4",
     "name": {
-      "zh": "4F · 产品与研发",
-      "en": "4F · Product & Research"
+      "zh": "格物楼 · 产品与研发",
+      "en": "Gewu Hall · Product & R&D"
     },
     "description": {
-      "zh": "产品、设计、软件开发、AI 研究、测试和技术部。新功能从这里诞生。",
+      "zh": "湖西北的研发楼：产品、AI 研究、设计、开发、测试、技术。",
       "en": "Product, design, software, AI research, QA and engineering — where new features are born."
     },
     "rooms": [
@@ -308,15 +308,15 @@
   },
   {
     "id": "3F",
-    "code": "3F",
+    "code": "运筹",
     "level": 2,
     "accent": "#4285F4",
     "name": {
-      "zh": "3F · 营运与支援",
-      "en": "3F · Operations & Support"
+      "zh": "运筹院 · 营运与支援",
+      "en": "Yunchou Court · Operations"
     },
     "description": {
-      "zh": "营运、人事、财务、行政、法务和采购。让公司每天顺利运转。",
+      "zh": "湖东北的院子：营运、财务、人事、行政、法务、采购。",
       "en": "Operations, HR, finance, administration, legal and procurement — keeping the company running."
     },
     "rooms": [
@@ -420,15 +420,15 @@
   },
   {
     "id": "2F",
-    "code": "2F",
+    "code": "听竹",
     "level": 1,
     "accent": "#1A73E8",
     "name": {
-      "zh": "2F · 客服部（中国团队）",
-      "en": "2F · Customer Service (China Team)"
+      "zh": "听竹轩 · 客服部（中国团队）",
+      "en": "Tingzhu Lodge · CS China"
     },
     "description": {
-      "zh": "国内客服部的楼层：客服主工位区、组长办公室、技术支持、订单管理、投诉处理、AI 助手区、会议室、培训室、休息区和咖啡角。名字审核、技术单审核处理文件后，员工状态和任务即时更新。",
+      "zh": "湖西边竹林里的客服楼：客服主工位、组长室、AI 助手、技术支持、投诉、订单、会议室、培训室、茶水间、休息区。",
       "en": "The China CS floor: main workstations, team-lead office, technical support, order management, complaints, AI assistant area, meeting room, training room, lounge and coffee corner."
     },
     "rooms": [
@@ -542,8 +542,8 @@
       {
         "id": "2f-train",
         "name": {
-          "zh": "培训室",
-          "en": "Training Room"
+          "zh": "藏书阁 · 业务手册",
+          "en": "Library · Handbook"
         },
         "kind": "training",
         "x": 26,
@@ -580,15 +580,15 @@
   },
   {
     "id": "1F",
-    "code": "1F",
+    "code": "迎宾",
     "level": 0,
     "accent": "#12B5CB",
     "name": {
-      "zh": "1F · 大堂与公共区",
-      "en": "1F · Reception & Public Area"
+      "zh": "迎宾阁 · 大堂与接待",
+      "en": "Yingbin Pavilion · Lobby"
     },
     "description": {
-      "zh": "接待柜台、等候区、保安、公共会议室、洽谈区、展示厅和咖啡厅。客人第一眼看到的公司。",
+      "zh": "园区大门进来的第一栋：接待、访客、展示、安保。",
       "en": "Reception, waiting lounge, security, public meeting rooms, business discussion, showroom and coffee lounge — the company's first impression."
     },
     "rooms": [
@@ -694,15 +694,15 @@
   },
   {
     "id": "B1",
-    "code": "B1",
+    "code": "云栖",
     "level": -1,
     "accent": "#5F6368",
     "name": {
-      "zh": "B1 · 数据中心",
-      "en": "B1 · Data Center"
+      "zh": "云栖馆 · 数据中心",
+      "en": "Yunqi House · Data Center"
     },
     "description": {
-      "zh": "机房、AI 运算区、网络控制、IT 维护、备用电力和安全监控。全公司的系统和 AI 员工都跑在这里。",
+      "zh": "半埋在山坡里的机房：服务器、AI 运算、网络、监控。",
       "en": "Server room, AI computing, network control, IT maintenance, backup power and security monitoring — every system and AI employee runs here."
     },
     "rooms": [

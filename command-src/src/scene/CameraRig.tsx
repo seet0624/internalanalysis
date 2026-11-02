@@ -5,9 +5,9 @@ import * as THREE from 'three';
 import type { OrbitControls as OrbitImpl } from 'three-stdlib';
 import { useStore } from '../lib/store';
 import { damp } from './shared';
-import { floorY } from './constants';
+import { siteOf } from './constants';
 
-const OVERVIEW = { pos: new THREE.Vector3(44, 24, 52), target: new THREE.Vector3(0, 7, 0) };
+const OVERVIEW = { pos: new THREE.Vector3(70, 115, 175), target: new THREE.Vector3(0, 0, -6) };   // 度假村：从南边高处看整个园区
 
 export function CameraRig() {
   const s = useStore();
@@ -24,18 +24,20 @@ export function CameraRig() {
       const k = narrow ? 1.35 : 1;
       return { pos: OVERVIEW.pos.clone().sub(OVERVIEW.target).multiplyScalar(k).add(OVERVIEW.target), target: OVERVIEW.target.clone() };
     }
-    const y = floorY(f.level);
-    if (s.mode === '2d') return { pos: new THREE.Vector3(0, y + (narrow ? 62 : 44), 0.6), target: new THREE.Vector3(0, y, 0) };
+    const st = siteOf(f.id), y = 0;
+    // 客服视图在外面：从西南边的海上看听竹轩（红瓦屋顶、沙滩、码头、海）
+    if (s.csView && s.csOutside && s.mode !== '2d') return { pos: new THREE.Vector3(st.x - 58, 30, st.z + 52), target: new THREE.Vector3(st.x - 14, 2, st.z) };
+    if (s.mode === '2d') return { pos: new THREE.Vector3(st.x, y + (narrow ? 62 : 44), st.z + 0.6), target: new THREE.Vector3(st.x, y, st.z) };
     // 客服中国仪表板：镜头近一点，看得清每个人
     const k = (narrow ? 1.5 : 1.08) * (s.csView ? 0.78 : 1);
-    return { pos: new THREE.Vector3(18 * k, y + 24 * k, 26 * k), target: new THREE.Vector3(-0.5, y, 1.5) };
+    return { pos: new THREE.Vector3(st.x + 18 * k, y + 24 * k, st.z + 26 * k), target: new THREE.Vector3(st.x - 0.5, y, st.z + 1.5) };
   };
 
   // 换楼层 / 换 2D-3D：飞过去
   useEffect(() => {
     goal.current = home();
     moving.current = true;
-  }, [s.floor, s.mode, narrow, s.csView]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s.floor, s.mode, narrow, s.csView, s.csOutside]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 放大、缩小、重设
   useEffect(() => {

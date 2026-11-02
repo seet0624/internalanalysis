@@ -20,7 +20,9 @@ export type FloorLayout = {
   labels: RoomLabel[];
   doors: Record<string, Door>;     // room id → 门（员工走路一定从门进出）
   plaques: Plaque[];
+  art: Art[];                      // 照片材质的装饰：丝毯（平放）、山水画（挂墙）
 };
+export type Art = { kind: 'rug' | 'painting'; x: number; y: number; z: number; w: number; h: number; flat: boolean };
 
 const mix = (a: string, b: string, t: number) => {
   const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
@@ -29,7 +31,7 @@ const mix = (a: string, b: string, t: number) => {
 };
 
 class Builder {
-  L: FloorLayout = { box: [], cyl: [], sph: [], glow: [], glowCyl: [], glass: [], tiles: [], trees: [], seats: {}, labels: [], doors: {}, plaques: [] };
+  L: FloorLayout = { box: [], cyl: [], sph: [], glow: [], glowCyl: [], glass: [], tiles: [], trees: [], seats: {}, labels: [], doors: {}, plaques: [], art: [] };
   tree(x: number, y: number, z: number, kind: TreeKind, h: number) {
     this.L.trees.push({ x, y, z, kind, h, ry: ((x * 7.3 + z * 3.1) % 6.28) });
   }
@@ -58,32 +60,56 @@ class Builder {
     this.cyl(x, 0.42, z, 0.21, 0.02, '#6B5442');   // 泥土
     this.tree(x, 0.4, z, 'bush', 1.0 * h);
   }
-  chair(x: number, z: number, ry: number, c: string = C.chair) {
-    const bx = Math.sin(ry) * -0.24, bz = Math.cos(ry) * -0.24;
-    this.cyl(x, 0, z, 0.04, 0.42, C.metal);
-    this.box(x, 0.42, z, 0.5, 0.08, 0.5, c, ry);
-    this.box(x + bx, 0.5, z + bz, 0.5, 0.55, 0.07, C.chairBack, ry);
+  // 办公椅：五爪脚 + 滚轮、气压杆、坐垫、扶手、高背（皮革 / 网布）
+  chair(x: number, z: number, ry: number, c: string = '#2E2F33') {
+    const fx = Math.sin(ry), fz = Math.cos(ry);          // 椅子面向的方向
+    for (let i = 0; i < 5; i++) {
+      const a = ry + (i / 5) * Math.PI * 2;
+      this.box(x + Math.sin(a) * 0.17, 0.06, z + Math.cos(a) * 0.17, 0.05, 0.04, 0.34, '#3C3D40', a);
+      this.sph(x + Math.sin(a) * 0.33, 0.04, z + Math.cos(a) * 0.33, 0.035, '#1F2023');
+    }
+    this.cyl(x, 0.08, z, 0.03, 0.34, '#9AA0A6');
+    this.box(x, 0.42, z, 0.5, 0.08, 0.48, c, ry);                                    // 坐垫
+    this.box(x - fx * 0.02, 0.44, z - fz * 0.02, 0.52, 0.02, 0.5, '#1E1F22', ry);   // 坐垫下缘
+    for (const sd of [-1, 1]) {                                                        // 扶手
+      const sx = Math.cos(ry) * sd * 0.27, sz = -Math.sin(ry) * sd * 0.27;
+      this.box(x + sx, 0.48, z + sz, 0.04, 0.2, 0.04, '#3C3D40', ry);
+      this.box(x + sx + fx * 0.04, 0.68, z + sz + fz * 0.04, 0.07, 0.03, 0.26, '#1E1F22', ry);
+    }
+    this.tilt(x - fx * 0.27, 0.5, z - fz * 0.27, 0.48, 0.66, 0.06, c, [-0.12 * (Math.abs(fz) > 0.5 ? Math.sign(fz) : 0), ry, 0.12 * (Math.abs(fx) > 0.5 ? Math.sign(fx) : 0)]);   // 椅背
+    this.box(x - fx * 0.3, 1.14, z - fz * 0.3, 0.3, 0.12, 0.06, c, ry);             // 头枕
   }
-  // 一张工位：桌面、桌脚、屏幕、椅子；facing = 1 面向 +z，-1 面向 -z
+  // 一张工位（高级）：胡桃木桌面 + 黑色金属框脚 + 挡板；超薄双屏、铝键盘、滑鼠、台灯、小盆栽、文件盘
   desk(room: Room, x: number, z: number, facing: 1 | -1, screen: string) {
     const ry = facing === 1 ? 0 : Math.PI;
-    this.box(x, 0.7, z, 1.4, 0.05, 0.7, C.deskTop);
-    this.box(x - 0.66, 0, z, 0.05, 0.7, 0.62, C.deskLeg);
-    this.box(x + 0.66, 0, z, 0.05, 0.7, 0.62, C.deskLeg);
-    // 双屏幕
-    const mz = z + facing * 0.2;
-    for (const k of [-1, 1]) {
-      const mx = x + k * 0.29;
-      this.box(mx, 0.75, mz, 0.06, 0.18, 0.06, C.monitor);
-      this.box(mx, 0.9, mz, 0.54, 0.32, 0.03, C.monitor, k * facing * 0.18);
-      this.glow(mx, 0.92, mz - facing * 0.02, 0.49, 0.27, 0.01, k === -1 ? screen : C.screen, k * facing * 0.18);
+    this.box(x, 0.72, z, 1.5, 0.035, 0.74, '#6B4A33');            // 胡桃木桌面
+    this.box(x, 0.715, z + facing * 0.37, 1.5, 0.04, 0.012, '#8C6A4C');   // 前缘
+    for (const k of [-1, 1]) {                                     // 金属框脚
+      this.box(x + k * 0.7, 0, z, 0.05, 0.72, 0.05, '#2B2C2F');
+      this.box(x + k * 0.7, 0, z, 0.06, 0.03, 0.68, '#2B2C2F');
+      this.box(x + k * 0.7, 0.69, z, 0.05, 0.03, 0.66, '#2B2C2F');
     }
-    // 键盘、滑鼠、耳机、马克杯
-    this.box(x, 0.75, z - facing * 0.08, 0.42, 0.02, 0.13, '#E8EAED');
-    this.box(x + 0.3, 0.75, z - facing * 0.08, 0.06, 0.02, 0.09, '#E8EAED');
-    this.cyl(x - 0.48, 0.75, z - facing * 0.05, 0.05, 0.1, '#FFFFFF');
-    this.box(x + 0.5, 0.75, z + facing * 0.05, 0.16, 0.05, 0.12, '#5F6368');
-    const cz = z - facing * 0.62;
+    this.box(x, 0.35, z + facing * 0.33, 1.38, 0.34, 0.02, '#3A3B3F');   // 挡板
+    const mz = z + facing * 0.2;
+    for (const k of [-1, 1]) {                                     // 超薄屏幕
+      const mx = x + k * 0.3, rot = k * facing * 0.16;
+      this.box(mx, 0.755, mz + facing * 0.02, 0.2, 0.012, 0.14, '#BFC3C7');   // 底座
+      this.box(mx, 0.765, mz + facing * 0.04, 0.035, 0.22, 0.02, '#BFC3C7');  // 支架
+      this.box(mx, 0.88, mz, 0.56, 0.33, 0.014, '#1C1D20', rot);              // 屏幕外框
+      this.glow(mx, 0.893, mz - facing * 0.008, 0.535, 0.305, 0.004, k === -1 ? screen : C.screen, rot);
+      this.glow(mx, 1.158, mz - facing * 0.009, 0.535, 0.03, 0.004, '#1A73E8', rot);   // 画面顶栏
+    }
+    this.box(x, 0.755, z - facing * 0.1, 0.44, 0.012, 0.14, '#C9CDD1');      // 铝键盘
+    this.box(x, 0.768, z - facing * 0.1, 0.4, 0.004, 0.11, '#2E2F33');
+    this.sph(x + 0.32, 0.77, z - facing * 0.1, 0.035, '#E8EAED', 0.5);       // 滑鼠
+    this.box(x + 0.32, 0.755, z - facing * 0.1, 0.22, 0.003, 0.18, '#2E2F33');   // 滑鼠垫
+    this.cyl(x - 0.6, 0.755, z + facing * 0.22, 0.06, 0.012, '#C9A86A');      // 黄铜台灯
+    this.cyl(x - 0.6, 0.765, z + facing * 0.22, 0.008, 0.36, '#C9A86A');
+    this.glow(x - 0.56, 1.1, z + facing * 0.2, 0.14, 0.03, 0.1, '#FFE7B3');
+    this.cyl(x + 0.62, 0.755, z + facing * 0.24, 0.05, 0.08, '#F2EFEA');      // 小盆栽
+    this.sph(x + 0.62, 0.86, z + facing * 0.24, 0.07, '#4F8A4A');
+    this.box(x - 0.52, 0.755, z - facing * 0.12, 0.26, 0.04, 0.32, '#E8E4DC');   // 文件
+    const cz = z - facing * 0.66;
     this.chair(x, cz, ry);
     this.seat(room, x, cz, ry, true);
   }
@@ -93,14 +119,32 @@ class Builder {
     this.box(x - (ry ? 0 : w * 0.3), 1.3, z + (ry ? -w * 0.3 : 0), ry ? 0.06 : w * 0.25, 0.04, ry ? w * 0.25 : 0.06, '#1A73E8');
     this.box(x + (ry ? 0 : w * 0.1), 1.15, z + (ry ? w * 0.1 : 0), ry ? 0.06 : w * 0.35, 0.03, ry ? w * 0.35 : 0.06, '#EA4335');
   }
-  sofa(x: number, z: number, w: number, ry: number, c: string = C.sofa) {
-    const bx = Math.sin(ry) * -0.32, bz = Math.cos(ry) * -0.32;
-    this.box(x, 0, z, ry % Math.PI === 0 ? w : 0.85, 0.42, ry % Math.PI === 0 ? 0.85 : w, c);
-    this.box(x + bx, 0.42, z + bz, ry % Math.PI === 0 ? w : 0.2, 0.42, ry % Math.PI === 0 ? 0.2 : w, mix(c, '#5E5650', 0.15));
+  // 沙发：皮革座、靠背、扶手、坐垫分块、金属脚
+  sofa(x: number, z: number, w: number, ry: number, c: string = '#8C6A4C') {
+    const along = ry % Math.PI === 0;
+    const bx = Math.sin(ry) * -0.33, bz = Math.cos(ry) * -0.33;
+    const L = (a: number, b: number) => (along ? [a, b] : [b, a]) as [number, number];
+    const [sx, sz] = L(w, 0.85);
+    for (const [ox, oz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) this.box(x + ox * (sx / 2 - 0.08), 0, z + oz * (sz / 2 - 0.08), 0.05, 0.1, 0.05, '#2B2C2F');
+    this.box(x, 0.1, z, sx, 0.24, sz, mix(c, '#000000', 0.15));
+    const n = Math.max(2, Math.round(w / 0.8));
+    for (let i = 0; i < n; i++) {
+      const u = -w / 2 + 0.12 + (w - 0.24) * (i + 0.5) / n;
+      const [cx, cz] = along ? [u, 0.05] : [0.05 * -Math.sin(ry), u];
+      const [cw, cd] = L((w - 0.3) / n - 0.03, 0.62);
+      this.box(x + cx, 0.34, z + cz, cw, 0.12, cd, c);
+    }
+    const [bw, bd] = L(w, 0.2);
+    this.box(x + bx, 0.34, z + bz, bw, 0.5, bd, c);
+    for (const sd of [-1, 1]) {
+      const [ax, az] = along ? [sd * (w / 2 - 0.09), 0] : [0, sd * (w / 2 - 0.09)];
+      const [aw, ad] = L(0.18, 0.85);
+      this.box(x + ax, 0.1, z + az, aw, 0.5, ad, mix(c, '#000000', 0.08));
+    }
   }
-  table(x: number, z: number, w: number, d: number, c: string = C.white, h = 0.74) {
+  table(x: number, z: number, w: number, d: number, c: string = '#6B4A33', h = 0.74) {
     this.box(x, h - 0.05, z, w, 0.05, d, c);
-    this.box(x, 0, z, Math.max(0.1, w * 0.12), h - 0.05, Math.max(0.1, d * 0.4), C.deskLeg);
+    for (const [ox, oz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) this.box(x + ox * (w / 2 - 0.12), 0, z + oz * (d / 2 - 0.1), 0.05, h - 0.05, 0.05, '#2B2C2F');
   }
   roundTable(x: number, z: number, r: number, h = 0.74) {
     this.cyl(x, h - 0.04, z, r, 0.04, C.white);
@@ -127,7 +171,7 @@ type RR = Room & { x0: number; z0: number; x1: number; z1: number };
 // 办公区：两两对坐的工位，置中排在房间里
 function office(b: Builder, r: RR, cx: number, cz: number, seats: number, accent: string) {
   const pairs = Math.max(1, Math.ceil(seats / 2));
-  const maxCols = Math.max(1, Math.floor((r.w - 1.6) / 1.55));
+  const maxCols = Math.max(1, Math.floor((r.w - 2.6) / 1.55));   // 右墙留位置给影印机、饮水机
   const rows = Math.max(1, Math.min(Math.floor((r.d - 1.4) / 3.3), Math.ceil(pairs / maxCols)));
   const cols = Math.min(maxCols, Math.ceil(pairs / rows));
   const x0 = cx - ((cols - 1) * 1.55) / 2;
@@ -143,6 +187,15 @@ function office(b: Builder, r: RR, cx: number, cz: number, seats: number, accent
   }
   b.plant(r.x0 + 0.6, r.z0 + 0.6);
   b.plant(r.x1 - 0.6, r.z1 - 0.6, 0.8);
+  // 公司物品：右墙的影印机、饮水机、文件柜
+  if (r.w >= 7) {
+    b.box(r.x1 - 0.45, 0, cz - 0.9, 0.55, 0.95, 0.6, '#E8EAED');
+    b.box(r.x1 - 0.45, 0.95, cz - 0.9, 0.5, 0.12, 0.45, '#BDC1C6');
+    b.glow(r.x1 - 0.73, 0.85, cz - 0.9, 0.005, 0.08, 0.16, '#1E8E3E');
+    b.box(r.x1 - 0.4, 0, cz + 0.1, 0.35, 1.0, 0.35, '#F2EFEA');
+    b.cyl(r.x1 - 0.4, 1.0, cz + 0.1, 0.13, 0.42, '#9EC5E8');
+    b.box(r.x1 - 0.32, 0, cz + 0.9, 0.45, 1.3, 0.9, '#6B4A33');
+  }
 }
 
 function furnish(b: Builder, r: RR, accent: string) {
@@ -150,6 +203,13 @@ function furnish(b: Builder, r: RR, accent: string) {
   switch (r.kind) {
     case 'office': office(b, r, cx, cz, r.seats ?? 6, accent); break;
     case 'training': {
+      // 藏书阁：后墙一整排书柜（书脊有颜色），点房间标签打开业务手册
+      for (let i = 0; i < Math.floor((r.w - 0.6) / 1.1); i++) {
+        const bx = r.x0 + 0.85 + i * 1.1;
+        b.box(bx, 0, r.z1 - 0.28, 1.0, 2.2, 0.4, '#5A3A28');
+        const cols = ['#7A2E2A', '#2E4A6E', '#3F5E3A', '#C9A86A', '#8C6A4C', '#E8E4DC'];
+        for (let row = 0; row < 5; row++) for (let k = 0; k < 4; k++) b.box(bx - 0.36 + k * 0.24, 0.12 + row * 0.42, r.z1 - 0.34, 0.2, 0.3, 0.26, cols[(i * 5 + row * 3 + k) % cols.length]);
+      }
       b.screenWall(r.x1 - 0.25, cz, r.d - 1.6, Math.PI / 2, accent);
       for (let i = 0; i < 2; i++) for (let j = 0; j < 3; j++) {
         const x = r.x0 + 1.2 + i * 1.6, z = r.z0 + 1.0 + j * 1.25;
@@ -159,20 +219,58 @@ function furnish(b: Builder, r: RR, accent: string) {
       break;
     }
     case 'exec': {
-      b.rug(cx, cz + 0.3, r.w - 2, r.d - 3);
-      b.box(cx, 0.68, r.z0 + 2.2, 2.4, 0.08, 1.0, C.wood);
-      b.box(cx - 1.05, 0, r.z0 + 2.2, 0.12, 0.68, 0.9, C.wood);
-      b.box(cx + 1.05, 0, r.z0 + 2.2, 0.12, 0.68, 0.9, C.wood);
-      b.box(cx - 0.4, 0.76, r.z0 + 2.0, 0.7, 0.42, 0.03, C.monitor);
-      b.glow(cx - 0.4, 0.78, r.z0 + 2.02, 0.64, 0.36, 0.01, C.screen);
-      b.chair(cx, r.z0 + 1.3, 0, '#3A2A20');
-      b.seat(r, cx, r.z0 + 1.3, 0);
-      b.chair(cx - 0.6, r.z0 + 3.2, Math.PI); b.chair(cx + 0.6, r.z0 + 3.2, Math.PI);
-      b.seat(r, cx + 0.6, r.z0 + 3.2, Math.PI);
-      b.sofa(cx, r.z1 - 1.0, 2.6, Math.PI, C.sofaAlt);
-      b.table(cx, r.z1 - 2.1, 1.2, 0.6, C.wood, 0.4);
-      for (let i = 0; i < 3; i++) b.box(r.x0 + 0.25, 0, r.z0 + 1 + i * 1.1, 0.4, 2.0, 1.0, C.wood);
-      b.plant(r.x1 - 0.6, r.z0 + 0.6, 1.2);
+      // 老板 / 组长办公室（电影里那种）：丝毯、胡桃木大班台、高背皮椅、整面书柜、中式茶桌、皮沙发、山水画、落地灯
+      const dz = r.z0 + 2.3;
+      b.L.art.push({ kind: 'rug', x: cx, y: 0.02, z: cz + 0.4, w: Math.min(r.w - 1.8, 5), h: Math.min(r.d - 3.2, 4.2), flat: true });
+      b.box(cx, 0.72, dz, 2.5, 0.07, 1.05, '#5A3A28');                      // 大班台桌面
+      b.box(cx - 0.98, 0, dz, 0.55, 0.72, 0.95, '#6B4A33');                  // 左右抽屉柜
+      b.box(cx + 0.98, 0, dz, 0.55, 0.72, 0.95, '#6B4A33');
+      b.box(cx, 0.1, dz + 0.45, 1.4, 0.6, 0.04, '#6B4A33');                  // 前挡板
+      b.box(cx - 0.98, 0.35, dz + 0.48, 0.4, 0.015, 0.01, '#C9A86A');        // 黄铜把手
+      b.box(cx + 0.98, 0.35, dz + 0.48, 0.4, 0.015, 0.01, '#C9A86A');
+      b.box(cx - 0.35, 0.79, dz - 0.25, 0.66, 0.4, 0.016, '#1C1D20');        // 大屏幕
+      b.glow(cx - 0.35, 0.8, dz - 0.24, 0.62, 0.36, 0.004, C.screen);
+      b.box(cx + 0.45, 0.79, dz + 0.05, 0.34, 0.012, 0.24, '#BFC3C7');       // 笔电
+      b.box(cx + 0.45, 0.8, dz - 0.07, 0.34, 0.22, 0.01, '#BFC3C7', 0);
+      b.cyl(cx + 0.95, 0.79, dz - 0.3, 0.07, 0.015, '#C9A86A');              // 台灯
+      b.cyl(cx + 0.95, 0.8, dz - 0.3, 0.01, 0.42, '#C9A86A');
+      b.cyl(cx + 0.95, 1.18, dz - 0.3, 0.16, 0.16, '#F3EAD3');
+      b.box(cx, 0.79, dz + 0.4, 0.4, 0.06, 0.03, '#C9A86A');                 // 名牌
+      b.cyl(cx - 0.9, 0.79, dz + 0.25, 0.04, 0.07, '#FFFFFF');               // 茶杯
+      b.chair(cx, r.z0 + 1.35, 0, '#3A2A20');                               // 高背皮椅
+      b.seat(r, cx, r.z0 + 1.35, 0);
+      b.chair(cx - 0.65, dz + 1.15, Math.PI, '#5A4636'); b.chair(cx + 0.65, dz + 1.15, Math.PI, '#5A4636');
+      b.seat(r, cx + 0.65, dz + 1.15, Math.PI);
+      // 书柜（左墙整面）
+      const shelfL = Math.min(r.d - 3.2, 5);
+      b.box(r.x0 + 0.3, 0, r.z0 + 0.4 + shelfL / 2, 0.4, 2.3, shelfL, '#5A3A28');
+      const books = ['#7A2E2A', '#2E4A6E', '#3F5E3A', '#C9A86A', '#5F6368', '#8C6A4C', '#E8E4DC'];
+      for (let row = 0; row < 5; row++) for (let i = 0; i < Math.floor(shelfL / 0.32); i++) {
+        if ((row * 7 + i) % 9 === 4) continue;
+        b.box(r.x0 + 0.42, 0.12 + row * 0.44, r.z0 + 0.6 + i * 0.32, 0.22, 0.3 + ((i * 13 + row) % 4) * 0.02, 0.26, books[(i * 3 + row) % books.length]);
+      }
+      // 后墙：矮柜 + 盆景 + 山水画
+      b.box(cx, 0, r.z0 + 0.35, 2.4, 0.6, 0.45, '#6B4A33');
+      b.cyl(cx + 0.8, 0.6, r.z0 + 0.35, 0.16, 0.12, '#2E4A6E');
+      b.tree(cx + 0.8, 0.7, r.z0 + 0.35, 'bush', 0.5);
+      b.cyl(cx - 0.8, 0.6, r.z0 + 0.35, 0.09, 0.4, '#E8E4DC');               // 青花瓷瓶
+      b.box(cx, 1.05, r.z0 + 0.2, 1.95, 1.08, 0.04, '#3A2A20');              // 画框
+      b.L.art.push({ kind: 'painting', x: cx, y: 1.59, z: r.z0 + 0.225, w: 1.8, h: 0.98, flat: false });   // 山水画（Krea）
+      // 茶桌（右边）：实木茶台、茶盘、茶壶、茶杯、两张圈椅
+      const tx = r.x1 - 1.5, tz = cz + 1.0;
+      b.box(tx, 0, tz, 1.3, 0.48, 0.7, '#4A3326');
+      b.box(tx, 0.48, tz, 0.7, 0.03, 0.4, '#2B2C2F');
+      b.sph(tx, 0.57, tz, 0.08, '#7A4A3A', 0.8);
+      for (let i = 0; i < 4; i++) b.cyl(tx - 0.24 + i * 0.16, 0.51, tz + 0.12, 0.03, 0.04, '#F2EFEA');
+      b.sofa(tx, tz - 0.9, 0.9, 0, '#7A5A44'); b.sofa(tx, tz + 0.9, 0.9, Math.PI, '#7A5A44');
+      // 会客沙发 + 大理石茶几
+      b.sofa(cx + 0.8, r.z1 - 1.0, 2.2, Math.PI, '#3A2A20');
+      b.box(cx + 0.8, 0, r.z1 - 2.1, 1.2, 0.38, 0.6, '#ECE8E1');
+      b.box(cx + 0.8, 0.38, r.z1 - 2.1, 1.24, 0.03, 0.64, '#F6F3EE');
+      // 落地灯、大盆栽
+      b.cyl(r.x1 - 0.5, 0, r.z0 + 0.6, 0.15, 0.03, '#C9A86A'); b.cyl(r.x1 - 0.5, 0, r.z0 + 0.6, 0.02, 1.6, '#C9A86A');
+      b.cyl(r.x1 - 0.5, 1.6, r.z0 + 0.6, 0.22, 0.28, '#F3EAD3');
+      b.plant(r.x1 - 0.6, r.z1 - 0.6, 1.4);
       break;
     }
     case 'board': case 'meeting': {
@@ -199,7 +297,8 @@ function furnish(b: Builder, r: RR, accent: string) {
         b.box(r.x0 + 2.2, 0, r.z0 + 1.2, 3.2, 1.05, 0.6, C.wood);
         b.glow(r.x0 + 2.2, 1.05, r.z0 + 1.52, 3.2, 0.03, 0.02, accent);
       }
-      b.rug(cx, cz + 0.4, Math.min(r.w - 2, 6), Math.min(r.d - 2.5, 4));
+      b.L.art.push({ kind: 'rug', x: cx, y: 0.02, z: cz + 0.4, w: Math.min(r.w - 2, 6), h: Math.min(r.d - 2.5, 4), flat: true });
+      if (r.z0 <= -D / 2 + 0.01) { b.box(cx, 1.05, r.z0 + 0.2, 2.5, 1.38, 0.04, '#3A2A20'); b.L.art.push({ kind: 'painting', x: cx, y: 1.74, z: r.z0 + 0.225, w: 2.36, h: 1.25, flat: false }); }
       b.sofa(cx, cz - 1.2, 2.6, 0);
       b.sofa(cx, cz + 2.0, 2.6, Math.PI, C.sofaAlt);
       b.sofa(cx - 2.2, cz + 0.4, 1.8, Math.PI / 2);
@@ -210,18 +309,34 @@ function furnish(b: Builder, r: RR, accent: string) {
       break;
     }
     case 'coffee': {
-      b.box(cx, 0, r.z0 + 0.8, r.w - 4, 1.05, 0.7, C.wood);
-      b.box(cx, 1.05, r.z0 + 0.8, r.w - 4, 0.04, 0.75, C.white);
-      b.glow(cx, 0.1, r.z0 + 1.16, r.w - 4, 0.04, 0.01, accent);
-      for (let i = 0; i < 3; i++) { b.box(cx - 3 + i * 1.6, 1.09, r.z0 + 0.65, 0.45, 0.5, 0.4, C.metal); }
-      for (let i = 0; i < 6; i++) b.cyl(cx - 4 + i * 1.6, 0, r.z0 + 1.6, 0.18, 0.75, C.deskLeg);
-      for (let i = 0; i < 4; i++) {
-        const x = r.x0 + 2 + i * 3.4, z = cz + 1.8;
-        b.roundTable(x, z, 0.5);
-        b.chair(x - 0.8, z, Math.PI / 2); b.chair(x + 0.8, z, -Math.PI / 2);
+      // 茶水间（高级）：右墙一整排白色橱柜 + 大理石台面、双门冰箱、咖啡机、水槽、热水壶；中间岛台 + 吧台椅 + 吊灯
+      const L = r.d - 1.2, kx = r.x1 - 0.42;
+      b.box(kx, 0, cz - 0.3, 0.62, 0.88, L - 1.0, '#F4F2EE');                 // 下柜
+      for (let i = 0; i < Math.floor((L - 1.0) / 0.6); i++) b.box(kx - 0.315, 0.62, r.z0 + 0.9 + i * 0.6, 0.01, 0.015, 0.22, '#C9A86A');
+      b.box(kx - 0.02, 0.88, cz - 0.3, 0.66, 0.04, L - 0.96, '#EDEAE4');      // 大理石台面
+      b.box(kx + 0.02, 0.92, cz - 0.3, 0.04, 0.5, L - 1.0, '#E8E4DC');        // 挡水墙
+      b.box(kx, 0.9, cz - 0.9, 0.42, 0.02, 0.6, '#9AA0A6');                    // 水槽
+      b.cyl(kx + 0.2, 0.92, cz - 0.9, 0.015, 0.3, '#C9CDD1');                  // 水龙头
+      b.box(kx - 0.05, 0.92, cz + 0.2, 0.34, 0.42, 0.32, '#2B2C2F');           // 咖啡机
+      b.glow(kx - 0.225, 1.2, cz + 0.2, 0.005, 0.06, 0.12, '#FFB74D');
+      b.cyl(kx - 0.05, 0.92, cz + 0.75, 0.08, 0.22, '#C9CDD1');                // 热水壶
+      b.sph(kx - 0.05, 0.98, cz - 0.3, 0.12, '#E8E4DC', 0.45);                 // 水果盘
+      b.sph(kx - 0.1, 1.02, cz - 0.3, 0.05, '#F9AB00'); b.sph(kx, 1.02, cz - 0.26, 0.05, '#D93025');
+      b.box(kx, 0, r.z1 - 0.65, 0.72, 1.9, 0.72, '#C7CBD0');                   // 双门冰箱
+      b.box(kx - 0.37, 0.9, r.z1 - 0.65, 0.01, 0.6, 0.02, '#8A8F94');
+      b.box(kx - 0.365, 0, r.z1 - 0.65, 0.005, 1.9, 0.005, '#8A8F94');
+      // 岛台 + 吧台椅
+      const ix = cx - 0.5, iz = cz + 0.2;
+      b.box(ix, 0, iz, 0.8, 0.9, 1.6, '#6B4A33');
+      b.box(ix, 0.9, iz, 0.95, 0.04, 1.75, '#EDEAE4');
+      for (let i = 0; i < 3; i++) {
+        const sz = iz - 0.55 + i * 0.55;
+        b.cyl(ix - 0.75, 0, sz, 0.17, 0.02, '#2B2C2F'); b.cyl(ix - 0.75, 0, sz, 0.025, 0.7, '#2B2C2F');
+        b.cyl(ix - 0.75, 0.7, sz, 0.19, 0.06, '#8C6A4C');
       }
-      b.plant(r.x1 - 0.6, r.z1 - 0.6, 1.3);
+      for (const dz2 of [-0.5, 0.5]) { b.cyl(ix, 1.75, iz + dz2, 0.005, 0.7, '#2B2C2F'); b.cyl(ix, 1.62, iz + dz2, 0.16, 0.14, '#C9A86A'); b.glow(ix, 1.6, iz + dz2, 0.2, 0.02, 0.2, '#FFE7B3'); }
       b.plant(r.x0 + 0.6, r.z1 - 0.6, 1.1);
+      b.seat(r, ix - 0.75, iz, Math.PI / 2, false);
       break;
     }
     case 'garden': {
@@ -393,11 +508,9 @@ function doorSpec(room: Room): DoorSpec | null {
   return { room, horizontal: true, x, z: room.z, into: 1 };
 }
 
+const LETTER: Record<string, string> = { '1F': 'A', '2F': 'B', '3F': 'C', '4F': 'D', '5F': 'E', R: 'F', B1: 'G' };
 export function roomNumber(floor: Floor, i: number) {
-  const n = String(i + 1).padStart(2, '0');
-  if (floor.code === 'B1') return 'B1' + n;
-  if (floor.code === 'R') return 'R' + n;
-  return floor.code.replace('F', '') + n;
+  return (LETTER[floor.id] ?? 'X') + '-' + String(i + 1).padStart(2, '0');
 }
 
 function buildWalls(b: Builder, floor: Floor, ox: number, oz: number, deptColor: (id?: string) => string | undefined) {
@@ -491,20 +604,19 @@ function corridor(b: Builder, floor: Floor, ox: number, oz: number) {
   b.cyl(ox + W - 0.4, 0.82, z - 0.9, 0.12, 0.3, '#E8EAED');
 }
 
-// 电梯厅：三部电梯（不锈钢门、楼层灯）、楼梯门
+// 天井（中庭）：度假村的建筑只有一层，原本电梯的位置改成露天小庭院：白石子、太湖石、小松、石灯、木雕屏风、长凳
 function elevatorLobby(b: Builder, r: RR, floor: Floor) {
+  void floor;
   const cx = (r.x0 + r.x1) / 2, cz = (r.z0 + r.z1) / 2;
-  b.box(cx, 0, cz - 0.4, r.w - 0.3, 2.7, r.d - 1.1, '#D9D3C9');
-  const face = r.z1 - 0.95;
-  const n = 3, gap = (r.w - 0.8) / n;
-  for (let i = 0; i < n; i++) {
-    const x = r.x0 + 0.4 + gap * (i + 0.5);
-    b.box(x, 0, face, 1.2, 2.3, 0.08, '#8A8F94');                        // 门框
-    b.box(x - 0.27, 0.02, face + 0.05, 0.52, 2.15, 0.03, '#C7CBD0');      // 不锈钢门（左右两片）
-    b.box(x + 0.27, 0.02, face + 0.05, 0.52, 2.15, 0.03, '#C7CBD0');
-    b.glow(x, 2.38, face + 0.06, 0.34, 0.12, 0.01, i === 1 ? '#F9AB00' : '#FFE9B0');   // 楼层灯
-    b.glow(x + 0.72, 1.1, face + 0.06, 0.05, 0.1, 0.01, '#FFFFFF');      // 叫梯按钮
-  }
-  b.box(cx, 0.005, r.z1 - 0.45, r.w - 0.4, 0.01, 0.9, '#C8BFB2');         // 电梯厅地垫
-  if (floor.id !== 'B1') b.plant(r.x0 + 0.4, r.z1 - 0.4, 0.9);
+  b.box(cx, 0.005, cz - 0.6, r.w - 0.6, 0.04, r.d - 2.0, '#E4DED2');           // 白石子
+  b.box(cx, 0.0, cz - 0.6, r.w - 0.4, 0.12, 0.12, '#8E8A82');                  // 石边
+  b.sph(cx - 0.9, 0.6, cz - 1.2, 0.8, '#A9A59C', 1.6);                           // 太湖石
+  b.sph(cx - 0.4, 0.35, cz - 0.6, 0.45, '#BDB8AE', 1.2);
+  b.tree(cx + 1.2, 0.02, cz - 1.6, 'pine', 2.6);
+  b.cyl(cx + 1.6, 0, cz + 0.6, 0.18, 0.7, '#9C978C');                            // 石灯
+  b.box(cx + 1.6, 0.7, cz + 0.6, 0.42, 0.32, 0.42, '#B3AD9F');
+  b.glow(cx + 1.6, 0.76, cz + 0.6, 0.26, 0.2, 0.44, '#FFE0A3');
+  b.box(cx, 0, r.z0 + 0.5, r.w - 1.2, 2.3, 0.1, '#5A3A28');                     // 木雕屏风
+  for (let i = 0; i < 6; i++) b.box(cx - (r.w - 1.6) / 2 + (i + 0.5) * ((r.w - 1.6) / 6), 0.4, r.z0 + 0.56, 0.6, 1.5, 0.02, '#C9A86A');
+  b.box(cx, 0, r.z1 - 0.7, 2.4, 0.42, 0.45, '#6B4A33');                          // 长凳
 }

@@ -1,10 +1,11 @@
 // 整个指挥中心的界面状态：现在看哪一层、选了谁、镜头、筛选、设置。
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { buildCompany, type CompanyModel, type HQEvent } from './company';
+import { defaultQuality, isQuality, type Quality } from './graphics';
 
 export type Section = 'features' | 'missions' | 'overview' | 'building' | 'departments' | 'ai' | 'tasks' | 'projects' | 'comms' | 'kb' | 'analytics' | 'settings';
 export type CamCmd = { kind: 'zoomIn' | 'zoomOut' | 'reset'; n: number };
-export type Settings = { quality: 'high' | 'low'; labels: boolean; seatIds: boolean; autoRotate: boolean };
+export type Settings = { quality: Quality; labels: boolean; seatIds: boolean; autoRotate: boolean };
 export type Filters = { humans: boolean; ai: boolean; dept: string };
 
 type Role = 'boss' | 'cs' | 'guest';
@@ -24,7 +25,8 @@ type State = {
   commOpen: boolean; setCommOpen: (v: boolean) => void;
   assistantOpen: boolean; setAssistantOpen: (v: boolean) => void;
   canEnter: (floorId: string) => boolean;
-  csView: boolean; setCsView: (v: boolean) => void;   // 客服中国仪表板（客服账号一定是；老板可以切过去看）
+  csView: boolean; setCsView: (v: boolean) => void;
+  csOutside: boolean; setCsOutside: (v: boolean) => void;   // 客服视图：先在外面看（有屋顶、海边），按「走进去」才掀开屋顶   // 客服中国仪表板（客服账号一定是；老板可以切过去看）
   toast: string | null; flash: (msg: string) => void;
   lastEvent: HQEvent | null;
 };
@@ -32,8 +34,13 @@ type State = {
 const Ctx = createContext<State | null>(null);
 
 const readSettings = (): Settings => {
-  const base: Settings = { quality: 'high', labels: true, seatIds: false, autoRotate: false };
-  try { return { ...base, ...JSON.parse(localStorage.getItem('cmd-settings') || '{}') }; } catch { return base; }
+  const base: Settings = { quality: defaultQuality(), labels: true, seatIds: false, autoRotate: false };
+  try {
+    const saved = JSON.parse(localStorage.getItem('cmd-settings') || '{}');
+    // 旧版只有「高 / 省电」：高 → 依电脑能力自动选
+    if (!isQuality(saved.quality)) saved.quality = saved.quality === 'low' ? 'low' : base.quality;
+    return { ...base, ...saved };
+  } catch { return base; }
 };
 
 export function StoreProvider({ children }: { children: ReactNode }) {
@@ -54,6 +61,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [csViewBoss, setCsView] = useState(false);
+  const [csOutside, setCsOutside] = useState(true);
   const csView = role === 'cs' || csViewBoss;
 
   // 云端没存到（权限、断线）：要让人知道，不能默默失败
@@ -92,8 +100,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     model, role, userName: session?.name ?? '',
     section, setSection, floor, selectFloor, mode, setMode, dept, selectDept, person, selectPerson,
     hoverFloor, setHoverFloor, cam, camera, filters, setFilters, settings, setSettings,
-    commOpen, setCommOpen, assistantOpen, setAssistantOpen, canEnter, toast, flash, lastEvent, csView, setCsView
-  }), [csView, model, role, session?.name, section, floor, selectFloor, mode, dept, person, hoverFloor, cam, camera, filters, setFilters,
+    commOpen, setCommOpen, assistantOpen, setAssistantOpen, canEnter, toast, flash, lastEvent, csView, setCsView, csOutside, setCsOutside
+  }), [csView, csOutside, model, role, session?.name, section, floor, selectFloor, mode, dept, person, hoverFloor, cam, camera, filters, setFilters,
     settings, setSettings, commOpen, assistantOpen, canEnter, toast, flash, lastEvent]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

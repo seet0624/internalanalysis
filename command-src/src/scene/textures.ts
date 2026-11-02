@@ -21,7 +21,19 @@ function canvas(size: number, draw: (g: CanvasRenderingContext2D, s: number) => 
 const base: Partial<Record<Surface, THREE.Texture>> = {};
 const clones: Partial<Record<Surface, THREE.Texture[]>> = {};
 
+// Krea 生成的真实材质（hq/textures/*.jpg，每张约 50 KB，放在自己的网站上，国内打开快）
+const PHOTO: Partial<Record<Surface, string>> = { wood: 'floor', stone: 'marble', carpet: 'carpet' };
+const loader = new THREE.TextureLoader();
+export const TEX_ROOT = '../hq/textures/';
+
 function make(kind: Surface): THREE.Texture {
+  const photo = PHOTO[kind];
+  if (photo) {
+    // 图片载入后，所有复制出去的贴图（共用同一张图）都要通知更新
+    const t = loader.load(TEX_ROOT + photo + '.jpg', () => { t.needsUpdate = true; clones[kind]?.forEach((c) => { c.needsUpdate = true; }); });
+    t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+    return t;
+  }
   const r = rand(kind.length * 977 + 13);
   switch (kind) {
     case 'wood': return canvas(512, (g, s) => {       // 橡木长条地板
@@ -89,5 +101,22 @@ export function surfaceTexture(kind: Surface, w: number, d: number, tile = 4) {
   t.needsUpdate = true;
   t.repeat.set(w / tile, d / tile);
   (clones[kind] ||= []).push(t);
+  return t;
+}
+
+// 其他用途的照片材质（屋瓦、花窗墙、胡桃木、石板、湖水、地毯、山水画）：同一张图共用，各自设定重复次数
+const photos: Record<string, { base: THREE.Texture; copies: THREE.Texture[] }> = {};
+export function photoTexture(name: string, rx = 1, ry = 1, wrap = true) {
+  let e = photos[name];
+  if (!e) {
+    const base = loader.load(TEX_ROOT + name + '.jpg', () => { e.copies.forEach((c) => { c.needsUpdate = true; }); });
+    base.colorSpace = THREE.SRGBColorSpace; base.anisotropy = 8;
+    e = photos[name] = { base, copies: [] };
+  }
+  const t = e.base.clone();
+  if (wrap) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(rx, ry);
+  t.needsUpdate = true;
+  e.copies.push(t);
   return t;
 }
