@@ -883,9 +883,15 @@ function outName(x,kind){ var b=techBase(x);
   if(kind==='sup')return b+'（督导）.xlsx';
   return b+'（上传）.xlsx'; }
 
+// 有些软件存的文件，文件信息（最后修改人等）没写成 Excel 常见的 cp: 写法，读表格的组件会读不进去；
+// 读之前把这几行改成常见写法（跟技术单审核台一样），表格内容不动；没这个问题的文件原样不动
+async function fixCoreProps(buf){ if(typeof JSZip==='undefined')return buf;
+  try{ var zip=await JSZip.loadAsync(buf), core=zip.file('docProps/core.xml'); if(!core)return buf;
+    var xml=await core.async('string'), fixed=xml.replace(/<(\/?)(coreProperties|lastModifiedBy|lastPrinted|revision|category|contentStatus|keywords|version|identifier|language)(\s|>|\/)/g,'<$1cp:$2$3');
+    if(fixed===xml)return buf; zip.file('docProps/core.xml',fixed); return await zip.generateAsync({type:'arraybuffer'}); }catch(e){ return buf; } }
 async function loadWithBuffers(fileList){ var start=parsedFiles.length;
   for(var i=0;i<fileList.length;i++){ var f=fileList[i]; if(!/\.xlsx?$/i.test(f.name)){ toast('「'+f.name+'」不是 Excel，略过'); continue; } var buf=await f.arrayBuffer();
-  try{ var wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf.slice(0)); var ws=pickSheet(wb); var data=wsTo2D(ws); var loc0=locateHeader(data); var parsed=parseFile(data, loc0?rowColorsOf(ws,loc0.hr,colsFrom(loc0.header).user):[]);
+  try{ buf=await fixCoreProps(buf); var wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf.slice(0)); var ws=pickSheet(wb); var data=wsTo2D(ws); var loc0=locateHeader(data); var parsed=parseFile(data, loc0?rowColorsOf(ws,loc0.hr,colsFrom(loc0.header).user):[]);
     if(!parsed){ alert('「'+f.name+'」找不到表头（需有「新名」「新名拼音」），略过。'); continue; }
     var om=load('mzys_overseas',{});
     parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
@@ -1523,6 +1529,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-02', title:'有些文件读不进去的问题', items:[
+    '用某些软件存的技术单，文件信息（最后修改人）写法不常见，会出现「Unexpected xml node … lastModifiedBy」读不进去；现在读之前自动改好，表格内容不动']},
   {date:'2026-11-01', title:'换成 Google 风格配色、顶栏可切换工具', items:[
     '配色换成 Google 风格：白底、蓝色按钮，跟首页、两个仪表板、技术单审核台同一套',
     '顶栏「切换：技术单审核」直接跳过去；读文件出错会用白话说明怎么办；载入名册后关页面会先提醒'
