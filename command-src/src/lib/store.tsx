@@ -1,4 +1,4 @@
-// 整个指挥中心的界面状态：现在看哪一层、选了谁、镜头、筛选、设置。
+// 整个指挥中心的界面状态：现在看哪个部门的办公室、选了谁、镜头、筛选、设置。
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { buildCompany, type CompanyModel, type HQEvent } from './company';
 import { defaultQuality, isQuality, type Quality } from './graphics';
@@ -14,7 +14,8 @@ type State = {
   model: CompanyModel;
   role: Role; userName: string;
   section: Section; setSection: (s: Section) => void;
-  floor: string | null; selectFloor: (id: string | null) => void;
+  room: string; setRoom: (deptId: string) => void;          // 现在看哪个部门的办公室（上面的分页）
+  floor: string | null; selectFloor: (id: string | null) => void;   // 旧的「楼层」：= 这个部门在哪一层；选楼层 → 跳到那层第一个部门
   mode: '3d' | '2d'; setMode: (m: '3d' | '2d') => void;
   dept: string | null; selectDept: (id: string | null) => void;
   person: string | null; selectPerson: (id: string | null) => void;
@@ -25,8 +26,7 @@ type State = {
   commOpen: boolean; setCommOpen: (v: boolean) => void;
   assistantOpen: boolean; setAssistantOpen: (v: boolean) => void;
   canEnter: (floorId: string) => boolean;
-  csView: boolean; setCsView: (v: boolean) => void;
-  csOutside: boolean; setCsOutside: (v: boolean) => void;   // 客服视图：先在外面看（有屋顶、海边），按「走进去」才掀开屋顶   // 客服中国仪表板（客服账号一定是；老板可以切过去看）
+  csView: boolean; setCsView: (v: boolean) => void;   // 客服中国仪表板（客服账号一定是；老板可以切过去看）
   toast: string | null; flash: (msg: string) => void;
   lastEvent: HQEvent | null;
 };
@@ -49,7 +49,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [model, setModel] = useState<CompanyModel>(buildCompany);
   const [lastEvent, setLastEvent] = useState<HQEvent | null>(null);
   const [section, setSection] = useState<Section>(role === 'boss' ? 'overview' : 'features');   // 老板先看公司总览
-  const [floor, setFloor] = useState<string | null>(role === 'cs' ? '2F' : null);   // 国内客服：大楼直接看自己的 2F
+  const [room, setRoomState] = useState<string>(role === 'cs' ? 'cs' : 'dev');   // 国内客服：自己的客服部；老板先看开发部
   const [mode, setMode] = useState<'3d' | '2d'>('3d');
   const [dept, selectDept] = useState<string | null>(null);
   const [person, selectPerson] = useState<string | null>(null);
@@ -61,7 +61,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [csViewBoss, setCsView] = useState(false);
-  const [csOutside, setCsOutside] = useState(true);
   const csView = role === 'cs' || csViewBoss;
 
   // 云端没存到（权限、断线）：要让人知道，不能默默失败
@@ -78,16 +77,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const canEnter = useCallback((id: string) => role === 'boss' || id === '2F', [role]);
+  const floor = model.departments.find((d) => d.id === room)?.floor ?? null;
+  // 客服视图只看 2F 的部门；老板切到客服视图时，如果正在看别的部门就换到客服部
+  useEffect(() => { if (csView && floor !== '2F') setRoomState('cs'); }, [csView, floor]);
   const flash = useCallback((msg: string) => {
     setToast(msg);
     window.setTimeout(() => setToast((t) => (t === msg ? null : t)), 2600);
   }, []);
   const flashRef = useRef(flash);
+  const setRoom = useCallback((id: string) => {
+    const d = model.departments.find((x) => x.id === id);
+    if (!d) return;
+    if (!canEnter(d.floor)) { flashRef.current('这个部门你没有权限进去'); return; }
+    setRoomState(id); selectDept(null); selectPerson(null);
+  }, [model.departments, canEnter]);
   const selectFloor = useCallback((id: string | null) => {
-    setFloor(id);
     selectDept(null);
-    if (id === null) setMode('3d');
-  }, []);
+    if (id === null) return;
+    const d = model.departments.find((x) => x.floor === id);
+    if (d) setRoom(d.id);
+  }, [model.departments, setRoom]);
   const camera = useCallback((kind: CamCmd['kind']) => setCam((c) => ({ kind, n: c.n + 1 })), []);
   const setFilters = useCallback((f: Partial<Filters>) => setFiltersState((s) => ({ ...s, ...f })), []);
   const setSettings = useCallback((s: Partial<Settings>) => setSettingsState((cur) => {
@@ -98,10 +107,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<State>(() => ({
     model, role, userName: session?.name ?? '',
-    section, setSection, floor, selectFloor, mode, setMode, dept, selectDept, person, selectPerson,
+    section, setSection, room, setRoom, floor, selectFloor, mode, setMode, dept, selectDept, person, selectPerson,
     hoverFloor, setHoverFloor, cam, camera, filters, setFilters, settings, setSettings,
-    commOpen, setCommOpen, assistantOpen, setAssistantOpen, canEnter, toast, flash, lastEvent, csView, setCsView, csOutside, setCsOutside
-  }), [csView, csOutside, model, role, session?.name, section, floor, selectFloor, mode, dept, person, hoverFloor, cam, camera, filters, setFilters,
+    commOpen, setCommOpen, assistantOpen, setAssistantOpen, canEnter, toast, flash, lastEvent, csView, setCsView
+  }), [csView, model, role, session?.name, section, room, setRoom, floor, selectFloor, mode, dept, person, hoverFloor, cam, camera, filters, setFilters,
     settings, setSettings, commOpen, assistantOpen, canEnter, toast, flash, lastEvent]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

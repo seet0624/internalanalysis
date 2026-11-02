@@ -1,4 +1,4 @@
-// 听竹轩「业务手册」：章节 + 问手册、话术一键复制、回传期限计算器、技术单命名产生器、费用 / 发货速查、每周 / 每月提醒清单。
+// 客服部「业务手册」：章节 + 问手册、话术一键复制、回传期限计算器、技术单命名产生器、费用 / 发货速查、每周 / 每月提醒清单。
 // 内容从云端拿（只有登入的客服 / 老板看得到），账号密码不放在这里。
 import { useMemo, useState, type ReactNode } from 'react';
 import { BookOpen, Calculator, Check, ClipboardList, Copy, FileText, Lock, Search, Sparkles } from 'lucide-react';

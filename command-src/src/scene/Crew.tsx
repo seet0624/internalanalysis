@@ -1,5 +1,5 @@
-// 一层楼里的员工（Roblox 风格 3D 角色）：坐在工位打字、站着说话、走去会议室 / 咖啡角，还会拿文件去找同事「交接」。
-// 走路一定从门进出（房间有墙）：座位 → 自己房间的门 → 走廊 → 对方房间的门 → 对方旁边。
+// 办公室里的员工（方块小人，人和 AI 同一个模型）：坐在工位打字、站着说话、走去茶水间 / 沙发，还会拿文件去找同事「交接」。
+// 有房间（门）的时候从门进出；部门小办公室没有隔间，就直接走过去。
 // 交接只跟着真实对话：同一个任务 / 团队讨论里，A 回 B 的话 → A 拿着文件走去 B 那里讲；B 在别的楼层 → 走去电梯。
 // 头上的对话泡泡只显示真实讯息；没有讯息就只做工作、待机动作，不编对话。
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -11,7 +11,7 @@ import { lookOf } from '../lib/look';
 import { recentLine, type ChatMsg } from '../lib/live';
 import { useLang } from '../lib/i18n';
 import { animate, buildCharacter, type Pose, type Rig } from './Character';
-import { STATUS_COLOR, type Placement } from './Avatars';
+import { STATUS_COLOR, type Placement } from './status';
 import { D, W } from './constants';
 import type { Door } from './layout';
 
@@ -25,9 +25,11 @@ const folderMat = new THREE.MeshStandardMaterial({ color: '#1A73E8', roughness: 
 const V = (x: number, z: number) => new THREE.Vector3(x, 0, z);
 const SPEED = 1.15;
 
-export function Crew({ floor, placements, others = [], doors, chat, selected, showNames, floorOf, onPick, onHover }: {
+export function Crew({ floor, placements, others = [], doors, chat, selected, showNames, floorOf, strollSpots, via, onPick, onHover }: {
   floor: Floor; placements: Placement[]; others?: Placement[]; doors: Record<string, Door>; chat: ChatMsg[]; selected: string | null; showNames: boolean;
   floorOf?: (personId: string) => string | undefined;
+  strollSpots?: { x: number; z: number }[];   // 没有房间时：闲逛去哪里（茶水间、沙发、会议桌）
+  via?: (from: THREE.Vector3, to: THREE.Vector3) => THREE.Vector3[];   // 没有房间时：走走道（不穿过桌子）
   onPick: (id: string) => void; onHover: (p: Placement | null) => void;
 }) {
   const { tr } = useLang();
@@ -45,6 +47,7 @@ export function Crew({ floor, placements, others = [], doors, chat, selected, sh
   };
   const route = (from: THREE.Vector3, fromRoom: Room | undefined, to: THREE.Vector3, toRoom: Room | undefined) => {
     if (fromRoom && toRoom && fromRoom.id === toRoom.id) return [to.clone()];
+    if (!fromRoom && !toRoom && via) return [...via(from, to), to.clone()];
     const out = exitPath(fromRoom), inn = exitPath(toRoom).reverse();
     return [...out, ...inn, to.clone()];
   };
@@ -54,12 +57,12 @@ export function Crew({ floor, placements, others = [], doors, chat, selected, sh
     return c ? V((c.x0 + c.x1) / 2, c.z1 - 0.45) : null;
   }, [rooms]);
   // 闲逛的目的地：会议室、咖啡角、休息区
-  const spots = useMemo(() => rooms.filter((q) => ['meeting', 'coffee', 'lounge', 'waiting'].includes(q.r.kind)).map((q) => ({ room: q.r, at: V((q.x0 + q.x1) / 2, (q.z0 + q.z1) / 2 + 0.6) })), [rooms]);
+  const spots = useMemo(() => strollSpots ? strollSpots.map((p) => ({ room: undefined as Room | undefined, at: V(p.x, p.z) })) : rooms.filter((q) => ['meeting', 'coffee', 'lounge', 'waiting'].includes(q.r.kind)).map((q) => ({ room: q.r, at: V((q.x0 + q.x1) / 2, (q.z0 + q.z1) / 2 + 0.6) })), [rooms, strollSpots]);
 
   const members = useMemo<Member[]>(() => {
     let strollers = 0;
     return placements.map((p) => {
-      const rig = buildCharacter(lookOf(p.person), hash(p.person.id) % 7);
+      const rig = buildCharacter(lookOf(p.person), hash(p.person.id) % 7, p.person.type === 'ai');
       const root = new THREE.Group();
       root.add(rig.root);
       root.position.set(p.x, 0, p.z);
@@ -108,7 +111,7 @@ export function Crew({ floor, placements, others = [], doors, chat, selected, sh
   function startHandoff(fromId: string, toId: string) {
     let mover = members.find((x) => x.p.person.id === fromId);
     let targetId = toId;
-    // 说话的是 AI（机器人不走路）：换成被回话的同事走过来
+    // 说话的人不在这间（例如 AI 在别的部门）：换成被回话的同事走过来
     if (!mover) { mover = members.find((x) => x.p.person.id === toId); targetId = fromId; }
     if (!mover || mover.trip) return;
     const here = spotNear(targetId);
@@ -210,10 +213,10 @@ export function Crew({ floor, placements, others = [], doors, chat, selected, sh
             onPointerOver={(e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); document.body.style.cursor = 'pointer'; onHover(m.p); }}
             onPointerOut={() => { document.body.style.cursor = ''; onHover(null); }}>
             <mesh geometry={ringGeo} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.03, 0]} raycast={() => null}>
-              <meshBasicMaterial color={sel ? '#1A73E8' : STATUS_COLOR[m.p.person.status]} transparent opacity={sel ? 1 : 0.8} toneMapped={false} />
+              <meshBasicMaterial color={sel ? '#4FC3F7' : STATUS_COLOR[m.p.person.status]} transparent opacity={sel ? 1 : 0.8} toneMapped={false} />
             </mesh>
             {(line || showNames || handoff) && (
-              <Html position={[0, m.p.sit && !m.trip ? 1.62 : 1.85, 0]} center zIndexRange={[9, 0]} className="tag3d">
+              <Html position={[0, m.p.sit && !m.trip ? 1.95 : 2.2, 0]} center zIndexRange={[9, 0]} className="tag3d">
                 <div className="flex flex-col items-center gap-1">
                   {line && (
                     <div className="max-w-52 animate-slideUp rounded-2xl rounded-bl-sm border border-line/15 bg-surface px-3 py-1.5 text-xs leading-snug text-fg shadow-glass">
