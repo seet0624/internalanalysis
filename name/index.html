@@ -875,7 +875,10 @@ function tableDateOf(data,fname){
 // 海外单的「名册展示」会填（繁 / 简体和繁体…），国内单这一栏空着；只看学员那几行，表尾的回传时间不算
 function dispFilled(pf){ var c=pf.cols.disp; if(c==null||c<0)return false; return pf.groups.some(function(g){ return g.rows.some(function(ri){ return String((pf.data[ri]||[])[c]==null?'':pf.data[ri][c]).trim()!==''; }); }); }
 function isOverseasName(n){ var b=String(n).replace(/\.(xlsx|xls)$/i,''); return /[（(]\s*H\s*[）)]|(^|[^A-Za-z])H([^A-Za-z]|$)|海外/.test(b); }
-function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.overseas?'（H）':''); }
+// 原文件名括号里的标签（例如「新生儿」）照样留在下载的名字里，免得同一天两份技术单下载后同名覆盖；工具自己会加的不重复
+function nameTags(n){ var out=[], b=String(n).replace(/\.(xlsx|xls)$/i,''), m, re=/[（(]\s*([^）)]+?)\s*[）)]/g;
+  while((m=re.exec(b))){ var t=m[1]; if(/^(名正言[顺順]|H|上传|有问题|督导|\d+)$/i.test(t)||/拆分/.test(t))continue; if(out.indexOf(t)<0)out.push(t); } return out; }
+function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.tags||[]).map(function(t){return '（'+t+'）';}).join('')+(x.overseas?'（H）':''); }
 function problemCount(x){ return x.audit.results.filter(function(r){return r.problem;}).length; }
 function outName(x,kind){ var b=techBase(x);
   if(kind==='orig')return b+((x.name.match(/\.(xlsx|xls)$/i)||['.xlsx'])[0].toLowerCase());
@@ -894,7 +897,7 @@ async function loadWithBuffers(fileList){ var start=parsedFiles.length;
   try{ buf=await fixCoreProps(buf); var wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf.slice(0)); var ws=pickSheet(wb); var data=wsTo2D(ws); var loc0=locateHeader(data); var parsed=parseFile(data, loc0?rowColorsOf(ws,loc0.hr,colsFrom(loc0.header).user):[]);
     if(!parsed){ alert('「'+f.name+'」找不到表头（需有「新名」「新名拼音」），略过。'); continue; }
     var om=load('mzys_overseas',{});
-    parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
+    parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), tags:nameTags(f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
   }catch(e){ alert(HQTool.friendly('读「'+f.name+'」的时候出错。',e)); } }
   if(parsedFiles.length>start){ activeFile=start; curSid=null; queueFilter='all'; }
   rebuild();
@@ -1529,7 +1532,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
-  {date:'2026-11-02', title:'有些文件读不进去的问题', items:[
+  {date:'2026-11-02', title:'有些文件读不进去的问题 + 文件名保留标签', items:[
+    '原文件名括号里的标签（例如「新生儿」）会留在下载的文件名里，同一天两份技术单不会同名覆盖',
     '用某些软件存的技术单，文件信息（最后修改人）写法不常见，会出现「Unexpected xml node … lastModifiedBy」读不进去；现在读之前自动改好，表格内容不动']},
   {date:'2026-11-01', title:'换成 Google 风格配色、顶栏可切换工具', items:[
     '配色换成 Google 风格：白底、蓝色按钮，跟首页、两个仪表板、技术单审核台同一套',
