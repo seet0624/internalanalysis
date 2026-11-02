@@ -21,7 +21,7 @@ export function Surroundings() {
     side: THREE.BackSide, depthWrite: false, fog: false,
     uniforms: { top: { value: new THREE.Color('#9CC4EC') }, mid: { value: new THREE.Color('#D7E7F6') }, bottom: { value: new THREE.Color('#F4F1EA') } },
     vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-    fragmentShader: 'uniform vec3 top; uniform vec3 mid; uniform vec3 bottom; varying vec3 vP; void main(){ float h = vP.y; vec3 c = h > 0.0 ? mix(mid, top, smoothstep(0.0, 0.6, h)) : bottom; c = mix(bottom, c, smoothstep(-0.02, 0.08, h)); gl_FragColor = vec4(c,1.0); }'
+    fragmentShader: 'uniform vec3 top; uniform vec3 mid; uniform vec3 bottom; varying vec3 vP; void main(){ float h = vP.y; vec3 c = h > 0.0 ? mix(mid, top, smoothstep(0.0, 0.6, h)) : bottom; c = mix(bottom, c, smoothstep(-0.02, 0.08, h)); float w = max(0.0, -vP.x) * (1.0 - smoothstep(0.0, 0.4, h)); c = mix(c, vec3(1.0, 0.8, 0.6), w * 0.5); gl_FragColor = vec4(c,1.0); }'
   }), []);
   // 喀斯特山峰：三圈，近的绿、远的蓝灰
   const karst = useMemo(() => {

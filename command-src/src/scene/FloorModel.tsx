@@ -54,7 +54,8 @@ export function FloorModel({ floor }: { floor: Floor }) {
     }
     return null;
   }, [floor]);
-  const fmats = useMemo(makeShellMats, []);
+  const seaside = floor.id === '2F';   // 听竹轩在海边：闽南红瓦燕尾脊
+  const fmats = useMemo(() => makeShellMats(seaside ? 'red' : 'grey'), [seaside]);
   // 木头家具用胡桃木纹、台面用大理石纹（Krea 材质）；其他维持纯色
   const looks = useMemo(() => {
     const wood = new THREE.MeshStandardMaterial({ map: photoTexture('walnut', 1, 1), roughness: 0.55, metalness: 0.05 });
@@ -119,7 +120,8 @@ export function FloorModel({ floor }: { floor: Floor }) {
   const bots = useMemo(() => visiblePlacements.filter((p) => p.person.type === 'ai'), [visiblePlacements]);
 
   const focus = s.floor ? m.floors.find((f) => f.id === s.floor) : null;
-  const isSel = focus?.id === floor.id;
+  // 客服视图在外面看的时候：屋顶盖着（看得到海边的外观）
+  const isSel = focus?.id === floor.id && !(s.csView && s.csOutside);
   const overview = !focus;
   // 度假村：每栋都在地面上；点进一栋 → 屋顶掀开、看里面；其他栋屋顶盖着（里面不用画，省效能）。2D 平面只留这一栋
   const targetOpacity = s.mode === '2d' && !isSel && focus ? 0 : 1;
@@ -186,7 +188,7 @@ export function FloorModel({ floor }: { floor: Floor }) {
     <group ref={group} position={[site.x, 0, site.z]}>
       {/* 楼板 + 发光边 */}
       <mesh geometry={GEO.box} material={mats.slab} position={[0, -SLAB / 2, 0]} scale={[W + 0.6, SLAB, D + 0.6]} raycast={() => null} />
-      <Pavilion kind={shellKind} mode={facadeMode} mats={fmats} roofLift={lift} />
+      <Pavilion kind={shellKind} mode={facadeMode} mats={fmats} roofLift={lift} swallowtail={seaside} />
       <group visible={interior}>
       {/* 房间地砖（选楼层后可以点部门） */}
       {layout.tiles.map((tile, i) => (
@@ -236,6 +238,13 @@ export function FloorModel({ floor }: { floor: Floor }) {
       {/* 部门 / 房间标签 */}
       {isSel && labelsOn && s.settings.labels && layout.labels.map(({ room, x, z }) => {
         const d = room.dept ? m.departments.find((dd) => dd.id === room.dept) : undefined;
+        if (room.id === '2f-train') {
+          return (
+            <Html key={room.id} position={[x, accentY, z]} center zIndexRange={[7, 0]} className="tag3d click">
+              <button type="button" onClick={() => window.dispatchEvent(new CustomEvent('open-handbook'))} className="flex items-center gap-1.5 rounded-lg border border-[#C9A86A] bg-[#FFF8E7]/95 px-2.5 py-1.5 text-xs font-semibold text-[#7A4A1E] shadow-glass hover:bg-[#FFEFC7]">📚 藏书阁 · 业务手册</button>
+            </Html>
+          );
+        }
         if (!d) {
           return (
             <Html key={room.id} position={[x, accentY - 0.3, z]} center zIndexRange={[6, 0]} className="tag3d">

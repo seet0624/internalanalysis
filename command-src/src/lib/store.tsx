@@ -25,7 +25,8 @@ type State = {
   commOpen: boolean; setCommOpen: (v: boolean) => void;
   assistantOpen: boolean; setAssistantOpen: (v: boolean) => void;
   canEnter: (floorId: string) => boolean;
-  csView: boolean; setCsView: (v: boolean) => void;   // 客服中国仪表板（客服账号一定是；老板可以切过去看）
+  csView: boolean; setCsView: (v: boolean) => void;
+  csOutside: boolean; setCsOutside: (v: boolean) => void;   // 客服视图：先在外面看（有屋顶、海边），按「走进去」才掀开屋顶   // 客服中国仪表板（客服账号一定是；老板可以切过去看）
   toast: string | null; flash: (msg: string) => void;
   lastEvent: HQEvent | null;
 };
@@ -60,6 +61,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [csViewBoss, setCsView] = useState(false);
+  const [csOutside, setCsOutside] = useState(true);
   const csView = role === 'cs' || csViewBoss;
 
   // 云端没存到（权限、断线）：要让人知道，不能默默失败
@@ -98,8 +100,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     model, role, userName: session?.name ?? '',
     section, setSection, floor, selectFloor, mode, setMode, dept, selectDept, person, selectPerson,
     hoverFloor, setHoverFloor, cam, camera, filters, setFilters, settings, setSettings,
-    commOpen, setCommOpen, assistantOpen, setAssistantOpen, canEnter, toast, flash, lastEvent, csView, setCsView
-  }), [csView, model, role, session?.name, section, floor, selectFloor, mode, dept, person, hoverFloor, cam, camera, filters, setFilters,
+    commOpen, setCommOpen, assistantOpen, setAssistantOpen, canEnter, toast, flash, lastEvent, csView, setCsView, csOutside, setCsOutside
+  }), [csView, csOutside, model, role, session?.name, section, floor, selectFloor, mode, dept, person, hoverFloor, cam, camera, filters, setFilters,
     settings, setSettings, commOpen, assistantOpen, canEnter, toast, flash, lastEvent]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

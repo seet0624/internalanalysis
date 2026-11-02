@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#F8F9FA">
 <script src="../vendor/exceljs.min.js"></script>
 <script src="../vendor/jszip.min.js"></script>
-<script src="shops.js"></script>
+<script src="shops.js" onerror="void 0"></script>
 <script>
 // 本地组件没载入 → 从 cdnjs 载入同一版本
 if(!window.ExcelJS) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"><\/script>');
@@ -1269,6 +1269,8 @@ function kvOf(r){ var m={}; ((r.rows[0].detail||{}).all||[]).forEach(function(kv
 // 先看手填的，再看店铺资料（店铺表），店铺表里没有就用以前导入的督导文件里同一个店铺编号填过的
 // 网站内置的店铺资料（name/shops.js）；这台电脑另外导入的店铺表比内置的新，就先用导入的
 var BUILTIN=window.SHOP_DATA||{shops:{},groups:{},count:0};
+// 店铺 / 督导名单是内部资料：登入后从公司云端拿（只有客服、老板拿得到），不放在公开的网站档案里
+if(window.HQAuth&&HQAuth.cloudGet){ HQAuth.cloudGet('shops').then(function(d){ if(d&&d.shops){ BUILTIN=d; if(typeof renderAll==='function')renderAll(); } }); }
 function shopOf(code){ return code?(SUP.shops[code]||BUILTIN.shops[code]||null):null; }
 function supOf(r){ var v=SUP.info[supKey(r)]||{}, code=kvOf(r)['服务中心编号']||'', sh=shopOf(code), old=(!sh&&code&&SUP.center[code])||null;
   var sup=v.sup||(sh&&sh[2])||(old&&old.sup)||'', l=SUP.list[sup]||{};

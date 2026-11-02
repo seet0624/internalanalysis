@@ -25,6 +25,8 @@ export function CameraRig() {
       return { pos: OVERVIEW.pos.clone().sub(OVERVIEW.target).multiplyScalar(k).add(OVERVIEW.target), target: OVERVIEW.target.clone() };
     }
     const st = siteOf(f.id), y = 0;
+    // 客服视图在外面：从西南边的海上看听竹轩（红瓦屋顶、沙滩、码头、海）
+    if (s.csView && s.csOutside && s.mode !== '2d') return { pos: new THREE.Vector3(st.x - 58, 30, st.z + 52), target: new THREE.Vector3(st.x - 14, 2, st.z) };
     if (s.mode === '2d') return { pos: new THREE.Vector3(st.x, y + (narrow ? 62 : 44), st.z + 0.6), target: new THREE.Vector3(st.x, y, st.z) };
     // 客服中国仪表板：镜头近一点，看得清每个人
     const k = (narrow ? 1.5 : 1.08) * (s.csView ? 0.78 : 1);
@@ -35,7 +37,7 @@ export function CameraRig() {
   useEffect(() => {
     goal.current = home();
     moving.current = true;
-  }, [s.floor, s.mode, narrow, s.csView]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s.floor, s.mode, narrow, s.csView, s.csOutside]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 放大、缩小、重设
   useEffect(() => {

@@ -97,6 +97,27 @@
     return fetch(CLOUD_URL + path, { method: 'POST', headers: { apikey: CLOUD_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); });
   }
+  // 读云端的内部资料（cs_docs 表：业务手册、店铺名单…）。登入凭证过期就先换新的。拿不到回传 null
+  function cloudToken() { try { return JSON.parse(localStorage.getItem(CLOUD_TOKEN) || 'null'); } catch (e) { return null; } }
+  function refreshToken(tok) {
+    return post('/auth/v1/token?grant_type=refresh_token', { refresh_token: tok.refresh_token }).then(function (r) {
+      if (!r.ok || !r.body || !r.body.access_token) return null;
+      var sess = r.body; if (!sess.expires_at) sess.expires_at = Math.floor(Date.now() / 1000) + (sess.expires_in || 3600);
+      try { localStorage.setItem(CLOUD_TOKEN, JSON.stringify(sess)); } catch (e) {}
+      return sess;
+    }).catch(function () { return null; });
+  }
+  function cloudGet(key) {
+    var tok = cloudToken();
+    if (!tok || !tok.access_token) return Promise.resolve(null);
+    var fresh = tok.expires_at && tok.expires_at * 1000 < Date.now() + 60000 ? refreshToken(tok) : Promise.resolve(tok);
+    return fresh.then(function (t) {
+      if (!t) return null;
+      return fetch(CLOUD_URL + '/rest/v1/cs_docs?select=data&key=eq.' + encodeURIComponent(key), { headers: { apikey: CLOUD_KEY, Authorization: 'Bearer ' + t.access_token } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (rows) { return rows && rows[0] ? rows[0].data : null; });
+    }).catch(function () { return null; });
+  }
   function cloudLogin(id, pass, timeoutMs) {
     id = String(id || '').trim().toLowerCase();
     var email = id + '@shuyi-hq.app';
@@ -127,7 +148,7 @@
   }
   function here() { return location.href.split('#')[0].split('?')[0].replace(ROOT, ''); }
 
-  window.HQAuth = { session: session, login: login, logout: logout, cloudLogin: cloudLogin, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
+  window.HQAuth = { session: session, login: login, logout: logout, cloudLogin: cloudLogin, cloudGet: cloudGet, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
 
   if (isHQ) return;
   // 其他页：没登入、或这个身份不能进 → 回首页

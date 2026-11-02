@@ -55,11 +55,12 @@ function tiles() {
   return tileTex;
 }
 
-export function makeShellMats() {
+// red：闽南红瓦（海边的听竹轩）；grey：江南灰瓦
+export function makeShellMats(roofStyle: 'grey' | 'red' = 'grey') {
   // Krea 生成的真实材质：白墙 + 冰裂纹花窗（一扇 3 公尺）、灰色筒瓦
   const wallH = new THREE.MeshStandardMaterial({ map: photoTexture('lattice', (W + 0.3) / 3.4, 1), roughness: 0.9 });
   const wallV = new THREE.MeshStandardMaterial({ map: photoTexture('lattice', (D + 0.3) / 3.4, 1), roughness: 0.9 });
-  const roof = new THREE.MeshStandardMaterial({ map: photoTexture('roof', 18, 3), roughness: 0.75, metalness: 0.05, side: THREE.DoubleSide });
+  const roof = new THREE.MeshStandardMaterial({ map: photoTexture(roofStyle === 'red' ? 'roof-red' : 'roof', roofStyle === 'red' ? 14 : 18, roofStyle === 'red' ? 4 : 3), roughness: 0.7, metalness: 0.04, side: THREE.DoubleSide });
   void lattice; void tiles;   // 程序画的版本留着当备用
   const std = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.7, metalness: 0.05 });
   const grass = new THREE.MeshStandardMaterial({ color: '#7FA86A', roughness: 1 });
@@ -86,7 +87,7 @@ function frustum(bx: number, bz: number, tx: number, tz: number, h: number) {
 type Side = 'front' | 'back' | 'left' | 'right';
 const P = (x: number, y: number, z: number, sx: number, sy: number, sz: number, c: string, r?: [number, number, number]): Prim => ({ p: [x, y + sy / 2, z], s: [sx, sy, sz], c, r });
 
-export function Pavilion({ kind, mode, mats, roofLift }: { kind: ShellKind; mode: ShellMode; mats: ShellMats; roofLift: number }) {
+export function Pavilion({ kind, mode, mats, roofLift, swallowtail = false }: { kind: ShellKind; mode: ShellMode; mats: ShellMats; roofLift: number; swallowtail?: boolean }) {
   const parts = useMemo(() => {
     const bySide: Record<Side, { box: Prim[]; wall: Prim[] }> = { front: { box: [], wall: [] }, back: { box: [], wall: [] }, left: { box: [], wall: [] }, right: { box: [], wall: [] } };
     const base: Prim[] = [];
@@ -142,16 +143,19 @@ export function Pavilion({ kind, mode, mats, roofLift }: { kind: ShellKind; mode
     ];
     const ry = COL_H + 0.67 + 3.6;
     const trim: Prim[] = [
-      P(0, ry - 0.1, 0, W * 0.42 + 0.6, 0.55, 0.7, '#2F3338'),
-      P(W * 0.21 + 0.4, ry, 0, 0.5, 1.1, 0.5, '#2F3338', [0, 0, -0.35]),
-      P(-W * 0.21 - 0.4, ry, 0, 0.5, 1.1, 0.5, '#2F3338', [0, 0, 0.35])
+      P(0, ry - 0.1, 0, W * 0.42 + 0.6, 0.55, 0.7, swallowtail ? '#8C3B2A' : '#2F3338'),
+      ...(swallowtail
+        // 燕尾脊：正脊两头往外、往上翘起，像燕子的尾巴（闽南、海边建筑）
+        ? [P(W * 0.21 + 1.3, ry + 0.1, 0, 2.4, 0.4, 0.55, '#8C3B2A', [0, 0, 0.62]), P(-W * 0.21 - 1.3, ry + 0.1, 0, 2.4, 0.4, 0.55, '#8C3B2A', [0, 0, -0.62]),
+           P(W * 0.21 + 2.2, ry + 1.0, 0, 0.9, 0.3, 0.9, '#C9A86A', [0, 0, 0.9]), P(-W * 0.21 - 2.2, ry + 1.0, 0, 0.9, 0.3, 0.9, '#C9A86A', [0, 0, -0.9])]
+        : [P(W * 0.21 + 0.4, ry, 0, 0.5, 1.1, 0.5, '#2F3338', [0, 0, -0.35]), P(-W * 0.21 - 0.4, ry, 0, 0.5, 1.1, 0.5, '#2F3338', [0, 0, 0.35])])
     ];
     for (const [sx, sz] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
       const a = Math.atan2(sz, sx);
       trim.push({ p: [sx * (ex / 2 + 0.2), COL_H + 0.75, sz * (ez / 2 + 0.2)], s: [1.8, 0.22, 0.4], c: '#2F3338', r: [0, -a, 0.42] });
     }
     return { bySide, base, roof, trim };
-  }, [kind]);
+  }, [kind, swallowtail]);
 
   const shownSides: Side[] = mode === 'closed' ? ['front', 'back', 'left', 'right'] : mode === 'cut' ? ['back', 'left'] : [];
   const box = useMemo(() => [...parts.base, ...shownSides.flatMap((s) => parts.bySide[s].box)], [parts, mode]); // eslint-disable-line react-hooks/exhaustive-deps

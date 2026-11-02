@@ -203,6 +203,13 @@ function furnish(b: Builder, r: RR, accent: string) {
   switch (r.kind) {
     case 'office': office(b, r, cx, cz, r.seats ?? 6, accent); break;
     case 'training': {
+      // 藏书阁：后墙一整排书柜（书脊有颜色），点房间标签打开业务手册
+      for (let i = 0; i < Math.floor((r.w - 0.6) / 1.1); i++) {
+        const bx = r.x0 + 0.85 + i * 1.1;
+        b.box(bx, 0, r.z1 - 0.28, 1.0, 2.2, 0.4, '#5A3A28');
+        const cols = ['#7A2E2A', '#2E4A6E', '#3F5E3A', '#C9A86A', '#8C6A4C', '#E8E4DC'];
+        for (let row = 0; row < 5; row++) for (let k = 0; k < 4; k++) b.box(bx - 0.36 + k * 0.24, 0.12 + row * 0.42, r.z1 - 0.34, 0.2, 0.3, 0.26, cols[(i * 5 + row * 3 + k) % cols.length]);
+      }
       b.screenWall(r.x1 - 0.25, cz, r.d - 1.6, Math.PI / 2, accent);
       for (let i = 0; i < 2; i++) for (let j = 0; j < 3; j++) {
         const x = r.x0 + 1.2 + i * 1.6, z = r.z0 + 1.0 + j * 1.25;

@@ -7,7 +7,8 @@ import { Batch } from './Batch';
 import { GEO } from './shared';
 import type { Prim } from './layout';
 import { TreeField, type TreeSpot } from './Trees';
-import { D, LAKE, SITE, SLAB, W } from './constants';
+import { COAST, D, LAKE, SITE, SLAB, W } from './constants';
+import { Seaside } from './Seaside';
 import { photoTexture } from './textures';
 
 const Y = -SLAB - 0.58;                    // 地面高度（建筑台基底下）
@@ -29,6 +30,7 @@ function lakeShape(scale = 1) {
   return s;
 }
 const inLake = (x: number, z: number, pad = 0) => ((x - LAKE.x) / (LAKE.rx + pad)) ** 2 + ((z - LAKE.z) / (LAKE.rz + pad)) ** 2 < 1;
+const inSea = (x: number) => x < COAST.x + 2;   // 西边的沙滩和海不放竹子、树
 const nearBuilding = (x: number, z: number, pad = 6) => Object.values(SITE).some((s) => Math.abs(x - s.x) < W / 2 + pad && Math.abs(z - s.z) < D / 2 + pad);
 
 export function Resort() {
@@ -71,7 +73,7 @@ export function Resort() {
       }
     }
     // 云栖馆的小路
-    paths.push(P(-90, Y, -64, 3, 0.06, 40, '', [0, 0.9, 0]));
+    paths.push(P(90, Y, -66, 3, 0.06, 40, '', [0, -0.9, 0]));   // 云栖馆的小路
     // 九曲桥：从南岸到湖心亭（折几次）
     const bridge: [number, number][] = [[0, LAKE.z + LAKE.rz + 3], [5, LAKE.z + 14], [-4, LAKE.z + 8], [3, LAKE.z + 2], [0, LAKE.z - 2]];
     for (let i = 0; i < bridge.length - 1; i++) {
@@ -113,7 +115,7 @@ export function Resort() {
     const bamboo = (cx: number, cz: number, n: number) => {
       for (let i = 0; i < n; i++) {
         const x = cx + (rnd() - 0.5) * 9, z = cz + (rnd() - 0.5) * 9, h = 6 + rnd() * 4;
-        if (nearBuilding(x, z, 2) || inLake(x, z, 2)) continue;
+        if (nearBuilding(x, z, 2) || inLake(x, z, 2) || inSea(x)) continue;
         cyl.push({ p: [x, Y + h / 2, z], s: [0.14, h, 0.14], c: rnd() > 0.3 ? '#6E9A4E' : '#88A85A', r: [(rnd() - 0.5) * 0.12, 0, (rnd() - 0.5) * 0.12] });
         sph.push({ p: [x, Y + h - 0.6, z], s: [1.4, 2.2, 1.4], c: rnd() > 0.5 ? '#5C8E44' : '#6FA052' });
       }
@@ -125,7 +127,7 @@ export function Resort() {
     // 树：松树、橡树散在园区
     for (let i = 0; i < 70; i++) {
       const x = BOUND.x0 + 8 + rnd() * (BOUND.x1 - BOUND.x0 - 16), z = BOUND.z0 + 8 + rnd() * (BOUND.z1 - BOUND.z0 - 16);
-      if (nearBuilding(x, z, 7) || inLake(x, z, 10) || (Math.abs(x) < 8 && z > 30)) continue;
+      if (nearBuilding(x, z, 7) || inLake(x, z, 10) || inSea(x) || (Math.abs(x) < 8 && z > 30)) continue;
       trees.push({ x, y: Y, z, kind: rnd() > 0.45 ? 'pine' : rnd() > 0.5 ? 'oak' : 'ash', h: 6 + rnd() * 5, ry: rnd() * 6 });
     }
     // 粉墙黛瓦的围墙（正门留口）
@@ -135,10 +137,10 @@ export function Resort() {
       box.push(P((ax + bx) / 2, Y + 2.6, (az + bz) / 2, 1.1, 0.3, len + 0.6, '#4B5057', [0, ry, 0]));
       box.push(P((ax + bx) / 2, Y, (az + bz) / 2, 0.55, 0.4, len, '#8E8A82', [0, ry, 0]));
     };
-    wall(BOUND.x0, BOUND.z0, BOUND.x1, BOUND.z0);
-    wall(BOUND.x0, BOUND.z0, BOUND.x0, BOUND.z1);
+    // 西边面海：不砌墙，围墙从沙滩边开始
+    wall(COAST.x, BOUND.z0, BOUND.x1, BOUND.z0);
     wall(BOUND.x1, BOUND.z0, BOUND.x1, BOUND.z1);
-    wall(BOUND.x0, BOUND.z1, -7, BOUND.z1);
+    wall(COAST.x, BOUND.z1, -7, BOUND.z1);
     wall(7, BOUND.z1, BOUND.x1, BOUND.z1);
     // 正门牌楼：四柱三间
     for (const x of [-7, -3, 3, 7]) {
@@ -164,8 +166,8 @@ export function Resort() {
   return (
     <group>
       {/* 草地 */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, Y - 0.01, -8]} material={mats.grass} receiveShadow raycast={() => null}>
-        <planeGeometry args={[BOUND.x1 - BOUND.x0 + 4, BOUND.z1 - BOUND.z0 + 4]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[(COAST.x + BOUND.x1) / 2 + 2, Y - 0.01, -8]} material={mats.grass} receiveShadow raycast={() => null}>
+        <planeGeometry args={[BOUND.x1 - COAST.x + 4, BOUND.z1 - BOUND.z0 + 4]} />
       </mesh>
       {/* 围墙外：田野一样的浅绿 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, Y - 0.05, 0]} raycast={() => null}>
@@ -187,6 +189,7 @@ export function Resort() {
       <mesh geometry={pavRoof} material={roofMat} position={[scene.pc.x, Y + 4.85, scene.pc.z]} castShadow raycast={() => null} />
       <mesh position={[scene.pc.x, Y + 6.3, scene.pc.z]} raycast={() => null}><sphereGeometry args={[0.35, 12, 8]} /><meshStandardMaterial color="#C9A86A" metalness={0.6} roughness={0.3} /></mesh>
       <TreeField spots={scene.trees} />
+      <Seaside />
     </group>
   );
 }
