@@ -12,12 +12,12 @@ import { avatarUrl } from '../lib/look';
 import { STATUS_COLOR } from '../scene/status';
 import type { Person, Status } from '../types';
 import { cn } from '../lib/cn';
-import { CORE_DEPTS } from '../lib/company';
+import { CORE_DEPTS, type CompanyModel } from '../lib/company';
 
-const ACTIVE: MissionStatus[] = ['new', 'planning', 'plan_review', 'executing', 'result_review', 'rework'];
+export const ACTIVE: MissionStatus[] = ['new', 'planning', 'plan_review', 'executing', 'result_review', 'rework'];
 // 任务走到哪一步 → 大概完成几成（员工卡上的进度条）
 const STAGE_PCT: Partial<Record<MissionStatus, number>> = { new: 5, planning: 15, plan_review: 30, executing: 60, rework: 50, result_review: 85, done: 100 };
-const CAPTION: Record<string, string> = {
+export const CAPTION: Record<string, string> = {
   new: '任务刚派下来，AI CEO 马上来看',
   planning: 'AI CEO 正在拆工作、分给大家',
   plan_review: '审核部在看计划，没问题就开工',
@@ -34,8 +34,14 @@ export function elapsed(ms: number) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
   return `${h ? h + ':' : ''}${String(m).padStart(2, '0')}:${String(x).padStart(2, '0')}`;
 }
-const stageLabel = (st: MissionStatus) => MISSION_STEPS.find((x) => x.key === st)?.label ?? (st === 'rework' ? '退回修改' : st);
-const short = (name: string) => name.split(' · ')[0];
+export const stageLabel = (st: MissionStatus) => MISSION_STEPS.find((x) => x.key === st)?.label ?? (st === 'rework' ? '退回修改' : st);
+export const short = (name: string) => name.split(' · ')[0];
+// 部门分页的顺序：核心部门在前，其他按楼层
+export function sortedDepts(m: CompanyModel, canEnter: (floor: string) => boolean, csView: boolean) {
+  const order = [...m.floors].sort((a, b) => b.level - a.level).map((f) => f.id);
+  const rank = (id: string) => (CORE_DEPTS.includes(id) ? CORE_DEPTS.indexOf(id) : 100);
+  return m.departments.filter((d) => canEnter(d.floor) && (!csView || d.floor === '2F')).sort((a, b) => rank(a.id) - rank(b.id) || order.indexOf(a.floor) - order.indexOf(b.floor));
+}
 
 export function OfficeHUD({ cards = true, className }: { cards?: boolean; className?: string }) {
   const s = useStore();
@@ -45,11 +51,7 @@ export function OfficeHUD({ cards = true, className }: { cards?: boolean; classN
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(id); }, []);
 
-  const depts = useMemo(() => {
-    const order = [...m.floors].sort((a, b) => b.level - a.level).map((f) => f.id);
-    const rank = (id: string) => (CORE_DEPTS.includes(id) ? CORE_DEPTS.indexOf(id) : 100);
-    return m.departments.filter((d) => s.canEnter(d.floor) && (!s.csView || d.floor === '2F')).sort((a, b) => rank(a.id) - rank(b.id) || order.indexOf(a.floor) - order.indexOf(b.floor));
-  }, [m.floors, m.departments, s.canEnter, s.csView]); // eslint-disable-line react-hooks/exhaustive-deps
+  const depts = useMemo(() => sortedDepts(m, s.canEnter, s.csView), [m, s.canEnter, s.csView]);
   const dept = m.departments.find((d) => d.id === s.room);
   const ppl = useMemo(() => {
     const list = m.people.filter((p) => p.dept === s.room && (p.type === 'human' ? s.filters.humans : s.filters.ai));

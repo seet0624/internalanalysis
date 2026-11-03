@@ -373,16 +373,16 @@ export function Profile({ id, onClose }: { id: string; onClose: () => void }) {
   );
 }
 
-export function RightPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function RightPanel({ open, onClose, drawer = false }: { open: boolean; onClose: () => void; drawer?: boolean }) {
   const s = useStore();
   const { t } = useLang();
   const title = s.person ? t('viewDetails') : s.dept ? t('deptDetail') : s.floor ? t('floorInfo') : t('intel');
   return (
-    <aside className={cn('glass fixed inset-y-0 right-0 z-40 flex w-[22rem] max-w-[92vw] flex-col rounded-none border-y-0 border-r-0 transition-transform duration-300 xl:static xl:z-auto xl:w-80 xl:translate-x-0 2xl:w-[22rem]',
+    <aside className={cn('glass fixed inset-y-0 right-0 z-40 flex w-[22rem] max-w-[92vw] flex-col rounded-none border-y-0 border-r-0 transition-transform duration-300', drawer ? 'text-fg' : 'xl:static xl:z-auto xl:w-80 xl:translate-x-0 2xl:w-[22rem]',
       open ? 'translate-x-0' : 'translate-x-full')} aria-label={t('intel')}>
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-line/10 px-4">
         <h2 className="flex items-center gap-2 text-sm font-semibold"><Sparkles className="size-4 text-accent" />{title}</h2>
-        <button type="button" onClick={onClose} className="rounded-md p-1 text-muted hover:text-fg xl:hidden" aria-label={t('close')}><X className="size-4" /></button>
+        <button type="button" onClick={onClose} className={cn('rounded-md p-1 text-muted hover:text-fg', !drawer && 'xl:hidden')} aria-label={t('close')}><X className="size-4" /></button>
       </div>
       <div key={`${s.person}-${s.dept}-${s.floor}`} className="min-h-0 flex-1 animate-slideIn overflow-y-auto p-4">
         {s.person ? <Profile id={s.person} onClose={() => s.selectPerson(null)} /> : s.dept ? <DeptInfo id={s.dept} /> : s.floor ? <FloorInfo id={s.floor} /> : <Intel />}
