@@ -464,6 +464,9 @@ body.light .itabs button.on{background:var(--bg2)}
       <div class="mh">督导（国内）</div>
       <button type="button" data-act="supimport">导入店铺资料 / 督导名单</button>
       <hr>
+      <div class="mh">家人以前的新名</div>
+      <button type="button" data-act="pastimport">导入以前的技术单（记住学员）</button>
+      <hr>
       <button type="button" data-act="lang" id="langBtn">English</button>
     </div>
   </div>
@@ -595,14 +598,20 @@ function stripRel(t){ if(REL_FULL[t])return ''; var arr=Array.from(t);
 // 只是称呼、不是人名的词（例如「爱人：利有通」里的「爱人」），不能拿去比对撞字撞音
 var REL_WORDS={}; '爱人 配偶 伴侣 前任 现任 前夫 前妻 丈夫 妻子 老公 老婆 先生 太太 对象 公公 婆婆 岳父 岳母 继父 继母 继子 继女'.split(' ').forEach(function(w){REL_WORDS[w]=1;});
 // 「不详 / 不清楚 / 不知道」这类是说不知道名字，不是人名
-var NO_NAME_RE=/不详|不祥|不清楚|不知道|不晓得|未知|不记得|记不得|忘记|忘了|暂无|没有|保密|待定|未定|未取|没取|不明/;
+var NO_NAME_RE=/不详|不祥|不清楚|不知道|不晓得|未知|不记得|记不得|忘记|忘了|暂无|没有|保密|待定|未定|未取|没取|不明|路上|没下来|未下来|还没|唐氏/;
+// 括号里的名字：「名正言顺：蒋朋袀，蒋宥苇」后面写几个都认；「李芊萦（李冬艳）」「张语馨（曾用名：张可馨，张馨月）」这种另一个名字也拿来比
+var BR_KEY=/(名正言[顺順]|新名字?|改名为?|更名为?|曾用名|原名|现用名|现在用|现任|前任|原)\s*[\uff1a:\u4e2d为]?/g;
+function bracketNames(inner){ var out=[], s=String(inner||''), after=s.search(/名正言[顺順]|新名|改名|更名/);
+  s.replace(BR_KEY,'，').split(/[\uff0c,\u3001\uff1b;\/\s\uff1a:和及]+/).forEach(function(tok,i){ var c=cjkOnly(tok); var n=Array.from(c).length;
+    if(n<2||n>4||NULLS[c]||REL_WORDS[c]||NO_NAME_RE.test(c)||/^[属屬已与與跟同继繼前现現大小二三老]/.test(c))return;
+    if(isSurname(c[0])||(after>=0&&s.indexOf(tok)>after)){ if(out.indexOf(c)<0)out.push(c); } });
+  return out; }
 function splitNames(text){ var t=String(text==null?'':text); if(NULLS[t.trim()])return [];
   var extra=[];
   // 括号里若写了「名正言顺：某某」「改名 某某」「新名 某某」，那是家人真正下来的新名，要抓出来比对
   var NM=/[\uff08(]([^\uff09)]*)[\uff09)]/g, mm;
   while((mm=NM.exec(t))){ var inner=mm[1];
-    var km=inner.match(/(?:名正言顺|名正言順|新名|改名|更名)\s*[\uff1a:\u4e2d]?\s*([\u4e00-\u9fff]{2,4})/);
-    if(km&&km[1])extra.push(km[1]); }
+    bracketNames(inner).forEach(function(nm){ if(extra.indexOf(nm)<0)extra.push(nm); }); }
   t=t.replace(/[\uff08(][^\uff09)]*[\uff09)]/g,'');
   for(var i=0;i<NOISE.length;i++)t=t.split(NOISE[i]).join('');
   var parts=t.split(/[@\uff0c,\u3001\uff1b;\uff1a:\u3000\s\/]+/).concat(extra),out=[];
@@ -708,6 +717,14 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
     var fam=grp._fam.slice(); var tb=tabooInfo(r0,cols); var personNotes=tb.notes.slice(); var notesAll=grp._notesAll;
     if(RULES.checkClash||RULES.checkHomo)grp._noteNames.forEach(function(nm){fam.push(['备注提到',nm]);});
     var colorFam=grp._color?(byColor[grp._color]||[]).filter(function(g2){return g2!==grp;}):[], colorNotes=[];
+    // 家人以前做过名正言顺（工具审过、或导入过的技术单）：同名的拿他的新名来比；会员编号或店铺编号也一样就当同一家人
+    var rowsText=rows.map(function(ri){ return (data[ri]||[]).join(' '); }).join(' ').toUpperCase(), linked={}; colorFam.forEach(function(g2){ if(g2._order)linked[g2._order.toUpperCase()]=1; });
+    var myKey=String(grp._order||'').toUpperCase(), myName=baseName(grp._disp), hdr=pf.header.map(function(h){return String(h).trim();}), ciC=hdr.indexOf('服务中心编号'), myCenter=ciC>=0?String(r0[ciC]==null?'':r0[ciC]).trim():'', seenP={};
+    grp._fam.concat(grp._noteNames.map(function(nm){return ['备注提到',nm];})).forEach(function(fm){ var nm=fm[1]; if(!nm||nm===myName)return;
+      (peopleIdx()[nm]||[]).forEach(function(h){ var o=h.o, pp=h.p; if(o===myKey||linked[o]||seenP[o]||rowsText.indexOf(o)>=0)return; if(pp.n===myName&&pp.m&&pp.m===grp._member)return; seenP[o]=1;
+        var strong=!!((pp.m&&pp.m===grp._member)||(pp.c&&pp.c===myCenter)), inNow=!!orderIndex[o], lab=fm[0]+'「'+nm+'」'+(inNow?'同一批的订单 ':'以前的订单 ')+o, sk;
+        (pp.g||[]).forEach(function(full){ sk=surLen(full,pp.s); var gn=Array.from(full).slice(sk).join(''); if(gn&&gn!==Array.from(nm).slice(sk).join(''))fam.push([lab,gn,!strong,true,full]); });
+        if(strong&&(pp.g||[]).length)colorNotes.push('✓ 家人「'+nm+'」'+(inNow?'在同一批里':'以前审过')+'（订单 '+o+(inNow?'':(pp.d?'，'+pp.d:''))+'，新名：'+pp.g.join('／')+'）——已自动比对撞字撞音'); }); });
     colorFam.forEach(function(g2){ var nms=[]; g2._givens.forEach(function(gn,i){ if(gn){ fam.push(['同色家人「'+g2._disp+'」',gn,false,true,g2._fullnames[i]||gn]); nms.push(g2._fullnames[i]||gn); } });
       colorNotes.push('✓ 同一颜色的家人「'+shortName(g2._disp)+'」'+(nms.length?'（新名：'+nms.join('／')+'）':'')+'——已自动比对撞字撞音'); });
     var av=avoidChars(notesAll); for(var ac in av)tb.single[norm(ac)]=1;
@@ -892,11 +909,29 @@ async function fixCoreProps(buf){ if(typeof JSZip==='undefined')return buf;
   try{ var zip=await JSZip.loadAsync(buf), core=zip.file('docProps/core.xml'); if(!core)return buf;
     var xml=await core.async('string'), fixed=xml.replace(/<(\/?)(coreProperties|lastModifiedBy|lastPrinted|revision|category|contentStatus|keywords|version|identifier|language)(\s|>|\/)/g,'<$1cp:$2$3');
     if(fixed===xml)return buf; zip.file('docProps/core.xml',fixed); return await zip.generateAsync({type:'arraybuffer'}); }catch(e){ return buf; } }
+// 学员记录：订单号 → {n 姓名, a 其他名字, s 姓, m 会员编号, c 店铺编号, g 新名, d 制表日期}；每份载入的技术单都会记进来
+var PEOPLE=load('mzys_people',{}), PEOPLE_IDX=null;
+function savePeople(){ var ks=Object.keys(PEOPLE); if(ks.length>30000){ ks.sort(function(a,b){ return String(PEOPLE[a].d||'').localeCompare(String(PEOPLE[b].d||'')); }).slice(0,ks.length-30000).forEach(function(k){ delete PEOPLE[k]; }); }
+  store('mzys_people',PEOPLE); PEOPLE_IDX=null; }
+function baseName(t){ return cjkOnly(String(t||'').replace(/[\uff08(][^\uff09)]*[\uff09)]/g,'')); }
+function recordPeople(pf,date){ var cols=pf.cols, ci=pf.header.map(function(h){return String(h).trim();}).indexOf('服务中心编号'), n=0;
+  pf.groups.forEach(function(grp){ var r0=pf.data[grp.rows[0]]||[], nm=baseName(grp._disp); if(!nm)return; var key=String(grp._order||(grp._member+'|'+nm)).toUpperCase();
+    var al=bracketNames((String(grp._disp).match(/[\uff08(]([^\uff09)]*)[\uff09)]/)||[])[1]||'');
+    PEOPLE[key]={n:nm, a:al, s:String(cols.surname>=0&&r0[cols.surname]!=null?r0[cols.surname]:'').trim(), m:grp._member||'', c:ci>=0?String(r0[ci]==null?'':r0[ci]).trim():'', g:grp._fullnames.filter(String), d:date||''}; n++; });
+  savePeople(); return n; }
+function peopleIdx(){ if(PEOPLE_IDX)return PEOPLE_IDX; var ix={}; for(var k in PEOPLE){ var p=PEOPLE[k]; [p.n].concat(p.a||[]).forEach(function(nm){ if(nm)(ix[nm]||(ix[nm]=[])).push({o:k,p:p}); }); } return (PEOPLE_IDX=ix); }
+// 导入以前的技术单：只记学员，不放进审核队列
+async function importPastSheets(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.xlsx'; inp.multiple=true; inp.onchange=async function(){ var tot=0, bad=[];
+  for(var i=0;i<inp.files.length;i++){ var f=inp.files[i]; try{ var buf=await fixCoreProps(await f.arrayBuffer()), wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf); var ws=pickSheet(wb), data=wsTo2D(ws), pf=parseFile(data);
+      if(!pf){ bad.push(f.name); continue; } tot+=recordPeople(pf,tableDateOf(data,f.name)); }catch(e){ bad.push(f.name); } }
+  rebuild(); alert('已记住 '+tot+' 位学员（现在一共 '+Object.keys(PEOPLE).length+' 位）。以后技术单的家人栏出现同名的人，会拿他以前下来的新名来比。'+(bad.length?'\n读不了：'+bad.join('、'):'')); }; inp.click(); }
+
 async function loadWithBuffers(fileList){ var start=parsedFiles.length;
   for(var i=0;i<fileList.length;i++){ var f=fileList[i]; if(!/\.xlsx?$/i.test(f.name)){ toast('「'+f.name+'」不是 Excel，略过'); continue; } var buf=await f.arrayBuffer();
   try{ buf=await fixCoreProps(buf); var wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf.slice(0)); var ws=pickSheet(wb); var data=wsTo2D(ws); var loc0=locateHeader(data); var parsed=parseFile(data, loc0?rowColorsOf(ws,loc0.hr,colsFrom(loc0.header).user):[]);
     if(!parsed){ alert('「'+f.name+'」找不到表头（需有「新名」「新名拼音」），略过。'); continue; }
     var om=load('mzys_overseas',{});
+    recordPeople(parsed, tableDateOf(data,f.name));
     parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), tags:nameTags(f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
   }catch(e){ alert(HQTool.friendly('读「'+f.name+'」的时候出错。',e)); } }
   if(parsedFiles.length>start){ activeFile=start; curSid=null; queueFilter='all'; }
@@ -1241,7 +1276,7 @@ function relWord(d,key){ if(!key)return ''; var SKIP=/名正言[顺順]|新名|�
   var fields=[d.sib,d.kids,d.note1,d.note2];
   for(var i=0;i<fields.length;i++){ var t=String(fields[i]||''), at=t.indexOf(key); if(at<0)continue;
     var ms=t.slice(0,at).match(/[一-鿿]{1,4}(?=[：:])/g)||[];
-    for(var j=ms.length-1;j>=0;j--){ if(!SKIP.test(ms[j]))return ms[j]; } }
+    for(var j=ms.length-1;j>=0;j--){ if(!SKIP.test(ms[j]))return ms[j].replace(/(的)?名字$/,'')||ms[j]; } }
   return ''; }
 function isNewName(d,nm){ var re=new RegExp('(?:名正言[顺順]|新名|改名|更名)\\s*[\\uff1a:]?\\s*'+nm); return [d.father,d.mother,d.sib,d.kids].some(function(t){ return re.test(String(t||'')); }); }
 function whoOf(h,d){ var m=h.member, o;
@@ -1249,6 +1284,7 @@ function whoOf(h,d){ var m=h.member, o;
   if((o=m.match(/^关联订单\s*(\S+)\s*的新名$/)))return {who:relWord(d,o[1])||('订单 '+o[1]),isNew:true};
   if((o=m.match(/^关联学员「([^」]*)」\(([^)]*)\)$/)))return {who:relWord(d,o[2])||relWord(d,o[1])||o[1],isNew:true};
   if((o=m.match(/^同色家人「([^」]*)」$/)))return {who:relWord(d,shortName(o[1]))||shortName(o[1]),isNew:true};
+  if((o=m.match(/^(.+?)「([^」]*)」(?:同一批的|以前的)订单/)))return {who:({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]!=null?({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]||relWord(d,o[2])||o[2]):(relWord(d,o[2])||o[2])),isNew:true};
   return {who:relWord(d,h.full)||(m==='备注提到'?'备注里提到的人':m),isNew:isNewName(d,h.full)}; }
 function outReason(r){ var out=[];
   r.rows.forEach(function(rw){ var g=Array.from(rw.given), d=rw.detail||{};
@@ -1474,9 +1510,9 @@ function exportDB(){ var db=window._DB||{}; var lines=[]; for(var k in db)lines.
 function importDB(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.csv,.txt'; inp.onchange=async function(){ var f=inp.files[0]; if(!f)return; var txt=await f.text(); txt.split(/\r?\n/).forEach(function(line){ var p=line.replace(/^\ufeff/,'').split(','); var k=(p[0]||'').trim().toUpperCase(); if(!k)return; var names=p.slice(1).map(function(s){return s.trim();}).filter(Boolean); if(names.length)importedDB[k]=(importedDB[k]||[]).concat(names); }); saveDB(); rebuild(); document.getElementById('modal').style.display='none'; }; inp.click(); }
 
 /*==== session save/restore ====*/
-function exportSession(){ var s={db:importedDB, verdicts:load('mzys_verdicts',{}), sup:{info:SUP.info,list:SUP.list,center:SUP.center,shops:SUP.shops,shopsMeta:SUP.shopsMeta}, rules:{POLY:RULES.POLY,_extraTaboo:RULES._extraTaboo||[]}}; dl(new Blob([JSON.stringify(s)],{type:'application/json'}),'名字审核_存档_'+dateStr()+'.json'); }
+function exportSession(){ var s={db:importedDB, verdicts:load('mzys_verdicts',{}), sup:{info:SUP.info,list:SUP.list,center:SUP.center,shops:SUP.shops,shopsMeta:SUP.shopsMeta}, people:PEOPLE, rules:{POLY:RULES.POLY,_extraTaboo:RULES._extraTaboo||[]}}; dl(new Blob([JSON.stringify(s)],{type:'application/json'}),'名字审核_存档_'+dateStr()+'.json'); }
 function importSession(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.json'; inp.onchange=async function(){ var f=inp.files[0]; if(!f)return; try{ var s=JSON.parse(await f.text());
-  if(s.db){ importedDB=s.db; saveDB(); } if(s.verdicts)store('mzys_verdicts',s.verdicts); if(s.sup){ ['info','list','center','shops','shopsMeta'].forEach(function(k){ if(s.sup[k])SUP[k]=s.sup[k]; }); saveSup(); } if(s.rules){ if(s.rules.POLY)RULES.POLY=s.rules.POLY; if(s.rules._extraTaboo)RULES._extraTaboo=s.rules._extraTaboo; }
+  if(s.db){ importedDB=s.db; saveDB(); } if(s.verdicts)store('mzys_verdicts',s.verdicts); if(s.sup){ ['info','list','center','shops','shopsMeta'].forEach(function(k){ if(s.sup[k])SUP[k]=s.sup[k]; }); saveSup(); } if(s.people){ for(var pk in s.people)PEOPLE[pk]=s.people[pk]; savePeople(); } if(s.rules){ if(s.rules.POLY)RULES.POLY=s.rules.POLY; if(s.rules._extraTaboo)RULES._extraTaboo=s.rules._extraTaboo; }
   alert('存档已还原（订单库＋判定＋规则＋督导资料）。文件请重新拖入，判定会自动套回。'); rebuild(); }catch(e){ alert('读存档失败：'+e.message); } }; inp.click(); }
 
 /*==== 发音清单：不卡上传，但要让客服知道 ====*/
@@ -1534,6 +1570,11 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-03', title:'家人以前下来的新名也会比', items:[
+    '括号里「名正言顺：蒋朋袀，蒋宥苇」写几个新名都认（之前只认第一个）',
+    '「李芊萦（李冬艳）」「张语馨（曾用名：张可馨）」这种另一个名字也拿来比',
+    '工具记住每一位审过的学员；家人栏出现同名的人，拿他以前下来的新名来比：会员编号或店铺编号一样算必须改，只是同名算请确认',
+    '「⋯ → 导入以前的技术单」可以一次把以前的技术单读进来（只记学员，不放进审核）；存档也会一起存']},
   {date:'2026-11-02', title:'有些文件读不进去的问题 + 文件名保留标签', items:[
     '原文件名括号里的标签（例如「新生儿」）会留在下载的文件名里，同一天两份技术单不会同名覆盖',
     '用某些软件存的技术单，文件信息（最后修改人）写法不常见，会出现「Unexpected xml node … lastModifiedBy」读不进去；现在读之前自动改好，表格内容不动']},
@@ -1624,7 +1665,7 @@ function infoHtml(tab){
     function col(cls,label,sub,items){ return '<div class="tcol '+cls+'"><div class="th"><span class="tier '+cls+'">'+label+'</span><span>'+sub+'</span></div><ul>'+items.map(function(it){ return '<li><b>'+it[0]+'</b>'+(it[1]?'：'+it[1]:'')+'</li>'; }).join('')+'</ul></div>'; }
     h+='<div class="rtop"><span>每一项检查都会归到三级之一。两个新名只要有一个是「必须改」，整个学员就不能上传。</span><span class="grow"></span><button type="button" class="linkbtn" data-act="settings" style="margin:0;font-size:13px">规则设定（开关 / 加禁忌字）→</button></div>';
     h+='<div class="tiers">'+
-      col('must','必须改','不能上传',[['撞字','和父母、兄弟姐妹、伴侣、子女同一个字（括号里写的「名正言顺：XXX」新名也算；文件里涂同一颜色的学员算一家人，新名互相比对）'],['撞音','和家人完全同音同调'],['禁忌字 / 不要的音','禁忌栏或备注写的字，或写成拼音（如 cheng）'],['两个名太像','同样的字调换顺序，或拼音完全一样']])+
+      col('must','必须改','不能上传',[['撞字','和父母、兄弟姐妹、伴侣、子女同一个字（括号里写的「名正言顺：XXX」、「新名（旧名）」都算；文件里涂同一颜色的学员算一家人；家人以前审过、会员编号或店铺编号一样的，拿他下来的新名比）'],['撞音','和家人完全同音同调'],['禁忌字 / 不要的音','禁忌栏或备注写的字，或写成拼音（如 cheng）'],['两个名太像','同样的字调换顺序，或拼音完全一样']])+
       col('check','请确认','人工看过再决定',[['订单状态备注','有写就先卡住，看过再放行'],['同音不同调','和家人同音但声调不同'],['禁忌字同音','不是同一个字，但读音一样'],['繁体有几种写法','例如 云 / 雲、后 / 後，已先转，请确认'],['粤语谐音','用粤语念近不吉的音（也记进「发音清单」）'],['生肖忌用部首',''],['同批重名 / 历史重名',''],['要查的订单 / 会员编号','家人的名字还没下来']])+
       col('info','参考','不影响上传',[['名册要繁体','新名自动改成繁体（姓不动），下载的三份文件都用繁体'],['不雅谐音','连姓一起念像不好的词——先放行，记进顶栏「发音清单」给客服'],['技术单拼音写错','会用正确读音再查一遍，记得通知改单'],['多音字','提醒确认读法'],['生肖喜用部首',''],['已自动关联的编号','家人在同一批文件里，已比对过']])+'</div>';
     h+='<div class="rchips"><span>现在开着：</span>'+RULE_DEFS.map(function(d){ var on=!!RULES[d[0]]; return '<button type="button" class="rchip'+(on?'':' off')+'" data-act="settings" title="'+(on?'开着':'关着')+'，点一下去规则设定">'+d[1]+'</button>'; }).join('')+'</div>';
@@ -1685,6 +1726,7 @@ function runAct(a){ var x=parsedFiles[activeFile];
     case 'dlsup': downloadSup(); break;
     case 'suptable': openSupTable(); break;
     case 'supimport': importSupData(); break;
+    case 'pastimport': importPastSheets(); break;
   } }
 
 /*==== events ====*/
