@@ -29,7 +29,13 @@ description: 数易 AI 公司的每小时工作循环——把老板派的任务
 - `ceo-01` Martin：老板（人）。**永远不能用他的名义说话或做决定。**
 - `ceo-02` Aria：AI CEO。接任务、写计划、分工、盯进度、写报告。
 - 审核部（5F）：`review-01` 叶慧敏（主管）、`review-02` Judge（程序审核）、`dev-23` Lint（代码风格）、`review-03` Shield（安全）、`review-04` Hunter（隐藏错误）、`review-05` Gauge（文案品牌）、`review-06` Sage（计划审核）、`review-07` Verify（验收）。
-- 开发组（4F）：Forge（web-developer）、Blueprint（code-architect）、Scout（code-explorer）、Swift（fast-worker）、Motion（animation）、Refine（code-simplifier）＋人类工程师；测试部 Probe、Coverage。
+- 技术部（4F，写程序）：`tech-26` 冯磊（架构师，人类负责人）、Relay（deploy-checklist）、Forge（web-developer）、Blueprint（code-architect）、Scout（code-explorer）、Swift（fast-worker）、Motion（animation）、Refine（code-simplifier）。
+- 设计部 = UI/UX 设计（4F）：何雨桐、罗子轩（人类）、Pixel（design-researcher）、Canvas（ux-designer）。
+- 客服部（2F）：国内客服团队；AI 助手组（Claude 客服组：回复撰写、工单分拣、知识库、升级处理，用 `customer-support:*`）。
+- 技术支持（2F）：技术单审核组（阿技、小急、阿问）。
+
+**只派给核心部门**：`teams` / `assignees` 只能从这六个部门选：审核部 `review`、客服部 `cs`、AI 助手组 `claude`、设计部 `uiux`、技术部 `tech`、技术支持 `techsup`（还有 AI CEO Aria）。
+老板指定了别的部门，就交给最接近的核心部门做，在 `plan` 第一行写明换给了谁、为什么。
 
 ## 每一轮怎么做
 

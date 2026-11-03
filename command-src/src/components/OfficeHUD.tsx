@@ -12,6 +12,7 @@ import { avatarUrl } from '../lib/look';
 import { STATUS_COLOR } from '../scene/status';
 import type { Person, Status } from '../types';
 import { cn } from '../lib/cn';
+import { CORE_DEPTS } from '../lib/company';
 
 const ACTIVE: MissionStatus[] = ['new', 'planning', 'plan_review', 'executing', 'result_review', 'rework'];
 // 任务走到哪一步 → 大概完成几成（员工卡上的进度条）
@@ -46,7 +47,8 @@ export function OfficeHUD({ cards = true, className }: { cards?: boolean; classN
 
   const depts = useMemo(() => {
     const order = [...m.floors].sort((a, b) => b.level - a.level).map((f) => f.id);
-    return m.departments.filter((d) => s.canEnter(d.floor) && (!s.csView || d.floor === '2F')).sort((a, b) => order.indexOf(a.floor) - order.indexOf(b.floor));
+    const rank = (id: string) => (CORE_DEPTS.includes(id) ? CORE_DEPTS.indexOf(id) : 100);
+    return m.departments.filter((d) => s.canEnter(d.floor) && (!s.csView || d.floor === '2F')).sort((a, b) => rank(a.id) - rank(b.id) || order.indexOf(a.floor) - order.indexOf(b.floor));
   }, [m.floors, m.departments, s.canEnter, s.csView]); // eslint-disable-line react-hooks/exhaustive-deps
   const dept = m.departments.find((d) => d.id === s.room);
   const ppl = useMemo(() => {
@@ -92,6 +94,7 @@ export function OfficeHUD({ cards = true, className }: { cards?: boolean; classN
                 <span className="size-2 rounded-sm" style={{ background: d.color }} />
                 {short(tr(d.name))}
                 <span className={cn('num rounded px-1 text-[10px]', on ? 'bg-white/20' : 'bg-white/5')}>{n}</span>
+                {CORE_DEPTS.includes(d.id) && <span className="rounded bg-[#FBBC04]/20 px-1 text-[9px] font-bold text-[#FDD663]">核心</span>}
               </button>
             );
           })}

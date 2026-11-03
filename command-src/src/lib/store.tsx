@@ -49,7 +49,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [model, setModel] = useState<CompanyModel>(buildCompany);
   const [lastEvent, setLastEvent] = useState<HQEvent | null>(null);
   const [section, setSection] = useState<Section>(role === 'boss' ? 'overview' : 'features');   // 老板先看公司总览
-  const [room, setRoomState] = useState<string>(role === 'cs' ? 'cs' : 'dev');   // 国内客服：自己的客服部；老板先看开发部
+  const [room, setRoomState] = useState<string>(role === 'cs' ? 'cs' : 'review');   // 国内客服：自己的客服部；老板先看审核部
   const [mode, setMode] = useState<'3d' | '2d'>('3d');
   const [dept, selectDept] = useState<string | null>(null);
   const [person, selectPerson] = useState<string | null>(null);
