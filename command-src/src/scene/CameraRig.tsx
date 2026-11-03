@@ -7,7 +7,7 @@ import { useStore } from '../lib/store';
 import { damp } from './shared';
 
 const DIR = new THREE.Vector3(1, 1.02, 1.16).normalize();   // 从右前方高处看（看得到后墙和左墙）
-const TARGET = new THREE.Vector3(-0.4, 0.3, 0.2);
+const TARGET = new THREE.Vector3(1.0, 0.3, 0.7);   // 稍微往右前：画面右边有任务面板，办公室往左一点
 
 export function CameraRig() {
   const s = useStore();
@@ -23,7 +23,7 @@ export function CameraRig() {
 
   const home = () => {
     if (s.mode === '2d') return { pos: new THREE.Vector3(-0.3, 30 * far, 0.6), target: new THREE.Vector3(-0.3, 0, 0.2) };
-    return { pos: TARGET.clone().addScaledVector(DIR, 24.5 * far), target: TARGET.clone() };
+    return { pos: TARGET.clone().addScaledVector(DIR, 26.5 * far), target: TARGET.clone() };
   };
 
   // 换部门 / 换 2D-3D / 画面大小变了：飞回去

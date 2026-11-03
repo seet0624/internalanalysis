@@ -22,7 +22,7 @@ const NAV: { id: Section; key: UIKey; icon: ReactNode }[] = [
   { id: 'settings', key: 'nav_settings', icon: <Settings className="size-4" /> }
 ];
 
-export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function Sidebar({ open, onClose, drawer = false }: { open: boolean; onClose: () => void; drawer?: boolean }) {
   const s = useStore();
   const { t, tr } = useLang();
   const featureCount = buildFeatures(s.role).length;
@@ -37,7 +37,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
 
   return (
     <aside className={cn(
-      'glass fixed inset-y-0 left-0 z-40 flex w-64 flex-col rounded-none border-y-0 border-l-0 transition-transform duration-300 lg:static lg:w-60 lg:translate-x-0',
+      'glass fixed inset-y-0 left-0 z-40 flex w-64 flex-col rounded-none border-y-0 border-l-0 transition-transform duration-300', drawer ? 'text-fg' : 'lg:static lg:w-60 lg:translate-x-0',
       open ? 'translate-x-0' : '-translate-x-full'
     )} aria-label={t('appName')}>
       <div className="flex items-center gap-2.5 px-4 pb-3 pt-4">
@@ -46,7 +46,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           <div className="truncate text-sm font-bold tracking-tight">{t('company')} · {t('appName')}</div>
           <div className="text-2xs text-faint">AI Company HQ</div>
         </div>
-        <button type="button" onClick={onClose} className="rounded-md p-1 text-muted hover:text-fg lg:hidden" aria-label={t('close')}><X className="size-4" /></button>
+        <button type="button" onClick={onClose} className={cn('rounded-md p-1 text-muted hover:text-fg', !drawer && 'lg:hidden')} aria-label={t('close')}><X className="size-4" /></button>
       </div>
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
@@ -60,7 +60,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
                     on ? 'bg-gradient-to-r from-accent/15 to-transparent font-semibold text-fg shadow-[inset_2px_0_0_rgb(var(--accent))]' : 'text-muted hover:bg-elevated/60 hover:text-fg')}>
                   <span className={on ? 'text-accent' : ''}>{n.icon}</span>
                   {t(n.key)}
-                  {n.id === 'features' && <span className="num ml-auto rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-canvas">{featureCount}</span>}
+                  {n.id === 'features' && <span className="num ml-auto rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-white">{featureCount}</span>}
                   {n.id === 'missions' && openMissions > 0 && <span className="num ml-auto rounded-full bg-[#9334E6] px-2 py-0.5 text-[10px] font-bold text-white">{openMissions}</span>}
                 </button>
               </li>
@@ -95,7 +95,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       </nav>
 
       <div className="flex items-center gap-2.5 border-t border-line/10 p-3">
-        <div className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-warn to-danger text-sm font-bold text-canvas">
+        <div className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-warn to-danger text-sm font-bold text-white">
           {(s.userName || 'M').replace(/^老板\s*/, '').slice(0, 1)}
         </div>
         <div className="min-w-0 flex-1">

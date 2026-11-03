@@ -54,7 +54,7 @@ function SearchBox() {
           {total === 0 && <div className="px-3 py-4 text-center text-sm text-faint">{t('noResults')}</div>}
           {res.floors.map((f) => (
             <button key={f.id} type="button" className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm hover:bg-elevated" onClick={() => { goFloor(f.id); done(); }}>
-              <span className="grid h-6 w-8 place-items-center rounded text-[10px] font-bold text-canvas" style={{ background: f.accent }}>{f.code}</span>{tr(f.name)}
+              <span className="grid h-6 w-8 place-items-center rounded text-[10px] font-bold text-white" style={{ background: f.accent }}>{f.code}</span>{tr(f.name)}
             </button>
           ))}
           {res.depts.map((d) => (
@@ -174,7 +174,7 @@ export function TopBar({ onMenu, onIntel, intelOpen }: { onMenu: () => void; onI
       <SearchBox />
       {/* 两个审核工具：不管在哪个画面都看得到、按得到 */}
       <div className="hidden items-center gap-1.5 lg:flex">
-        <a href="../name/" className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-3 text-sm font-bold text-canvas transition-colors hover:bg-accent"><ClipboardCheck className="size-4" />{lang === 'zh' ? '名字审核' : 'Name review'}</a>
+        <a href="../name/" className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-3 text-sm font-bold text-white transition-colors hover:bg-accent"><ClipboardCheck className="size-4" />{lang === 'zh' ? '名字审核' : 'Name review'}</a>
         <a href="../tech/" className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-brand/60 px-3 text-sm font-bold text-accent transition-colors hover:bg-brand/15"><FileSpreadsheet className="size-4" />{lang === 'zh' ? '技术单审核' : 'Order review'}</a>
       </div>
       <IconButton label={t('nav_features')} onClick={() => s.setSection('features')} active={s.section === 'features'} className="lg:hidden"><LayoutGrid className="size-4" /></IconButton>
@@ -204,7 +204,7 @@ export function TopBar({ onMenu, onIntel, intelOpen }: { onMenu: () => void; onI
         </IconButton>
         <Notifications />
         <button type="button" onClick={() => s.setAssistantOpen(!s.assistantOpen)} aria-pressed={s.assistantOpen}
-          aria-label={t('aiAssistant')} title={t('aiAssistant')} className="ml-1 hidden h-9 items-center gap-1.5 rounded-lg bg-gradient-to-r from-brand to-accent px-3 text-sm font-semibold text-canvas shadow-glow transition-transform active:scale-95 sm:flex">
+          aria-label={t('aiAssistant')} title={t('aiAssistant')} className="ml-1 hidden h-9 items-center gap-1.5 rounded-lg bg-gradient-to-r from-brand to-accent px-3 text-sm font-semibold text-white shadow-glow transition-transform active:scale-95 sm:flex">
           <Bot className="size-4" /><span className="hidden whitespace-nowrap min-[1900px]:inline">{t('aiAssistant')}</span>
         </button>
         <IconButton label={t('intel')} onClick={onIntel} active={intelOpen} className="xl:hidden"><PanelRight className="size-4" /></IconButton>

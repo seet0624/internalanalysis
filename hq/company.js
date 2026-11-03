@@ -41,10 +41,10 @@ window.COMPANY = {
           id: 'support', name: 'Claude 客服组', kind: 'claude', color: '#C26A00',
           summary: '在 Claude 里帮客服回客人、分工单、写常见问题。',
           agents: [
-            { name: '小回', trait: '温和', role: '回复撰写', skill: 'customer-support:draft-response', duty: '按客人的问题起草回复。' },
-            { name: '分拣', trait: '直爽', role: '工单分拣', skill: 'customer-support:ticket-triage', duty: '看工单内容，分轻重缓急、该给谁处理。' },
-            { name: '小知', trait: '细心', role: '知识库编辑', skill: 'customer-support:kb-article', duty: '把常见问题整理成说明文章。' },
-            { name: '阿升', trait: '外向', role: '升级处理', skill: 'customer-support:customer-escalation', duty: '处理棘手的客诉，整理要往上报的内容。' }
+            { name: '小回', trait: '温和', role: '回复撰写', skill: 'anthropic-skills:internal-comms', duty: '按客人的问题起草回复。' },
+            { name: '分拣', trait: '直爽', role: '工单分拣', skill: 'general-purpose', duty: '看工单内容，分轻重缓急、该给谁处理。' },
+            { name: '小知', trait: '细心', role: '知识库编辑', skill: 'anthropic-skills:doc-coauthoring', duty: '把常见问题整理成说明文章。' },
+            { name: '阿升', trait: '外向', role: '升级处理', skill: 'anthropic-skills:internal-comms', duty: '处理棘手的客诉，整理要往上报的内容。' }
           ]
         },
         { id: 'next', name: '新功能工位', kind: 'planned', color: '#9A8F80', summary: '空着的工位，以后加的功能坐这里。', agents: [] }

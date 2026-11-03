@@ -621,7 +621,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "a1-gallery:design-researcher",
+    "skill": "deep-research",
     "real": true
   },
   {
@@ -772,7 +772,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "hzblj-skills:web-developer",
+    "skill": "general-purpose",
     "real": true
   },
   {
@@ -794,7 +794,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "hzblj-skills:clean-code-reviewer",
+    "skill": "simplify",
     "real": true
   },
   {
@@ -924,7 +924,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "engineering:deploy-checklist",
+    "skill": "verify",
     "real": true
   },
   {
@@ -2419,7 +2419,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "feature-dev:code-reviewer",
+    "skill": "code-review",
     "real": true
   },
   {
@@ -2441,7 +2441,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "chrome-extension-builder:security-reviewer",
+    "skill": "security-review",
     "real": true
   },
   {
@@ -2463,7 +2463,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "pr-review-toolkit:silent-failure-hunter",
+    "skill": "debug",
     "real": true
   },
   {
@@ -2485,7 +2485,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "brand-voice:quality-assurance",
+    "skill": "anthropic-skills:brand-guidelines",
     "real": true
   },
   {
@@ -2507,7 +2507,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "agentic-sdlc:reviewing-plan",
+    "skill": "Plan",
     "real": true
   },
   {
@@ -2529,7 +2529,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "superpowers:verification-before-completion",
+    "skill": "verify",
     "real": true
   },
   {
@@ -2551,7 +2551,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "feature-dev:code-architect",
+    "skill": "Plan",
     "real": true
   },
   {
@@ -2573,7 +2573,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "feature-dev:code-explorer",
+    "skill": "Explore",
     "real": true
   },
   {
@@ -2595,7 +2595,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "hzblj-skills:fast-worker",
+    "skill": "general-purpose",
     "real": true
   },
   {
@@ -2617,7 +2617,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "hzblj-skills:animation-specialist",
+    "skill": "general-purpose",
     "real": true
   },
   {
@@ -2639,7 +2639,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "pr-review-toolkit:code-simplifier",
+    "skill": "simplify",
     "real": true
   },
   {
@@ -2771,7 +2771,7 @@
       "en": "Standing by for the AI CEO"
     },
     "history": [],
-    "skill": "chrome-extension-builder:ux-designer",
+    "skill": "design",
     "real": true
   }
 ]

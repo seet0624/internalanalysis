@@ -18,7 +18,7 @@ function ReviewCard({ f }: { f: Feature }) {
   return (
     <a href={f.href} className="group relative flex flex-col overflow-hidden rounded-2xl border border-brand/40 bg-gradient-to-br from-brand/15 via-elevated/60 to-surface p-5 transition-[border-color,transform] duration-200 hover:border-accent active:scale-[0.99]">
       <div className="flex items-start gap-4">
-        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-canvas shadow-glow"><Icon className="size-7" aria-hidden /></span>
+        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-brand text-white shadow-glow"><Icon className="size-7" aria-hidden /></span>
         <div className="min-w-0 flex-1">
           <h3 className="text-xl font-bold tracking-wide">{tr(f.name)}</h3>
           <p className="mt-1 text-sm leading-relaxed text-muted">{tr(f.desc)}</p>
@@ -34,7 +34,7 @@ function ReviewCard({ f }: { f: Feature }) {
         </ol>
       )}
       <div className="mt-4 flex flex-wrap items-center gap-3">
-        <span className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-base font-bold text-canvas transition-colors group-hover:bg-accent">
+        <span className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-base font-bold text-white transition-colors group-hover:bg-accent">
           {t('startReview')}<ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" aria-hidden />
         </span>
         <span className="min-w-0 flex-1 text-xs text-faint">

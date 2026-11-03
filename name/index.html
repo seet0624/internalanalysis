@@ -18,8 +18,8 @@ if(!window.JSZip) document.write('<script src="https://cdnjs.cloudflare.com/ajax
 </script>
 <style>
 :root{
-  --bg:#14110F; --bg2:#1A1714; --panel:#1E1A17; --panel2:#25201C; --line:#3A3430; --line2:#4A433D;
-  --ink:#F8F9FA; --ink2:#DADCE0; --muted:#BDB3A3; --gold:#8AB4F8; --gold2:#AECBFA;
+  --bg:#0F1217; --bg2:#12151B; --panel:#161A21; --panel2:#1E232C; --line:#2A303C; --line2:#343B49;
+  --ink:#E8EAED; --ink2:#C8D0DC; --muted:#9AA7BD; --gold:#8AB4F8; --gold2:#AECBFA;
   --pri-bg:#8AB4F8; --pri-ink:#14110F;
   --accent-soft:#1F3A5F; --accent-ink:#AECBFA; --hl:rgba(26,115,232,.25);
   --bad:#FF8A80; --bad-bg:#3A1C1A; --bad-line:rgba(255,138,128,.45); --bad-solid-ink:#1A0A0C;
@@ -399,7 +399,7 @@ body.light .itabs button.on{background:var(--bg2)}
 @media print{ header.top,.queue,.tools,.keys{display:none} body{overflow:visible;height:auto;display:block} .app,.main{display:block;overflow:visible} }
 </style>
 </head>
-<body class="light">
+<body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -1754,7 +1754,7 @@ function runAct(a){ var x=parsedFiles[activeFile];
     case 'rules': openHelp('rules'); break;
     case 'save': exportSession(); break;
     case 'load': importSession(); break;
-    case 'theme': document.body.classList.toggle('light'); store('mzys_theme', document.body.classList.contains('light')?'light':'dark'); break;
+    case 'theme': document.body.classList.toggle('light'); store('mzys_theme2', document.body.classList.contains('light')?'light':'dark'); break;
     case 'lang': lang=lang==='cn'?'en':'cn'; store('mzys_lang',lang); applyLang(); break;
     case 'help': openHelp('guide'); break;
     case 'changelog': openHelp('log'); break;
@@ -1812,7 +1812,7 @@ document.addEventListener('keydown',function(e){ var tg=e.target, tn=tg.tagName;
 });
 
 /* init */
-(function(){ var th=load('mzys_theme','light'); document.body.classList.toggle('light', th!=='dark'); lang=load('mzys_lang','cn');
+(function(){ var th=load('mzys_theme2','dark'); document.body.classList.toggle('light', th==='light'); lang=load('mzys_lang','cn');
   var sd=load('mzys_db',{}); for(var k in sd)importedDB[k]=sd[k]; document.getElementById('dbCount').textContent=Object.keys(sd).length;
   document.getElementById('verChip').textContent=CHANGELOG[0].date+' 版';
   try{ window._DB=buildOrderDB([], importedDB); }catch(e){ window._DB=Object.assign({},importedDB); }

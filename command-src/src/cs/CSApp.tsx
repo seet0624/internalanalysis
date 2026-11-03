@@ -29,13 +29,13 @@ const NAV: { id: View; label: string; icon: ReactNode }[] = [
   { id: 'notices', label: '公告通知', icon: <Megaphone className="size-[18px]" /> }
 ];
 const TS_LABEL: Record<TicketStatus, string> = { open: '待处理', progress: '处理中', pending: '等待客户', done: '已完成' };
-const TS_TONE: Record<TicketStatus, string> = { open: 'bg-danger/10 text-danger', progress: 'bg-brand/10 text-brand', pending: 'bg-warn/15 text-[#B06000]', done: 'bg-ok/10 text-ok' };
+const TS_TONE: Record<TicketStatus, string> = { open: 'bg-danger/10 text-danger', progress: 'bg-brand/10 text-brand', pending: 'bg-warn/15 text-[#FDD663]', done: 'bg-ok/10 text-ok' };
 const PR_LABEL = { low: '低', medium: '中', high: '高', urgent: '紧急' } as const;
 const fmtTime = (t: number) => { const d = new Date(t); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const ago = (t: number) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? '刚刚' : m < 60 ? `${m} 分钟前` : m < 1440 ? `${Math.round(m / 60)} 小时前` : `${Math.round(m / 1440)} 天前`; };
 
 function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cn('rounded-2xl border border-[#DADCE0] bg-surface shadow-glass', className)}>{children}</section>;
+  return <section className={cn('rounded-2xl border border-[#2A303C] bg-surface shadow-glass', className)}>{children}</section>;
 }
 function Avatar({ p, size = 32, ring = true }: { p: Person; size?: number; ring?: boolean }) {
   return (
@@ -78,7 +78,7 @@ function CSSidebar({ view, setView }: { view: View; setView: (v: View) => void }
     notices: chat.filter((x) => x.ch === 'announce' && Date.now() - x.t < 864e5).length
   };
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-[#DADCE0] bg-surface">
+    <aside className="flex w-60 shrink-0 flex-col border-r border-[#2A303C] bg-surface">
       <div className="flex items-center gap-2 px-5 pb-3 pt-4">
         <img src="../hq/brand/shuyi-logo-64.png" alt="" className="size-8" />
         <div className="text-[17px] font-semibold tracking-tight text-fg">数易 <span className="text-faint">Company</span></div>
@@ -94,7 +94,7 @@ function CSSidebar({ view, setView }: { view: View; setView: (v: View) => void }
             <ChevronDown className="size-4 text-faint" />
           </button>
           {pick && (
-            <div className="absolute left-0 right-0 top-14 z-30 max-h-72 overflow-auto rounded-xl border border-[#DADCE0] bg-surface p-1 shadow-glass">
+            <div className="absolute left-0 right-0 top-14 z-30 max-h-72 overflow-auto rounded-xl border border-[#2A303C] bg-surface p-1 shadow-glass">
               <div className="px-2 py-1 text-[11px] text-faint">我是谁（共用账号时选自己）</div>
               {humans.map((p) => (
                 <button key={p.id} type="button" onClick={() => { live.setMe(p.id); setPick(false); }} className={cn('flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-elevated', p.id === me.id && 'bg-brand/10')}>
@@ -109,18 +109,18 @@ function CSSidebar({ view, setView }: { view: View; setView: (v: View) => void }
         {NAV.map((n) => (
           <button key={n.id} type="button" onClick={() => setView(n.id)} aria-current={view === n.id ? 'page' : undefined}
             className={cn('mb-0.5 flex w-full items-center gap-3 rounded-full px-4 py-2.5 text-[15px] transition-colors',
-              view === n.id ? 'bg-[#E8F0FE] font-semibold text-[#1967D2]' : 'text-fg hover:bg-elevated')}>
-            <span className={view === n.id ? 'text-[#1967D2]' : 'text-muted'}>{n.icon}</span>{n.label}
+              view === n.id ? 'bg-[#1A73E8]/20 font-semibold text-[#8AB4F8]' : 'text-fg hover:bg-elevated')}>
+            <span className={view === n.id ? 'text-[#8AB4F8]' : 'text-muted'}>{n.icon}</span>{n.label}
             {!!badge[n.id] && <span className="ml-auto rounded-full bg-danger px-2 text-[11px] font-semibold leading-5 text-white">{badge[n.id]}</span>}
           </button>
         ))}
-        <div className="mx-4 my-3 h-px bg-[#DADCE0]" />
+        <div className="mx-4 my-3 h-px bg-[#3C4352]" />
         <div className="px-4 pb-1 text-[11px] font-medium text-faint">审核工具</div>
         <a href="../name/" className="mb-0.5 flex items-center gap-3 rounded-full px-4 py-2 text-sm text-fg hover:bg-elevated"><ClipboardCheck className="size-[18px] text-brand" />名字审核</a>
         <a href="../tech/" className="flex items-center gap-3 rounded-full px-4 py-2 text-sm text-fg hover:bg-elevated"><FileSpreadsheet className="size-[18px] text-ok" />技术单审核</a>
       </nav>
-      <div className="flex items-center gap-2 border-t border-[#DADCE0] p-3">
-        <button type="button" onClick={() => setView('settings')} className={cn('flex flex-1 items-center gap-2 rounded-full px-3 py-2 text-sm hover:bg-elevated', view === 'settings' && 'bg-[#E8F0FE] text-[#1967D2]')}><Settings className="size-4" />系统设置</button>
+      <div className="flex items-center gap-2 border-t border-[#2A303C] p-3">
+        <button type="button" onClick={() => setView('settings')} className={cn('flex flex-1 items-center gap-2 rounded-full px-3 py-2 text-sm hover:bg-elevated', view === 'settings' && 'bg-[#1A73E8]/20 text-[#8AB4F8]')}><Settings className="size-4" />系统设置</button>
         {s.role === 'boss' && <button type="button" onClick={() => s.setCsView(false)} className="flex items-center gap-1 rounded-full px-3 py-2 text-xs text-brand hover:bg-brand/10" title="回老板仪表板"><ArrowLeft className="size-3.5" />老板</button>}
         <button type="button" onClick={() => { window.HQAuth?.logout(); location.href = window.HQAuth?.root ?? '../'; }} className="rounded-full px-3 py-2 text-xs text-muted hover:bg-elevated">登出</button>
       </div>
@@ -132,9 +132,9 @@ function CSSidebar({ view, setView }: { view: View; setView: (v: View) => void }
 function CSTopBar({ onSearch }: { onSearch: (q: string) => void }) {
   const me = useMe();
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 border-b border-[#DADCE0] bg-surface px-5">
+    <header className="flex h-16 shrink-0 items-center gap-4 border-b border-[#2A303C] bg-surface px-5">
       <div className="flex items-center gap-3">
-        <span className="grid size-10 place-items-center rounded-xl bg-[#E8F0FE] text-[#1967D2]"><Headphones className="size-5" /></span>
+        <span className="grid size-10 place-items-center rounded-xl bg-[#1A73E8]/20 text-[#8AB4F8]"><Headphones className="size-5" /></span>
         <div><h1 className="text-[19px] font-semibold leading-tight">国内客服部（中国团队）</h1><p className="text-xs text-muted">Customer Service – China Team</p></div>
       </div>
       <label className="ml-4 hidden h-11 max-w-xl flex-1 items-center gap-2 rounded-full bg-elevated px-4 text-sm focus-within:bg-surface focus-within:shadow-glass md:flex">
@@ -142,7 +142,7 @@ function CSTopBar({ onSearch }: { onSearch: (q: string) => void }) {
       </label>
       <div className="ml-auto flex items-center gap-2">
         <a href="../name/" className="hidden h-9 items-center gap-1.5 rounded-full bg-brand px-4 text-sm font-medium text-white hover:bg-[#1765CC] lg:flex"><ClipboardCheck className="size-4" />名字审核</a>
-        <a href="../tech/" className="hidden h-9 items-center gap-1.5 rounded-full border border-[#DADCE0] px-4 text-sm font-medium text-brand hover:bg-brand/5 lg:flex"><FileSpreadsheet className="size-4" />技术单审核</a>
+        <a href="../tech/" className="hidden h-9 items-center gap-1.5 rounded-full border border-[#2A303C] px-4 text-sm font-medium text-brand hover:bg-brand/5 lg:flex"><FileSpreadsheet className="size-4" />技术单审核</a>
         <button type="button" className="grid size-10 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="通知"><Bell className="size-5" /></button>
         <a href="../handbook/" className="grid size-10 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="帮助"><HelpCircle className="size-5" /></a>
         {me && <Avatar p={me} size={36} ring={false} />}
@@ -181,10 +181,10 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
   const tabs: [ChatChannel, string][] = [['team', '团队讨论'], ['announce', '部门公告'], ['notice', '系统通知']];
   return (
     <Card className="flex min-h-0 flex-col">
-      <div className="flex items-center gap-1 border-b border-[#DADCE0] px-3" role="tablist">
+      <div className="flex items-center gap-1 border-b border-[#2A303C] px-3" role="tablist">
         {tabs.map(([k, l]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={cn('relative px-3 py-2.5 text-sm', tab === k ? 'font-semibold text-[#1967D2] after:absolute after:inset-x-2 after:bottom-0 after:h-[3px] after:rounded-t after:bg-[#1A73E8]' : 'text-muted hover:text-fg')}>{l}</button>
+            className={cn('relative px-3 py-2.5 text-sm', tab === k ? 'font-semibold text-[#8AB4F8] after:absolute after:inset-x-2 after:bottom-0 after:h-[3px] after:rounded-t after:bg-[#1A73E8]' : 'text-muted hover:text-fg')}>{l}</button>
         ))}
         {mode === 'local' && !chat.some((m) => m.demo) && <button type="button" onClick={playDemo} className="ml-auto flex items-center gap-1 rounded-full px-2 py-1 text-[11px] text-faint hover:bg-elevated" title="只用来看效果，讯息会标示范"><Play className="size-3" />播放示范</button>}
       </div>
@@ -196,7 +196,7 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
             <div key={m.id} className="flex gap-3">
               {p ? <Avatar p={p} size={34} ring={false} /> : <span className="grid size-[34px] place-items-center rounded-full bg-elevated text-[10px] text-muted">系统</span>}
               <div className="min-w-0">
-                <div className="flex items-baseline gap-2 text-sm"><b className="font-semibold">{p ? tr(p.name) : '系统'}</b><span className="text-xs text-faint">{fmtTime(m.t)}</span>{m.demo && <span className="rounded bg-warn/15 px-1 text-[10px] text-[#B06000]">示范</span>}{'smallTalk' in m && m.smallTalk && <span className="rounded bg-[#E6F4EA] px-1 text-[10px] text-[#137333]">闲聊</span>}{m.ch === 'mission' && <span className="rounded bg-[#F3E8FD] px-1 text-[10px] text-[#8430CE]">任务</span>}</div>
+                <div className="flex items-baseline gap-2 text-sm"><b className="font-semibold">{p ? tr(p.name) : '系统'}</b><span className="text-xs text-faint">{fmtTime(m.t)}</span>{m.demo && <span className="rounded bg-warn/15 px-1 text-[10px] text-[#FDD663]">示范</span>}{'smallTalk' in m && m.smallTalk && <span className="rounded bg-[#1E8E3E]/20 px-1 text-[10px] text-[#81C995]">闲聊</span>}{m.ch === 'mission' && <span className="rounded bg-[#9334E6]/20 px-1 text-[10px] text-[#D7AEFB]">任务</span>}</div>
                 <p className="text-sm leading-relaxed text-fg">{m.text}</p>
                 {'files' in m && m.files?.map((f) => <span key={f.name} className="mt-1 inline-flex items-center gap-1 rounded-lg bg-elevated px-2 py-1 text-xs text-muted"><Paperclip className="size-3" />{f.name}</span>)}
               </div>
@@ -205,8 +205,8 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
         })}
       </div>
       {tab !== 'notice' && (
-        <div className="relative flex items-center gap-2 border-t border-[#DADCE0] p-2.5">
-          <label className="flex h-10 min-w-0 flex-1 items-center gap-1 rounded-full border border-[#DADCE0] px-4 focus-within:border-brand">
+        <div className="relative flex items-center gap-2 border-t border-[#2A303C] p-2.5">
+          <label className="flex h-10 min-w-0 flex-1 items-center gap-1 rounded-full border border-[#2A303C] px-4 focus-within:border-brand">
             <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) send(); }}
               placeholder={tab === 'announce' ? '发布部门公告…' : '输入消息…'} aria-label="输入消息" className="min-w-0 flex-1 bg-transparent text-sm placeholder:text-faint focus:outline-none" />
             {files.length > 0 && <span className="text-[11px] text-brand">{files.length} 个附件</span>}
@@ -214,7 +214,7 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
             <label className="grid size-8 cursor-pointer place-items-center rounded-full text-muted hover:bg-elevated" aria-label="附件"><Paperclip className="size-[18px]" /><input type="file" multiple className="hidden" onChange={(e) => setFiles(Array.from(e.target.files ?? []))} /></label>
           </label>
           <button type="button" onClick={send} className="grid size-10 place-items-center rounded-full bg-ok text-white hover:brightness-110" aria-label="发送"><Send className="size-[18px]" /></button>
-          {emoji && <div className="absolute bottom-14 right-14 flex gap-1 rounded-xl border border-[#DADCE0] bg-surface p-1.5 shadow-glass">{EMOJI.map((e) => <button key={e} type="button" onClick={() => setText((t) => t + e)} className="grid size-8 place-items-center rounded-lg text-lg hover:bg-elevated">{e}</button>)}</div>}
+          {emoji && <div className="absolute bottom-14 right-14 flex gap-1 rounded-xl border border-[#2A303C] bg-surface p-1.5 shadow-glass">{EMOJI.map((e) => <button key={e} type="button" onClick={() => setText((t) => t + e)} className="grid size-8 place-items-center rounded-lg text-lg hover:bg-elevated">{e}</button>)}</div>}
         </div>
       )}
     </Card>
@@ -231,14 +231,14 @@ function TodayTasks({ full = false }: { full?: boolean }) {
   const list = full ? tasks : tasks.filter((x) => !me || x.owner === me.id || !x.done).slice(0, 6);
   return (
     <Card className="flex min-h-0 flex-col">
-      <h3 className="border-b border-[#DADCE0] px-4 py-3 text-[15px] font-semibold">{full ? '任务清单' : '今日任务'} <span className="text-muted">({tasks.filter((x) => !x.done).length})</span></h3>
-      <ul className="min-h-0 flex-1 divide-y divide-[#F1F3F4] overflow-y-auto px-2">
+      <h3 className="border-b border-[#2A303C] px-4 py-3 text-[15px] font-semibold">{full ? '任务清单' : '今日任务'} <span className="text-muted">({tasks.filter((x) => !x.done).length})</span></h3>
+      <ul className="min-h-0 flex-1 divide-y divide-[#232833] overflow-y-auto px-2">
         {list.map((x) => {
           const owner = s.model.people.find((p) => p.id === x.owner);
           return (
             <li key={x.id} className="group flex items-center gap-3 px-2 py-2.5">
               <input type="checkbox" checked={x.done} onChange={() => me && live.toggleTask(x.id, me.id)} className="size-[18px] rounded accent-[#1A73E8]" aria-label={x.text} />
-              <span className={cn('min-w-0 flex-1 text-sm', x.done && 'text-faint line-through')}>{x.text}{x.demo && <span className="ml-1 rounded bg-warn/15 px-1 text-[10px] text-[#B06000]">示范</span>}</span>
+              <span className={cn('min-w-0 flex-1 text-sm', x.done && 'text-faint line-through')}>{x.text}{x.demo && <span className="ml-1 rounded bg-warn/15 px-1 text-[10px] text-[#FDD663]">示范</span>}</span>
               {owner && full && <span className="flex items-center gap-1 text-xs text-muted"><Avatar p={owner} size={20} ring={false} />{tr(owner.name)}</span>}
               {full && <button type="button" onClick={() => live.removeTask(x.id)} className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100" aria-label="删除"><Trash2 className="size-4 text-faint" /></button>}
             </li>
@@ -246,7 +246,7 @@ function TodayTasks({ full = false }: { full?: boolean }) {
         })}
         {list.length === 0 && <li className="px-2 py-4 text-center text-xs text-faint">今天没有任务</li>}
       </ul>
-      <form onSubmit={(e) => { e.preventDefault(); if (text.trim() && me) { live.addTask(text.trim(), me.id); setText(''); } }} className="flex gap-2 border-t border-[#DADCE0] p-2.5">
+      <form onSubmit={(e) => { e.preventDefault(); if (text.trim() && me) { live.addTask(text.trim(), me.id); setText(''); } }} className="flex gap-2 border-t border-[#2A303C] p-2.5">
         <input value={text} onChange={(e) => setText(e.target.value)} placeholder="加一个任务…" aria-label="加任务" className="h-9 min-w-0 flex-1 rounded-full bg-elevated px-3 text-sm placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-brand/30" />
         <button type="submit" className="grid size-9 place-items-center rounded-full text-brand hover:bg-brand/10" aria-label="新增"><Plus className="size-5" /></button>
       </form>
@@ -278,7 +278,7 @@ function AICard() {
       <ul className="relative mt-2 space-y-1 text-xs">
         {ai.slice(0, 2).map((p) => <li key={p.id} className="flex items-center gap-2 text-white/90"><span className="size-1.5 rounded-full" style={{ background: STATUS_COLOR[p.status] }} />{tr(p.name)} · {tr(p.title)}<span className="ml-auto truncate text-white/60">{tr(p.task)}</span></li>)}
       </ul>
-      <button type="button" onClick={copy} className="relative mt-3 flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-[#1967D2] hover:bg-[#E8F0FE]"><Copy className="size-4" />立即使用（复制 Claude 指令）</button>
+      <button type="button" onClick={copy} className="relative mt-3 flex h-10 items-center justify-center gap-2 rounded-full bg-surface px-4 text-sm font-semibold text-[#8AB4F8] hover:bg-[#1A73E8]/20"><Copy className="size-4" />立即使用（复制 Claude 指令）</button>
     </section>
   );
 }
@@ -297,7 +297,7 @@ function RightPanel({ goTeam }: { goTeam: () => void }) {
   const pct = Math.min(100, Math.round((doneWeek / goal) * 100));
   const online = humans.filter((p) => p.status !== 'error');
   const Stat = ({ icon, label, value, sub, tone }: { icon: ReactNode; label: string; value: ReactNode; sub?: string; tone: string }) => (
-    <div className="rounded-xl border border-[#E8EAED] p-3">
+    <div className="rounded-xl border border-[#2A303C] p-3">
       <div className="flex items-center gap-2 text-xs text-muted"><span className={tone}>{icon}</span>{label}</div>
       <div className="num mt-1 text-2xl font-semibold">{value}</div>{sub && <div className="text-[11px] text-faint">{sub}</div>}
     </div>
@@ -305,7 +305,7 @@ function RightPanel({ goTeam }: { goTeam: () => void }) {
   return (
     <aside className="flex min-h-0 w-80 shrink-0 flex-col gap-3 overflow-y-auto">
       <Card className="p-4">
-        <div className="mb-3 flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-[#E8F0FE] text-[#1967D2]"><Users className="size-5" /></span><div><h3 className="font-semibold">部门概览</h3><p className="text-xs text-muted">CS China 团队</p></div></div>
+        <div className="mb-3 flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-[#1A73E8]/20 text-[#8AB4F8]"><Users className="size-5" /></span><div><h3 className="font-semibold">部门概览</h3><p className="text-xs text-muted">CS China 团队</p></div></div>
         <div className="grid grid-cols-2 gap-2">
           <Stat icon={<Users className="size-4" />} label="团队人数" value={humans.length} sub={`在线 ${online.length}`} tone="text-brand" />
           <Stat icon={<Bot className="size-4" />} label="AI 助手" value={ai.length} tone="text-ai" />
@@ -354,34 +354,34 @@ function Tickets({ q }: { q: string }) {
   };
   return (
     <Card className="flex min-h-0 flex-1 flex-col">
-      <div className="flex flex-wrap items-center gap-2 border-b border-[#DADCE0] px-4 py-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#2A303C] px-4 py-3">
         <h2 className="mr-2 text-lg font-semibold">工单管理</h2>
         {(['all', 'open', 'progress', 'pending', 'done'] as const).map((k) => (
-          <button key={k} type="button" onClick={() => setF(k)} className={cn('rounded-full border px-3 py-1 text-sm', f === k ? 'border-transparent bg-[#E8F0FE] font-medium text-[#1967D2]' : 'border-[#DADCE0] text-muted hover:bg-elevated')}>
+          <button key={k} type="button" onClick={() => setF(k)} className={cn('rounded-full border px-3 py-1 text-sm', f === k ? 'border-transparent bg-[#1A73E8]/20 font-medium text-[#8AB4F8]' : 'border-[#2A303C] text-muted hover:bg-elevated')}>
             {k === 'all' ? '全部' : TS_LABEL[k]} <span className="num text-xs">{k === 'all' ? tickets.length : tickets.filter((x) => x.status === k).length}</span>
           </button>
         ))}
         {tickets.some((x) => x.demo) && <button type="button" onClick={() => live.clearDemo()} className="ml-auto rounded-full px-3 py-1 text-xs text-faint hover:bg-elevated">清除示范资料</button>}
       </div>
-      <form onSubmit={(e) => { e.preventDefault(); add(); }} className="flex flex-wrap items-center gap-2 border-b border-[#F1F3F4] px-4 py-2.5">
-        <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="新工单：问题描述" aria-label="问题描述" className="h-9 min-w-48 flex-1 rounded-lg border border-[#DADCE0] px-3 text-sm focus:border-brand focus:outline-none" />
-        <input value={draft.customer} onChange={(e) => setDraft({ ...draft, customer: e.target.value })} placeholder="客户" aria-label="客户" className="h-9 w-28 rounded-lg border border-[#DADCE0] px-3 text-sm focus:border-brand focus:outline-none" />
-        <select value={draft.channel} onChange={(e) => setDraft({ ...draft, channel: e.target.value })} aria-label="渠道" className="h-9 rounded-lg border border-[#DADCE0] px-2 text-sm">{['微信', '电话', '邮件', '其他'].map((c) => <option key={c}>{c}</option>)}</select>
-        <select value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value as Ticket['priority'] })} aria-label="优先" className="h-9 rounded-lg border border-[#DADCE0] px-2 text-sm">{(Object.keys(PR_LABEL) as Ticket['priority'][]).map((k) => <option key={k} value={k}>{PR_LABEL[k]}</option>)}</select>
+      <form onSubmit={(e) => { e.preventDefault(); add(); }} className="flex flex-wrap items-center gap-2 border-b border-[#232833] px-4 py-2.5">
+        <input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="新工单：问题描述" aria-label="问题描述" className="h-9 min-w-48 flex-1 rounded-lg border border-[#2A303C] px-3 text-sm focus:border-brand focus:outline-none" />
+        <input value={draft.customer} onChange={(e) => setDraft({ ...draft, customer: e.target.value })} placeholder="客户" aria-label="客户" className="h-9 w-28 rounded-lg border border-[#2A303C] px-3 text-sm focus:border-brand focus:outline-none" />
+        <select value={draft.channel} onChange={(e) => setDraft({ ...draft, channel: e.target.value })} aria-label="渠道" className="h-9 rounded-lg border border-[#2A303C] px-2 text-sm">{['微信', '电话', '邮件', '其他'].map((c) => <option key={c}>{c}</option>)}</select>
+        <select value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value as Ticket['priority'] })} aria-label="优先" className="h-9 rounded-lg border border-[#2A303C] px-2 text-sm">{(Object.keys(PR_LABEL) as Ticket['priority'][]).map((k) => <option key={k} value={k}>{PR_LABEL[k]}</option>)}</select>
         <button type="submit" className="flex h-9 items-center gap-1 rounded-full bg-brand px-4 text-sm font-medium text-white hover:bg-[#1765CC]"><Plus className="size-4" />新建工单</button>
       </form>
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="w-full min-w-[760px] text-sm">
-          <thead className="sticky top-0 bg-surface text-left text-xs text-muted"><tr className="border-b border-[#DADCE0]"><th className="px-4 py-2 font-medium">编号</th><th className="py-2 font-medium">问题</th><th className="py-2 font-medium">客户</th><th className="py-2 font-medium">优先</th><th className="py-2 font-medium">负责人</th><th className="py-2 font-medium">状态</th><th className="py-2 pr-4 font-medium">更新</th></tr></thead>
+          <thead className="sticky top-0 bg-surface text-left text-xs text-muted"><tr className="border-b border-[#2A303C]"><th className="px-4 py-2 font-medium">编号</th><th className="py-2 font-medium">问题</th><th className="py-2 font-medium">客户</th><th className="py-2 font-medium">优先</th><th className="py-2 font-medium">负责人</th><th className="py-2 font-medium">状态</th><th className="py-2 pr-4 font-medium">更新</th></tr></thead>
           <tbody>
             {list.map((x) => {
               const a = people.find((p) => p.id === x.assignee);
               return (
-                <tr key={x.id} className="border-b border-[#F1F3F4] hover:bg-[#F8F9FA]">
+                <tr key={x.id} className="border-b border-[#232833] hover:bg-[#0F1217]">
                   <td className="num px-4 py-2.5 text-xs text-muted">{x.no}</td>
-                  <td className="py-2.5 pr-3">{x.title}{x.demo && <span className="ml-1 rounded bg-warn/15 px-1 text-[10px] text-[#B06000]">示范</span>}</td>
+                  <td className="py-2.5 pr-3">{x.title}{x.demo && <span className="ml-1 rounded bg-warn/15 px-1 text-[10px] text-[#FDD663]">示范</span>}</td>
                   <td className="py-2.5 text-muted">{x.customer} · {x.channel}</td>
-                  <td className="py-2.5"><span className={cn('rounded-full px-2 py-0.5 text-xs', x.priority === 'urgent' ? 'bg-danger/10 text-danger' : x.priority === 'high' ? 'bg-warn/15 text-[#B06000]' : 'bg-elevated text-muted')}>{PR_LABEL[x.priority]}</span></td>
+                  <td className="py-2.5"><span className={cn('rounded-full px-2 py-0.5 text-xs', x.priority === 'urgent' ? 'bg-danger/10 text-danger' : x.priority === 'high' ? 'bg-warn/15 text-[#FDD663]' : 'bg-elevated text-muted')}>{PR_LABEL[x.priority]}</span></td>
                   <td className="py-2.5">
                     <span className="flex items-center gap-1.5">{a && <Avatar p={a} size={22} ring={false} />}
                       <select value={x.assignee} onChange={(e) => me && live.updateTicket(x.id, { assignee: e.target.value }, me.id)} aria-label="负责人" className="max-w-28 rounded border-0 bg-transparent text-sm">
@@ -412,8 +412,8 @@ function Customers() {
       <p className="mt-1 text-sm text-muted">要显示真正的客户聊天，需要接上你们的客服平台（例如企业微信）。现在先按客户整理工单纪录。</p>
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {Object.entries(by).map(([c, list]) => (
-          <div key={c} className="rounded-xl border border-[#DADCE0] p-4">
-            <div className="flex items-center gap-2 font-semibold"><span className="grid size-8 place-items-center rounded-full bg-[#E8F0FE] text-sm text-[#1967D2]">{c.slice(0, 1)}</span>{c}<span className="ml-auto text-xs text-faint">{list[0].channel}</span></div>
+          <div key={c} className="rounded-xl border border-[#2A303C] p-4">
+            <div className="flex items-center gap-2 font-semibold"><span className="grid size-8 place-items-center rounded-full bg-[#1A73E8]/20 text-sm text-[#8AB4F8]">{c.slice(0, 1)}</span>{c}<span className="ml-auto text-xs text-faint">{list[0].channel}</span></div>
             <ul className="mt-2 space-y-1 text-sm">{list.map((t) => <li key={t.id} className="flex items-center gap-2"><span className={cn('rounded-full px-2 text-[11px]', TS_TONE[t.status])}>{TS_LABEL[t.status]}</span><span className="truncate">{t.title}</span></li>)}</ul>
           </div>
         ))}
@@ -432,10 +432,10 @@ function Team({ q }: { q: string }) {
       <h2 className="text-lg font-semibold">团队成员 <span className="text-muted">({list.length})</span></h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {list.map((p) => (
-          <div key={p.id} className="flex gap-3 rounded-xl border border-[#DADCE0] p-4">
+          <div key={p.id} className="flex gap-3 rounded-xl border border-[#2A303C] p-4">
             <Avatar p={p} size={52} />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 font-semibold">{tr(p.name)}{p.type === 'ai' && <span className="rounded bg-ai/10 px-1 text-[10px] text-ai">AI</span>}{p.demo && <span className="rounded bg-warn/15 px-1 text-[10px] text-[#B06000]">示范</span>}{p.real && <span className="rounded bg-ok/10 px-1 text-[10px] text-ok">真实</span>}</div>
+              <div className="flex items-center gap-1.5 font-semibold">{tr(p.name)}{p.type === 'ai' && <span className="rounded bg-ai/10 px-1 text-[10px] text-ai">AI</span>}{p.demo && <span className="rounded bg-warn/15 px-1 text-[10px] text-[#FDD663]">示范</span>}{p.real && <span className="rounded bg-ok/10 px-1 text-[10px] text-ok">真实</span>}</div>
               <div className="text-xs text-muted">{tr(p.title)}</div>
               <div className="mt-1 truncate text-xs">{tr(p.task)}</div>
               <div className="mt-1.5 flex items-center gap-2 text-[11px] text-faint">工单 {tickets.filter((t) => t.assignee === p.id && t.status !== 'done').length}
@@ -454,7 +454,7 @@ function Links({ title, items }: { title: string; items: { href: string; title: 
       <h2 className="text-lg font-semibold">{title}</h2>
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {items.map((x) => (
-          <a key={x.href} href={x.href} className="rounded-xl border border-[#DADCE0] p-4 transition-shadow hover:shadow-glass">
+          <a key={x.href} href={x.href} className="rounded-xl border border-[#2A303C] p-4 transition-shadow hover:shadow-glass">
             <div className="flex items-center gap-2 font-semibold"><BookOpen className="size-4 text-brand" />{x.title}</div>
             <p className="mt-1 text-sm text-muted">{x.desc}</p>
           </a>
@@ -472,9 +472,9 @@ function CSSettings() {
   return (
     <Card className="min-h-0 flex-1 overflow-auto p-5">
       <h2 className="text-lg font-semibold">系统设置</h2>
-      <div className="mt-4 max-w-lg divide-y divide-[#F1F3F4] text-sm">
-        <label className="flex items-center justify-between py-3">语言<select value={lang} onChange={(e) => setLang(e.target.value as 'zh' | 'en')} className="rounded-lg border border-[#DADCE0] px-2 py-1"><option value="zh">中文</option><option value="en">English</option></select></label>
-        <label className="flex items-center justify-between py-3">3D 画质<select value={s.settings.quality} onChange={(e) => s.setSettings({ quality: e.target.value as 'ultra' | 'balanced' | 'low' })} className="rounded-lg border border-[#DADCE0] px-2 py-1"><option value="ultra">极致</option><option value="balanced">标准</option><option value="low">省电</option></select></label>
+      <div className="mt-4 max-w-lg divide-y divide-[#232833] text-sm">
+        <label className="flex items-center justify-between py-3">语言<select value={lang} onChange={(e) => setLang(e.target.value as 'zh' | 'en')} className="rounded-lg border border-[#2A303C] px-2 py-1"><option value="zh">中文</option><option value="en">English</option></select></label>
+        <label className="flex items-center justify-between py-3">3D 画质<select value={s.settings.quality} onChange={(e) => s.setSettings({ quality: e.target.value as 'ultra' | 'balanced' | 'low' })} className="rounded-lg border border-[#2A303C] px-2 py-1"><option value="ultra">极致</option><option value="balanced">标准</option><option value="low">省电</option></select></label>
         <div className="py-3 text-xs leading-relaxed text-faint">对话、工单、任务现在存在这台电脑的浏览器，同一台电脑的分页会同步。接上 Supabase 后会变成全公司即时同步，权限也会在服务器端检查。</div>
       </div>
     </Card>
@@ -508,7 +508,7 @@ export function CSApp() {
           <div className="flex min-w-0 flex-1 flex-col gap-3">
             {view === 'desk' ? (
               <>
-                <section className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-[#DADCE0] bg-[#0F1217] shadow-glass" aria-label="客服部 3D 办公室">
+                <section className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-[#2A303C] bg-[#0F1217] shadow-glass" aria-label="客服部 3D 办公室">
                   <Scene />
                   {/* 2F 每个组一间小办公室（上面切换）、任务横幅、员工卡 */}
                   <OfficeHUD className="pr-28" />
@@ -521,7 +521,7 @@ export function CSApp() {
                 </section>
                 <div className={cn('grid shrink-0 gap-3 transition-[height] duration-300', bottomOpen ? 'h-60 grid-cols-[1.5fr_1fr_1fr]' : 'h-10 grid-cols-1')}>
                   {bottomOpen ? (<><TeamChat /><TodayTasks /><AICard /></>) : (
-                    <button type="button" onClick={() => setBottomOpen(true)} className="flex items-center justify-center gap-2 rounded-2xl border border-[#DADCE0] bg-surface text-sm text-muted shadow-glass"><ChevronUp className="size-4" />展开团队讨论、今日任务、AI 助手</button>
+                    <button type="button" onClick={() => setBottomOpen(true)} className="flex items-center justify-center gap-2 rounded-2xl border border-[#2A303C] bg-surface text-sm text-muted shadow-glass"><ChevronUp className="size-4" />展开团队讨论、今日任务、AI 助手</button>
                   )}
                 </div>
                 {bottomOpen && <button type="button" onClick={() => setBottomOpen(false)} className="-mt-2 flex items-center justify-center gap-1 self-center rounded-full px-3 text-xs text-faint hover:text-fg"><ChevronDown className="size-3.5" />收起</button>}

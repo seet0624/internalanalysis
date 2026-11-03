@@ -23,7 +23,7 @@ export function DepartmentsView() {
           return (
             <section key={f.id}>
               <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-                <span className="grid h-6 w-9 place-items-center rounded-md text-[10px] font-bold text-canvas" style={{ background: f.accent }}>{f.code}</span>
+                <span className="grid h-6 w-9 place-items-center rounded-md text-[10px] font-bold text-white" style={{ background: f.accent }}>{f.code}</span>
                 {tr(f.name).replace(/^\w+ · /, '')}
                 {!s.canEnter(f.id) && <Lock className="size-3.5 text-faint" />}
               </h3>

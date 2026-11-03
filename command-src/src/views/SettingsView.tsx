@@ -22,7 +22,7 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
   return (
     <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)}
       className={cn('relative h-6 w-11 rounded-full transition-colors', on ? 'bg-accent' : 'bg-line/25')}>
-      <span className={cn('absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform', on ? 'translate-x-5' : 'translate-x-0.5')} />
+      <span className={cn('absolute top-0.5 size-5 rounded-full bg-surface shadow transition-transform', on ? 'translate-x-5' : 'translate-x-0.5')} />
     </button>
   );
 }

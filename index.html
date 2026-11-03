@@ -190,8 +190,16 @@ button{cursor:pointer}
 .login p{color:var(--muted);font-size:14px}
 .login label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500}
 .login input{min-height:46px;border:1px solid var(--field);border-radius:12px;padding:0 14px;font-size:16px;background:#FFFFFF}
-/* 浏览器自动填入会变蓝底：改回米白 */
-.login input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #FFFFFF inset;-webkit-text-fill-color:var(--ink);caret-color:var(--ink)}
+/* 登入页改深色（跟指挥中心的深色办公室同一套）：背景是方块小人办公室，卡片深灰 */
+.login{background:#0F1217 url("hq/brand/login-office.webp") center/cover no-repeat}
+.login::after{background:radial-gradient(70% 70% at 50% 50%,rgba(15,18,23,.45),rgba(15,18,23,.88))}
+.login form{background:rgba(22,26,33,.86);border-color:#2A303C;color:#E8EAED;box-shadow:0 24px 60px -12px rgba(0,0,0,.6)}
+.login .lg-logo{border-bottom-color:#2A303C}
+.login .lg-logo b{color:#FFFFFF}
+.login .lg-logo small,.login p{color:#9AA7BD}
+.login input{background:#0F1217;border-color:#343B49;color:#E8EAED}
+/* 浏览器自动填入会变蓝底：改回深色 */
+.login input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #0F1217 inset;-webkit-text-fill-color:#E8EAED;caret-color:#E8EAED}
 .login input:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--accent)}
 .login .err{color:var(--bad);font-size:14px;min-height:20px}
 .acct{font-size:13px;color:var(--faint);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -321,7 +329,7 @@ button{cursor:pointer}
 </section>
 <div class="login" id="login" hidden>
   <form class="card" id="loginForm" autocomplete="on">
-    <div class="lg-logo"><img src="hq/brand/shuyi-logo-180.png" alt="" width="52" height="52"><span><b>数易 · 审核总部</b><small>SHUYI REVIEW HQ</small></span></div>
+    <div class="lg-logo"><img src="hq/brand/shuyi-logo-180.png" alt="" width="52" height="52"><span><b>数易 · AI 指挥中心</b><small>SHUYI AI COMPANY HQ</small></span></div>
     <h1>登入</h1>
     <p id="loginMsg">用公司给你的账号登入。</p>
     <label>账号<input id="loginId" name="username" autocomplete="username" required></label>
