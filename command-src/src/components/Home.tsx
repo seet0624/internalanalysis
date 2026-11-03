@@ -72,7 +72,7 @@ function TaskBox() {
   };
   const chip = (on: boolean) => cn('h-8 rounded-full border px-3 text-[13px] transition-colors', on ? 'border-[#1A73E8] bg-[#1A73E8]/20 text-white' : 'border-[#343B49] text-[#C8D0DC] hover:border-[#5F6B80]');
   return (
-    <form onSubmit={submit} aria-label="派任务" className="flex flex-col gap-3.5 rounded-2xl border border-[#2A303C] bg-[#161A21] p-5">
+    <form onSubmit={submit} aria-label="派任务" className="flex flex-col gap-3 rounded-2xl border border-[#2A303C] bg-[#161A21]/90 p-4 backdrop-blur md:p-5">
       <label htmlFor="home-task" className="text-sm text-[#9AA7BD]">交给 AI 团队一个任务</label>
       <div className="flex flex-wrap gap-3">
         <input id="home-task" value={text} onChange={(e) => setText(e.target.value)} placeholder="例如：把客服话术改得更亲切，审核部看过再上线"
@@ -100,7 +100,7 @@ function ActiveTask({ mission }: { mission?: Mission }) {
   useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(id); }, []);
   if (!mission) {
     return (
-      <section aria-label="进行中的任务" className="flex min-w-0 flex-[1_1_340px] flex-col justify-center gap-2 rounded-2xl border border-[#2A303C] bg-[#161A21] p-5 text-center">
+      <section aria-label="进行中的任务" className="flex flex-col gap-2 rounded-2xl border border-[#2A303C] bg-[#161A21]/90 p-5 text-center backdrop-blur">
         <p className="text-base font-semibold">目前没有进行中的任务</p>
         <p className="text-sm text-[#9AA7BD]">在上面写一个任务交给 AI 团队，这里会显示它走到哪一步、谁在做。</p>
       </section>
@@ -114,8 +114,8 @@ function ActiveTask({ mission }: { mission?: Mission }) {
     s.flash(`已停止 ${mission.no}`);
   };
   return (
-    <section aria-label="进行中的任务" className="flex min-w-0 flex-[1_1_340px] flex-col gap-4 rounded-2xl border border-[#2A303C] bg-[#161A21] p-5">
-      <div className="flex items-start justify-between gap-2">
+    <section aria-label="进行中的任务" className="flex flex-col gap-4 rounded-2xl border border-[#2A303C] bg-[#161A21]/90 p-5 backdrop-blur">
+      <div className="flex items-start justify-between gap-2 pr-8">
         <div className="min-w-0">
           <div className="text-xs text-[#9AA7BD]">进行中 · {mission.no}</div>
           <div className="mt-0.5 truncate text-base font-bold">{mission.title}</div>
@@ -151,10 +151,12 @@ function ActiveTask({ mission }: { mission?: Mission }) {
   );
 }
 
+// 首页：整个画面就是办公室（全屏 3D）；派任务框浮在上面、进行中的任务浮在右边（手机可以收起来）
 export function Home() {
   const s = useStore();
   const { tr } = useLang();
   const { missions } = useLive();
+  const [panel, setPanel] = useState(() => window.innerWidth >= 768);
   const dept = s.model.departments.find((d) => d.id === s.room);
   // 右边显示：这个部门在做的任务；这个部门没有，就显示最新一个进行中的（刚派、还没分工的任务也看得到）
   const mission = useMemo(() => {
@@ -164,19 +166,27 @@ export function Home() {
   }, [missions, s.model.people, s.room]);
   const mine = mission && (mission.teams.includes(s.room) || mission.assignees.some((a) => s.model.people.find((p) => p.id === a)?.dept === s.room));
   return (
-    <div className="h-full overflow-y-auto">
-      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 p-4 md:p-8">
-        <TaskBox />
-        <div className="flex flex-wrap gap-6">
-          <section aria-label="办公室" className="flex min-w-0 flex-[999_1_560px] flex-col overflow-hidden rounded-2xl border border-[#2A303C] bg-[#161A21]">
-            <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3.5">
-              <strong className="text-[15px]">{dept ? tr(dept.name) : ''} · 办公室</strong>
-              <span className={cn('text-[13px]', mine ? 'text-[#81C995]' : 'text-[#9AA7BD]')}>● {CAPTION[mine && mission ? mission.status : 'idle']}</span>
+    <div className="relative h-full">
+      <div className="absolute inset-0"><Scene /></div>
+      <div className="pointer-events-none absolute inset-0 flex flex-col gap-3 p-3 md:p-5">
+        <div className="pointer-events-auto mx-auto w-full max-w-3xl"><TaskBox /></div>
+        <div className="flex min-h-0 flex-1 items-start justify-end">
+          {panel ? (
+            <div className="pointer-events-auto relative max-h-full w-full max-w-[340px] overflow-y-auto">
+              <button type="button" onClick={() => setPanel(false)} aria-label="收起任务面板" className="absolute right-2 top-2 z-10 grid size-8 place-items-center rounded-lg text-[#9AA7BD] hover:bg-white/10">×</button>
+              <ActiveTask mission={mission} />
             </div>
-            <div className="relative h-[420px] md:h-[460px]"><Scene /></div>
-          </section>
-          <ActiveTask mission={mission} />
+          ) : (
+            <button type="button" onClick={() => setPanel(true)} className="pointer-events-auto rounded-full border border-[#2A303C] bg-[#161A21]/90 px-4 py-2 text-sm backdrop-blur">
+              {mission ? `进行中 · ${mission.no}` : '没有进行中的任务'} ▸
+            </button>
+          )}
         </div>
+        <p className="mx-auto flex items-center gap-2 rounded-full bg-[#12151B]/85 px-4 py-1.5 text-xs backdrop-blur sm:text-sm">
+          <span className={cn('size-2 rounded-full', mine ? 'animate-pulseDot bg-[#81C995]' : 'bg-[#5F6368]')} />
+          <b className="font-semibold">{dept ? short(tr(dept.name)) : ''}</b>
+          <span className="text-[#C8D0DC]">{CAPTION[mine && mission ? mission.status : 'idle']}</span>
+        </p>
       </div>
     </div>
   );

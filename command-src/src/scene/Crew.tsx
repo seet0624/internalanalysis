@@ -25,11 +25,12 @@ const folderMat = new THREE.MeshStandardMaterial({ color: '#1A73E8', roughness: 
 const V = (x: number, z: number) => new THREE.Vector3(x, 0, z);
 const SPEED = 1.15;
 
-export function Crew({ floor, placements, others = [], doors, chat, selected, showNames, floorOf, strollSpots, via, onPick, onHover }: {
+export function Crew({ floor, placements, others = [], doors, chat, selected, showNames, floorOf, strollSpots, via, relay, onPick, onHover }: {
   floor: Floor; placements: Placement[]; others?: Placement[]; doors: Record<string, Door>; chat: ChatMsg[]; selected: string | null; showNames: boolean;
   floorOf?: (personId: string) => string | undefined;
   strollSpots?: { x: number; z: number }[];   // 没有房间时：闲逛去哪里（茶水间、沙发、会议桌）
   via?: (from: THREE.Vector3, to: THREE.Vector3) => THREE.Vector3[];   // 没有房间时：走走道（不穿过桌子）
+  relay?: string[];   // 同一个任务分到的人（按顺序）：轮流拿文件走去交给下一个人
   onPick: (id: string) => void; onHover: (p: Placement | null) => void;
 }) {
   const { tr } = useLang();
@@ -78,6 +79,18 @@ export function Crew({ floor, placements, others = [], doors, chat, selected, sh
     });
   }, [placements, spots]);
   useEffect(() => { for (const m of members) m.room = roomAt(m.seat.x, m.seat.z); }, [members]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 任务对接：同一个任务的人轮流把文件交给下一个人（只在真的有任务、分到 2 人以上时）
+  const relayKey = relay?.join('|') ?? '';
+  useEffect(() => {
+    const ids = relayKey ? relayKey.split('|') : [];
+    if (ids.length < 2) return;
+    let i = 0;
+    const tick = () => { startHandoff(ids[i % ids.length], ids[(i + 1) % ids.length]); i++; };
+    const first = window.setTimeout(tick, 3000);
+    const id = window.setInterval(tick, 16000);
+    return () => { window.clearTimeout(first); window.clearInterval(id); };
+  }, [relayKey, members]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------- 交接：看新的真实讯息 ----------
   const seen = useRef<Set<string> | null>(null);

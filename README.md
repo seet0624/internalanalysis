@@ -138,6 +138,12 @@ npm run build    # 检查 + 型别检查 + 打包到 ../command/
 - 3D 办公室：AI 团队把讨论写进对话、时间排在接下来一小时，所以整个小时都看得到他们在讨论；没有任务时偶尔「闲聊」（会标示）。
 - 5F 新增**审核部**；每个 AI 员工的 `skill` 就是他真正用的 agent / skill（`command-src/src/data/people.json`）。
 
+### 全屏办公室 + 任务对接 + 深色登入页（2026-11）
+- 首页整个画面就是 3D 办公室；派任务框浮在上面、进行中的任务浮在右边（手机可以收起）。
+- 同一个任务分到的人会轮流拿文件走去交给下一个人（「📁 交接中」），只在真的有任务时才走。
+- 登入页改成深色，背景是方块小人办公室，名字改成「数易 · AI 指挥中心」。
+- 每个 AI 员工的 `skill` 改成**每小时排程任务里真的有的**（内建 skill：code-review、verify、simplify、debug、design、deep-research、brand-guidelines、internal-comms…；agent：general-purpose、Plan、Explore）。原本写的 feature-dev、brand-voice、customer-support 这些插件，排程任务里没有。
+
 ### 老板首页简化（2026-11，照 mockup）
 - 只留一件事：**交给 AI 团队一个任务**（输入框 + 交给谁 + 派出去，会写进云端 missions，AI 团队每小时 :35 接手）。
 - 下面左边是这个部门的 3D 办公室，右边是正在做的任务：6 步走到哪、计时、谁在做、停止。

@@ -189,7 +189,7 @@ const STROLL = [{ x: 3.3, z: Z0 + 1.05 }, { x: 6.0, z: -3.2 }, { x: 3.4, z: -0.4
 export function Office() {
   const s = useStore();
   const { tr } = useLang();
-  const { chat } = useLive();
+  const { chat, missions } = useLive();
   const m = s.model;
   const dept = m.departments.find((d) => d.id === s.room) ?? m.departments[0];
   // 公司资料每分钟重算一次（新物件）；人没变就不重排，不然走到一半的人会被拉回座位
@@ -224,6 +224,13 @@ export function Office() {
   }, []);
   const sign = useMemo(() => signTexture(tr(dept.name), `${ppl.filter((p) => p.type === 'human').length} 人 · ${ppl.filter((p) => p.type === 'ai').length} AI`, dept.color), [dept, ppl, tr]);
   const [hovered, setHovered] = useState<Placement | null>(null);
+  // 这间办公室进行中的任务：分到这里的人按顺序轮流对接
+  const relay = useMemo(() => {
+    const here = new Set(placements.map((p) => p.person.id));
+    const m = missions.filter((x) => ['planning', 'plan_review', 'executing', 'result_review', 'rework'].includes(x.status) && x.assignees.some((a) => here.has(a)))
+      .sort((a, b) => b.updatedAt - a.updatedAt)[0];
+    return m ? m.assignees.filter((a) => here.has(a)) : undefined;
+  }, [missions, placements]);
   const openBook = () => { if (s.csView) window.dispatchEvent(new CustomEvent('open-handbook')); else s.setSection('kb'); };
   const isCS = dept.floor === '2F';
 
@@ -255,7 +262,7 @@ export function Office() {
           <button type="button" onClick={openBook} className="whitespace-nowrap rounded-lg border border-[#C9A86A]/60 bg-[#2A2418]/90 px-2.5 py-1 text-xs font-semibold text-[#F5D99A] shadow-glass hover:bg-[#3A311F]">📚 业务手册</button>
         </Html>
       )}
-      <Crew key={dept.id} floor={room} placements={placements} doors={{}} chat={chat} selected={s.person} showNames={false}
+      <Crew key={dept.id} floor={room} placements={placements} doors={{}} chat={chat} selected={s.person} showNames={false} relay={relay}
         strollSpots={STROLL} via={via}
         onPick={(id) => s.selectPerson(id)} onHover={setHovered} />
       {hovered && <Tip p={hovered.person} x={hovered.x} z={hovered.z} />}
