@@ -236,7 +236,7 @@ export function Crew({ floor, placements, others = [], doors, chat, selected, sh
                       {line.text}{line.demo && <span className="ml-1 rounded bg-warn/15 px-1 text-[9px] text-warn">示范</span>}
                     </div>
                   )}
-                  {handoff && !line && <div className="whitespace-nowrap rounded-full bg-[#E8F0FE] px-2 py-0.5 text-[10px] font-medium text-[#1967D2] shadow-glass">📁 交接中</div>}
+                  {handoff && !line && <div className="whitespace-nowrap rounded-full bg-[#1A73E8]/20 px-2 py-0.5 text-[10px] font-medium text-[#8AB4F8] shadow-glass">📁 交接中</div>}
                   {showNames && (
                     <div className="flex items-center gap-1 whitespace-nowrap rounded-full bg-surface/90 px-1.5 py-px text-[9px] font-medium text-fg shadow-glass">
                       <span className="size-1.5 rounded-full" style={{ background: STATUS_COLOR[m.p.person.status] }} />{tr(m.p.person.name)}

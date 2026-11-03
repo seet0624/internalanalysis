@@ -15,15 +15,15 @@ const STATUS_LABEL: Record<MissionStatus, string> = {
   result_review: '审核部验收', done: '完成', rework: '要重做', cancelled: '已取消'
 };
 const STATUS_TONE: Record<MissionStatus, string> = {
-  new: 'bg-[#E8F0FE] text-[#1967D2]', planning: 'bg-[#F3E8FD] text-[#8430CE]', plan_review: 'bg-[#FCE8E6] text-[#C5221F]',
-  executing: 'bg-[#E8F0FE] text-[#1967D2]', result_review: 'bg-[#FCE8E6] text-[#C5221F]', done: 'bg-[#E6F4EA] text-[#137333]',
-  rework: 'bg-[#FEF7E0] text-[#B06000]', cancelled: 'bg-elevated text-faint'
+  new: 'bg-[#1A73E8]/20 text-[#8AB4F8]', planning: 'bg-[#9334E6]/20 text-[#D7AEFB]', plan_review: 'bg-[#D93025]/20 text-[#F28B82]',
+  executing: 'bg-[#1A73E8]/20 text-[#8AB4F8]', result_review: 'bg-[#D93025]/20 text-[#F28B82]', done: 'bg-[#1E8E3E]/20 text-[#81C995]',
+  rework: 'bg-[#F9AB00]/15 text-[#FDD663]', cancelled: 'bg-elevated text-faint'
 };
 const EVENT_LABEL: Record<MissionEvent['kind'], [string, string]> = {
-  created: ['派任务', 'text-[#1967D2]'], plan: ['计划', 'text-[#8430CE]'], assign: ['分工', 'text-[#8430CE]'],
-  review: ['审核意见', 'text-[#C5221F]'], approve: ['审核通过', 'text-[#137333]'], revise: ['要修改', 'text-[#B06000]'],
-  progress: ['进度', 'text-[#1967D2]'], result: ['成果', 'text-[#137333]'], accept: ['验收通过', 'text-[#137333]'],
-  reject: ['退回重做', 'text-[#C5221F]'], comment: ['留言', 'text-muted'], status: ['状态', 'text-muted']
+  created: ['派任务', 'text-[#8AB4F8]'], plan: ['计划', 'text-[#D7AEFB]'], assign: ['分工', 'text-[#D7AEFB]'],
+  review: ['审核意见', 'text-[#F28B82]'], approve: ['审核通过', 'text-[#81C995]'], revise: ['要修改', 'text-[#FDD663]'],
+  progress: ['进度', 'text-[#8AB4F8]'], result: ['成果', 'text-[#81C995]'], accept: ['验收通过', 'text-[#81C995]'],
+  reject: ['退回重做', 'text-[#F28B82]'], comment: ['留言', 'text-muted'], status: ['状态', 'text-muted']
 };
 const stepIndex = (st: MissionStatus) => (st === 'rework' ? 3 : st === 'cancelled' ? -1 : MISSION_STEPS.findIndex((x) => x.key === st));
 const ago = (t: number) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? '刚刚' : m < 60 ? `${m} 分钟前` : m < 1440 ? `${Math.round(m / 60)} 小时前` : `${Math.round(m / 1440)} 天前`; };
@@ -60,15 +60,15 @@ export function MissionsView() {
 }
 
 function ModeBadge({ mode }: { mode: string }) {
-  if (mode === 'cloud') return <span className="flex items-center gap-1.5 rounded-full bg-[#E6F4EA] px-3 py-1 text-xs text-[#137333]"><Cloud className="size-3.5" />云端 · 即时同步 · AI 团队每小时处理</span>;
+  if (mode === 'cloud') return <span className="flex items-center gap-1.5 rounded-full bg-[#1E8E3E]/20 px-3 py-1 text-xs text-[#81C995]"><Cloud className="size-3.5" />云端 · 即时同步 · AI 团队每小时处理</span>;
   if (mode === 'connecting') return <span className="flex items-center gap-1.5 rounded-full bg-elevated px-3 py-1 text-xs text-muted"><Cloud className="size-3.5" />连云端中…</span>;
-  return <span className="flex items-center gap-1.5 rounded-full bg-[#FEF7E0] px-3 py-1 text-xs text-[#B06000]" title="重新登入一次就会连上云端"><CloudOff className="size-3.5" />本机模式：AI 团队看不到，请重新登入</span>;
+  return <span className="flex items-center gap-1.5 rounded-full bg-[#F9AB00]/15 px-3 py-1 text-xs text-[#FDD663]" title="重新登入一次就会连上云端"><CloudOff className="size-3.5" />本机模式：AI 团队看不到，请重新登入</span>;
 }
 
 // 六个步骤：一眼看懂任务怎么走
 function Pipeline() {
   return (
-    <div className="rounded-xl border border-[#DADCE0] bg-surface p-3">
+    <div className="rounded-xl border border-[#2A303C] bg-surface p-3">
       <div className="mb-2 text-xs font-semibold text-muted">每个任务都这样走</div>
       <ol className="space-y-1.5">
         {MISSION_STEPS.map((x, i) => (
@@ -87,11 +87,11 @@ function MissionList({ title, list, sel, onPick }: { title: string; list: Missio
   return (
     <div>
       <div className="mb-1.5 px-1 text-xs font-semibold text-muted">{title} <span className="text-faint">({list.length})</span></div>
-      {list.length === 0 && <p className="rounded-xl border border-dashed border-[#DADCE0] p-4 text-center text-xs text-faint">还没有任务。按右上角「新任务」派一个。</p>}
+      {list.length === 0 && <p className="rounded-xl border border-dashed border-[#2A303C] p-4 text-center text-xs text-faint">还没有任务。按右上角「新任务」派一个。</p>}
       <ul className="space-y-1.5">
         {list.map((m) => (
           <li key={m.id}>
-            <button type="button" onClick={() => onPick(m.id)} className={cn('w-full rounded-xl border p-3 text-left transition-colors', sel === m.id ? 'border-brand bg-[#E8F0FE]' : 'border-[#DADCE0] bg-surface hover:bg-elevated')}>
+            <button type="button" onClick={() => onPick(m.id)} className={cn('w-full rounded-xl border p-3 text-left transition-colors', sel === m.id ? 'border-brand bg-[#1A73E8]/20' : 'border-[#2A303C] bg-surface hover:bg-elevated')}>
               <div className="flex items-center gap-2 text-[11px] text-faint"><span className="font-mono">{m.no}</span><span className={cn('rounded-full px-2 py-0.5 font-medium', STATUS_TONE[m.status])}>{STATUS_LABEL[m.status]}</span><span className="ml-auto">{ago(m.updatedAt)}</span></div>
               <div className="mt-1 line-clamp-2 text-sm font-medium">{m.title}</div>
               <MiniSteps st={m.status} />
@@ -105,7 +105,7 @@ function MissionList({ title, list, sel, onPick }: { title: string; list: Missio
 
 function MiniSteps({ st }: { st: MissionStatus }) {
   const k = stepIndex(st);
-  return <div className="mt-2 flex gap-1">{MISSION_STEPS.map((x, i) => <span key={x.key} className={cn('h-1 flex-1 rounded-full', st === 'cancelled' ? 'bg-[#E8EAED]' : i < k || st === 'done' ? 'bg-[#1E8E3E]' : i === k ? (st === 'rework' ? 'bg-[#F9AB00]' : 'bg-[#1A73E8]') : 'bg-[#E8EAED]')} />)}</div>;
+  return <div className="mt-2 flex gap-1">{MISSION_STEPS.map((x, i) => <span key={x.key} className={cn('h-1 flex-1 rounded-full', st === 'cancelled' ? 'bg-[#2A303C]' : i < k || st === 'done' ? 'bg-[#1E8E3E]' : i === k ? (st === 'rework' ? 'bg-[#F9AB00]' : 'bg-[#1A73E8]') : 'bg-[#2A303C]')} />)}</div>;
 }
 
 function NewMission({ onDone, onCancel }: { onDone: (id?: string) => void; onCancel?: () => void }) {
@@ -126,27 +126,27 @@ function NewMission({ onDone, onCancel }: { onDone: (id?: string) => void; onCan
     if (m) { s.flash(`已派出 ${m.no}，AI CEO 下一个整点会接手`); onDone(m.id); }
   };
   return (
-    <div className="rounded-2xl border border-[#DADCE0] bg-surface p-5">
+    <div className="rounded-2xl border border-[#2A303C] bg-surface p-5">
       <div className="flex items-center gap-2"><h3 className="text-lg font-semibold">派一个新任务</h3>{onCancel && <button type="button" onClick={onCancel} className="ml-auto rounded-full p-1.5 text-muted hover:bg-elevated" aria-label="取消"><X className="size-4" /></button>}</div>
       <p className="mt-1 text-sm text-muted">用平常说话的方式写就好。AI CEO 会拆成计划、选团队，审核部看过才开始做。</p>
-      <label className="mt-4 block text-sm font-medium">要做什么<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：名字审核工具加一个「一键导出 Excel」按钮" className="mt-1.5 w-full rounded-xl border border-[#DADCE0] px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none" /></label>
-      <label className="mt-3 block text-sm font-medium">细节、要求、参考（可以不写）<textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={4} placeholder="谁要用、要做到什么程度、什么时候要、有什么不能做……" className="mt-1.5 w-full resize-y rounded-xl border border-[#DADCE0] px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none" /></label>
+      <label className="mt-4 block text-sm font-medium">要做什么<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="例如：名字审核工具加一个「一键导出 Excel」按钮" className="mt-1.5 w-full rounded-xl border border-[#2A303C] px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none" /></label>
+      <label className="mt-3 block text-sm font-medium">细节、要求、参考（可以不写）<textarea value={brief} onChange={(e) => setBrief(e.target.value)} rows={4} placeholder="谁要用、要做到什么程度、什么时候要、有什么不能做……" className="mt-1.5 w-full resize-y rounded-xl border border-[#2A303C] px-3.5 py-2.5 text-sm focus:border-brand focus:outline-none" /></label>
       <div className="mt-3 text-sm font-medium">种类</div>
       <div className="mt-1.5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
         {MISSION_KINDS.map((k) => (
-          <button key={k.key} type="button" onClick={() => setKind(k.key)} className={cn('rounded-xl border p-2.5 text-left', kind === k.key ? 'border-brand bg-[#E8F0FE]' : 'border-[#DADCE0] hover:bg-elevated')}>
+          <button key={k.key} type="button" onClick={() => setKind(k.key)} className={cn('rounded-xl border p-2.5 text-left', kind === k.key ? 'border-brand bg-[#1A73E8]/20' : 'border-[#2A303C] hover:bg-elevated')}>
             <div className="text-sm font-medium">{k.label}</div><div className="text-[11px] text-faint">{k.hint}</div>
           </button>
         ))}
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2 text-sm"><span className="font-medium">急不急</span>
-        {(['low', 'medium', 'high', 'urgent'] as const).map((p) => <button key={p} type="button" onClick={() => setPriority(p)} className={cn('rounded-full border px-3 py-1 text-xs', priority === p ? 'border-brand bg-[#E8F0FE] text-[#1967D2]' : 'border-[#DADCE0] text-muted')}>{{ low: '不急', medium: '一般', high: '急', urgent: '很急' }[p]}</button>)}
+        {(['low', 'medium', 'high', 'urgent'] as const).map((p) => <button key={p} type="button" onClick={() => setPriority(p)} className={cn('rounded-full border px-3 py-1 text-xs', priority === p ? 'border-brand bg-[#1A73E8]/20 text-[#8AB4F8]' : 'border-[#2A303C] text-muted')}>{{ low: '不急', medium: '一般', high: '急', urgent: '很急' }[p]}</button>)}
       </div>
       <details className="mt-3">
         <summary className="cursor-pointer text-sm text-muted">指定团队（不选就让 AI CEO 决定）{teams.length > 0 && <b className="text-brand"> · 已选 {teams.length}</b>}</summary>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {depts.map((d) => <button key={d.id} type="button" onClick={() => setTeams((t) => (t.includes(d.id) ? t.filter((x) => x !== d.id) : [...t, d.id]))}
-            className={cn('rounded-full border px-2.5 py-1 text-xs', teams.includes(d.id) ? 'border-brand bg-[#E8F0FE] text-[#1967D2]' : 'border-[#DADCE0] text-muted hover:text-fg')}>{d.floor} · {tr(d.name)}</button>)}
+            className={cn('rounded-full border px-2.5 py-1 text-xs', teams.includes(d.id) ? 'border-brand bg-[#1A73E8]/20 text-[#8AB4F8]' : 'border-[#2A303C] text-muted hover:text-fg')}>{d.floor} · {tr(d.name)}</button>)}
         </div>
       </details>
       <button type="button" disabled={!title.trim() || busy} onClick={submit} className="mt-5 flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-40"><Send className="size-4" />{busy ? '派出中…' : '派给 AI CEO'}</button>
@@ -166,7 +166,7 @@ function MissionDetail({ m }: { m: Mission }) {
   const send = () => { const v = text.trim(); if (!v) return; live.commentMission(m.id, v, 'ceo-01'); setText(''); };
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-[#DADCE0] bg-surface p-5">
+      <div className="rounded-2xl border border-[#2A303C] bg-surface p-5">
         <div className="flex flex-wrap items-center gap-2 text-xs text-faint"><span className="font-mono">{m.no}</span><span className={cn('rounded-full px-2 py-0.5 font-medium', STATUS_TONE[m.status])}>{STATUS_LABEL[m.status]}</span>
           <span>{MISSION_KINDS.find((x) => x.key === m.kind)?.label}</span>{m.reviewRound > 0 && <span>· 审核第 {m.reviewRound} 轮</span>}<span className="ml-auto">派出 {ago(m.createdAt)}</span></div>
         <h3 className="mt-1.5 text-xl font-semibold">{m.title}</h3>
@@ -176,7 +176,7 @@ function MissionDetail({ m }: { m: Mission }) {
             const doneStep = m.status === 'done' || (k > i);
             const now = k === i && m.status !== 'done';
             return (
-              <li key={x.key} className={cn('rounded-xl border p-2 text-center', now ? (m.status === 'rework' ? 'border-[#F9AB00] bg-[#FEF7E0]' : 'border-brand bg-[#E8F0FE]') : doneStep ? 'border-[#CEEAD6] bg-[#E6F4EA]' : 'border-[#DADCE0]')}>
+              <li key={x.key} className={cn('rounded-xl border p-2 text-center', now ? (m.status === 'rework' ? 'border-[#F9AB00] bg-[#F9AB00]/15' : 'border-brand bg-[#1A73E8]/20') : doneStep ? 'border-[#1E8E3E]/40 bg-[#1E8E3E]/20' : 'border-[#2A303C]')}>
                 <div className="mx-auto grid size-6 place-items-center rounded-full bg-surface">{doneStep ? <Check className="size-4 text-[#1E8E3E]" /> : now ? <CircleDot className="size-4 animate-pulseDot text-brand" /> : <span className="text-[11px] text-faint">{i + 1}</span>}</div>
                 <div className="mt-1 text-[11px] font-medium leading-tight">{x.label}</div>
               </li>
@@ -186,23 +186,23 @@ function MissionDetail({ m }: { m: Mission }) {
         {(m.teams.length > 0 || crew.length > 0) && (
           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
             {m.teams.map((t) => { const d = s.model.departments.find((x) => x.id === t); return d && <span key={t} className="rounded-full px-2.5 py-1 text-white" style={{ background: d.color }}>{d.floor} · {tr(d.name)}</span>; })}
-            {crew.map((p) => p && <span key={p.id} className="flex items-center gap-1.5 rounded-full border border-[#DADCE0] py-0.5 pl-0.5 pr-2.5"><Avatar person={p} size="sm" />{tr(p.name)}{p.skill && <span className="text-faint">· {p.skill.split(':').pop()}</span>}</span>)}
+            {crew.map((p) => p && <span key={p.id} className="flex items-center gap-1.5 rounded-full border border-[#2A303C] py-0.5 pl-0.5 pr-2.5"><Avatar person={p} size="sm" />{tr(p.name)}{p.skill && <span className="text-faint">· {p.skill.split(':').pop()}</span>}</span>)}
           </div>
         )}
         <div className="mt-4 flex flex-wrap gap-2">
-          {(m.status === 'done' || m.status === 'result_review') && <button type="button" onClick={() => live.setMissionStatus(m.id, 'rework', 'ceo-01', '老板：这个要重做，请看我的留言。')} className="flex items-center gap-1.5 rounded-full border border-[#DADCE0] px-3 py-1.5 text-xs hover:bg-elevated"><RotateCcw className="size-3.5" />要重做</button>}
-          {m.status !== 'done' && m.status !== 'cancelled' && <button type="button" onClick={() => { if (confirm(`取消任务 ${m.no}？`)) live.setMissionStatus(m.id, 'cancelled', 'ceo-01', '老板取消了这个任务。'); }} className="flex items-center gap-1.5 rounded-full border border-[#DADCE0] px-3 py-1.5 text-xs text-[#C5221F] hover:bg-[#FCE8E6]"><X className="size-3.5" />取消任务</button>}
+          {(m.status === 'done' || m.status === 'result_review') && <button type="button" onClick={() => live.setMissionStatus(m.id, 'rework', 'ceo-01', '老板：这个要重做，请看我的留言。')} className="flex items-center gap-1.5 rounded-full border border-[#2A303C] px-3 py-1.5 text-xs hover:bg-elevated"><RotateCcw className="size-3.5" />要重做</button>}
+          {m.status !== 'done' && m.status !== 'cancelled' && <button type="button" onClick={() => { if (confirm(`取消任务 ${m.no}？`)) live.setMissionStatus(m.id, 'cancelled', 'ceo-01', '老板取消了这个任务。'); }} className="flex items-center gap-1.5 rounded-full border border-[#2A303C] px-3 py-1.5 text-xs text-[#F28B82] hover:bg-[#D93025]/20"><X className="size-3.5" />取消任务</button>}
         </div>
       </div>
 
       {m.plan && <Block title="AI CEO 的计划" tone="border-l-[#9334E6]">{m.plan}</Block>}
       {m.result && <Block title="成果" tone="border-l-[#1E8E3E]">{m.result}</Block>}
       {m.links.length > 0 && (
-        <div className="flex flex-wrap gap-2">{m.links.map((l) => <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-full border border-[#DADCE0] bg-surface px-3 py-1.5 text-xs text-[#1967D2] hover:bg-[#E8F0FE]"><ExternalLink className="size-3.5" />{l.label}</a>)}</div>
+        <div className="flex flex-wrap gap-2">{m.links.map((l) => <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 rounded-full border border-[#2A303C] bg-surface px-3 py-1.5 text-xs text-[#8AB4F8] hover:bg-[#1A73E8]/20"><ExternalLink className="size-3.5" />{l.label}</a>)}</div>
       )}
 
-      <div className="rounded-2xl border border-[#DADCE0] bg-surface">
-        <h4 className="flex items-center gap-2 border-b border-[#DADCE0] px-4 py-3 text-sm font-semibold"><MessageSquare className="size-4 text-brand" />讨论和进度 <span className="text-faint">({evs.length})</span></h4>
+      <div className="rounded-2xl border border-[#2A303C] bg-surface">
+        <h4 className="flex items-center gap-2 border-b border-[#2A303C] px-4 py-3 text-sm font-semibold"><MessageSquare className="size-4 text-brand" />讨论和进度 <span className="text-faint">({evs.length})</span></h4>
         <ul className="space-y-3 px-4 py-3">
           {evs.length === 0 && <li className="py-3 text-center text-xs text-faint">AI CEO 下一个整点会接手，到时候计划、审核意见、进度都会出现在这里，3D 办公室里也看得到他们讨论。</li>}
           {evs.map((e) => {
@@ -220,9 +220,9 @@ function MissionDetail({ m }: { m: Mission }) {
           })}
         </ul>
         {m.status !== 'cancelled' && (
-          <div className="flex items-center gap-2 border-t border-[#DADCE0] p-2.5">
+          <div className="flex items-center gap-2 border-t border-[#2A303C] p-2.5">
             <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) send(); }} placeholder="给团队留言、补充要求（AI CEO 下次会看到）" aria-label="留言"
-              className="h-10 min-w-0 flex-1 rounded-full border border-[#DADCE0] px-4 text-sm focus:border-brand focus:outline-none" />
+              className="h-10 min-w-0 flex-1 rounded-full border border-[#2A303C] px-4 text-sm focus:border-brand focus:outline-none" />
             <button type="button" onClick={send} className="grid size-10 place-items-center rounded-full bg-brand text-white hover:brightness-110" aria-label="发送"><Send className="size-[18px]" /></button>
           </div>
         )}
@@ -233,7 +233,7 @@ function MissionDetail({ m }: { m: Mission }) {
 
 function Block({ title, tone, children }: { title: string; tone: string; children: string }) {
   return (
-    <div className={cn('rounded-2xl border border-l-4 border-[#DADCE0] bg-surface p-4', tone)}>
+    <div className={cn('rounded-2xl border border-l-4 border-[#2A303C] bg-surface p-4', tone)}>
       <div className="text-sm font-semibold">{title}</div>
       <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed">{children}</p>
     </div>

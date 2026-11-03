@@ -60,7 +60,7 @@ export function Sidebar({ open, onClose, drawer = false }: { open: boolean; onCl
                     on ? 'bg-gradient-to-r from-accent/15 to-transparent font-semibold text-fg shadow-[inset_2px_0_0_rgb(var(--accent))]' : 'text-muted hover:bg-elevated/60 hover:text-fg')}>
                   <span className={on ? 'text-accent' : ''}>{n.icon}</span>
                   {t(n.key)}
-                  {n.id === 'features' && <span className="num ml-auto rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-canvas">{featureCount}</span>}
+                  {n.id === 'features' && <span className="num ml-auto rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold text-white">{featureCount}</span>}
                   {n.id === 'missions' && openMissions > 0 && <span className="num ml-auto rounded-full bg-[#9334E6] px-2 py-0.5 text-[10px] font-bold text-white">{openMissions}</span>}
                 </button>
               </li>
@@ -95,7 +95,7 @@ export function Sidebar({ open, onClose, drawer = false }: { open: boolean; onCl
       </nav>
 
       <div className="flex items-center gap-2.5 border-t border-line/10 p-3">
-        <div className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-warn to-danger text-sm font-bold text-canvas">
+        <div className="grid size-9 place-items-center rounded-full bg-gradient-to-br from-warn to-danger text-sm font-bold text-white">
           {(s.userName || 'M').replace(/^老板\s*/, '').slice(0, 1)}
         </div>
         <div className="min-w-0 flex-1">

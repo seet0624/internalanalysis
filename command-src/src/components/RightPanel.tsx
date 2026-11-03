@@ -150,7 +150,7 @@ function DeptPerformance() {
         {rows.map((r, i) => (
           <li key={r.d.id} className="flex items-center gap-2 text-xs">
             <span className="w-24 truncate">{tr(r.d.name).split(' · ')[0]}</span>
-            <span className="h-2 flex-1 overflow-hidden rounded-full bg-[#F1F3F4]"><span className="block h-full rounded-full" style={{ width: `${r.v}%`, background: colors[i % colors.length] }} /></span>
+            <span className="h-2 flex-1 overflow-hidden rounded-full bg-[#1E232C]"><span className="block h-full rounded-full" style={{ width: `${r.v}%`, background: colors[i % colors.length] }} /></span>
             <span className="num w-8 text-right font-semibold">{r.v}%</span>
           </li>
         ))}
@@ -170,15 +170,15 @@ function CeoCard() {
   const done = missions.filter((m) => m.status === 'done').length;
   const mins = last ? Math.round((Date.now() - last.t) / 60000) : 0;
   return (
-    <section className="rounded-xl border border-[#E9D2FD] bg-gradient-to-br from-[#F3E8FD] to-white p-3">
+    <section className="rounded-xl border border-[#9334E6]/40 bg-gradient-to-br from-[#9334E6]/20 to-white p-3">
       <div className="flex items-center gap-2">
         {aria && <Avatar person={aria} size="sm" />}
         <div className="min-w-0 flex-1"><div className="text-sm font-semibold">AI CEO · Aria</div><div className="text-[11px] text-muted">每小时看一次全公司运作</div></div>
         <button type="button" onClick={() => s.setSection('missions')} className="rounded-full bg-brand px-2.5 py-1 text-[11px] font-semibold text-white hover:brightness-110">派任务</button>
       </div>
       <div className="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
-        {([['进行中', open.length, 'text-[#1967D2]'], ['等审核', waitingReview, 'text-[#C5221F]'], ['已完成', done, 'text-[#137333]']] as const).map(([l, n, c]) => (
-          <div key={l} className="rounded-lg bg-white/80 py-1.5"><div className={cn('num text-lg font-bold', c)}>{n}</div><div className="text-[10px] text-muted">{l}</div></div>
+        {([['进行中', open.length, 'text-[#8AB4F8]'], ['等审核', waitingReview, 'text-[#F28B82]'], ['已完成', done, 'text-[#81C995]']] as const).map(([l, n, c]) => (
+          <div key={l} className="rounded-lg bg-surface/80 py-1.5"><div className={cn('num text-lg font-bold', c)}>{n}</div><div className="text-[10px] text-muted">{l}</div></div>
         ))}
       </div>
       <p className="mt-2.5 line-clamp-4 whitespace-pre-wrap text-xs leading-relaxed text-fg">
@@ -202,7 +202,7 @@ function QuickActions() {
       <PanelTitle>快捷操作</PanelTitle>
       <div className="grid grid-cols-4 gap-2">
         {acts.map(([l, ic, fn]) => (
-          <button key={l} type="button" onClick={fn} className="flex flex-col items-center gap-1.5 rounded-xl bg-[#F8F9FA] px-1 py-2.5 text-[11px] hover:bg-[#E8F0FE]">{ic}{l}</button>
+          <button key={l} type="button" onClick={fn} className="flex flex-col items-center gap-1.5 rounded-xl bg-[#0F1217] px-1 py-2.5 text-[11px] hover:bg-[#1A73E8]/20">{ic}{l}</button>
         ))}
       </div>
     </section>
@@ -226,7 +226,7 @@ function FloorInfo({ id }: { id: string }) {
     <div className="space-y-4">
       <div>
         <div className="flex items-center gap-2">
-          <span className="grid h-8 min-w-10 place-items-center rounded-lg px-2 text-sm font-bold text-canvas" style={{ background: f.accent }}>{f.code}</span>
+          <span className="grid h-8 min-w-10 place-items-center rounded-lg px-2 text-sm font-bold text-white" style={{ background: f.accent }}>{f.code}</span>
           <h2 className="text-base font-semibold leading-tight">{tr(f.name).replace(/^\w+ · /, '')}</h2>
         </div>
         <p className="mt-2 text-xs leading-relaxed text-muted">{tr(f.description)}</p>
@@ -346,7 +346,7 @@ export function Profile({ id, onClose }: { id: string; onClose: () => void }) {
       </div>
       {(p.href || p.skill) && (
         <div className="flex gap-2">
-          {p.href && <a href={p.href} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-brand to-accent px-3 py-2 text-sm font-semibold text-canvas"><ExternalLink className="size-4" />{t('openTool')}</a>}
+          {p.href && <a href={p.href} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-brand to-accent px-3 py-2 text-sm font-semibold text-white"><ExternalLink className="size-4" />{t('openTool')}</a>}
           {p.skill && (
             <button type="button" onClick={copy} className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-accent/40 px-3 py-2 text-sm font-semibold text-accent hover:bg-accent/10">
               <Copy className="size-4" />{copied ? t('copied') : t('copySkill')}

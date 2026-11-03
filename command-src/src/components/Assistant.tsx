@@ -69,7 +69,7 @@ export function Assistant() {
   return (
     <div className="glass absolute bottom-3 right-3 z-30 flex h-[26rem] w-[22rem] max-w-[calc(100%-1.5rem)] animate-slideUp flex-col overflow-hidden rounded-2xl" role="dialog" aria-label={t('aiAssistant')}>
       <div className="flex items-center gap-2 border-b border-line/10 px-3 py-2.5">
-        <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-accent to-ai"><Bot className="size-4 text-canvas" /></span>
+        <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-accent to-ai"><Bot className="size-4 text-white" /></span>
         <span className="flex-1 text-sm font-semibold">{t('aiAssistant')}</span>
         <button type="button" onClick={() => s.setAssistantOpen(false)} className="rounded-md p-1 text-muted hover:text-fg" aria-label={t('close')}><X className="size-4" /></button>
       </div>
@@ -81,7 +81,7 @@ export function Assistant() {
       <form onSubmit={send} className="flex gap-2 border-t border-line/10 p-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('askPlaceholder')} aria-label={t('askPlaceholder')}
           className="min-w-0 flex-1 rounded-lg border border-line/15 bg-canvas/60 px-3 py-2 text-sm placeholder:text-faint focus:border-accent/50 focus:outline-none" />
-        <button type="submit" className="grid size-9 place-items-center rounded-lg bg-accent text-canvas" aria-label={t('send')}><Send className="size-4" /></button>
+        <button type="submit" className="grid size-9 place-items-center rounded-lg bg-accent text-white" aria-label={t('send')}><Send className="size-4" /></button>
       </form>
     </div>
   );

@@ -5,26 +5,27 @@
 @layer base {
   /* 唯一的颜色来源：Google 风格 —— 白底、灰色细线、蓝 / 绿 / 黄 / 红点缀（跟数易 Logo 的蓝绿黄也搭） */
   :root {
-    --canvas: 248 249 250;   /* #F8F9FA 页面底 */
-    --surface: 255 255 255;  /* #FFFFFF 卡片 */
-    --elevated: 241 243 244; /* #F1F3F4 凹陷区 / hover */
-    --line: 60 64 67;        /* 配透明度当细线（≈ #DADCE0） */
-    --fg: 32 33 36;          /* #202124 */
-    --muted: 95 99 104;      /* #5F6368 */
-    --faint: 128 134 139;    /* #80868B */
-    --brand: 26 115 232;     /* #1A73E8 Google 蓝：主按钮 */
-    --accent: 26 115 232;    /* 强调文字 */
-    --ai: 147 52 230;        /* #9334E6 AI 员工（紫） */
-    --warn: 249 171 0;       /* #F9AB00 */
-    --danger: 217 48 37;     /* #D93025 */
-    --ok: 30 142 62;         /* #1E8E3E */
-    --st-working: 26 115 232;
-    --st-available: 30 142 62;
-    --st-thinking: 147 52 230;
-    --st-waiting: 249 171 0;
-    --st-completed: 18 181 203;
-    --st-error: 217 48 37;
-    color-scheme: light;
+    /* 深色（跟 3D 办公室同一套）：深灰底、灰卡片、浅色字、蓝 / 绿 / 黄 / 红点缀 */
+    --canvas: 15 18 23;      /* #0F1217 页面底 */
+    --surface: 22 26 33;     /* #161A21 卡片 */
+    --elevated: 30 35 44;    /* #1E232C 凹陷区 / hover */
+    --line: 200 208 220;     /* 配透明度当细线 */
+    --fg: 232 234 237;       /* #E8EAED */
+    --muted: 154 167 189;    /* #9AA7BD */
+    --faint: 107 115 133;    /* #6B7385 */
+    --brand: 26 115 232;     /* #1A73E8 主按钮 */
+    --accent: 138 180 248;   /* #8AB4F8 强调文字（深底上看得清） */
+    --ai: 196 142 250;       /* AI 员工（紫） */
+    --warn: 253 214 99;      /* #FDD663 */
+    --danger: 242 139 130;   /* #F28B82 */
+    --ok: 129 201 149;       /* #81C995 */
+    --st-working: 138 180 248;
+    --st-available: 129 201 149;
+    --st-thinking: 196 142 250;
+    --st-waiting: 253 214 99;
+    --st-completed: 120 217 236;
+    --st-error: 242 139 130;
+    color-scheme: dark;
   }
   html, body, #root { height: 100%; }
   body {
@@ -45,7 +46,7 @@
   /* 玻璃面板：半透明 + 模糊 + 细边 */
   .glass {
     background: rgb(var(--surface));
-    border: 1px solid rgb(218 220 224);
+    border: 1px solid rgb(42 48 60);
         @apply shadow-glass;
   }
   .num { font-variant-numeric: tabular-nums; }
