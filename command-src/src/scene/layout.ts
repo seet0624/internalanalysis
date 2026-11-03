@@ -30,7 +30,7 @@ const mix = (a: string, b: string, t: number) => {
   return '#' + ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0');
 };
 
-class Builder {
+export class Builder {
   L: FloorLayout = { box: [], cyl: [], sph: [], glow: [], glowCyl: [], glass: [], tiles: [], trees: [], seats: {}, labels: [], doors: {}, plaques: [], art: [] };
   tree(x: number, y: number, z: number, kind: TreeKind, h: number) {
     this.L.trees.push({ x, y, z, kind, h, ry: ((x * 7.3 + z * 3.1) % 6.28) });

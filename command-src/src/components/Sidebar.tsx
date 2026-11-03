@@ -90,7 +90,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
             );
           })}
         </ul>
-        <button type="button" onClick={() => { s.setCsView(true); onClose(); }} className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-brand hover:bg-brand/10">客服中国视图（听竹轩工作台）→</button>
+        <button type="button" onClick={() => { s.setCsView(true); onClose(); }} className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-medium text-brand hover:bg-brand/10">客服中国视图（客服部工作台）→</button>
         <a href="../?classic=1" className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-faint hover:bg-elevated/50 hover:text-fg">← {t('oldHQ')}</a>
       </nav>
 

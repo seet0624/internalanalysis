@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Lock, Radio } from 'lucide-react';
+import { Radio } from 'lucide-react';
 import { StoreProvider, useStore } from './lib/store';
 import { LangProvider, useLang } from './lib/i18n';
 import { describeEvent } from './lib/company';
@@ -9,7 +9,7 @@ import { RightPanel } from './components/RightPanel';
 import { CommPanel } from './components/CommPanel';
 import { Assistant } from './components/Assistant';
 import { Scene } from './scene/Scene';
-import { STATUS_COLOR } from './scene/Avatars';
+import { OfficeHUD } from './components/OfficeHUD';
 import { FeaturesView } from './views/FeaturesView';
 import { DepartmentsView } from './views/DepartmentsView';
 import { AIView } from './views/AIView';
@@ -20,15 +20,12 @@ import { CommsView } from './views/CommsView';
 import { KBView } from './views/KBView';
 import { AnalyticsView } from './views/AnalyticsView';
 import { SettingsView } from './views/SettingsView';
-import { STATUSES } from './types';
 import { CSApp } from './cs/CSApp';
-import { cn } from './lib/cn';
 
-// 3D 区域上的小东西：返回、楼层快切、图例、提示、即时审核事件
+// 3D 区域上的东西：部门分页、任务横幅、员工卡（OfficeHUD）、即时审核事件、提示
 function SceneOverlay() {
   const s = useStore();
-  const { t, tr } = useLang();
-  const floors = [...s.model.floors].sort((a, b) => b.level - a.level);
+  const { tr } = useLang();
   const [live, setLive] = useState<string | null>(null);
   useEffect(() => {
     if (!s.lastEvent) return;
@@ -36,46 +33,17 @@ function SceneOverlay() {
     const id = window.setTimeout(() => setLive(null), 6000);
     return () => window.clearTimeout(id);
   }, [s.lastEvent]); // eslint-disable-line react-hooks/exhaustive-deps
+  const covered = s.section !== 'overview' && s.section !== 'building';
   return (
     <>
-      {s.floor ? (
-        <button type="button" onClick={() => { s.selectFloor(null); s.selectPerson(null); }}
-          className="glass absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-fg hover:border-accent/40">
-          <ArrowLeft className="size-4" />{t('backToBuilding')}
-        </button>
-      ) : (
-        <p className="pointer-events-none absolute left-3 top-3 z-10 hidden max-w-xs rounded-lg bg-canvas/50 px-3 py-2 text-2xs text-muted backdrop-blur md:block">{t('selectFloorHint')}</p>
-      )}
-      {/* 楼层快切 */}
-      <nav className="glass absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 flex-col gap-1 rounded-xl p-1 sm:flex" aria-label={t('floor')}>
-        {floors.map((f) => {
-          const on = s.floor === f.id;
-          const locked = !s.canEnter(f.id);
-          return (
-            <button key={f.id} type="button" title={tr(f.name)} aria-pressed={on}
-              onMouseEnter={() => s.setHoverFloor(f.id)} onMouseLeave={() => s.setHoverFloor(null)}
-              onClick={() => { if (locked) { s.flash(t('locked')); return; } s.selectFloor(on ? null : f.id); s.selectPerson(null); }}
-              className={cn('relative grid h-8 w-10 place-items-center rounded-lg text-[11px] font-bold transition-colors',
-                on ? 'text-canvas' : 'text-muted hover:bg-elevated hover:text-fg', locked && 'opacity-50')}
-              style={on ? { background: f.accent } : undefined}>
-              {f.code}{locked && <Lock className="absolute right-0.5 top-0.5 size-2" />}
-            </button>
-          );
-        })}
-      </nav>
-      {/* 状态图例 */}
-      <div className="glass absolute bottom-3 left-3 z-10 hidden flex-wrap gap-x-3 gap-y-1 rounded-lg px-3 py-2 text-2xs text-muted md:flex">
-        {STATUSES.map((st) => <span key={st} className="flex items-center gap-1"><span className="size-2 rounded-full" style={{ background: STATUS_COLOR[st] }} />{t(`st_${st}`)}</span>)}
-        <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-ai shadow-glow" />AI · {t('real')}</span>
-        <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-muted" />AI · {t('demo')}</span>
-      </div>
+      {!covered && <OfficeHUD />}
       {live && (
-        <div className="glass absolute left-1/2 top-3 z-20 flex max-w-[90%] -translate-x-1/2 animate-slideUp items-center gap-2 rounded-full border-ok/40 px-4 py-2 text-xs" role="status">
+        <div className="glass absolute left-1/2 top-28 z-20 flex max-w-[90%] -translate-x-1/2 animate-slideUp items-center gap-2 rounded-full border-ok/40 px-4 py-2 text-xs" role="status">
           <Radio className="size-4 animate-pulseDot text-ok" />{live}
         </div>
       )}
       {s.toast && (
-        <div className="glass absolute bottom-16 left-1/2 z-30 -translate-x-1/2 animate-slideUp rounded-full px-4 py-2 text-xs" role="status">{s.toast}</div>
+        <div className="glass absolute left-1/2 top-1/2 z-30 -translate-x-1/2 animate-slideUp rounded-full px-4 py-2 text-xs" role="status">{s.toast}</div>
       )}
     </>
   );
@@ -119,8 +87,7 @@ function BossShell() {
       if (e.key === 'Escape' && !typing) {
         if (s.person) s.selectPerson(null);
         else if (s.dept) s.selectDept(null);
-        else if (s.section !== 'overview' && s.section !== 'building') s.setSection(s.floor ? 'building' : 'overview');
-        else if (s.floor) s.selectFloor(null);
+        else if (s.section !== 'overview' && s.section !== 'building') s.setSection('overview');
       }
     };
     window.addEventListener('keydown', h);

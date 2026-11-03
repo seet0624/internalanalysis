@@ -10,6 +10,8 @@ import type { Department, Floor, HistoryItem, Insight, L, Message, Person, Proje
 
 export const floors = floorsJson as Floor[];
 export const departments = deptsJson as Department[];
+// 核心部门（老板最常用、AI 团队只派给这些）：审核部、客服部（含 AI 助手组）、设计部、技术部、技术支持
+export const CORE_DEPTS = ['review', 'cs', 'claude', 'uiux', 'tech', 'techsup'];
 const demoPeople = peopleJson as Person[];
 const demoTasks = tasksJson as Task[];
 const demoMessages = messagesJson as Message[];

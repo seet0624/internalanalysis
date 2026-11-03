@@ -1,5 +1,5 @@
-// Roblox 风格的 3D 员工：方块身体、大头、可换肤色 / 发型 / 衣服 / 耳机 / 眼镜，有膝盖、手肘，可以坐着打字、站着说话、走路。
-// 纯 three.js，老板仪表板和客服仪表板共用。
+// 方块小人（像参考图的体素风格）：大方头、小身体，可换肤色 / 发型 / 衣服 / 耳机 / 眼镜，有膝盖、手肘，可以坐着打字、站着说话、走路。
+// 人和 AI 员工是同一个模型；AI 多一根会发光的天线。纯 three.js，老板仪表板和客服仪表板共用。
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import type { Look } from '../types';
@@ -53,7 +53,11 @@ export type Rig = {
 
 const HIP_Y = 0.62;
 
-export function buildCharacter(look: Look, faceVariant = 0): Rig {
+const HEAD_SCALE = 1.45;   // 大头比例（Q 版）
+const glowMat = new THREE.MeshBasicMaterial({ color: '#7CF0FF', toneMapped: false });
+glowMat.color.multiplyScalar(1.6);   // 泛光会让天线头亮起来
+
+export function buildCharacter(look: Look, faceVariant = 0, ai = false): Rig {
   const root = new THREE.Group();
   const body = new THREE.Group(); root.add(body);
   const skin = mat(look.skin, 0.75), top = mat(look.top, 0.7), bottom = mat(look.bottom, 0.8), shoe = mat('#3C4043', 0.6), hairM = mat(look.hairColor, 0.85);
@@ -134,6 +138,12 @@ export function buildCharacter(look: Look, faceVariant = 0): Rig {
     const boom = part(BOX, hm, 0.015, 0.015, 0.16, -0.19, hy - 0.08, 0.08, head); boom.rotation.y = 0.35;
     part(ROUND, mat('#1A73E8', 0.4), 0.03, 0.03, 0.03, -0.16, hy - 0.08, 0.16, head);
   }
+  // AI 员工：头顶一根天线 + 会发光的球
+  if (ai) {
+    part(CYL, mat('#5F6368', 0.4), 0.025, 0.16, 0.025, 0.08, hy + 0.27, 0, head);
+    const tip = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8), glowMat); tip.position.set(0.08, hy + 0.37, 0); head.add(tip);
+  }
+  head.scale.setScalar(HEAD_SCALE);
   return { root, body, head, hipL: L.hip, hipR: R.hip, kneeL: L.knee, kneeR: R.knee, shL: AL.sh, shR: AR.sh, elL: AL.el, elR: AR.el };
 }
 

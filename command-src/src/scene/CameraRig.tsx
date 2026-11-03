@@ -1,43 +1,36 @@
-// 镜头：整栋 / 单层 3D / 单层 2D 之间平滑移动；放大缩小、重设。
+// 镜头：斜上方看整间办公室（像参考图的等距视角）；2D 从正上方看。换部门、放大缩小、重设都平滑移动。
 import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { OrbitControls as OrbitImpl } from 'three-stdlib';
 import { useStore } from '../lib/store';
 import { damp } from './shared';
-import { siteOf } from './constants';
 
-const OVERVIEW = { pos: new THREE.Vector3(70, 115, 175), target: new THREE.Vector3(0, 0, -6) };   // 度假村：从南边高处看整个园区
+const DIR = new THREE.Vector3(1, 1.02, 1.16).normalize();   // 从右前方高处看（看得到后墙和左墙）
+const TARGET = new THREE.Vector3(-0.4, 0.3, 0.2);
 
 export function CameraRig() {
   const s = useStore();
   const camera = useThree((st) => st.camera);
   const controls = useThree((st) => st.controls) as unknown as OrbitImpl | null;
-  const goal = useRef({ pos: OVERVIEW.pos.clone(), target: OVERVIEW.target.clone() });
+  const size = useThree((st) => st.size);
+  const goal = useRef({ pos: new THREE.Vector3(17, 17, 19.5), target: TARGET.clone() });
   const moving = useRef(true);
   const lastCam = useRef(s.cam.n);
-  const narrow = useThree((st) => st.size.width < 900);
+  // 画面窄（手机、旁边有面板）就站远一点，整间都看得到
+  const aspect = size.width / Math.max(1, size.height);
+  const far = aspect < 0.8 ? 1.75 : aspect < 1.2 ? 1.35 : 1;
 
   const home = () => {
-    const f = s.floor ? s.model.floors.find((x) => x.id === s.floor) : null;
-    if (!f) {
-      const k = narrow ? 1.35 : 1;
-      return { pos: OVERVIEW.pos.clone().sub(OVERVIEW.target).multiplyScalar(k).add(OVERVIEW.target), target: OVERVIEW.target.clone() };
-    }
-    const st = siteOf(f.id), y = 0;
-    // 客服视图在外面：从西南边的海上看听竹轩（红瓦屋顶、沙滩、码头、海）
-    if (s.csView && s.csOutside && s.mode !== '2d') return { pos: new THREE.Vector3(st.x - 58, 30, st.z + 52), target: new THREE.Vector3(st.x - 14, 2, st.z) };
-    if (s.mode === '2d') return { pos: new THREE.Vector3(st.x, y + (narrow ? 62 : 44), st.z + 0.6), target: new THREE.Vector3(st.x, y, st.z) };
-    // 客服中国仪表板：镜头近一点，看得清每个人
-    const k = (narrow ? 1.5 : 1.08) * (s.csView ? 0.78 : 1);
-    return { pos: new THREE.Vector3(st.x + 18 * k, y + 24 * k, st.z + 26 * k), target: new THREE.Vector3(st.x - 0.5, y, st.z + 1.5) };
+    if (s.mode === '2d') return { pos: new THREE.Vector3(-0.3, 30 * far, 0.6), target: new THREE.Vector3(-0.3, 0, 0.2) };
+    return { pos: TARGET.clone().addScaledVector(DIR, 24.5 * far), target: TARGET.clone() };
   };
 
-  // 换楼层 / 换 2D-3D：飞过去
+  // 换部门 / 换 2D-3D / 画面大小变了：飞回去
   useEffect(() => {
     goal.current = home();
     moving.current = true;
-  }, [s.floor, s.mode, narrow, s.csView, s.csOutside]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s.room, s.mode, far]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 放大、缩小、重设
   useEffect(() => {
@@ -45,9 +38,8 @@ export function CameraRig() {
     lastCam.current = s.cam.n;
     if (s.cam.kind === 'reset') { goal.current = home(); moving.current = true; return; }
     const target = controls.target.clone();
-    const off = camera.position.clone().sub(target).multiplyScalar(s.cam.kind === 'zoomIn' ? 0.72 : 1.38);
-    if (off.length() < 6) off.setLength(6);
-    if (off.length() > 150) off.setLength(150);
+    const off = camera.position.clone().sub(target).multiplyScalar(s.cam.kind === 'zoomIn' ? 0.75 : 1.33);
+    off.setLength(THREE.MathUtils.clamp(off.length(), 8, 65));
     goal.current = { pos: target.clone().add(off), target };
     moving.current = true;
   }, [s.cam, controls]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -60,20 +52,21 @@ export function CameraRig() {
     return () => controls.removeEventListener('start', stop);
   }, [controls]);
 
-  // 2D 只能平移、缩放；3D 不能转到地面下
+  // 2D 只能平移、缩放；3D 只能从前面、右边看（后面、左边是墙）
   useEffect(() => {
     if (!controls) return;
-    const flat = s.mode === '2d' && !!s.floor;
+    const flat = s.mode === '2d';
     controls.enableRotate = !flat;
-    controls.maxPolarAngle = flat ? 0.05 : 1.38;
+    controls.maxPolarAngle = flat ? 0.05 : 1.25;
     controls.minPolarAngle = 0;
-    controls.autoRotate = !s.floor && s.settings.autoRotate;
-    controls.autoRotateSpeed = 0.5;
-  }, [controls, s.mode, s.floor, s.settings.autoRotate]);
+    controls.minAzimuthAngle = flat ? -Infinity : -0.15;
+    controls.maxAzimuthAngle = flat ? Infinity : Math.PI / 2 + 0.1;
+    controls.autoRotate = false;
+  }, [controls, s.mode]);
 
   useFrame((_, dt) => {
     if (!moving.current || !controls) return;
-    const k = damp(Math.min(dt, 0.1), 3.2);
+    const k = damp(Math.min(dt, 0.1), 3.4);
     camera.position.lerp(goal.current.pos, k);
     controls.target.lerp(goal.current.target, k);
     // 飞行中不套用 OrbitControls 的角度限制（不然切 2D 时会卡在斜的方向），到了再交还

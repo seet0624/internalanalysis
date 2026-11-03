@@ -2,13 +2,14 @@
 // 3D 办公室跟老板仪表板是同一份楼层资料（floors.json 的 2F），员工、AI 位置一模一样。
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  Bell, BookOpen, Bot, Box, CheckCircle2, ClipboardCheck, Copy, FileSpreadsheet, GraduationCap, Headphones, HelpCircle,
+  Bell, BookOpen, Bot, CheckCircle2, ClipboardCheck, Copy, FileSpreadsheet, GraduationCap, Headphones, HelpCircle,
   Home, ListTodo, Map, Maximize2, Megaphone, MessageSquare, Paperclip, Play, Plus, Search, Send, Settings, Smile, Ticket as TicketIcon, Users, ChevronDown, ChevronUp, ArrowLeft, Trash2
 } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { useLang } from '../lib/i18n';
 import { Scene } from '../scene/Scene';
-import { STATUS_COLOR } from '../scene/Avatars';
+import { OfficeHUD } from '../components/OfficeHUD';
+import { STATUS_COLOR } from '../scene/status';
 import { avatarUrl } from '../lib/look';
 import { DEMO_SCRIPT, live, useLive, type ChatChannel, type Ticket, type TicketStatus } from '../lib/live';
 import { describeEvent } from '../lib/company';
@@ -134,7 +135,7 @@ function CSTopBar({ onSearch }: { onSearch: (q: string) => void }) {
     <header className="flex h-16 shrink-0 items-center gap-4 border-b border-[#DADCE0] bg-surface px-5">
       <div className="flex items-center gap-3">
         <span className="grid size-10 place-items-center rounded-xl bg-[#E8F0FE] text-[#1967D2]"><Headphones className="size-5" /></span>
-        <div><h1 className="text-[19px] font-semibold leading-tight">听竹轩 · 客服部（中国团队）</h1><p className="text-xs text-muted">Customer Service – China Team</p></div>
+        <div><h1 className="text-[19px] font-semibold leading-tight">国内客服部（中国团队）</h1><p className="text-xs text-muted">Customer Service – China Team</p></div>
       </div>
       <label className="ml-4 hidden h-11 max-w-xl flex-1 items-center gap-2 rounded-full bg-elevated px-4 text-sm focus-within:bg-surface focus-within:shadow-glass md:flex">
         <Search className="size-4 text-muted" /><input onChange={(e) => onSearch(e.target.value)} placeholder="搜索客户、工单、同事…" aria-label="搜索" className="min-w-0 flex-1 bg-transparent placeholder:text-faint focus:outline-none" />
@@ -487,7 +488,7 @@ export function CSApp() {
   const [q, setQ] = useState('');
   const [bottomOpen, setBottomOpen] = useState(true);
   const [mode3d, setMode3d] = useState(true);
-  useEffect(() => { live.seedDemo(); if (s.floor !== '2F') s.selectFloor('2F'); s.setSection('building'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { live.seedDemo(); if (s.floor !== '2F') s.setRoom('cs'); s.setSection('building'); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { s.setMode(mode3d ? '3d' : '2d'); }, [mode3d]); // eslint-disable-line react-hooks/exhaustive-deps
   const me = useMe();
   const { tr } = useLang();
@@ -507,22 +508,16 @@ export function CSApp() {
           <div className="flex min-w-0 flex-1 flex-col gap-3">
             {view === 'desk' ? (
               <>
-                <section className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-[#DADCE0] bg-[#F1EADC] shadow-glass" aria-label="听竹轩 3D 办公室">
+                <section className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-[#DADCE0] bg-[#0F1217] shadow-glass" aria-label="客服部 3D 办公室">
                   <Scene />
-                  <div className="pointer-events-none absolute left-3 top-3 flex items-center gap-2">
-                    <span className="pointer-events-auto flex items-center gap-2 rounded-full bg-surface/95 px-3 py-1.5 text-sm font-semibold shadow-glass"><Box className="size-4 text-brand" />听竹轩 · 客服部（中国团队）</span>
-                  </div>
-                  {/* 先在外面看海边的听竹轩（红瓦屋顶）；按一下走进去，屋顶掀开看到办公室 */}
-                  <button type="button" onClick={() => s.setCsOutside(!s.csOutside)}
-                    className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#1A73E8] px-5 py-2.5 text-sm font-semibold text-white shadow-glass hover:brightness-110">
-                    {s.csOutside ? '🚪 走进听竹轩' : '🌊 到外面看海'}
-                  </button>
-                  <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-surface/95 p-1 shadow-glass">
+                  {/* 2F 每个组一间小办公室（上面切换）、任务横幅、员工卡 */}
+                  <OfficeHUD className="pr-28" />
+                  <div className="absolute right-3 top-3 z-20 flex items-center gap-1 rounded-full bg-surface/95 p-1 shadow-glass">
                     <button type="button" onClick={() => setMode3d(true)} aria-pressed={mode3d} className={cn('rounded-full px-3 py-1 text-xs font-semibold', mode3d ? 'bg-brand text-white' : 'text-muted')}>3D</button>
                     <button type="button" onClick={() => setMode3d(false)} aria-pressed={!mode3d} className={cn('flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold', !mode3d ? 'bg-brand text-white' : 'text-muted')}><Map className="size-3" />2D</button>
-                    <button type="button" onClick={() => { const el = document.querySelector('[aria-label="听竹轩 3D 办公室"]'); if (document.fullscreenElement) void document.exitFullscreen(); else void (el as HTMLElement | null)?.requestFullscreen?.(); }} className="grid size-7 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="全屏"><Maximize2 className="size-3.5" /></button>
+                    <button type="button" onClick={() => { const el = document.querySelector('[aria-label="客服部 3D 办公室"]'); if (document.fullscreenElement) void document.exitFullscreen(); else void (el as HTMLElement | null)?.requestFullscreen?.(); }} className="grid size-7 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="全屏"><Maximize2 className="size-3.5" /></button>
                   </div>
-                  {s.toast && <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-[#202124] px-4 py-2 text-xs text-white shadow-glass" role="status">{s.toast}</div>}
+                  {s.toast && <div className="absolute top-1/2 z-30 left-1/2 -translate-x-1/2 rounded-full bg-[#202124] px-4 py-2 text-xs text-white shadow-glass" role="status">{s.toast}</div>}
                 </section>
                 <div className={cn('grid shrink-0 gap-3 transition-[height] duration-300', bottomOpen ? 'h-60 grid-cols-[1.5fr_1fr_1fr]' : 'h-10 grid-cols-1')}>
                   {bottomOpen ? (<><TeamChat /><TodayTasks /><AICard /></>) : (

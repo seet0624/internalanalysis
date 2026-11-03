@@ -19,7 +19,7 @@ export function lookOf(p: Pick<Person, 'id' | 'dept' | 'look'>): Look {
   };
 }
 
-// 2D 头像（列表、对话用）：跟 3D 角色同一套外观
+// 2D 头像（列表、对话、员工卡用）：跟 3D 方块小人同一套外观（AI 也一样，多一根天线）
 const cache = new Map<string, string>();
 export function avatarUrl(p: Pick<Person, 'id' | 'dept' | 'look' | 'type'>, size = 96): string {
   const key = p.id + size;
@@ -29,15 +29,10 @@ export function avatarUrl(p: Pick<Person, 'id' | 'dept' | 'look' | 'type'>, size
   const g = c.getContext('2d');
   if (!g) return '';
   const s = size / 96;
-  if (p.type === 'ai') {
-    g.fillStyle = '#F3E8FD'; g.beginPath(); g.arc(48 * s, 48 * s, 48 * s, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#FFFFFF'; roundRect(g, 22 * s, 26 * s, 52 * s, 44 * s, 14 * s); g.fill();
-    g.fillStyle = '#1F2937'; roundRect(g, 28 * s, 34 * s, 40 * s, 24 * s, 10 * s); g.fill();
-    g.fillStyle = '#4FC3F7'; g.beginPath(); g.arc(40 * s, 46 * s, 5 * s, 0, Math.PI * 2); g.arc(56 * s, 46 * s, 5 * s, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#9334E6'; g.fillRect(46 * s, 14 * s, 4 * s, 12 * s); g.beginPath(); g.arc(48 * s, 13 * s, 5 * s, 0, Math.PI * 2); g.fill();
-  } else {
+  {
     const L = lookOf(p);
-    g.fillStyle = '#E8F0FE'; g.beginPath(); g.arc(48 * s, 48 * s, 48 * s, 0, Math.PI * 2); g.fill();
+    const ai = p.type === 'ai';
+    g.fillStyle = ai ? '#F3E8FD' : '#E8F0FE'; g.beginPath(); g.arc(48 * s, 48 * s, 48 * s, 0, Math.PI * 2); g.fill();
     g.save(); g.beginPath(); g.arc(48 * s, 48 * s, 48 * s, 0, Math.PI * 2); g.clip();
     g.fillStyle = L.top; roundRect(g, 18 * s, 74 * s, 60 * s, 40 * s, 12 * s); g.fill();
     g.fillStyle = L.skin; roundRect(g, 26 * s, 24 * s, 44 * s, 48 * s, 14 * s); g.fill();
@@ -52,6 +47,8 @@ export function avatarUrl(p: Pick<Person, 'id' | 'dept' | 'look' | 'type'>, size
     g.beginPath(); g.arc(48 * s, 54 * s, 8 * s, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke();
     if (L.glasses) { g.lineWidth = 2 * s; g.strokeRect(32 * s, 40 * s, 14 * s, 11 * s); g.strokeRect(50 * s, 40 * s, 14 * s, 11 * s); }
     if (L.headset) { g.strokeStyle = '#3C4043'; g.lineWidth = 4 * s; g.beginPath(); g.arc(48 * s, 44 * s, 25 * s, Math.PI * 1.05, Math.PI * 1.95); g.stroke(); g.fillStyle = '#3C4043'; roundRect(g, 19 * s, 40 * s, 8 * s, 14 * s, 3 * s); g.fill(); roundRect(g, 69 * s, 40 * s, 8 * s, 14 * s, 3 * s); g.fill(); }
+    // AI 员工：同一个小人，头顶多一根发光天线
+    if (ai) { g.fillStyle = '#5F6368'; g.fillRect(54 * s, 4 * s, 3 * s, 14 * s); g.fillStyle = '#12B5CB'; g.beginPath(); g.arc(55.5 * s, 5 * s, 4.5 * s, 0, Math.PI * 2); g.fill(); }
     g.restore();
   }
   const url = c.toDataURL();

@@ -8,6 +8,7 @@ import { live, useLive, MISSION_KINDS, MISSION_STEPS, type Mission, type Mission
 import { Avatar } from '../components/ui';
 import { ViewShell } from './ViewShell';
 import { cn } from '../lib/cn';
+import { CORE_DEPTS } from '../lib/company';
 
 const STATUS_LABEL: Record<MissionStatus, string> = {
   new: '等 AI CEO 接手', planning: 'AI CEO 规划中', plan_review: '审核部看计划', executing: '团队执行中',
@@ -116,7 +117,7 @@ function NewMission({ onDone, onCancel }: { onDone: (id?: string) => void; onCan
   const [priority, setPriority] = useState<Ticket['priority']>('medium');
   const [teams, setTeams] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const depts = s.model.departments.filter((d) => !['reception', 'security', 'ceo'].includes(d.id));
+  const depts = s.model.departments.filter((d) => CORE_DEPTS.includes(d.id)).sort((a, b) => CORE_DEPTS.indexOf(a.id) - CORE_DEPTS.indexOf(b.id));   // AI 团队只派给核心部门
   const submit = async () => {
     if (!title.trim() || busy) return;
     setBusy(true);
