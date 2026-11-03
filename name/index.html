@@ -466,6 +466,7 @@ body.light .itabs button.on{background:var(--bg2)}
       <hr>
       <div class="mh">家人以前的新名</div>
       <button type="button" data-act="pastimport">导入以前的技术单（记住学员）</button>
+      <button type="button" data-act="recheck">每周复查（家人新名撞字撞音）</button>
       <hr>
       <button type="button" data-act="lang" id="langBtn">English</button>
     </div>
@@ -909,7 +910,7 @@ async function fixCoreProps(buf){ if(typeof JSZip==='undefined')return buf;
   try{ var zip=await JSZip.loadAsync(buf), core=zip.file('docProps/core.xml'); if(!core)return buf;
     var xml=await core.async('string'), fixed=xml.replace(/<(\/?)(coreProperties|lastModifiedBy|lastPrinted|revision|category|contentStatus|keywords|version|identifier|language)(\s|>|\/)/g,'<$1cp:$2$3');
     if(fixed===xml)return buf; zip.file('docProps/core.xml',fixed); return await zip.generateAsync({type:'arraybuffer'}); }catch(e){ return buf; } }
-// 学员记录：订单号 → {n 姓名, a 其他名字, s 姓, m 会员编号, c 店铺编号, g 新名, d 制表日期}；每份载入的技术单都会记进来
+// 学员记录：订单号 → {f 家人[[关系,名]], n 姓名, a 其他名字, s 姓, m 会员编号, c 店铺编号, g 新名, d 制表日期}；每份载入的技术单都会记进来
 var PEOPLE=load('mzys_people',{}), PEOPLE_IDX=null;
 function savePeople(){ var ks=Object.keys(PEOPLE); if(ks.length>30000){ ks.sort(function(a,b){ return String(PEOPLE[a].d||'').localeCompare(String(PEOPLE[b].d||'')); }).slice(0,ks.length-30000).forEach(function(k){ delete PEOPLE[k]; }); }
   store('mzys_people',PEOPLE); PEOPLE_IDX=null; }
@@ -917,9 +918,44 @@ function baseName(t){ return cjkOnly(String(t||'').replace(/[\uff08(][^\uff09)]*
 function recordPeople(pf,date){ var cols=pf.cols, ci=pf.header.map(function(h){return String(h).trim();}).indexOf('服务中心编号'), n=0;
   pf.groups.forEach(function(grp){ var r0=pf.data[grp.rows[0]]||[], nm=baseName(grp._disp); if(!nm)return; var key=String(grp._order||(grp._member+'|'+nm)).toUpperCase();
     var al=bracketNames((String(grp._disp).match(/[\uff08(]([^\uff09)]*)[\uff09)]/)||[])[1]||'');
-    PEOPLE[key]={n:nm, a:al, s:String(cols.surname>=0&&r0[cols.surname]!=null?r0[cols.surname]:'').trim(), m:grp._member||'', c:ci>=0?String(r0[ci]==null?'':r0[ci]).trim():'', g:grp._fullnames.filter(String), d:date||''}; n++; });
+    if(PEOPLE[key]&&date&&String(PEOPLE[key].d||'')>date)return;
+    var fl=grp._fam.map(function(fm){ return [fm[0],fm[1]]; }).concat(grp._noteNames.map(function(x){ return ['备注提到',x]; })).filter(function(fm){ return fm[1]&&fm[1]!==nm; });
+    PEOPLE[key]={f:fl, n:nm, a:al, s:String(cols.surname>=0&&r0[cols.surname]!=null?r0[cols.surname]:'').trim(), m:grp._member||'', c:ci>=0?String(r0[ci]==null?'':r0[ci]).trim():'', g:grp._fullnames.filter(String), d:date||''}; n++; });
   savePeople(); return n; }
 function peopleIdx(){ if(PEOPLE_IDX)return PEOPLE_IDX; var ix={}; for(var k in PEOPLE){ var p=PEOPLE[k]; [p.n].concat(p.a||[]).forEach(function(nm){ if(nm)(ix[nm]||(ix[nm]=[])).push({o:k,p:p}); }); } return (PEOPLE_IDX=ix); }
+// 每周复查：记住的学员两两比——A 的家人栏有 B 的名字，A、B 的新名撞字或同音同调。审 A 时 B 还没下来新名的，这里补抓
+var RECHECK_OK=load('mzys_recheck_ok',{});
+function givenOf(full,sur){ return Array.from(String(full||'')).slice(surLen(full,sur)); }
+function recheckPeople(){ var ix=peopleIdx(), seen={}, out=[];
+  for(var ka in PEOPLE){ var A=PEOPLE[ka]; (A.f||[]).forEach(function(fm){ (ix[fm[1]]||[]).forEach(function(h){ var kb=h.o, B=h.p; if(kb===ka||(B.n===A.n&&B.m&&B.m===A.m))return;
+      var pk=[ka,kb].sort().join('~'); if(seen[pk])return; seen[pk]=1;
+      var hit=[]; (A.g||[]).forEach(function(ga){ (B.g||[]).forEach(function(gb){ var gbc=givenOf(gb,B.s);
+        givenOf(ga,A.s).forEach(function(ch){ gbc.forEach(function(fc){ var why='';
+          if(norm(ch)===norm(fc))why='撞字「'+ch+'」';
+          else { var sy=charSyllables(ch)[0], tA=toneOf(ch); if(sy&&tA&&charSyllables(fc).indexOf(sy)>=0&&toneOf(fc)===tA)why='同音同调「'+ch+'～'+fc+'」('+sy+tA+')'; }
+          if(why)hit.push({a:ga,b:gb,why:why}); }); }); }); });
+      if(!hit.length)return; var sig=pk+'|'+hit.map(function(x){ return x.a+x.b; }).join(',');
+      out.push({ka:ka,A:A,kb:kb,B:B,rel:fm[0],hit:hit,strong:!!((A.m&&A.m===B.m)||(A.c&&A.c===B.c)),sig:sig,ok:!!RECHECK_OK[sig]}); }); }); }
+  return out.sort(function(x,y){ return (x.ok-y.ok)||(y.strong-x.strong)||String(y.A.d).localeCompare(String(x.A.d)); }); }
+function uniq(a){ return a.filter(function(v,i){ return a.indexOf(v)===i; }); }
+function recheckLine(o){ return o.ka+' '+o.A.n+'（'+o.A.d+'）新名 '+uniq(o.hit.map(function(x){return x.a;})).join('／')+' ↔ '+o.rel+'「'+o.B.n+'」'+o.kb+'（'+o.B.d+'）新名 '+uniq(o.hit.map(function(x){return x.b;})).join('／')+'：'+uniq(o.hit.map(function(x){return x.why;})).join('、'); }
+function openRecheck(L){ L=L||recheckPeople(); store('mzys_recheck_last',Date.now()); var noF=Object.keys(PEOPLE).filter(function(k){ return !PEOPLE[k].f; }).length;
+  var rows=L.map(function(o,i){ return '<tr'+(o.ok?' style="opacity:.45"':'')+'><td>'+(o.strong?'<b style="color:var(--bad)">必须看</b>':'请确认<div class="lbl">只是同名</div>')+'</td><td>'+esc(o.ka)+'<div><b>'+esc(o.A.n)+'</b> '+esc(uniq(o.hit.map(function(x){return x.a;})).join('／'))+'</div><div class="lbl">'+esc(o.A.d||'')+'</div></td><td>'+esc(o.rel)+' '+esc(o.kb)+'<div><b>'+esc(o.B.n)+'</b> '+esc(uniq(o.hit.map(function(x){return x.b;})).join('／'))+'</div><div class="lbl">'+esc(o.B.d||'')+'</div></td><td>'+esc(uniq(o.hit.map(function(x){return x.why;})).join('、'))+'</td><td style="white-space:nowrap"><label class="lbl" style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" data-rk="'+i+'"'+(o.ok?' checked':'')+'> 已处理</label></td></tr>'; }).join('');
+  document.getElementById('modalBox').classList.add('wide');
+  document.getElementById('modalBox').innerHTML='<h3>每周复查：家人新名撞字撞音</h3><div class="desc">把这台电脑记住的 '+Object.keys(PEOPLE).length+' 位学员两两比一次：家人栏写了对方名字、两边下来的新名撞字或同音同调的，列在这里。审的时候对方新名还没下来，所以当时抓不到。<b>必须看</b> = 会员编号或店铺编号也一样；勾「已处理」以后不再提醒。每 7 天打开网页会自动复查一次。</div>'+
+    (noF?'<div class="lbl" style="margin-bottom:8px">有 '+noF+' 位是旧版记下的，没有家人资料——请到「⋯ → 导入以前的技术单」再导入一次。</div>':'')+
+    (L.length?'<table class="dbtable"><tr><th></th><th>学员</th><th>家人</th><th>撞了</th><th></th></tr>'+rows+'</table>':'<div class="lbl" style="padding:8px 0">没有发现撞字撞音。</div>')+
+    '<div class="mfoot"><button type="button" class="btn" id="rcClose">关闭</button>'+(L.length?'<button type="button" class="btn pri" id="rcCopy">复制清单</button>':'')+'</div>';
+  document.getElementById('modal').style.display='flex';
+  document.getElementById('rcClose').onclick=closeModals;
+  document.querySelectorAll('[data-rk]').forEach(function(cb){ cb.onchange=function(){ var o=L[+cb.dataset.rk]; o.ok=cb.checked; if(cb.checked)RECHECK_OK[o.sig]=1; else delete RECHECK_OK[o.sig]; store('mzys_recheck_ok',RECHECK_OK); cb.closest('tr').style.opacity=cb.checked?.45:1; }; });
+  if(L.length)document.getElementById('rcCopy').onclick=function(){ var t='【每周复查】家人新名撞字撞音，请跟进：\n'+L.filter(function(o){return !o.ok;}).map(function(o,i){ return (i+1)+'. '+(o.strong?'':'（只是同名，请确认）')+recheckLine(o); }).join('\n');
+    function ok(){ toast('已复制'); } function fb(){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); ok(); }catch(e){ alert(t); } ta.remove(); }
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,fb); else fb(); }; }
+function autoRecheck(){ if(Object.keys(PEOPLE).length<2||Date.now()-(+load('mzys_recheck_last',0)||0)<7*864e5)return;
+  var L=recheckPeople(), n=L.filter(function(o){ return !o.ok; }).length; store('mzys_recheck_last',Date.now());
+  if(n)openRecheck(L); else toast('每周复查：家人新名没有撞字撞音'); }
+
 // 导入以前的技术单：只记学员，不放进审核队列
 async function importPastSheets(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.xlsx'; inp.multiple=true; inp.onchange=async function(){ var tot=0, bad=[];
   for(var i=0;i<inp.files.length;i++){ var f=inp.files[i]; try{ var buf=await fixCoreProps(await f.arrayBuffer()), wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf); var ws=pickSheet(wb), data=wsTo2D(ws), pf=parseFile(data);
@@ -1510,9 +1546,9 @@ function exportDB(){ var db=window._DB||{}; var lines=[]; for(var k in db)lines.
 function importDB(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.csv,.txt'; inp.onchange=async function(){ var f=inp.files[0]; if(!f)return; var txt=await f.text(); txt.split(/\r?\n/).forEach(function(line){ var p=line.replace(/^\ufeff/,'').split(','); var k=(p[0]||'').trim().toUpperCase(); if(!k)return; var names=p.slice(1).map(function(s){return s.trim();}).filter(Boolean); if(names.length)importedDB[k]=(importedDB[k]||[]).concat(names); }); saveDB(); rebuild(); document.getElementById('modal').style.display='none'; }; inp.click(); }
 
 /*==== session save/restore ====*/
-function exportSession(){ var s={db:importedDB, verdicts:load('mzys_verdicts',{}), sup:{info:SUP.info,list:SUP.list,center:SUP.center,shops:SUP.shops,shopsMeta:SUP.shopsMeta}, people:PEOPLE, rules:{POLY:RULES.POLY,_extraTaboo:RULES._extraTaboo||[]}}; dl(new Blob([JSON.stringify(s)],{type:'application/json'}),'名字审核_存档_'+dateStr()+'.json'); }
+function exportSession(){ var s={db:importedDB, verdicts:load('mzys_verdicts',{}), sup:{info:SUP.info,list:SUP.list,center:SUP.center,shops:SUP.shops,shopsMeta:SUP.shopsMeta}, people:PEOPLE, recheckOk:RECHECK_OK, rules:{POLY:RULES.POLY,_extraTaboo:RULES._extraTaboo||[]}}; dl(new Blob([JSON.stringify(s)],{type:'application/json'}),'名字审核_存档_'+dateStr()+'.json'); }
 function importSession(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.json'; inp.onchange=async function(){ var f=inp.files[0]; if(!f)return; try{ var s=JSON.parse(await f.text());
-  if(s.db){ importedDB=s.db; saveDB(); } if(s.verdicts)store('mzys_verdicts',s.verdicts); if(s.sup){ ['info','list','center','shops','shopsMeta'].forEach(function(k){ if(s.sup[k])SUP[k]=s.sup[k]; }); saveSup(); } if(s.people){ for(var pk in s.people)PEOPLE[pk]=s.people[pk]; savePeople(); } if(s.rules){ if(s.rules.POLY)RULES.POLY=s.rules.POLY; if(s.rules._extraTaboo)RULES._extraTaboo=s.rules._extraTaboo; }
+  if(s.db){ importedDB=s.db; saveDB(); } if(s.verdicts)store('mzys_verdicts',s.verdicts); if(s.sup){ ['info','list','center','shops','shopsMeta'].forEach(function(k){ if(s.sup[k])SUP[k]=s.sup[k]; }); saveSup(); } if(s.people){ for(var pk in s.people)PEOPLE[pk]=s.people[pk]; savePeople(); } if(s.recheckOk){ for(var rk in s.recheckOk)RECHECK_OK[rk]=1; store('mzys_recheck_ok',RECHECK_OK); } if(s.rules){ if(s.rules.POLY)RULES.POLY=s.rules.POLY; if(s.rules._extraTaboo)RULES._extraTaboo=s.rules._extraTaboo; }
   alert('存档已还原（订单库＋判定＋规则＋督导资料）。文件请重新拖入，判定会自动套回。'); rebuild(); }catch(e){ alert('读存档失败：'+e.message); } }; inp.click(); }
 
 /*==== 发音清单：不卡上传，但要让客服知道 ====*/
@@ -1570,6 +1606,10 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-03', title:'每周复查：家人新名撞字撞音', items:[
+    '每 7 天打开网页自动把记住的学员两两比一次：家人栏写了对方名字、两边下来的新名撞字或同音同调的，弹出清单（审的时候对方新名还没下来，当时抓不到）',
+    '会员编号或店铺编号一样的标「必须看」，只是同名的标「请确认」；勾「已处理」以后不再提醒',
+    '「⋯ → 每周复查」随时手动跑；以前导入过的技术单请再导入一次，才有家人资料']},
   {date:'2026-11-03', title:'家人以前下来的新名也会比', items:[
     '括号里「名正言顺：蒋朋袀，蒋宥苇」写几个新名都认（之前只认第一个）',
     '「李芊萦（李冬艳）」「张语馨（曾用名：张可馨）」这种另一个名字也拿来比',
@@ -1727,6 +1767,7 @@ function runAct(a){ var x=parsedFiles[activeFile];
     case 'suptable': openSupTable(); break;
     case 'supimport': importSupData(); break;
     case 'pastimport': importPastSheets(); break;
+    case 'recheck': openRecheck(); break;
   } }
 
 /*==== events ====*/
@@ -1776,7 +1817,7 @@ document.addEventListener('keydown',function(e){ var tg=e.target, tn=tg.tagName;
   document.getElementById('verChip').textContent=CHANGELOG[0].date+' 版';
   try{ window._DB=buildOrderDB([], importedDB); }catch(e){ window._DB=Object.assign({},importedDB); }
   document.querySelectorAll('[data-need-file]').forEach(function(el){ el.style.display='none'; });
-  buildSettings(); applyLang(); renderHome(); renderToolState(); })();
+  buildSettings(); applyLang(); renderHome(); renderToolState(); try{ autoRecheck(); }catch(e){} })();
 </script>
 </body>
 </html>
