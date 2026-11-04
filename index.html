@@ -511,7 +511,7 @@ function renderPanel(id, focus) {
   } else if (it.type === 'agent') {
     const g = it.g, a = it.agent; title = a.name;
     const stat = a.stat && stats[a.stat] ? `<p class="note">${esc(stats[a.stat])}</p>` : '';
-    const act = g.kind === 'site'
+    const act = g.kind === 'site' && !a.skill
       ? `<a class="btn pri" href="${esc(g.href)}">交给${esc(a.name)} · ${enterName(g)}</a>`
       : `<div class="cmd"><code>/${esc(a.skill)}</code><button type="button" class="btn" data-copy="/${esc(a.skill)}">复制指令</button></div>
          <p class="note">在 Claude（claude.ai 或 Claude Code）输入这个指令，后面接着说要${esc(a.name)}做什么。</p>`;
