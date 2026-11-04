@@ -886,6 +886,7 @@ function ymd(y,m,d){ return y+'-'+pad2(+m)+'-'+pad2(+d); }
 function asDate(t){ t=String(t==null?'':t).trim(); var m;
   if(/^\d{5}(\.\d+)?$/.test(t)){ var d=new Date(Date.UTC(1899,11,30)+Math.floor(+t)*864e5); return ymd(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate()); }
   if((m=t.match(/(\d{4})\s*[-\/.年]\s*(\d{1,2})\s*[-\/.月]\s*(\d{1,2})/))&&+m[2]>=1&&+m[2]<=12&&+m[3]>=1&&+m[3]<=31)return ymd(m[1],m[2],m[3]);
+  if((m=t.match(/(?:^|\D)(\d{1,2})\s*[.\/-]\s*(\d{1,2})\s*[.\/-]\s*(\d{4})(?!\d)/))&&+m[2]>=1&&+m[2]<=12&&+m[1]>=1&&+m[1]<=31)return ymd(m[3],m[2],m[1]); // 技术单审核台写「31.10.2026」
   return ''; }
 // 日期先跟原文件名（表里的制表时间有时比文件名晚一天），文件名没有日期才看制表时间
 function tableDateOf(data,fname,noToday){ var fd=asDate(fname); if(fd)return fd;
@@ -902,7 +903,7 @@ function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.ta
 function problemCount(x){ return x.audit.results.filter(function(r){return r.problem;}).length; }
 // 技术单审核台分好的文件（例如「新生儿名正言顺技术单 2026-10-31（1）H」）名字不改，后面加（干净）/（督导）就好
 function keepBase(x){ var b=String(x.name).replace(/\.(xlsx|xls)$/i,'').replace(/\s*\(\d+\)$/,'').trim();
-  return /技术单/.test(b)&&/（\d+）\s*H?$/i.test(b)&&!/（名正言[顺順]）|（上传）|（督导）|（干净）|^（有问题）/.test(b)?b:''; }
+  return /技术单/.test(b)&&/（\d+）\s*H?$/i.test(b)&&!/（名正言[顺順]）|（上传）|（督导）|（干净）|（有问题）/.test(b)?b:''; }
 function outName(x,kind){ var b=techBase(x), kb=keepBase(x);
   if(kb&&kind==='orig')return kb+((x.name.match(/\.(xlsx|xls)$/i)||['.xlsx'])[0].toLowerCase());
   if(kb&&kind==='sup')return kb+'（督导）.xlsx';
@@ -923,7 +924,7 @@ async function fixCoreProps(buf){ if(typeof JSZip==='undefined')return buf;
     for(var i=0;i<names.length;i++){ var n=names[i], xml=await zip.file(n).async('string'), fx=xml.replace(/^\uFEFF/,'');
       if(n==='docProps/core.xml')fx=fx.replace(/<(\/?)(coreProperties|lastModifiedBy|lastPrinted|revision|category|contentStatus|keywords|version|identifier|language)(\s|>|\/)/g,'<$1cp:$2$3');
       if(/<x:/.test(fx)&&!/\sxmlns="/.test(fx))fx=fx.replace(/<(\/?)x:/g,'<$1').replace(/\sxmlns:x="/,' xmlns="');
-      if(/\.rels$/i.test(n)){ var base=n.replace(/(^|\/)_rels\/[^\/]+$/,''); fx=fx.replace(/Target="(\/[^"]*)"/g,function(m,t){ return 'Target="'+rel(base,t)+'"'; }); }
+      if(/\.rels$/i.test(n)){ var base=n.replace(/(^|\/)_rels\/[^\/]+$/,''); fx=fx.replace(/<Relationship\b[^>]*>/g,function(el){ return /TargetMode="External"/.test(el)?el:el.replace(/Target="(\/[^"]*)"/,function(m,t){ return 'Target="'+rel(base,t)+'"'; }); }); } // 外部链接（Mac 的 /Users/…）不能动
       if(fx!==xml){ zip.file(n,fx); changed=true; } }
     return changed?await zip.generateAsync({type:'arraybuffer'}):buf; }catch(e){ return buf; } }
 // 学员记录：订单号 → {f 家人[[关系,名]], n 姓名, a 其他名字, s 姓, m 会员编号, c 店铺编号, g 新名, d 制表日期}；每份载入的技术单都会记进来
