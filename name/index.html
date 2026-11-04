@@ -879,17 +879,18 @@ function fillKey(cell){ var f=cell&&cell.fill; if(!f||f.type!=='pattern'||!f.pat
   if(c.indexed!=null)return (c.indexed===64||c.indexed===9)?'':'idx:'+c.indexed; return ''; }
 function rowColorsOf(ws,hr,cUser){ var out=[]; for(var r=1;r<=ws.rowCount;r++){ var row=ws.getRow(r), a=fillKey(row.getCell(1)), b=cUser>=0?fillKey(row.getCell(cUser+1)):a; out.push(r>hr+1&&a&&a===b?a:''); } return out; }
 function pickSheet(wb){ var ws=wb.getWorksheet('命名'); if(ws)return ws; for(var i=0;i<wb.worksheets.length;i++){ var w=wb.worksheets[i],d=wsTo2D(w); for(var rr=0;rr<Math.min(d.length,20);rr++){ var row=d[rr].map(function(x){return String(x).trim();}); if(row.indexOf('新名')>=0&&row.indexOf('新名拼音')>=0)return w; } } return wb.worksheets[0]; }
-// 下载的文件名：技术单 制表日期（名正言顺）（H）……  H = 海外，看原文件名有没有 H，可在文件卡片上手动切换
+// 下载的文件名：技术单 日期（名正言顺）（H）……  H = 海外，看原文件名有没有 H，可在文件卡片上手动切换
 function pad2(n){ return (n<10?'0':'')+n; }
 function ymd(y,m,d){ return y+'-'+pad2(+m)+'-'+pad2(+d); }
 function asDate(t){ t=String(t==null?'':t).trim(); var m;
   if(/^\d{5}(\.\d+)?$/.test(t)){ var d=new Date(Date.UTC(1899,11,30)+Math.floor(+t)*864e5); return ymd(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate()); }
   if((m=t.match(/(\d{4})\s*[-\/.年]\s*(\d{1,2})\s*[-\/.月]\s*(\d{1,2})/)))return ymd(m[1],m[2],m[3]);
   return ''; }
-function tableDateOf(data,fname){
+// 日期先跟原文件名（表里的制表时间有时比文件名晚一天），文件名没有日期才看制表时间
+function tableDateOf(data,fname){ var fd=asDate(fname); if(fd)return fd;
   for(var r=data.length-1;r>=0;r--){ var row=data[r]||[]; for(var c=0;c<row.length;c++){ var t=String(row[c]==null?'':row[c]).trim(); if(t.indexOf('制表时间')!==0)continue;
     var d=asDate(t.replace(/^制表时间\s*[：:]?/,'')); for(var k=c+1;!d&&k<row.length;k++){ if(String(row[k]==null?'':row[k]).trim())d=asDate(row[k]); } if(d)return d; } }
-  return asDate(fname)||dateStr(); }
+  return dateStr(); }
 // 海外单的「名册展示」会填（繁 / 简体和繁体…），国内单这一栏空着；只看学员那几行，表尾的回传时间不算
 function dispFilled(pf){ var c=pf.cols.disp; if(c==null||c<0)return false; return pf.groups.some(function(g){ return g.rows.some(function(ri){ return String((pf.data[ri]||[])[c]==null?'':pf.data[ri][c]).trim()!==''; }); }); }
 function isOverseasName(n){ var b=String(n).replace(/\.(xlsx|xls)$/i,''); return /[（(]\s*H\s*[）)]|(^|[^A-Za-z])H([^A-Za-z]|$)|海外/.test(b); }
@@ -1607,6 +1608,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-04', title:'下载日期跟原文件名', items:[
+    '下载的文件日期先跟原文件名（例如「技术单 2026-10-02」就是 10-02），原文件名没有日期才看表里的制表时间——之前表里制表时间晚一天，下载出来就多了一天']},
   {date:'2026-11-04', title:'「有问题」文件改名', items:[
     '改成「（有问题）郑平东 名正言顺技术单2026-10-01（1）」：只有 1 位学员有问题就写他的名字，好几位就不写名字；海外照样加（H）']},
   {date:'2026-11-03', title:'每周复查：家人新名撞字撞音', items:[
@@ -1661,7 +1664,7 @@ var CHANGELOG=[
   {date:'2026-10-28', title:'「有问题」那份改成回传格式 + 下载文件统一命名', items:[
     '一家人改看文件颜色：涂同一颜色的学员算一家人，新名互相比对；拿掉靠猜的「疑似同一家人」',
     '「爱人 / 配偶 / 前夫 / 现任」等称呼不再被当成家人名字去比对',
-    '下载的文件统一命名：技术单 制表日期（名正言顺）（H）；（上传）= 审核过可上传的；有问题的叫「（有问题）郑平东 名正言顺技术单 日期（数目）」，只有 1 位才写名字，数目 = 几位学员有问题',
+    '下载的文件统一命名：技术单 日期（跟原文件名；没有才看制表时间）（名正言顺）（H）；（上传）= 审核过可上传的；有问题的叫「（有问题）郑平东 名正言顺技术单 日期（数目）」，只有 1 位才写名字，数目 = 几位学员有问题',
     '新增「原装文件（只改名）」：内容不动，只换成统一的名字；打包 zip 里三份都有',
     '「干净·可上传」改成上传用的精简表：订单、服务中心编号、新名字姓氏、姓名、性别、出生日期、生肖、新名字、新名字拼音，一个新名一行',
     '海外 / 国内：原文件名有 H 就算海外（加（H）），左边文件卡片上可以手动切换',
