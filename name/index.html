@@ -897,20 +897,23 @@ function tableDateOf(data,fname,noToday){ var fd=asDate(fname); if(fd)return fd;
 function dispFilled(pf){ var c=pf.cols.disp; if(c==null||c<0)return false; return pf.groups.some(function(g){ return g.rows.some(function(ri){ return String((pf.data[ri]||[])[c]==null?'':pf.data[ri][c]).trim()!==''; }); }); }
 function isOverseasName(n){ var b=String(n).replace(/\.(xlsx|xls)$/i,''); return /[（(]\s*H\s*[）)]|(^|[^A-Za-z])H([^A-Za-z]|$)|海外/.test(b); }
 // 原文件名括号里的标签（例如「新生儿」）照样留在下载的名字里，免得同一天两份技术单下载后同名覆盖；工具自己会加的不重复
-function nameTags(n){ var out=[], b=String(n).replace(/\.(xlsx|xls)$/i,''), m, re=/[（(]\s*([^）)]+?)\s*[）)]/g;
+// 文件名最前面的括号（例如「（单独发）」）不许改，下载的每份文件都照原样放最前面
+var FRONT_BR=/^\s*(?:[（(][^）)]*[）)]\s*)+/;
+function leadOf(n){ var m=String(n).match(FRONT_BR); if(!m)return ''; return (m[0].match(/[（(][^）)]*[）)]/g)||[]).filter(function(t){ return !/^[（(]\s*(有问题|H|上传|督导|干净|名正言[顺順]|\d+)\s*[）)]$/i.test(t); }).join(''); }
+function nameTags(n){ var out=[], b=String(n).replace(/\.(xlsx|xls)$/i,'').replace(FRONT_BR,''), m, re=/[（(]\s*([^）)]+?)\s*[）)]/g;
   while((m=re.exec(b))){ var t=m[1]; if(/^(名正言[顺順]|H|上传|有问题|督导|\d+)$/i.test(t)||/拆分/.test(t))continue; if(out.indexOf(t)<0)out.push(t); } return out; }
 function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.tags||[]).map(function(t){return '（'+t+'）';}).join('')+(x.overseas?'（H）':''); }
 function problemCount(x){ return x.audit.results.filter(function(r){return r.problem;}).length; }
 // 技术单审核台分好的文件（例如「新生儿名正言顺技术单 2026-10-31（1）H」）名字不改，后面加（干净）/（督导）就好
 function keepBase(x){ var b=String(x.name).replace(/\.(xlsx|xls)$/i,'').replace(/\s*\(\d+\)$/,'').trim();
   return /技术单/.test(b)&&/（\d+）\s*H?$/i.test(b)&&!/（名正言[顺順]）|（上传）|（督导）|（干净）|（有问题）/.test(b)?b:''; }
-function outName(x,kind){ var b=techBase(x), kb=keepBase(x);
+function outName(x,kind){ var lead=leadOf(x.name), b=lead+techBase(x), kb=keepBase(x);
   if(kb&&kind==='orig')return kb+((x.name.match(/\.(xlsx|xls)$/i)||['.xlsx'])[0].toLowerCase());
   if(kb&&kind==='sup')return kb+'（督导）.xlsx';
   if(kb&&kind!=='bad')return kb+'（干净）.xlsx';
   if(kind==='orig')return b+((x.name.match(/\.(xlsx|xls)$/i)||['.xlsx'])[0].toLowerCase());
   if(kind==='bad'){ var bad=x.audit.results.filter(function(r){return r.problem;}), who=bad.length===1?baseName(bad[0].disp):''; if(/新生儿$/.test(who))who=''; // 只有 1 位有问题才写名字；新生儿只有「姓＋新生儿」，不写
-    return '（有问题）'+(who?who+' ':'')+'名正言顺技术单'+x.tableDate+(x.tags||[]).map(function(t){return '（'+t+'）';}).join('')+(x.overseas?'（H）':'')+'（'+bad.length+'）.xlsx'; }
+    return lead+'（有问题）'+(who?who+' ':'')+'名正言顺技术单'+x.tableDate+(x.tags||[]).map(function(t){return '（'+t+'）';}).join('')+(x.overseas?'（H）':'')+'（'+bad.length+'）.xlsx'; }
   if(kind==='sup')return b+'（督导）.xlsx';
   return b+'（上传）.xlsx'; }
 
@@ -1653,6 +1656,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-05', title:'文件名最前面的括号照原样', items:[
+    '原文件名最前面的括号（例如「（单独发）」）不改，下载的原装、上传、有问题、督导文件都照原样放在最前面']},
   {date:'2026-11-04', title:'技术单审核台分好的文件不改名', items:[
     '像「新生儿名正言顺技术单 2026-10-31（1）H」这种技术单审核台分好的文件，下载时名字不改：原装照旧，审过的后面加（干净），督导文件加（督导）',
     '读得了另一种系统导出的 xlsx（标签带 x: 前缀那种），之前会显示「读的时候出错」']},
