@@ -824,7 +824,8 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
     if(rowData.length===2&&rowData[0].py&&rowData[0].py===rowData[1].py){ var dup='两个新名拼音完全一样（'+rowData[0].py+'）'; rowData.forEach(function(rd){rd.msgs.push(dup);}); } if(rowData.length===2){ var ga=Array.from(rowData[0].given).map(norm).sort().join(''); var gb=Array.from(rowData[1].given).map(norm).sort().join(''); if(ga&&ga===gb&&rowData[0].given!==rowData[1].given){ var rev='两个新名是同样的字调换顺序（'+rowData[0].given+' / '+rowData[1].given+'），等于没有真正的第二个选择，请重出一个名'; rowData.forEach(function(rd){ if(rd.msgs.indexOf(rev)<0)rd.msgs.push(rev); }); } }
     if(orderProblems.length)rowData.forEach(function(rd){orderProblems.forEach(function(m){if(rd.warns.indexOf(m)<0)rd.warns.push(m);});});
     colorNotes.forEach(function(m){ rowData.forEach(function(rd){ if(rd.warns.indexOf(m)<0)rd.warns.push(m); }); });
-    if(cols.status>=0){ var st=String(r0[cols.status]==null?'':r0[cols.status]).trim(); if(st&&!NULLS[st]){ if(/二次命名|重新命名|再次命名|二次起名|重新起名/.test(st)){ var si='✓ 二次命名：状态备注「'+st+'」只是记上次为什么重取，新名已照规则重新检查，不卡上传'; rowData.forEach(function(rd){ if(rd.warns.indexOf(si)<0)rd.warns.push(si); }); }
+    // 状态备注：只写二次命名（和原因）是参考、不卡；同时写了暂缓、退款这类就照旧卡住
+    if(cols.status>=0){ var st=String(r0[cols.status]==null?'':r0[cols.status]).trim(); if(st&&!NULLS[st]){ if(/二次命名|重新命名|再次命名|二次起名|重新起名/.test(st)&&!/暂缓|退款|退单|退费|取消|未付|欠款|补款|停|作废|不做|无需|不用|不要|等待|待定|延后|改期|换购|冻结|投诉/.test(st)){ var si='✓ 二次命名：状态备注「'+st+'」只是记上次为什么重取，新名已照规则重新检查，不卡上传'; rowData.forEach(function(rd){ if(rd.warns.indexOf(si)<0)rd.warns.push(si); }); }
       else { var sm='⚠ 有订单状态备注「'+st+'」，请人工检查这单状态再决定'; rowData.forEach(function(rd){ if(rd.msgs.indexOf(sm)<0)rd.msgs.push(sm); }); } } }
     var problem=rowData.some(function(rd){return rd.msgs.length>0;});
     if(needEyes)rowData.forEach(function(rd){rd.warns.push('【备注提到 朋友/避免/同名，可能有别姓的人要避开，请人工看】');});
