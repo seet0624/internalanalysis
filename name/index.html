@@ -900,19 +900,32 @@ function nameTags(n){ var out=[], b=String(n).replace(/\.(xlsx|xls)$/i,''), m, r
   while((m=re.exec(b))){ var t=m[1]; if(/^(名正言[顺順]|H|上传|有问题|督导|\d+)$/i.test(t)||/拆分/.test(t))continue; if(out.indexOf(t)<0)out.push(t); } return out; }
 function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.tags||[]).map(function(t){return '（'+t+'）';}).join('')+(x.overseas?'（H）':''); }
 function problemCount(x){ return x.audit.results.filter(function(r){return r.problem;}).length; }
-function outName(x,kind){ var b=techBase(x);
+// 技术单审核台分好的文件（例如「新生儿名正言顺技术单 2026-10-31（1）H」）名字不改，后面加（干净）/（督导）就好
+function keepBase(x){ var b=String(x.name).replace(/\.(xlsx|xls)$/i,'').replace(/\s*\(\d+\)$/,'').trim();
+  return /技术单/.test(b)&&/（\d+）\s*H?$/i.test(b)&&!/（名正言[顺順]）|（上传）|（督导）|（干净）|^（有问题）/.test(b)?b:''; }
+function outName(x,kind){ var b=techBase(x), kb=keepBase(x);
+  if(kb&&kind==='orig')return kb+((x.name.match(/\.(xlsx|xls)$/i)||['.xlsx'])[0].toLowerCase());
+  if(kb&&kind==='sup')return kb+'（督导）.xlsx';
+  if(kb&&kind!=='bad')return kb+'（干净）.xlsx';
   if(kind==='orig')return b+((x.name.match(/\.(xlsx|xls)$/i)||['.xlsx'])[0].toLowerCase());
-  if(kind==='bad'){ var bad=x.audit.results.filter(function(r){return r.problem;}), who=bad.length===1?baseName(bad[0].disp):''; // 只有 1 位有问题才写名字
+  if(kind==='bad'){ var bad=x.audit.results.filter(function(r){return r.problem;}), who=bad.length===1?baseName(bad[0].disp):''; if(/新生儿$/.test(who))who=''; // 只有 1 位有问题才写名字；新生儿只有「姓＋新生儿」，不写
     return '（有问题）'+(who?who+' ':'')+'名正言顺技术单'+x.tableDate+(x.tags||[]).map(function(t){return '（'+t+'）';}).join('')+(x.overseas?'（H）':'')+'（'+bad.length+'）.xlsx'; }
   if(kind==='sup')return b+'（督导）.xlsx';
   return b+'（上传）.xlsx'; }
 
 // 有些软件存的文件，文件信息（最后修改人等）没写成 Excel 常见的 cp: 写法，读表格的组件会读不进去；
 // 读之前把这几行改成常见写法（跟技术单审核台一样），表格内容不动；没这个问题的文件原样不动
+// 有些系统导出的 xlsx ExcelJS 读不了，读之前修一下（表格内容不动）：
+// ① core.xml 的标签少了 cp: 前缀；② .NET OpenXML 写的「<x:workbook>」带 x: 前缀、关系里写绝对路径「/xl/...」、开头有 BOM
 async function fixCoreProps(buf){ if(typeof JSZip==='undefined')return buf;
-  try{ var zip=await JSZip.loadAsync(buf), core=zip.file('docProps/core.xml'); if(!core)return buf;
-    var xml=await core.async('string'), fixed=xml.replace(/<(\/?)(coreProperties|lastModifiedBy|lastPrinted|revision|category|contentStatus|keywords|version|identifier|language)(\s|>|\/)/g,'<$1cp:$2$3');
-    if(fixed===xml)return buf; zip.file('docProps/core.xml',fixed); return await zip.generateAsync({type:'arraybuffer'}); }catch(e){ return buf; } }
+  try{ var zip=await JSZip.loadAsync(buf), changed=false, names=Object.keys(zip.files).filter(function(n){ return /\.(xml|rels)$/i.test(n)&&!zip.files[n].dir; });
+    function rel(baseDir,abs){ var a=abs.replace(/^\//,'').split('/'), b=baseDir?baseDir.split('/'):[]; while(a.length>1&&b.length&&a[0]===b[0]){ a.shift(); b.shift(); } return b.map(function(){return '..';}).concat(a).join('/'); }
+    for(var i=0;i<names.length;i++){ var n=names[i], xml=await zip.file(n).async('string'), fx=xml.replace(/^\uFEFF/,'');
+      if(n==='docProps/core.xml')fx=fx.replace(/<(\/?)(coreProperties|lastModifiedBy|lastPrinted|revision|category|contentStatus|keywords|version|identifier|language)(\s|>|\/)/g,'<$1cp:$2$3');
+      if(/<x:/.test(fx)&&!/\sxmlns="/.test(fx))fx=fx.replace(/<(\/?)x:/g,'<$1').replace(/\sxmlns:x="/,' xmlns="');
+      if(/\.rels$/i.test(n)){ var base=n.replace(/(^|\/)_rels\/[^\/]+$/,''); fx=fx.replace(/Target="(\/[^"]*)"/g,function(m,t){ return 'Target="'+rel(base,t)+'"'; }); }
+      if(fx!==xml){ zip.file(n,fx); changed=true; } }
+    return changed?await zip.generateAsync({type:'arraybuffer'}):buf; }catch(e){ return buf; } }
 // 学员记录：订单号 → {f 家人[[关系,名]], n 姓名, a 其他名字, s 姓, m 会员编号, c 店铺编号, g 新名, d 制表日期}；每份载入的技术单都会记进来
 var PEOPLE=load('mzys_people',{}), PEOPLE_IDX=null;
 function savePeople(){ var ks=Object.keys(PEOPLE); if(ks.length>30000){ ks.sort(function(a,b){ return String(PEOPLE[a].d||'').localeCompare(String(PEOPLE[b].d||'')); }).slice(0,ks.length-30000).forEach(function(k){ delete PEOPLE[k]; }); }
@@ -1639,6 +1652,9 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-04', title:'技术单审核台分好的文件不改名', items:[
+    '像「新生儿名正言顺技术单 2026-10-31（1）H」这种技术单审核台分好的文件，下载时名字不改：原装照旧，审过的后面加（干净），督导文件加（督导）',
+    '读得了另一种系统导出的 xlsx（标签带 x: 前缀那种），之前会显示「读的时候出错」']},
   {date:'2026-11-04', title:'审核部 AI 复审后的修正', items:[
     '以前导入、没有家人资料的学员，再导入一次一定会补上（之前因为日期差一天被跳过）',
     '家人栏写繁体、另一份写简体，也认得是同一个人',
