@@ -1546,17 +1546,16 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
 function dateStr(){ var d=new Date(); function p(n){return(n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
 function dl(blob,name){ var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
 function passCount(x){ return x.audit.results.length-problemCount(x); }
-function cleanBook(x){ return keepBase(x)?buildSplitWorkbook(x,false):buildCleanWorkbook(x); } // 审核台分好的文件：（干净）= 原格式拿掉有问题的学员
 async function downloadSplit(keepProblem){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile];
   if(keepProblem&&!problemCount(x)){ toast('这份没有「有问题」的学员'); return; }
   if(!keepProblem&&!passCount(x)){ toast('这份没有通过的学员，不用下载'+(keepBase(x)?'（干净）':'（上传）')+'文件'); return; }
-  var wb=keepProblem?await buildSplitWorkbook(x,true):await cleanBook(x); dl(new Blob([await wb.xlsx.writeBuffer()]),outName(x,keepProblem?'bad':'clean')); }
+  var wb=keepProblem?await buildSplitWorkbook(x,true):await buildCleanWorkbook(x); dl(new Blob([await wb.xlsx.writeBuffer()]),outName(x,keepProblem?'bad':'clean')); }
 async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; dl(new Blob([await origBuffer(x)]),outName(x,'orig')); }
 async function downloadZip(){ if(!parsedFiles.length||typeof JSZip==='undefined'){ alert('打包需要 JSZip，请确认网络。'); return; } var x=parsedFiles[activeFile]; var base=keepBase(x)||leadOf(x.name)+techBase(x);
   var zip=new JSZip(); var folder=zip.folder(base);
   folder.file(outName(x,'orig'), await origBuffer(x));
   if(problemCount(x))folder.file(outName(x,'bad'), await (await buildSplitWorkbook(x,true)).xlsx.writeBuffer());
-  if(passCount(x))folder.file(outName(x,'clean'), await (await cleanBook(x)).xlsx.writeBuffer());
+  if(passCount(x))folder.file(outName(x,'clean'), await (await buildCleanWorkbook(x)).xlsx.writeBuffer());
   if(!x.overseas&&supRows(x).length)folder.file(outName(x,'sup'), await (await buildSupWorkbook(x)).xlsx.writeBuffer());
   dl(await zip.generateAsync({type:'blob'}), base+'.zip'); }
 function exportCSV(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var lines=['订单号,序号,使用人,新名,原因'];
@@ -1661,9 +1660,10 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-05', title:'（干净）照平常的格式', items:[
+    '技术单审核台分好的文件，（干净）跟平常下载的干净文件一样（9 栏），只是文件名照原名后面加（干净）']},
   {date:'2026-11-05', title:'文件名最前面的括号照原样；二次命名不卡；干净用原格式', items:[
     '订单状态备注写「申请二次命名」的只是记上次为什么重取，不再卡住，新名照规则检查',
-    '技术单审核台分好的文件，（干净）跟原文件一样的格式、全部栏位，只拿掉有问题的学员',
     '一位通过的学员都没有时，不给（干净）/（上传）文件',
     '原文件名最前面的括号（例如「（单独发）」）不改，下载的原装、上传、有问题、督导文件都照原样放在最前面']},
   {date:'2026-11-04', title:'技术单审核台分好的文件不改名', items:[
