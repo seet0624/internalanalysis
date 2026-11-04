@@ -505,7 +505,7 @@ body.light .itabs button.on{background:var(--bg2)}
         <svg class="i" style="color:var(--muted)"><use href="#i-file"/></svg>
         <label class="sr" for="fileSel">当前文件</label>
         <select id="fileSel"></select>
-        <button type="button" class="hchip" id="hBtn" data-act="overseas" title="国内 / 海外：学员的「名册展示」有填，或原文件名有 H，就算海外（文件名加（H））。点一下手动切换"></button>
+        <button type="button" class="hchip" id="hBtn" data-act="overseas" title="国内 / 海外：看每位学员的「名册展示」，有填就算海外（表里没有这一栏才看文件名的 H）（文件名加（H））。点一下手动切换"></button>
         <button type="button" class="addfile" id="addMore" aria-label="再加文件" title="再加文件"><svg class="i"><use href="#i-plus"/></svg></button>
       </div>
       <div class="prog"><span data-i18n="reviewed">已复核</span><div class="bar"><i id="revBar" style="width:0"></i></div><b id="revText">0 / 0</b></div>
@@ -1417,7 +1417,7 @@ function setSup(r,field,val){ if(field==='group'){ var sp=supOf(r).sup; if(sp){ 
   var c=kvOf(r)['服务中心编号']; if(c&&(v.sup||v.shop))SUP.center[c]={sup:v.sup||'',shop:v.shop||''};
   saveSup(); }
 function supMissing(x){ return supRows(x).filter(function(r){ var s=supOf(r); return !s.sup||!s.shop||!s.group; }); }
-function supHtml(r){ var x=parsedFiles[activeFile]; if(!x||x.overseas)return ''; var s=supOf(r), code=kvOf(r)['服务中心编号']||'';
+function supHtml(r){ var x=parsedFiles[activeFile]; if(!x||x.overseas||(x.mixed&&r.ov))return ''; var s=supOf(r), code=kvOf(r)['服务中心编号']||'';
   var body=r.problem?'<p class="supnote" style="margin:0">这位现在是「有问题」，不会放进督导文件。</p>':
     (s.sup||s.shop?'<p class="supnote" style="margin:0 0 6px">'+(s.auto?'从'+s.src+'自动带出':(s.edited?'手动填 / 改过':''))+(s.group?'':'<span style="color:var(--warn)">　还没填这位督导的群</span>')+'</p><dl class="kv"><dt>店铺编号</dt><dd>'+esc(code||'—')+'</dd><dt>督导</dt><dd>'+esc(s.sup||'—')+'</dd><dt>分公司</dt><dd>'+esc(s.branch||'—')+'</dd><dt>店铺名称</dt><dd>'+esc(s.shop||'—')+'</dd><dt>群</dt><dd>'+esc(s.group||'—')+'</dd></dl>':'<p class="supnote" style="margin:0;color:var(--warn)">还没填督导 / 店铺'+(code?'（店铺编号 '+esc(code)+'）':'')+'</p>');
   return '<section><h3>督导（国内）</h3>'+body+'<button type="button" class="btn sm" id="supOpen" style="margin-top:10px">打开督导表（批量填）</button></section>'; }
@@ -1546,7 +1546,10 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
   var gone=delRows.slice().sort(function(a,b){return a-b;}); function newRow(old){ var n=0; while(n<gone.length&&gone[n]<old)n++; return old-n; }
   // ExcelJS 删行不会把下面的合并格（例如表尾「回传时间」）一起往上移，先拆开，删完再按新位置合并回去
   var moved=[]; if(gone.length)(ws.model.merges||[]).forEach(function(rg){ var m=rg.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/); if(!m||+m[4]<gone[0])return;
-    ws.unMergeCells(rg); var drop=gone.some(function(g){ return g>=+m[2]&&g<=+m[4]; }); if(!drop)moved.push(m[1]+newRow(+m[2])+':'+m[3]+newRow(+m[4])); });
+    var r1=+m[2], r2=+m[4], kept=[]; for(var rr0=r1;rr0<=r2;rr0++)if(gone.indexOf(rr0)<0)kept.push(rr0);
+    var top=ws.getCell(m[1]+r1), val=top.value, sty=top.style; ws.unMergeCells(rg); if(!kept.length)return;
+    if(kept[0]!==r1){ var nc=ws.getCell(m[1]+kept[0]); nc.value=val; nc.style=sty; } // 主格在被删的那一行：值搬到留下的第一行，免得留下的学员这格变空
+    var a=newRow(kept[0]), z=newRow(kept[kept.length-1]); if(a!==z||m[1]!==m[3])moved.push(m[1]+a+':'+m[3]+z); });
   delRows.sort(function(a,b){return b-a;}).forEach(function(rn){ ws.spliceRows(rn,1); });
   moved.forEach(function(rg){ ws.mergeCells(rg); });
   if(keepProblem===true){
@@ -1561,9 +1564,10 @@ function passCount(x){ return x.audit.results.length-problemCount(x); }
 async function downloadSplit(keepProblem){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile];
   if(keepProblem&&!problemCount(x)){ toast('这份没有「有问题」的学员'); return; }
   if(!keepProblem&&!passCount(x)){ toast('这份没有通过的学员，不用下载'+(keepBase(x)?'（干净）':'（上传）')+'文件'); return; }
-  var ps=partsOf(x); for(var i=0;i<ps.length;i++){ var p=ps[i]; if(keepProblem?!problemCount(p):!passCount(p))continue;
-    var wb=keepProblem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p); dl(new Blob([await wb.xlsx.writeBuffer()]),outName(p,keepProblem?'bad':'clean')); } }
-async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x); for(var i=0;i<ps.length;i++)dl(new Blob([await origBuffer(ps[i])]),outName(ps[i],'orig')); }
+  var ps=partsOf(x), got=[]; for(var i=0;i<ps.length;i++){ var p=ps[i]; if(keepProblem?!problemCount(p):!passCount(p))continue;
+    var wb=keepProblem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p), nm=outName(p,keepProblem?'bad':'clean'); dl(new Blob([await wb.xlsx.writeBuffer()]),nm); got.push(nm); } twoDone(got); }
+async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x), got=[]; for(var i=0;i<ps.length;i++){ var nm=outName(ps[i],'orig'); dl(new Blob([await origBuffer(ps[i])]),nm); got.push(nm); } twoDone(got); }
+function twoDone(got){ if(got.length>1)alert('国内、海外分开，下载了 '+got.length+' 份：\n'+got.join('\n')+'\n\n浏览器如果问「要下载多个文件吗」，请按「允许」，不然第二份会没下载。也可以用「打包下载」一次拿全部。'); }
 async function downloadZip(){ if(!parsedFiles.length||typeof JSZip==='undefined'){ alert('打包需要 JSZip，请确认网络。'); return; } var x=parsedFiles[activeFile]; var base=keepBase(x)||leadOf(x.name)+techBase(x);
   var zip=new JSZip(); var folder=zip.folder(base), ps=partsOf(x);
   for(var i=0;i<ps.length;i++){ var p=ps[i];
@@ -1618,7 +1622,7 @@ function soundList(){ var out=[]; parsedFiles.forEach(function(x){ x.audit.resul
 function soundText(L){ return L.map(function(o,i){ return (i+1)+'. '+(o.order?o.order+' ':'')+shortName(o.who)+'　新名「'+o.neu+'」（'+o.py+'）　'+o.kind+'：念「'+o.read+'」像「'+o.like+'」'; }).join('\n'); }
 // AI 复核：把网页的判定连同指令复制好，客服贴到 Claude、附上原文件，让名字审核 skill 再查一次，只列网页漏掉的
 function copyAiCheck(){ var x=parsedFiles[activeFile]; if(!x)return; var rs=x.audit.results, bad=rs.filter(function(r){return r.problem;});
-  var t='/martin-toolkit:name-sheet-audit\n请复核我附上的技术单《'+x.name+'》（'+rs.length+' 位学员'+(x.overseas?'，海外':'，国内')+'）。\n名字审核网页已判定 '+bad.length+' 位有问题：\n'+
+  var t='/martin-toolkit:name-sheet-audit\n请复核我附上的技术单《'+x.name+'》（'+rs.length+' 位学员'+(x.mixed?'，国内＋海外（名册展示有写的是海外）':x.overseas?'，海外':'，国内')+'）。\n名字审核网页已判定 '+bad.length+' 位有问题：\n'+
     (bad.length?bad.map(function(r,i){ return (i+1)+'. '+(r.order||'')+' '+baseName(r.disp)+'：'+outReason(r); }).join('\n'):'（没有）')+
     '\n请逐位再查一次（家人撞字撞音含粤语、多音字、禁忌字和禁忌音、繁体、两个新名太像），只列出：①网页没抓到的问题；②你不同意网页判定的地方。没有就回「复核没发现新问题」。';
   function ok(){ toast('已复制：贴到 Claude，再附上这份技术单'); } function fb(){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); ok(); }catch(e){ alert(t); } ta.remove(); }
