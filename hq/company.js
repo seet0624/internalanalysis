@@ -25,7 +25,8 @@ window.COMPANY = {
           agents: [
             { name: '阿名', trait: '细心', role: '核名专员', duty: '新名和家人撞字、撞音，连姓念的不雅谐音，逐位标出来。' },
             { name: '小繁', trait: '温和', role: '繁体专员', duty: '名册展示要繁体的学员，新名自动转繁体；有几种写法的字提醒你确认。' },
-            { name: '库管', trait: '认真', role: '订单库管理员', duty: '记住「订单号 → 新名」，跨文件比对家人的名字。', stat: 'nameDb' }
+            { name: '库管', trait: '认真', role: '订单库管理员', duty: '记住「订单号 → 新名」，跨文件比对家人的名字。', stat: 'nameDb' },
+            { name: '复核', trait: '挑剔', role: 'AI 复核员', skill: 'martin-toolkit:name-sheet-audit', duty: '网页审完后，把技术单交给 Claude 再逐位查一次（普通话、粤语、多音字、禁忌），只列网页漏掉的。网页「⋯ → AI 复核」会把指令连同网页的结果一起复制好。' }
           ]
         },
         {
