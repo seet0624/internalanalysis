@@ -900,7 +900,8 @@ function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.ta
 function problemCount(x){ return x.audit.results.filter(function(r){return r.problem;}).length; }
 function outName(x,kind){ var b=techBase(x);
   if(kind==='orig')return b+((x.name.match(/\.(xlsx|xls)$/i)||['.xlsx'])[0].toLowerCase());
-  if(kind==='bad')return '（有问题）'+b+'（'+problemCount(x)+'）.xlsx';
+  if(kind==='bad'){ var bad=x.audit.results.filter(function(r){return r.problem;}), who=bad.length===1?baseName(bad[0].disp):''; // 只有 1 位有问题才写名字
+    return '（有问题）'+(who?who+' ':'')+'名正言顺技术单'+x.tableDate+(x.tags||[]).map(function(t){return '（'+t+'）';}).join('')+(x.overseas?'（H）':'')+'（'+bad.length+'）.xlsx'; }
   if(kind==='sup')return b+'（督导）.xlsx';
   return b+'（上传）.xlsx'; }
 
@@ -1500,7 +1501,7 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
     Object.keys(reasonByRow).forEach(function(k){ var rr=newRow(+k);
       var c=ws.getRow(rr).getCell(lastCol+1); c.value=reasonByRow[k];
       c.font={name:'宋体',size:12,color:{argb:'FFFF0000'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}}; c.alignment={horizontal:'center',vertical:'middle'};
-      ws.mergeCells(rr,lastCol+1,rr,lastCol+8); }); }
+      ws.unMergeCells(rr,lastCol+1,rr,lastCol+8); ws.mergeCells(rr,lastCol+1,rr,lastCol+8); }); } // 再次审核自己导出的「有问题」文件时，原因格已经合并过
   return wb; }
 function dateStr(){ var d=new Date(); function p(n){return(n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
 function dl(blob,name){ var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
@@ -1606,6 +1607,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-04', title:'「有问题」文件改名', items:[
+    '改成「（有问题）郑平东 名正言顺技术单2026-10-01（1）」：只有 1 位学员有问题就写他的名字，好几位就不写名字；海外照样加（H）']},
   {date:'2026-11-03', title:'每周复查：家人新名撞字撞音', items:[
     '每 7 天打开网页自动把记住的学员两两比一次：家人栏写了对方名字、两边下来的新名撞字或同音同调的，弹出清单（审的时候对方新名还没下来，当时抓不到）',
     '会员编号或店铺编号一样的标「必须看」，只是同名的标「请确认」；勾「已处理」以后不再提醒',
@@ -1658,7 +1661,7 @@ var CHANGELOG=[
   {date:'2026-10-28', title:'「有问题」那份改成回传格式 + 下载文件统一命名', items:[
     '一家人改看文件颜色：涂同一颜色的学员算一家人，新名互相比对；拿掉靠猜的「疑似同一家人」',
     '「爱人 / 配偶 / 前夫 / 现任」等称呼不再被当成家人名字去比对',
-    '下载的文件统一命名：技术单 制表日期（名正言顺）（H）；（上传）= 审核过可上传的，（有问题）……（数目）= 里面有几位学员有问题',
+    '下载的文件统一命名：技术单 制表日期（名正言顺）（H）；（上传）= 审核过可上传的；有问题的叫「（有问题）郑平东 名正言顺技术单 日期（数目）」，只有 1 位才写名字，数目 = 几位学员有问题',
     '新增「原装文件（只改名）」：内容不动，只换成统一的名字；打包 zip 里三份都有',
     '「干净·可上传」改成上传用的精简表：订单、服务中心编号、新名字姓氏、姓名、性别、出生日期、生肖、新名字、新名字拼音，一个新名一行',
     '海外 / 国内：原文件名有 H 就算海外（加（H）），左边文件卡片上可以手动切换',
