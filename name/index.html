@@ -1396,8 +1396,9 @@ function outNeuByRow(x){ var m={}; x.audit.results.forEach(function(r){ r.rows.f
 function applyTrad(ws,x){ var m=outNeuByRow(x), c=x.audit.cols.neu; if(c<0)return 0; var n=0; for(var ri in m){ ws.getRow(+ri+1).getCell(c+1).value=m[ri]; n++; } return n; }
 // 表尾「制表时间 / 回传时间」系统导出的是 Excel 日期数字（46298），而且比文件名晚一天：下载时改写成日期；制表时间跟文件名，回传时间照同样差的天数挪
 function footerDates(x){ var data=x.parsed.data, out=[], shift=null, ser=function(d){ var m=String(d).split('-'); return Math.round((Date.UTC(+m[0],m[1]-1,+m[2])-Date.UTC(1899,11,30))/864e5); };
-  for(var r=Math.max(0,data.length-15);r<data.length;r++){ var row=data[r]||[]; for(var c=0;c<row.length;c++){ var t=String(row[c]==null?'':row[c]).trim(), kind=t.indexOf('制表时间')===0?'make':t.indexOf('回传时间')===0?'back':''; if(!kind)continue;
-    var k=c+1; while(k<row.length&&!String(row[k]==null?'':row[k]).trim())k++; var v=String(row[k]==null?'':row[k]).trim(); if(!/^\d{5}(\.0+)?$/.test(v))continue;
+  var last=0; x.audit.results.forEach(function(rr){ rr.rows.forEach(function(rw){ if(rw.row>last)last=rw.row; }); });
+  for(var r=last+1;r<data.length;r++){ var row=data[r]||[]; for(var c=0;c<row.length;c++){ var t=String(row[c]==null?'':row[c]).trim(), kind=t.indexOf('制表时间')===0?'make':t.indexOf('回传时间')===0?'back':''; if(!kind)continue;
+    var k=c+1; while(k<row.length&&!String(row[k]==null?'':row[k]).trim())k++; var v=String(row[k]==null?'':row[k]).trim(); if(!/^\d{5}(\.\d+)?$/.test(v))continue;
     out.push({r:r,k:k,kind:kind,n:Math.floor(+v)}); } }
   out.forEach(function(o){ if(o.kind==='make'&&x.tableDate){ var d=ser(x.tableDate)-o.n; shift=Math.abs(d)<=1?d:0; } });
   return out.map(function(o){ return {r:o.r,k:o.k,v:o.kind==='make'&&x.tableDate?x.tableDate:asDate(String(o.n+(shift||0)))}; }); }
@@ -1494,7 +1495,7 @@ function openSupTable(focusR){ var x=parsedFiles[activeFile]; if(!x)return;
     box.querySelectorAll('input.cell').forEach(function(inp){ inp.onchange=function(){ var k=inp.getAttribute('data-k'), r=rows.filter(function(q){return supKey(q)===k;})[0]; if(!r)return; setSup(r,inp.getAttribute('data-f'),inp.value); draw(); refreshAll(); };
       inp.onkeydown=function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); inp.blur(); } }; });
     box.querySelector('#supClose').onclick=function(){ document.getElementById('modal').style.display='none'; box.classList.remove('wide'); };
-    box.querySelector('#supDl').onclick=function(){ downloadSup(); };
+    box.querySelector('#supDl').onclick=function(){ dlCatch(downloadSup()); };
     box.querySelector('#shopImp').onclick=function(){ importSupData(function(){ draw(); refreshAll(); }); };
     box.querySelectorAll('input.grpcell').forEach(function(inp){ inp.onchange=function(){ var n=inp.getAttribute('data-sup'); (SUP.list[n]||(SUP.list[n]={})).group=inp.value.trim(); saveSup(); draw(); refreshAll(); toast('已更新「'+n+'」的群'); }; inp.onkeydown=function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); inp.blur(); } }; }); }
   draw(); document.getElementById('modal').style.display='flex'; }
@@ -1588,6 +1589,7 @@ async function downloadSplit(keepProblem){ if(!parsedFiles.length)return; var x=
   var ps=partsOf(x), got=[]; for(var i=0;i<ps.length;i++){ var p=ps[i]; if(keepProblem?!problemCount(p):!passCount(p))continue;
     var wb=keepProblem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p), nm=outName(p,keepProblem?'bad':'clean'); dl(new Blob([await wb.xlsx.writeBuffer()]),nm); got.push(nm); } twoDone(got); }
 async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x), got=[]; for(var i=0;i<ps.length;i++){ var nm=outName(ps[i],'orig'); dl(new Blob([await origBuffer(ps[i])]),nm); got.push(nm); } twoDone(got); }
+function dlCatch(p){ return Promise.resolve(p).catch(function(e){ console.error(e); alert(HQTool.friendly('下载的时候出错，这次没有下载完整（如果已经下载了一份，另一份没有）。',e)); }); } // 下载出错一定要让客服知道
 function twoDone(got){ if(got.length>1)alert('国内、海外分开，下载了 '+got.length+' 份：\n'+got.join('\n')+'\n\n浏览器如果问「要下载多个文件吗」，请按「允许」，不然第二份会没下载。也可以用「打包下载」一次拿全部。'); }
 async function downloadZip(){ if(!parsedFiles.length||typeof JSZip==='undefined'){ alert('打包需要 JSZip，请确认网络。'); return; } var x=parsedFiles[activeFile]; var base=keepBase(x)||leadOf(x.name)+techBase(x);
   var zip=new JSZip(); var folder=zip.folder(base), ps=partsOf(x);
@@ -1881,12 +1883,12 @@ function runAct(a){ var x=parsedFiles[activeFile];
     case 'lang': lang=lang==='cn'?'en':'cn'; store('mzys_lang',lang); applyLang(); break;
     case 'help': openHelp('guide'); break;
     case 'changelog': openHelp('log'); break;
-    case 'dlzip': downloadZip(); break;
-    case 'dlorig': downloadOrig(); break;
+    case 'dlzip': dlCatch(downloadZip()); break;
+    case 'dlorig': dlCatch(downloadOrig()); break;
     case 'overseas': if(x&&x.mixed){ toast('这份有国内也有海外（看名册展示），下载会自动分开'); break; } if(x){ x.overseas=!x.overseas; var om=load('mzys_overseas',{}); om[x.name]=x.overseas; store('mzys_overseas',om); renderToolState(); toast(x.overseas?'这份算海外，文件名会加（H）':'这份算国内，文件名不加（H）'); } break;
-    case 'dlbad': downloadSplit(true); break;
-    case 'dlclean': downloadSplit(false); break;
-    case 'dlsup': downloadSup(); break;
+    case 'dlbad': dlCatch(downloadSplit(true)); break;
+    case 'dlclean': dlCatch(downloadSplit(false)); break;
+    case 'dlsup': dlCatch(downloadSup()); break;
     case 'suptable': openSupTable(); break;
     case 'supimport': importSupData(); break;
     case 'pastimport': importPastSheets(); break;
