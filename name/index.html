@@ -489,14 +489,14 @@ body.light .itabs button.on{background:var(--bg2)}
     <section class="dropcard" id="drop" aria-label="载入技术单">
       <div class="dicon"><svg class="i"><use href="#i-upload"/></svg></div>
       <h2 id="t_drop1">把名正言顺技术单拖到这里</h2>
-      <p id="t_drop2">拖到页面任何地方都行 · 可一次拖多份 · 会自动建「订单号 → 新名」总库做跨文件比对</p>
+      <p id="t_drop2">拖到页面任何地方都行 · 可一次拖多份，也可以拖 zip · 会自动建「订单号 → 新名」总库做跨文件比对</p>
       <button type="button" class="btn pri" id="pickBtn"><svg class="i"><use href="#i-file"/></svg><span data-i18n="pick">选择文件</span></button>
     </section>
     <div id="homeInfo"></div>
     <div class="priv" data-i18n="foot1">所有处理都在你的浏览器里完成，文件不会上传到任何服务器。</div>
   </div>
 </div>
-<input id="fileInput" type="file" accept=".xlsx,.xls" multiple style="display:none">
+<input id="fileInput" type="file" accept=".xlsx,.xls,.zip" multiple style="display:none">
 
 <div class="app" id="app" style="display:none">
   <nav class="queue" aria-label="学员队列">
@@ -1008,7 +1008,17 @@ async function importPastSheets(){ var inp=document.createElement('input'); inp.
       if(!pf){ bad.push(f.name); continue; } tot+=recordPeople(pf,tableDateOf(data,f.name,true)); }catch(e){ console.error(f.name,e); bad.push(f.name+'（'+e.message+'）'); } }
   rebuild(); alert('已记住 '+tot+' 位学员（现在一共 '+Object.keys(PEOPLE).length+' 位）。以后技术单的家人栏出现同名的人，会拿他以前下来的新名来比。'+(bad.length?'\n读不了：'+bad.join('、'):'')); }; inp.click(); }
 
-async function loadWithBuffers(fileList){ var start=parsedFiles.length;
+// 拖进 zip：把里面的每份 Excel 拿出来一起审（Windows 压的 zip 中文名是 GBK，要另外解码，不然文件名会乱码）
+async function expandZips(list){ var out=[];
+  for(var i=0;i<list.length;i++){ var f=list[i]; if(!/\.zip$/i.test(f.name)){ out.push(f); continue; }
+    if(typeof JSZip==='undefined'){ alert('读 zip 需要 JSZip，请确认网络，或先解压再拖 Excel 进来。'); continue; }
+    try{ var z=await JSZip.loadAsync(await f.arrayBuffer(),{decodeFileName:function(b){ var u=new Uint8Array(b); try{ return new TextDecoder('utf-8',{fatal:true}).decode(u); }catch(e){ return new TextDecoder('gbk').decode(u); } }});
+      var ents=Object.keys(z.files).filter(function(n){ var base=n.split('/').pop(); return !z.files[n].dir&&/\.xlsx?$/i.test(base)&&!/^(~\$|\.)/.test(base)&&!/(^|\/)__MACOSX\//.test(n); });
+      if(!ents.length){ toast('「'+f.name+'」里面没有 Excel'); continue; }
+      ents.forEach(function(n){ var e=z.files[n]; out.push({name:n.split('/').pop(), arrayBuffer:function(){ return e.async('arraybuffer'); }}); });
+      toast('「'+f.name+'」里有 '+ents.length+' 份技术单，一起审'); }catch(e){ alert(HQTool.friendly('打不开「'+f.name+'」。',e)); } }
+  return out; }
+async function loadWithBuffers(fileList){ var start=parsedFiles.length; fileList=await expandZips(fileList);
   for(var i=0;i<fileList.length;i++){ var f=fileList[i]; if(!/\.xlsx?$/i.test(f.name)){ toast('「'+f.name+'」不是 Excel，略过'); continue; } var buf=await f.arrayBuffer();
   try{ buf=await fixCoreProps(buf); var wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf.slice(0)); var ws=pickSheet(wb); var data=wsTo2D(ws); var loc0=locateHeader(data); var parsed=parseFile(data, loc0?rowColorsOf(ws,loc0.hr,colsFrom(loc0.header).user):[]);
     if(!parsed){ alert('「'+f.name+'」找不到表头（需有「新名」「新名拼音」），略过。'); continue; }
@@ -1689,6 +1699,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-05', title:'可以拖 zip', items:[
+    '拖进 zip（或选择文件时选 zip），里面的每份技术单都会拿出来一起审，家人跨文件照样比对；中文文件名不会乱码']},
   {date:'2026-11-05', title:'改好的「有问题」文件拖回来，名字照原样', items:[
     '「（有问题）郑平东 名正言顺技术单2026-10-01（1）」改好再审，下载的名字拿掉（有问题），其余照原样：郑平东 名正言顺技术单2026-10-01（1）（干净）、（督导）……；数目照现在的学员数',
     '上次留在表格右边的红字原因，下载原装时清掉，免得新名已改好还挂着旧原因']},
