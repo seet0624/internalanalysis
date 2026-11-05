@@ -916,7 +916,7 @@ function problemCount(x){ return x.audit.results.filter(function(r){return r.pro
 // 技术单审核台分好的文件（例如「新生儿名正言顺技术单 2026-10-31（1）H」）名字不改，后面加（干净）/（督导）就好
 // 改好再拖回来的「有问题」文件（「（有问题）郑平东 名正言顺技术单2026-10-01（1）」「周子平名正言顺技术单（有问题）14.10.2026（1）H」）：拿掉（有问题），其余照原名
 function keepBase(x){ var b=String(x.name).replace(/\.(xlsx|xls)$/i,'').replace(/\s*\(\d+\)$/,'').trim()
-    .replace(/^((?:[（(][^）)]*[）)])*?)（有问题）\s*/,'$1').replace(/（有问题）(?=\d)/,' ').replace(/（有问题）/,'');
+    .replace(/^((?:[（(][^）)]*[）)])*?)（有问题）\s*/,'$1').replace(/（有问题）(?=\d)/,' ').replace(/（有问题）/,'').replace(/（H）(?=（\d+）\s*$)/i,''); // 本站有问题文件的（H）交给后面照学员重算
   return /技术单/.test(b)&&/（\d+）\s*H?$/i.test(b)&&!/（名正言[顺順]）|（上传）|（督导）|（干净）/.test(b)?b:''; }
 function kbOf(x){ var kb=keepBase(x); if(!kb)return ''; var n=uniq(x.audit.results.map(function(r){ return r.order||r.sid; })).length;
   if(/（有问题）/.test(x.name)&&!x._part)kb=kb.replace(/（\d+）(\s*H?)$/i,'（'+x.audit.results.length+'）$1'); // 有问题文件的数目是当时有问题的人数，拖回来照现在的学员数
@@ -1394,13 +1394,14 @@ function footerDates(x){ var data=x.parsed.data, out=[], shift=null, ser=functio
 function applyFooter(ws,x){ var f=footerDates(x); f.forEach(function(o){ ws.getRow(o.r+1).getCell(o.k+1).value=o.v; }); return f.length; }
 // 改好再拖回来的「有问题」文件：学员那几行表头右边还留着上次的红字原因，下载时清掉
 function lastColOf(x){ var n=0; x.audit.header.forEach(function(h,i){ if(String(h).trim())n=i+1; }); return n; }
-function oldReasonRows(x){ var lc=lastColOf(x), out=[]; x.audit.results.forEach(function(r){ r.rows.forEach(function(rw){ var line=x.parsed.data[rw.row]||[];
-  for(var c=lc;c<line.length;c++){ if(String(line[c]==null?'':line[c]).trim()){ out.push(rw.row); break; } } }); }); return out; }
-function clearOldReasons(ws,x){ var rows=oldReasonRows(x), lc=lastColOf(x); if(!rows.length)return;
-  (ws.model.merges||[]).slice().forEach(function(rg){ var m=rg.match(/^([A-Z]+)(\d+):/); if(m&&rows.indexOf(+m[2]-1)>=0&&ws.getCell(rg.split(':')[0]).col>lc)ws.unMergeCells(rg); });
-  rows.forEach(function(ri){ var row=ws.getRow(ri+1); for(var c=lc+1;c<=lc+8;c++){ var cell=row.getCell(c); cell.value=null; cell.style={}; } }); }
+function clearOldReasons(ws,x){ if(!/（有问题）/.test(x.name))return; var lc=lastColOf(x), argb=function(c){ return String(c&&c.argb||'').toUpperCase(); };
+  x.audit.results.forEach(function(r){ r.rows.forEach(function(rw){ var row=ws.getRow(rw.row+1), c0=row.getCell(lc+1);
+    if(c0.isMerged&&c0.master!==c0)return; // 从属于左边（表头范围内）的合并格：不是我们写的原因
+    if(argb(c0.font&&c0.font.color)!=='FFFF0000'||argb(c0.fill&&c0.fill.fgColor)!=='FFFFFF00')return; // 只清我们自己写的红字黄底
+    (ws.model.merges||[]).slice().forEach(function(rg){ if(rg.split(':')[0]===c0.address)ws.unMergeCells(rg); });
+    for(var c=lc+1;c<=lc+8;c++){ var cell=row.getCell(c); if(cell.isMerged&&cell.master.col<=lc)continue; cell.value=null; cell.style={}; } }); }); }
 async function origBuffer(x){ if(x._drop&&x._drop.length)return await (await buildSplitWorkbook(x,'all')).xlsx.writeBuffer();
-  if(!Object.keys(outNeuByRow(x)).length&&!footerDates(x).length&&!oldReasonRows(x).length)return x._buf.slice(0);
+  if(!Object.keys(outNeuByRow(x)).length&&!footerDates(x).length&&!/（有问题）/.test(x.name))return x._buf.slice(0);
   var wb=new ExcelJS.Workbook(), ws; await wb.xlsx.load(x._buf.slice(0)); ws=wb.getWorksheet(x.sheetName)||wb.worksheets[0]; clearOldReasons(ws,x); applyTrad(ws,x); applyFooter(ws,x); return await wb.xlsx.writeBuffer(); }
 /*==== 督导文件（国内）：督导 / 分公司 / 店铺 在网页里填，其余从技术单带 ====*/
 // info：订单号 → {sup,branch,shop}；list：督导 → {branch,group}（填过一次就记住）；center：服务中心编号 → 上次填的 {sup,shop}
