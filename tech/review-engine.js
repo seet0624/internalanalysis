@@ -766,7 +766,7 @@
       // Any person's name in 备注 / 总备注 → red; family listed neatly for the reviewer.
       var fam = familyNames(get), famHits = [], otherHits = [];
       var own = {};
-      [get('使用人姓名'), get('会员姓名')].join(' ').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／]+/).forEach(function (x) { if (x) own[x] = true; });
+      [get('使用人姓名'), get('会员姓名')].join(' ').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／]+/).forEach(function (x) { if (x && !NO_NAME_YET.test(x)) own[x] = true; });
       // the student's own name, or only the given name (葉宛蓉 → 宛蓉)
       var selfForms = [];
       Object.keys(own).forEach(function (n) { if (n.length >= 2) selfForms.push(n); var g = givenName(n); if (g) selfForms.push(g); });
@@ -1091,15 +1091,17 @@
   function orderNo14(x) { var m = String(x || '').match(/\d{14}/); return m ? m[0] : ''; }
   // names in 父亲名字 / 母亲名字 / 兄弟姐妹 / 子女: "兄弟姐妹:林鼎伦 （名正言顺订单号：A…）;伴侣:NIL" → 林鼎伦
   // (3+ characters only: a 2-character name is too easily part of ordinary words)
-  var REL_LABELS = /现用名|現用名|曾用名|原来的名字|原來的名字|原名|现名|現名|旧名|舊名|本名|全名|名字|姓名|兄弟姐妹|兄弟|姐妹|伴侣|伴侶|配偶|子女|父亲|父親|母亲|母親|哥哥|姐姐|弟弟|妹妹|儿子|兒子|女儿|女兒|丈夫|妻子|名正言顺|订单号|訂單號|订单|訂單/g;
+  var REL_LABELS = /外祖父|外祖母|爷爷|奶奶|外公|外婆|姥姥|姥爷|祖父|祖母|大伯|大娘|叔叔|婶婶|阿姨|舅舅|舅妈|姑姑|姑父|老名字|现用名|現用名|曾用名|原来的名字|原來的名字|原名|现名|現名|旧名|舊名|本名|全名|名字|姓名|兄弟姐妹|兄弟|姐妹|伴侣|伴侶|配偶|子女|父亲|父親|母亲|母親|哥哥|姐姐|弟弟|妹妹|儿子|兒子|女儿|女兒|丈夫|妻子|名正言顺|订单号|訂單號|订单|訂單/g;
   var REL_NONAME = /不详|不詳|没有|沒有|未知|暂无|暫無|已故|过世|過世|离婚|離婚|单亲|單親/;
   function relNames(s) {
     return (String(s || '').replace(/[（(][^）)]*[）)]/g, ' ').replace(REL_LABELS, ' ').match(/[\u4e00-\u9fff]+/g) || [])
       .filter(function (x) { return x.length >= 3 && x.length <= 4 && !REL_NONAME.test(x); });
   }
+  // 「新生儿」「薛新生儿」「宝宝」是还没取名的占位字，不是名字：不然每张新生儿单都会互相连成一家、备注也会被当成写了本人名字
+  var NO_NAME_YET = /新生儿|新生兒|宝宝|寶寶|未取名|待定/;
   function ownNames(s) {
     return String(s || '').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／,，、]+/).map(function (x) { return x.trim(); })
-      .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x); });
+      .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x) && !NO_NAME_YET.test(x); });
   }
   var SELF_COLS = /^(序号|订单时间|订单编号|原订单编号|原訂單編號|会员编号|会员姓名|服务中心编号|商品标题|加工序号|产品配置编号|股东名称|新名字姓氏|使用人姓名|新名|新名拼音|名册展示|配置人|审核人|性别|生肖|公历生日|农历时辰|是否子时|是否双胞胎|数字|颜色|刻名字)$/;
   // 家人订单只在同一个文件里找：每个文件单独审核，不跟别的工具的单连起来
