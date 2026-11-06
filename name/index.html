@@ -608,14 +608,14 @@ var REL_FULL={'伴侣':1,'伴侶':1,'配偶':1,'太太':1,'先生':1,'丈夫':1,
 var REL_RE=new RegExp('^['+REL_MOD+']*['+REL_ROOT+']+');
 function stripRel(t){ if(REL_FULL[t])return ''; var arr=Array.from(t);
   if(arr.length>=2&&arr.every(function(c){return (REL_MOD+REL_ROOT).indexOf(c)>=0;}))return '';
-  var m=t.match(REL_RE); if(m&&m[0].length===1&&arr.length===3&&isSurname(arr[0]))return t; // 「外婆：孙梅英」的孙是姓
+  var m=t.match(REL_RE); if(m&&m[0].length===1&&arr.length===3&&isSurname(arr[0]))return t; // 「外婆：孙小红」的孙是姓
   if(m&&m[0].length<t.length){ var rest=t.slice(m[0].length); if(Array.from(rest).length>=2)return rest; }
   return t; }
-// 只是称呼、不是人名的词（例如「爱人：利有通」里的「爱人」），不能拿去比对撞字撞音
+// 只是称呼、不是人名的词（例如「爱人：刘一二」里的「爱人」），不能拿去比对撞字撞音
 var REL_WORDS={}; '爱人 配偶 伴侣 前任 现任 前夫 前妻 丈夫 妻子 老公 老婆 先生 太太 对象 公公 婆婆 岳父 岳母 继父 继母 继子 继女 姥姥 姥爷 孩子 健在 未婚 原配 调整名 数易名 第一任 第二任 第三任 曾用名 原名 现用名'.split(' ').forEach(function(w){REL_WORDS[w]=1;});
 // 「不详 / 不清楚 / 不知道」这类是说不知道名字，不是人名
 var NO_NAME_RE=/不详|不祥|不清楚|不知道|不晓得|未知|不记得|记不得|忘记|忘了|暂无|没有|保密|待定|未定|未取|没取|不明|路上|没下来|未下来|还没|唐氏/;
-// 括号里的名字：「名正言顺：蒋朋袀，蒋宥苇」后面写几个都认；「李芊萦（李冬艳）」「张语馨（曾用名：张可馨，张馨月）」这种另一个名字也拿来比
+// 括号里的名字：「名正言顺：蒋小朋，蒋小苇」后面写几个都认；「李小花（李小冬）」「张小雪（曾用名：张小雨，张小月）」这种另一个名字也拿来比
 var BR_KEY=/(名正言[顺順]|新名字?|改名为?|更名为?|曾用名|原名|现用名|现在用|现任|前任|原)\s*[\uff1a:\u4e2d为]?/g;
 function bracketNames(inner){ var out=[], s=String(inner||''), after=s.search(/名正言[顺順]|新名|改名|更名/);
   s.replace(BR_KEY,'，').split(/[\uff0c,\u3001\uff1b;\/\s\uff1a:和及]+/).forEach(function(tok,i){ var c=cjkOnly(tok); var n=Array.from(c).length;
@@ -628,11 +628,11 @@ function splitNames(text){ var t=String(text==null?'':text); if(NULLS[t.trim()])
   var NM=/[\uff08(]([^\uff09)]*)[\uff09)]/g, mm;
   while((mm=NM.exec(t))){ var inner=mm[1];
     bracketNames(inner).forEach(function(nm){ if(extra.indexOf(nm)<0)extra.push(nm); }); }
-  t=t.replace(/[\uff08(][^\uff09)]*[\uff09)]/g,'，'); // 括号拿掉要留分隔，不然「罗红岩（…）配偶」会黏成「罗红岩配偶」
+  t=t.replace(/[\uff08(][^\uff09)]*[\uff09)]/g,'，'); // 括号拿掉要留分隔，不然「罗小红（…）配偶」会黏成「罗小红配偶」
   for(var i=0;i<NOISE.length;i++)t=t.split(NOISE[i]).join('');
   var parts=t.split(/[@\uff0c,\u3001\uff1b;\uff1a:\u3000\s\/]+/).concat(extra),out=[];
   for(var j=0;j<parts.length;j++){var c=cjkOnly(parts[j]);if(!c||NULLS[c])continue; c=stripRel(c); if(c&&!NULLS[c]&&!REL_WORDS[c]&&!NO_NAME_RE.test(c)&&Array.from(c).length>=2&&out.indexOf(c)<0)out.push(c);} return out; }
-// 「爱人：罗红岩」「配偶：第一任：王小明」→ 名字前面最近的称谓（爱人 / 配偶）；找不到就空
+// 「爱人：罗小红」「配偶：第一任：王小明」→ 名字前面最近的称谓（爱人 / 配偶）；找不到就空
 function isRelLabel(l){ return !!(REL_WORDS[l]||REL_FULL[l]||/^(外公|外婆|姥姥|姥爷|爷爷|奶奶|兄弟姐妹)$/.test(l)||new RegExp('^['+REL_MOD+']*['+REL_ROOT+']{1,3}$').test(l)); }
 function relLabelOf(raw,n){ var i=String(raw).indexOf(n); if(i<0)return ''; var seg=String(raw).slice(0,i).split(/[；;]/).pop(), m, last='', re=/([一-鿿]{1,8})\s*[：:]/g;
   while((m=re.exec(seg))){ var l=m[1].replace(/(的)?名字$/,''); if(isRelLabel(l))last=l; } return last; }
@@ -703,7 +703,7 @@ function locateHeader(data){ var hr=-1; for(var i=0;i<Math.min(data.length,20);i
 function colsFrom(header){ function col(n){return header.indexOf(n);} var status=-1; header.forEach(function(h,i){ if(status<0&&/状态备注|订单状态|狀態備註|訂單狀態/.test(String(h)))status=i; }); return {seq:col('序号'),user:col('使用人姓名'),order:col('订单编号'),surname:col('新名字姓氏'),father:col('父亲名字'),mother:col('母亲名字'),sib:col('兄弟姐妹'),kids:col('子女'),taboo:col('禁忌字'),neu:col('新名'),py:col('新名拼音'),disp:col('名册展示'),note1:col('备注'),note2:col('总备注'),status:status,zod:col('生肖'),member:(col('会员编号')>=0?col('会员编号'):(col('學員編號')>=0?col('學員編號'):col('学员编号')))}; }
 function groupRows(data,hr,cNeu,cSeq){ var g=[]; for(var r=hr+1;r<data.length;r++){ if(String(data[r][cNeu]==null?'':data[r][cNeu]).trim()==='')continue; var sid=data[r][cSeq];
   if(sid!==''&&sid!=null&&(g.length===0||g[g.length-1].sid!==sid))g.push({sid:sid,rows:[r]}); else if(g.length>0)g[g.length-1].rows.push(r); else g.push({sid:sid,rows:[r]}); } return g; }
-var ORDER_RE=/(?<![A-Za-z\d])(?:[A-Za-z]{1,2}\d{6,}|2\d{7,}|\d{12,})(?!\d)/g; // 前后不能接数字：手机号里的一段数字不是订单
+var ORDER_RE=/(?<![A-Za-z\d])(?!86\d{11}(?!\d))(?:[A-Za-z]{1,2}\d{6,16}|2\d{7,13}|\d{12,14})(?![\dXx])/g; // 前后不能接数字；纯数字最多 14 位：身份证（15/18 位）、银行卡（16–19 位）、+86 手机号都不是订单
 
 // 解析一个文件 -> people（含自己的订单->新名，用来建总库）
 function normWidth(s){ return String(s==null?'':s).replace(/[\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xFEE0);}); }
@@ -954,7 +954,7 @@ function nameTags(n){ var out=[], b=String(n).replace(/\.(xlsx|xls)$/i,'').repla
 function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.tags||[]).map(function(t){return '（'+t+'）';}).join('')+(x.overseas?'（H）':''); }
 function problemCount(x){ return x.audit.results.filter(function(r){return r.problem;}).length; }
 // 技术单审核台分好的文件（例如「新生儿名正言顺技术单 2026-10-31（1）H」）名字不改，后面加（干净）/（督导）就好
-// 改好再拖回来的「有问题」文件（「（有问题）郑平东 名正言顺技术单2026-10-01（1）」「周子平名正言顺技术单（有问题）14.10.2026（1）H」）：拿掉（有问题），其余照原名
+// 改好再拖回来的「有问题」文件（「（有问题）郑小东 名正言顺技术单2026-10-01（1）」「周子平名正言顺技术单（有问题）14.10.2026（1）H」）：拿掉（有问题），其余照原名
 function keepBase(x){ var b=String(x.name).replace(/\.(xlsx|xls)$/i,'').replace(/\s*\(\d+\)$/,'').trim()
     .replace(/^((?:[（(][^）)]*[）)])*?)（有问题）\s*/,'$1').replace(/（有问题）(?=\d)/,' ').replace(/（有问题）/,'').replace(/（H）(?=（\d+）\s*$)/i,''); // 本站有问题文件的（H）交给后面照学员重算
   return /技术单/.test(b)&&/（\d+）\s*H?$/i.test(b)&&!/（名正言[顺順]）|（上传）|（督导）|（干净）/.test(b)?b:''; }
@@ -1679,8 +1679,8 @@ function exportCSV(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFil
 function openReport(){ if(!parsedFiles.length)return;
   var secs=parsedFiles.map(function(x){ var res=x.audit.results; var nbad=res.filter(function(r){return r.problem;}).length;
     var rows=res.map(function(r){ var color=r.problem?'#c0334a':'#1f8f5f'; var names=r.rows.map(function(rw){return rw.neu+'（'+rw.pyToned+'）';}).join('，');
-      var reasons=r.rows.map(function(rw){return rw.msgs.concat(rw.warns).join('；');}).filter(Boolean).join('<br>');
-      return '<tr><td>'+esc(String(r.sid))+'</td><td>'+esc(r.disp||'')+'</td><td>'+esc(names)+'</td><td>'+(reasons||'—')+'</td><td style="color:'+color+';font-weight:700">'+r.verdict+'</td></tr>'; }).join('');
+      var reasons=r.rows.map(function(rw){return esc(rw.msgs.concat(rw.warns).join('；'));}).filter(Boolean).join('<br>'); // 原因里有 Excel 原文（状态备注、学员姓名），一定要转义
+      return '<tr><td>'+esc(String(r.sid))+'</td><td>'+esc(r.disp||'')+'</td><td>'+esc(names)+'</td><td>'+(reasons||'—')+'</td><td style="color:'+color+';font-weight:700">'+esc(r.verdict)+'</td></tr>'; }).join('');
     return '<h2>'+esc(x.name)+' <small style="color:#888;font-weight:400">共 '+res.length+' 位 · '+nbad+' 有问题</small></h2><table><thead><tr><th>序号</th><th>使用人</th><th>新名（拼音）</th><th>原因/提示</th><th>判定</th></tr></thead><tbody>'+rows+'</tbody></table>'; }).join('<hr>');
   var totS=0,totB=0; parsedFiles.forEach(function(x){ x.audit.results.forEach(function(r){ totS++; if(r.problem)totB++; }); });
   var html='<html><head><meta charset="utf-8"><title>名字审核报告</title><style>body{font-family:-apple-system,"Microsoft YaHei",sans-serif;padding:24px;color:#14110F}h1{font-size:22px}h2{font-size:16px;margin-top:24px}table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px}th,td{border:1px solid #ccc;padding:7px 9px;text-align:left;vertical-align:top}th{background:#f0f0f0}hr{border:none;border-top:1px dashed #ccc;margin:24px 0}@media print{button{display:none}}</style></head><body><h1>名字审核报告</h1><div style="color:#555;margin:6px 0 4px">共 '+parsedFiles.length+' 个文件 · '+totS+' 位学员 · <b style="color:#c0334a">'+totB+' 位有问题</b> · '+dateStr()+'</div><button onclick="window.print()" style="margin:10px 0 16px;padding:8px 14px">打印 / 存成 PDF</button>'+secs+'</body></html>';
@@ -1775,7 +1775,7 @@ var CHANGELOG=[
   {date:'2026-11-05', title:'可以拖 zip', items:[
     '拖进 zip（或选择文件时选 zip），里面的每份技术单都会拿出来一起审，家人跨文件照样比对；中文文件名不会乱码']},
   {date:'2026-11-05', title:'改好的「有问题」文件拖回来，名字照原样', items:[
-    '「（有问题）郑平东 名正言顺技术单2026-10-01（1）」改好再审，下载的名字拿掉（有问题），其余照原样：郑平东 名正言顺技术单2026-10-01（1）（干净）、（督导）……；数目照现在的学员数',
+    '「（有问题）郑小东 名正言顺技术单2026-10-01（1）」改好再审，下载的名字拿掉（有问题），其余照原样：郑小东 名正言顺技术单2026-10-01（1）（干净）、（督导）……；数目照现在的学员数',
     '上次留在表格右边的红字原因，下载原装时清掉，免得新名已改好还挂着旧原因']},
   {date:'2026-11-05', title:'国内、海外分开', items:[
     '国内 / 海外只看名册展示：有写的学员是海外，没写的是国内（不再看文件名的 H）',
@@ -1801,14 +1801,14 @@ var CHANGELOG=[
     '下载的原装、有问题文件，表尾「制表时间 / 回传时间」从数字（46298）改成日期（2026-10-02）',
     '下载的文件日期先跟原文件名（例如「技术单 2026-10-02」就是 10-02），原文件名没有日期才看表里的制表时间——之前表里制表时间晚一天，下载出来就多了一天']},
   {date:'2026-11-04', title:'「有问题」文件改名', items:[
-    '改成「（有问题）郑平东 名正言顺技术单2026-10-01（1）」：只有 1 位学员有问题就写他的名字，好几位就不写名字；海外照样加（H）']},
+    '改成「（有问题）郑小东 名正言顺技术单2026-10-01（1）」：只有 1 位学员有问题就写他的名字，好几位就不写名字；海外照样加（H）']},
   {date:'2026-11-03', title:'每周复查：家人新名撞字撞音', items:[
     '每 7 天打开网页自动把记住的学员两两比一次：家人栏写了对方名字、两边下来的新名撞字或同音同调的，弹出清单（审的时候对方新名还没下来，当时抓不到）',
     '会员编号或店铺编号一样的标「必须看」，只是同名的标「请确认」；勾「已处理」以后不再提醒',
     '「⋯ → 每周复查」随时手动跑；以前导入过的技术单请再导入一次，才有家人资料']},
   {date:'2026-11-03', title:'家人以前下来的新名也会比', items:[
-    '括号里「名正言顺：蒋朋袀，蒋宥苇」写几个新名都认（之前只认第一个）',
-    '「李芊萦（李冬艳）」「张语馨（曾用名：张可馨）」这种另一个名字也拿来比',
+    '括号里「名正言顺：蒋小朋，蒋小苇」写几个新名都认（之前只认第一个）',
+    '「李小花（李小冬）」「张小雪（曾用名：张小雨）」这种另一个名字也拿来比',
     '工具记住每一位审过的学员；家人栏出现同名的人，拿他以前下来的新名来比：会员编号或店铺编号一样算必须改，只是同名算请确认',
     '「⋯ → 导入以前的技术单」可以一次把以前的技术单读进来（只记学员，不放进审核）；存档也会一起存']},
   {date:'2026-11-02', title:'有些文件读不进去的问题 + 文件名保留标签', items:[
@@ -1838,7 +1838,7 @@ var CHANGELOG=[
     '「⋯ → 导入店铺资料 / 督导名单」也能导旧的督导文件，把以前的群带进来；存档也会一起存']},
   {date:'2026-10-31', title:'姓氏按「新名字姓氏」栏 + 右边显示全部资料', items:[
     '姓和名按「新名字姓氏」栏来分：日本姓「鶴田」、复姓「欧阳」整段算姓，不会再拿姓里的字去跟家人比撞字',
-    '家人名字前面如果是同一个姓（例如爸爸「鶴田浩也」），比对时先去掉这个姓',
+    '家人名字前面如果是同一个姓（例如爸爸「鶴田太郎」），比对时先去掉这个姓',
     '名字卡片标出「姓「鶴田」」；右边新增「学员资料」：姓氏、性别、生日、生肖、时辰，下面可展开看这一行的全部资料']},
   {date:'2026-10-30', title:'搬进审核系统，换成跟首页一样的样式', items:[
     '名字审核搬进「审核总部」，左上角「审核总部」可以回首页',
@@ -1854,11 +1854,11 @@ var CHANGELOG=[
   {date:'2026-10-28', title:'「有问题」那份改成回传格式 + 下载文件统一命名', items:[
     '一家人改看文件颜色：涂同一颜色的学员算一家人，新名互相比对；拿掉靠猜的「疑似同一家人」',
     '「爱人 / 配偶 / 前夫 / 现任」等称呼不再被当成家人名字去比对',
-    '下载的文件统一命名：技术单 日期（跟原文件名；没有才看制表时间）（名正言顺）（H）；（上传）= 审核过可上传的；有问题的叫「（有问题）郑平东 名正言顺技术单 日期（数目）」，只有 1 位才写名字，数目 = 几位学员有问题',
+    '下载的文件统一命名：技术单 日期（跟原文件名；没有才看制表时间）（名正言顺）（H）；（上传）= 审核过可上传的；有问题的叫「（有问题）郑小东 名正言顺技术单 日期（数目）」，只有 1 位才写名字，数目 = 几位学员有问题',
     '新增「原装文件（只改名）」：内容不动，只换成统一的名字；打包 zip 里三份都有',
     '「干净·可上传」改成上传用的精简表：订单、服务中心编号、新名字姓氏、姓名、性别、出生日期、生肖、新名字、新名字拼音，一个新名一行',
     '海外 / 国内：原文件名有 H 就算海外（加（H）），左边文件卡片上可以手动切换',
-    '原因写在最后一栏右边，一句话说清楚，例如：新下来的名字（王科杰）跟妈妈新下来的名字（卢和洁）撞同音字（杰 jié，洁 jié）',
+    '原因写在最后一栏右边，一句话说清楚，例如：新下来的名字（王小杰）跟妈妈新下来的名字（卢和洁）撞同音字（杰 jié，洁 jié）',
     '黄底红字、合并 8 格，同一位学员两行都写；不再加标题栏和「最终判定」栏，名字格不再涂色',
     '删掉没问题的行后，表尾「审核人 / 制表时间 / 回传时间」的合并格不会再错位',
     '修顶栏跑位：屏幕不够宽时工具按钮只留图标，「下载结果」不再掉到第二行；下拉菜单不会跑出屏幕']},
