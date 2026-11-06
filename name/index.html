@@ -1597,8 +1597,8 @@ async function downloadSup(){ if(!parsedFiles.length)return; var x=parsedFiles[a
   if(x.overseas){ alert('督导文件只给国内的技术单。这份现在是「海外（H）」，如果其实是国内，先在左边文件卡片切成「国内」。'); return; }
   var rows=supRows(x); if(!rows.length){ toast('这份没有「通过」的学员'); return; }
   var miss=supMissing(x);
-  if(miss.length&&!confirm('有 '+miss.length+' 位学员的督导、店铺或群还没填好（'+miss.slice(0,5).map(function(r){return shortName(r.disp)||('序'+r.sid);}).join('、')+(miss.length>5?'……':'')+'）。\n照样下载（那几格空着）？\n（按「取消」，去顶栏「督导」那张表一起填好）'))return;
-  var px=x.mixed?partOf(x,false):x, nm=outName(px,'sup'), tg=await saveTargets([nm]); await dl(new Blob([await (await buildSupWorkbook(px)).xlsx.writeBuffer()]),nm,tg&&tg[0]); if(tg)toast('已存好：'+nm); }
+  var px=x.mixed?partOf(x,false):x; // 先问位置（浏览器只在点击后几秒内允许），再问「有人没填，照样下载？」
+  await runSave([outName(px,'sup')],[async function(){ return new Blob([await (await buildSupWorkbook(px)).xlsx.writeBuffer()]); }],function(){ return !miss.length||confirm('有 '+miss.length+' 位学员的督导、店铺或群还没填好（'+miss.slice(0,5).map(function(r){return shortName(r.disp)||('序'+r.sid);}).join('、')+(miss.length>5?'……':'')+'）。\n照样下载（那几格空着）？\n（按「取消」，去顶栏「督导」那张表一起填好）'); }); }
 // 读 .xls / .xlsx：SheetJS 只在导入时才载入（本地 vendor 优先，载不到退回 cdnjs）
 function needXLSX(){ return new Promise(function(ok,bad){ if(window.XLSX)return ok(window.XLSX);
   function add(src,next){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){ window.XLSX?ok(window.XLSX):next(); }; sc.onerror=next; document.head.appendChild(sc); }
@@ -1663,33 +1663,45 @@ function dateStr(){ var d=new Date(); function p(n){return(n<10?'0':'')+n;} retu
 // 下载前问存到哪里：一份 → 「另存为」；好几份（国内海外分开）→ 选一个文件夹全部存进去。Chrome / Edge 才有，别的浏览器照旧直接下载。
 // 要在按下按钮后马上问（浏览器只在点击后几秒内允许开对话框）：所以先算好文件名、先问位置，再去做文件。
 var MIME={'.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.xls':'application/vnd.ms-excel','.zip':'application/zip','.csv':'text/csv','.json':'application/json'};
-async function saveTargets(names){ if(!names.length)return null;
+async function saveTargets(names){ if(!names.length)return null; var t=null;
   try{ if(names.length===1&&window.showSaveFilePicker){ var ext=(names[0].match(/\.[^.]+$/)||['.xlsx'])[0].toLowerCase(), acc={}; acc[MIME[ext]||'application/octet-stream']=[ext];
-        return [await window.showSaveFilePicker({suggestedName:names[0], types:[{description:ext==='.zip'?'压缩包':ext==='.csv'?'CSV 表格':ext==='.json'?'存档':'Excel 表格', accept:acc}]})]; }
-    if(names.length>1&&window.showDirectoryPicker){ var d=await window.showDirectoryPicker({id:'mzys-dl',mode:'readwrite'}), hs=[]; for(var i=0;i<names.length;i++)hs.push(await d.getFileHandle(names[i],{create:true})); return hs; } }
-  catch(e){ if(e&&e.name==='AbortError')throw e; console.warn(e); } // 取消就整个不下载；别的原因（例如等太久、浏览器不让）退回直接下载
-  return null; }
-async function dl(blob,name,handle){ if(handle){ var w=await handle.createWritable(); await w.write(blob); await w.close(); return; }
+        t=[await window.showSaveFilePicker({suggestedName:names[0], types:[{description:ext==='.zip'?'压缩包':ext==='.csv'?'CSV 表格':ext==='.json'?'存档':'Excel 表格', accept:acc}]})]; return t; }
+    if(names.length>1&&window.showDirectoryPicker)t={dir:await window.showDirectoryPicker({id:'mzys-dl',mode:'readwrite'})}; }
+  catch(e){ if(e&&e.name==='AbortError')throw e; console.warn(e); if(e&&e.name==='SecurityError')toast('浏览器这次不让问位置，已存到「下载」文件夹'); return null; } // 取消就不下载；浏览器不让开对话框（等太久）就退回直接下载
+  if(!t)return null;
+  // 选好文件夹以后的错误照样报出来；同名文件先问，免得把原本的技术单盖掉
+  var have=[]; for(var i=0;i<names.length;i++){ try{ await t.dir.getFileHandle(names[i]); have.push(names[i]); }catch(e){ if(e.name!=='NotFoundError')throw e; } }
+  if(have.length&&!confirm('这个文件夹里已经有同名的文件：\n'+have.join('\n')+'\n\n要覆盖吗？（按「取消」就不下载，可以另选一个文件夹再下载一次）')){ var ab=new Error('cancel'); ab.name='AbortError'; throw ab; }
+  var hs=[]; for(var k=0;k<names.length;k++)hs.push(await t.dir.getFileHandle(names[k],{create:true})); hs.dir=t.dir; return hs; }
+async function dl(blob,name,handle){ if(handle){ var w=await handle.createWritable(); try{ await w.write(blob); await w.close(); }catch(e){ try{ await w.abort(); }catch(e2){} throw e; } return; }
   var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
-async function saveAs(blob,name){ var t=await saveTargets([name]); await dl(blob,name,t&&t[0]); if(t)toast('已存好：'+name); }
+// 问好位置 → 一份一份做、写进去；中途出错就把还没写好的空文件删掉（已经有的旧文件不会被动到：写入要到 close 才生效）
+function safeName(n){ return String(n).replace(/[\\\/:*?"<>|]/g,'_'); }
+async function runSave(names,makers,beforeMake){ names=names.map(safeName); var tg=await saveTargets(names), done=0;
+  try{ if(beforeMake&&!beforeMake()){ var ab=new Error('cancel'); ab.name='AbortError'; throw ab; }
+    for(;done<names.length;done++)await dl(await makers[done](),names[done],tg&&tg[done]); }
+  catch(e){ if(tg)for(var i=done;i<tg.length;i++){ try{ var f=await tg[i].getFile(); if(f.size===0){ if(tg.dir)await tg.dir.removeEntry(names[i]); else if(tg[i].remove)await tg[i].remove(); } }catch(e2){} }
+    if(e&&e.name!=='AbortError'&&done)e.message=(e.message||'')+'（已经存好的：'+names.slice(0,done).join('、')+'；没存好的已删掉，文件夹里如果还有 0 KB 的文件请删掉）'; throw e; }
+  if(tg)toast(names.length>1?'已存好 '+names.length+' 份':'已存好：'+names[0]); return {names:names,tg:tg}; }
+async function saveAs(blob,name){ await runSave([name],[function(){ return blob; }]); }
 function passCount(x){ return x.audit.results.length-problemCount(x); }
 async function downloadSplit(keepProblem){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile];
   if(keepProblem&&!problemCount(x)){ toast('这份没有「有问题」的学员'); return; }
   if(!keepProblem&&!passCount(x)){ toast('这份没有通过的学员，不用下载'+(keepBase(x)?'（干净）':'（上传）')+'文件'); return; }
-  var ps=partsOf(x).filter(function(p){ return keepProblem?problemCount(p):passCount(p); }), names=ps.map(function(p){ return outName(p,keepProblem?'bad':'clean'); }), tg=await saveTargets(names);
-  for(var i=0;i<ps.length;i++){ var wb=keepProblem?await buildSplitWorkbook(ps[i],true):await buildCleanWorkbook(ps[i]); await dl(new Blob([await wb.xlsx.writeBuffer()]),names[i],tg&&tg[i]); } twoDone(names,tg); }
-async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x), names=ps.map(function(p){ return outName(p,'orig'); }), tg=await saveTargets(names);
-  for(var i=0;i<ps.length;i++)await dl(new Blob([await origBuffer(ps[i])]),names[i],tg&&tg[i]); twoDone(names,tg); }
+  var ps=partsOf(x).filter(function(p){ return keepProblem?problemCount(p):passCount(p); });
+  var r=await runSave(ps.map(function(p){ return outName(p,keepProblem?'bad':'clean'); }), ps.map(function(p){ return async function(){ var wb=keepProblem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p); return new Blob([await wb.xlsx.writeBuffer()]); }; })); twoDone(r.names,r.tg); }
+async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x);
+  var r=await runSave(ps.map(function(p){ return outName(p,'orig'); }), ps.map(function(p){ return async function(){ return new Blob([await origBuffer(p)]); }; })); twoDone(r.names,r.tg); }
 function dlCatch(p){ return Promise.resolve(p).catch(function(e){ if(e&&e.name==='AbortError'){ toast('已取消，没有下载'); return; } console.error(e); alert(HQTool.friendly('下载的时候出错，这次没有下载完整（如果已经下载了一份，另一份没有）。',e)); }); } // 下载出错一定要让客服知道
-function twoDone(got,tg){ if(tg){ toast('已存好 '+got.length+' 份'); return; } if(got.length>1)alert('国内、海外分开，下载了 '+got.length+' 份：\n'+got.join('\n')+'\n\n浏览器如果问「要下载多个文件吗」，请按「允许」，不然第二份会没下载。也可以用「打包下载」一次拿全部。'); }
+function twoDone(got,tg){ if(tg)return; if(got.length>1)alert('国内、海外分开，下载了 '+got.length+' 份：\n'+got.join('\n')+'\n\n浏览器如果问「要下载多个文件吗」，请按「允许」，不然第二份会没下载。也可以用「打包下载」一次拿全部。'); }
 async function downloadZip(){ if(!parsedFiles.length||typeof JSZip==='undefined'){ alert('打包需要 JSZip，请确认网络。'); return; } var x=parsedFiles[activeFile]; var base=keepBase(x)||leadOf(x.name)+techBase(x);
-  var tg=await saveTargets([base+'.zip']); var zip=new JSZip(); var folder=zip.folder(base), ps=partsOf(x);
+  await runSave([base+'.zip'],[async function(){ var zip=new JSZip(); var folder=zip.folder(base), ps=partsOf(x);
   for(var i=0;i<ps.length;i++){ var p=ps[i];
     folder.file(outName(p,'orig'), await origBuffer(p));
     if(problemCount(p))folder.file(outName(p,'bad'), await (await buildSplitWorkbook(p,true)).xlsx.writeBuffer());
     if(passCount(p))folder.file(outName(p,'clean'), await (await buildCleanWorkbook(p)).xlsx.writeBuffer());
     if(!p.overseas&&supRows(p).length)folder.file(outName(p,'sup'), await (await buildSupWorkbook(p)).xlsx.writeBuffer()); }
-  await dl(await zip.generateAsync({type:'blob'}), base+'.zip', tg&&tg[0]); if(tg)toast('已存好：'+base+'.zip'); }
+  return await zip.generateAsync({type:'blob'}); }]); }
 function exportCSV(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var lines=['订单号,序号,使用人,新名,原因'];
   x.audit.results.filter(function(r){return r.problem;}).forEach(function(r){ var reasons=r.rows.map(function(rw){return rw.msgs.join('；');}).filter(Boolean).join(' / ');
     lines.push('"'+(r.order||'')+'","'+r.sid+'","'+(r.disp||'')+'","'+r.rows.map(function(rw){return rw.neu;}).join('/')+'","'+reasons.replace(/"/g,'""')+'"'); });
