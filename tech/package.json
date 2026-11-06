@@ -1,0 +1,7 @@
+{
+  "name": "tech-review-engine-tests",
+  "private": true,
+  "description": "技术单审核引擎的考题：改规则前先跑 npm test",
+  "scripts": { "test": "node --test" },
+  "devDependencies": { "exceljs": "4.4.0", "jszip": "3.10.1" }
+}

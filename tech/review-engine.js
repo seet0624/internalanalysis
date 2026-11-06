@@ -765,7 +765,7 @@
       // Any person's name in 备注 / 总备注 → red; family listed neatly for the reviewer.
       var fam = familyNames(get), famHits = [], otherHits = [];
       var own = {};
-      [get('使用人姓名'), get('会员姓名')].join(' ').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／]+/).forEach(function (x) { if (x) own[x] = true; });
+      [get('使用人姓名'), get('会员姓名')].join(' ').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／]+/).forEach(function (x) { if (x && !NO_NAME_YET.test(x)) own[x] = true; });
       // the student's own name, or only the given name (葉宛蓉 → 宛蓉)
       var selfForms = [];
       Object.keys(own).forEach(function (n) { if (n.length >= 2) selfForms.push(n); var g = givenName(n); if (g) selfForms.push(g); });
@@ -970,8 +970,10 @@
         var others = fg.members.filter(function (m) { return orderNo14(m.id) !== orderNo14(get('订单编号')); })
           .map(function (m) { return m.person + '（' + m.tool + '）'; });
         o.famN = fg.n;
+        var because = (fg.why || []).join('；');
         add({ kind: 'famgroup', level: 'info', group: { n: fg.n, label: fg.label, css: fg.css, colorName: fg.colorName },
-          text: '家人订单 第' + fg.n + '组 ' + fg.label + '（' + fg.colorName + '）：同组还有 ' + others.join('、') });
+          text: '家人订单 第' + fg.n + '组 ' + fg.label + '（' + fg.colorName + '）：同组还有 ' + others.join('、') + (because ? '。为什么：' + because : '') });
+
       }
 
       // 待确认的备注 + the reviewer's own 标红 / 不标红 per cell (opts.reds wins over every rule)
@@ -1066,6 +1068,7 @@
         if (restamp) stampFooter(sws, range.first, made, gBack, opts.reviewer || 'martin');
         buf = await sub.xlsx.writeBuffer();
       }
+      buf = await familyNotes(buf, (opts.fileFamily || {}).byNo || {});
       var gs = Object.keys(gp.genders);
       var gender = gp.sb && gs.length === 1 && gs[0] !== '-' ? gs[0] : ''; // only 天威 / 天富 carry 男款 / 女款
       var ps = Object.keys(gp.persons);
@@ -1073,6 +1076,38 @@
       result.outputs.push({ back: fmtDate(gBack), nameDate: nameDate, name: outName(gp.product, gender, gp.urgent, nameDate, gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
     }
     return result;
+  }
+
+  // 家人订单的说明（每个输出文件拆好之后才加，批注才会跟着对的那一行）：
+  // 订单编号加批注（同组是谁、为什么），文件里有家人订单才多一页「说明」
+  async function familyNotes(buf, byNo) {
+    if (!Object.keys(byNo).length) return buf;
+    var wb = await load(buf), ws = wb.worksheets[0], header = findHeader(ws);
+    var C = header && header.cols, col = C && C['订单编号'];
+    if (!col) return buf;
+    var range = dataRowRange(ws, header), here = [];
+    for (var r = range.first; r <= range.last; r++) {
+      var c = ws.getRow(r).getCell(col), g = byNo[orderNo14(cellText(c))];
+      if (!g) continue;
+      if (here.indexOf(g) < 0) here.push(g);
+      var others = g.members.filter(function (m) { return orderNo14(m.id) !== orderNo14(cellText(c)); }).map(function (m) { return m.person + '（' + m.tool + '）'; });
+      c.note = '家人订单 第' + g.n + '组（' + g.colorName + '）\n同组还有：' + others.join('、') + (g.why && g.why.length ? '\n为什么：' + g.why.join('；') : '');
+    }
+    // 重新上传的输出文件已经有旧的「说明」：先拿掉，不然会重复加、或留着上次的家人
+    var old = wb.getWorksheet('说明');
+    if (old) wb.removeWorksheet(old.id);
+    if (!here.length) return old ? wb.xlsx.writeBuffer() : buf;
+    var sh = wb.addWorksheet('说明');
+    sh.columns = [{ width: 18 }, { width: 90 }];
+    sh.addRow(['红字', '请专家注意的地方（规则标出来的，或客服改过的格子）']);
+    sh.addRow(['有底色的整行', '家人订单：同一个颜色是同一家，可能在不同的文件里；滑鼠移到订单编号看同组是谁']);
+    sh.addRow([]);
+    here.forEach(function (g) {
+      var row = sh.addRow(['第' + g.n + '组（' + g.colorName + '）', g.members.map(function (m) { return m.person + '（' + m.tool + '）'; }).join('、') + (g.why && g.why.length ? '\n为什么：' + g.why.join('；') : '')]);
+      row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: g.color } };
+      row.getCell(2).alignment = { wrapText: true, vertical: 'top' };
+    });
+    return wb.xlsx.writeBuffer();
   }
 
   // 家人订单: an order whose sheet (父母 / 兄弟姐妹 / 子女 / 备注 …) names another uploaded order (its order number, or its 使用人姓名)
@@ -1090,15 +1125,17 @@
   function orderNo14(x) { var m = String(x || '').match(/\d{14}/); return m ? m[0] : ''; }
   // names in 父亲名字 / 母亲名字 / 兄弟姐妹 / 子女: "兄弟姐妹:林鼎伦 （名正言顺订单号：A…）;伴侣:NIL" → 林鼎伦
   // (3+ characters only: a 2-character name is too easily part of ordinary words)
-  var REL_LABELS = /现用名|現用名|曾用名|原来的名字|原來的名字|原名|现名|現名|旧名|舊名|本名|全名|名字|姓名|兄弟姐妹|兄弟|姐妹|伴侣|伴侶|配偶|子女|父亲|父親|母亲|母親|哥哥|姐姐|弟弟|妹妹|儿子|兒子|女儿|女兒|丈夫|妻子|名正言顺|订单号|訂單號|订单|訂單/g;
+  var REL_LABELS = /外祖父|外祖母|爷爷|奶奶|外公|外婆|姥姥|姥爷|祖父|祖母|大伯|大娘|叔叔|婶婶|阿姨|舅舅|舅妈|姑姑|姑父|老名字|现用名|現用名|曾用名|原来的名字|原來的名字|原名|现名|現名|旧名|舊名|本名|全名|名字|姓名|兄弟姐妹|兄弟|姐妹|伴侣|伴侶|配偶|子女|父亲|父親|母亲|母親|哥哥|姐姐|弟弟|妹妹|儿子|兒子|女儿|女兒|丈夫|妻子|名正言顺|订单号|訂單號|订单|訂單/g;
   var REL_NONAME = /不详|不詳|没有|沒有|未知|暂无|暫無|已故|过世|過世|离婚|離婚|单亲|單親/;
   function relNames(s) {
     return (String(s || '').replace(/[（(][^）)]*[）)]/g, ' ').replace(REL_LABELS, ' ').match(/[\u4e00-\u9fff]+/g) || [])
       .filter(function (x) { return x.length >= 3 && x.length <= 4 && !REL_NONAME.test(x); });
   }
+  // 「新生儿」「薛新生儿」「宝宝」是还没取名的占位字，不是名字：不然每张新生儿单都会互相连成一家、备注也会被当成写了本人名字
+  var NO_NAME_YET = /新生儿|新生兒|宝宝|寶寶|未取名|待定/;
   function ownNames(s) {
     return String(s || '').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／,，、]+/).map(function (x) { return x.trim(); })
-      .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x); });
+      .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x) && !NO_NAME_YET.test(x); });
   }
   var SELF_COLS = /^(序号|订单时间|订单编号|原订单编号|原訂單編號|会员编号|会员姓名|服务中心编号|商品标题|加工序号|产品配置编号|股东名称|新名字姓氏|使用人姓名|新名|新名拼音|名册展示|配置人|审核人|性别|生肖|公历生日|农历时辰|是否子时|是否双胞胎|数字|颜色|刻名字)$/;
   // 家人订单只在同一个文件里找：每个文件单独审核，不跟别的工具的单连起来
@@ -1127,13 +1164,17 @@
       var find = function (x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
       var join = function (a, b) { a = find(a); b = find(b); if (a !== b) parent[b] = a; };
       orders.forEach(function (o) { parent[o.no] = o.no; });
+      // 每一条连线都记下「为什么」：员工一看就知道判断对不对
+      var why = {}, link = function (o, p, text) { join(o.no, p.no); var k = find(o.no); (why[k] = why[k] || []).push(text); };
       orders.forEach(function (o) {
-        (o.text.match(/\d{14}/g) || []).forEach(function (n) { if (n !== o.no && byNo[n]) join(o.no, n); });
+        (o.text.match(/\d{14}/g) || []).forEach(function (n) { if (n !== o.no && byNo[n]) link(o, byNo[n], o.person + ' 的单里写了 ' + byNo[n].person + ' 的订单号'); });
         orders.forEach(function (p) {
           if (p === o) return;
-          if (p.names.some(function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; })) join(o.no, p.no);
+          var hit = function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; };
+          var n1 = p.names.filter(hit)[0], n2 = n1 ? null : p.rel.filter(hit)[0];
+          if (n1) link(o, p, o.person + ' 的单里写了「' + n1 + '」');
           // a parent / sibling / child of p is named in o (same parents, or 总备注 listing the relatives) → one family
-          else if (p.rel.some(function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; })) join(o.no, p.no);
+          else if (n2) link(o, p, o.person + ' 和 ' + p.person + ' 的单都写了「' + n2 + '」');
         });
       });
       var comps = {}, list = [];
@@ -1145,7 +1186,9 @@
         g.forEach(function (o) { var sn = o.surname || o.person.charAt(0); count[sn] = (count[sn] || 0) + 1; });
         var sns = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; });
         var col = FAMILY_COLORS[k % FAMILY_COLORS.length];
-        var grp = { n: groups.length + 1, file: files[i].name, label: sns.join(' / ') + ' 家', color: col.argb, colorName: col.name, css: col.css,
+        var reasons = [];
+        Object.keys(why).forEach(function (k) { if (find(k) === find(g[0].no)) why[k].forEach(function (t) { if (reasons.indexOf(t) < 0) reasons.push(t); }); });
+        var grp = { n: groups.length + 1, file: files[i].name, label: sns.join(' / ') + ' 家', color: col.argb, colorName: col.name, css: col.css, why: reasons,
           members: g.map(function (o) { return { id: o.id, person: o.person, tool: o.tool }; }) };
         groups.push(grp);
         grp.members.forEach(function (m) { map[orderNo14(m.id)] = grp; });
