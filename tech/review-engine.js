@@ -971,8 +971,10 @@
         var others = fg.members.filter(function (m) { return orderNo14(m.id) !== orderNo14(get('订单编号')); })
           .map(function (m) { return m.person + '（' + m.tool + '）'; });
         o.famN = fg.n;
+        var because = (fg.why || []).join('；');
         add({ kind: 'famgroup', level: 'info', group: { n: fg.n, label: fg.label, css: fg.css, colorName: fg.colorName },
-          text: '家人订单 第' + fg.n + '组 ' + fg.label + '（' + fg.colorName + '）：同组还有 ' + others.join('、') });
+          text: '家人订单 第' + fg.n + '组 ' + fg.label + '（' + fg.colorName + '）：同组还有 ' + others.join('、') + (because ? '。为什么：' + because : '') });
+
       }
 
       // 待确认的备注 + the reviewer's own 标红 / 不标红 per cell (opts.reds wins over every rule)
@@ -1067,6 +1069,7 @@
         if (restamp) stampFooter(sws, range.first, made, gBack, opts.reviewer || 'martin');
         buf = await sub.xlsx.writeBuffer();
       }
+      buf = await familyNotes(buf, (opts.fileFamily || {}).byNo || {});
       var gs = Object.keys(gp.genders);
       var gender = gp.sb && gs.length === 1 && gs[0] !== '-' ? gs[0] : ''; // only 天威 / 天富 carry 男款 / 女款
       var ps = Object.keys(gp.persons);
@@ -1074,6 +1077,38 @@
       result.outputs.push({ back: fmtDate(gBack), nameDate: nameDate, name: outName(gp.product, gender, gp.urgent, nameDate, gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
     }
     return result;
+  }
+
+  // 家人订单的说明（每个输出文件拆好之后才加，批注才会跟着对的那一行）：
+  // 订单编号加批注（同组是谁、为什么），文件里有家人订单才多一页「说明」
+  async function familyNotes(buf, byNo) {
+    if (!Object.keys(byNo).length) return buf;
+    var wb = await load(buf), ws = wb.worksheets[0], header = findHeader(ws);
+    var C = header && header.cols, col = C && C['订单编号'];
+    if (!col) return buf;
+    var range = dataRowRange(ws, header), here = [];
+    for (var r = range.first; r <= range.last; r++) {
+      var c = ws.getRow(r).getCell(col), g = byNo[orderNo14(cellText(c))];
+      if (!g) continue;
+      if (here.indexOf(g) < 0) here.push(g);
+      var others = g.members.filter(function (m) { return orderNo14(m.id) !== orderNo14(cellText(c)); }).map(function (m) { return m.person + '（' + m.tool + '）'; });
+      c.note = '家人订单 第' + g.n + '组（' + g.colorName + '）\n同组还有：' + others.join('、') + (g.why && g.why.length ? '\n为什么：' + g.why.join('；') : '');
+    }
+    // 重新上传的输出文件已经有旧的「说明」：先拿掉，不然会重复加、或留着上次的家人
+    var old = wb.getWorksheet('说明');
+    if (old) wb.removeWorksheet(old.id);
+    if (!here.length) return old ? wb.xlsx.writeBuffer() : buf;
+    var sh = wb.addWorksheet('说明');
+    sh.columns = [{ width: 18 }, { width: 90 }];
+    sh.addRow(['红字', '请专家注意的地方（规则标出来的，或客服改过的格子）']);
+    sh.addRow(['有底色的整行', '家人订单：同一个颜色是同一家，可能在不同的文件里；滑鼠移到订单编号看同组是谁']);
+    sh.addRow([]);
+    here.forEach(function (g) {
+      var row = sh.addRow(['第' + g.n + '组（' + g.colorName + '）', g.members.map(function (m) { return m.person + '（' + m.tool + '）'; }).join('、') + (g.why && g.why.length ? '\n为什么：' + g.why.join('；') : '')]);
+      row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: g.color } };
+      row.getCell(2).alignment = { wrapText: true, vertical: 'top' };
+    });
+    return wb.xlsx.writeBuffer();
   }
 
   // 家人订单: an order whose sheet (父母 / 兄弟姐妹 / 子女 / 备注 …) names another uploaded order (its order number, or its 使用人姓名)
@@ -1130,13 +1165,17 @@
       var find = function (x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
       var join = function (a, b) { a = find(a); b = find(b); if (a !== b) parent[b] = a; };
       orders.forEach(function (o) { parent[o.no] = o.no; });
+      // 每一条连线都记下「为什么」：员工一看就知道判断对不对
+      var why = {}, link = function (o, p, text) { join(o.no, p.no); var k = find(o.no); (why[k] = why[k] || []).push(text); };
       orders.forEach(function (o) {
-        (o.text.match(/\d{14}/g) || []).forEach(function (n) { if (n !== o.no && byNo[n]) join(o.no, n); });
+        (o.text.match(/\d{14}/g) || []).forEach(function (n) { if (n !== o.no && byNo[n]) link(o, byNo[n], o.person + ' 的单里写了 ' + byNo[n].person + ' 的订单号'); });
         orders.forEach(function (p) {
           if (p === o) return;
-          if (p.names.some(function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; })) join(o.no, p.no);
+          var hit = function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; };
+          var n1 = p.names.filter(hit)[0], n2 = n1 ? null : p.rel.filter(hit)[0];
+          if (n1) link(o, p, o.person + ' 的单里写了「' + n1 + '」');
           // a parent / sibling / child of p is named in o (same parents, or 总备注 listing the relatives) → one family
-          else if (p.rel.some(function (n) { return o.names.indexOf(n) < 0 && o.text.indexOf(n) >= 0; })) join(o.no, p.no);
+          else if (n2) link(o, p, o.person + ' 和 ' + p.person + ' 的单都写了「' + n2 + '」');
         });
       });
       var comps = {}, list = [];
@@ -1148,7 +1187,9 @@
         g.forEach(function (o) { var sn = o.surname || o.person.charAt(0); count[sn] = (count[sn] || 0) + 1; });
         var sns = Object.keys(count).sort(function (a, b) { return count[b] - count[a]; });
         var col = FAMILY_COLORS[k % FAMILY_COLORS.length];
-        var grp = { n: groups.length + 1, file: files[i].name, label: sns.join(' / ') + ' 家', color: col.argb, colorName: col.name, css: col.css,
+        var reasons = [];
+        Object.keys(why).forEach(function (k) { if (find(k) === find(g[0].no)) why[k].forEach(function (t) { if (reasons.indexOf(t) < 0) reasons.push(t); }); });
+        var grp = { n: groups.length + 1, file: files[i].name, label: sns.join(' / ') + ' 家', color: col.argb, colorName: col.name, css: col.css, why: reasons,
           members: g.map(function (o) { return { id: o.id, person: o.person, tool: o.tool }; }) };
         groups.push(grp);
         grp.members.forEach(function (m) { map[orderNo14(m.id)] = grp; });

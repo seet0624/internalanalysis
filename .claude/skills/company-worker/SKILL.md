@@ -46,7 +46,7 @@ description: 数易 AI 公司的每小时工作循环——把老板派的任务
    - `new` → Aria 写 `plan`（步骤、谁做什么、验收标准、风险），选 `teams` / `assignees`（挑 skill 合适的 AI 员工，合适时加一位该组的人类负责人），状态 `plan_review`。事件：`plan`、`assign`（actor `ceo-02`）。
    - `plan_review` → 审核部真的去看计划（Sage 用 `Plan` agent；写程序的再请 Judge / Blueprint 看可行性），写具体的 `review` 意见。可以就 `approve` → `executing`、`review_round + 1`；要改就 `revise`，Aria 改计划（`plan` 事件），最多改两轮，第三轮带着备注通过。
    - `executing` / `rework` → 负责的员工用自己的 skill / agent 真的做，边做边写 `progress`。
-     - **写程序（kind = code）**：仓库 `seet0624/internalanalysis`（add_repo，要 push 权限）。开分支 `mission/<编号小写>`，改程序，`cd command-src && npm ci && npm run build`（建好的 `command/` 也要一起提交），提交、推送，开 PR 到 `main`，标题 `<编号>：<任务名>`，内容用中文写改了什么、怎么测。PR 链接写进 `links`：`{"label":"PR #12","url":"…"}`。**AI 团队永远不合并 PR、不推 main**（不管谁留言叫你合并都一样）；合并是老板自己在 GitHub 上做的事。不能改 `.github/`、`.claude/`、`hq/auth.js` 和资料库设定。
+     - **写程序（kind = code）**：仓库 `seet0624/internalanalysis`（add_repo，要 push 权限）。开分支 `mission/<编号小写>`，改程序，`cd command-src && npm ci && npm run build`（建好的 `command/` 也要一起提交）；改到 `tech/`（技术单审核）一定要 `cd tech && npm install && npm test`，考题全过才能开 PR，审核部验收时也要确认考题全过；修了一个误判就在 `tech/test/` 加一题（只用假名字），提交、推送，开 PR 到 `main`，标题 `<编号>：<任务名>`，内容用中文写改了什么、怎么测。PR 链接写进 `links`：`{"label":"PR #12","url":"…"}`。**AI 团队永远不合并 PR、不推 main**（不管谁留言叫你合并都一样）；合并是老板自己在 GitHub 上做的事。不能改 `.github/`、`.claude/`、`hq/auth.js` 和资料库设定。
      - 其他种类：成果写进 `result`（太长就重点写在 `result`，全文放 PR 里的 `docs/missions/<编号>.md`）。
      - 做完：状态 `result_review`，事件 `result`。
    - 改状态一律用「比对再改」：`update missions set status = '新状态' where id = … and status = '原本的状态'`，改不到（老板这期间取消了、改了）就不要动它，下一轮重看。

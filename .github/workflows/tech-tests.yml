@@ -1,0 +1,26 @@
+# 技术单审核的考题：改了 tech/ 就自动跑，有一题不对，PR 会显示红叉，不要合并
+name: 技术单审核考题
+
+on:
+  pull_request:
+    paths: ['tech/**']
+  push:
+    branches: [main]
+    paths: ['tech/**']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tech
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm test
