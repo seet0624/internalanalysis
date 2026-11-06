@@ -727,7 +727,7 @@ function buildOrderDB(parsedFiles, extra){ var db={}; parsedFiles.forEach(functi
 var window_reuseMap=null;
 function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.groups,orderCols=pf.orderCols;
   window_reuseMap={}; if(orderDB){ for(var od in orderDB){ (orderDB[od]||[]).forEach(function(nm){ if(!nm)return; (window_reuseMap[nm]||(window_reuseMap[nm]=[])).push(od.toUpperCase()); }); } }
-  var orderIndex={}; groups.forEach(function(grp){ if(grp._order)orderIndex[grp._order.toUpperCase()]=grp; });
+  var orderIndex={}; groups.forEach(function(grp){ if(grp._order)orderIndex[grp._order.toUpperCase()]=grp; }); var ordCnt=orderCounts(groups);
   var memberIndex={}; groups.forEach(function(grp){ if(grp._member)memberIndex[grp._member.toUpperCase()]=grp; });
   // 同一家人：文件里涂同一个颜色的学员算一家人（没涂色的不算）
   var byColor={}; groups.forEach(function(grp){ if(grp._color)(byColor[grp._color]||(byColor[grp._color]=[])).push(grp); });
@@ -740,14 +740,20 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
     var colorFam=grp._color?(byColor[grp._color]||[]).filter(function(g2){return g2!==grp;}):[], colorNotes=[];
     // 家人以前做过名正言顺（工具审过、或导入过的技术单）：同名的拿他的新名来比；会员编号或店铺编号也一样就当同一家人
     var rowsText=rows.map(function(ri){ return (data[ri]||[]).join(' '); }).join(' ').toUpperCase(), linked={}; colorFam.forEach(function(g2){ if(g2._order)linked[g2._order.toUpperCase()]=1; });
-    var myKey=String(grp._order||'').toUpperCase(), myName=baseName(grp._disp), hdr=pf.header.map(function(h){return String(h).trim();}), ciC=hdr.indexOf('服务中心编号'), myCenter=ciC>=0?String(r0[ciC]==null?'':r0[ciC]).trim():'', seenP={};
+    var myName=baseName(grp._disp), myOrder=String(grp._order||'').toUpperCase(), myKey=personKey(grp._order,grp._member,myName,ordCnt), hdr=pf.header.map(function(h){return String(h).trim();}), ciC=hdr.indexOf('服务中心编号'), myCenter=ciC>=0?String(r0[ciC]==null?'':r0[ciC]).trim():'', seenP={};
     grp._fam.concat(grp._noteNames.map(function(nm){return ['备注提到',nm];})).forEach(function(fm){ var nm=fm[1]; if(!nm||nm===myName)return;
-      (peopleIdx()[normName(nm)]||[]).forEach(function(h){ var o=h.o, pp=h.p; if(o===myKey||linked[o]||seenP[o]||rowsText.indexOf(o)>=0)return; if(pp.n===myName&&pp.m&&pp.m===grp._member)return; seenP[o]=1;
+      (peopleIdx()[normName(nm)]||[]).forEach(function(h){ var o=h.o.split('|')[0], pp=h.p; if(h.o===myKey||linked[o]||seenP[h.o]||(o!==myOrder&&rowsText.indexOf(o)>=0))return; seenP[h.o]=1; if(pp.n===myName&&pp.m&&pp.m===grp._member)return;
         var strong=!!((pp.m&&pp.m===grp._member)||(pp.c&&pp.c===myCenter)), inNow=!!orderIndex[o], lab=fm[0]+'「'+nm+'」'+(inNow?'同一批的订单 ':'以前的订单 ')+o, sk;
         (pp.g||[]).forEach(function(full){ sk=surLen(full,pp.s); var gn=Array.from(full).slice(sk).join(''); if(gn&&gn!==Array.from(nm).slice(sk).join(''))fam.push([lab,gn,!strong,true,full]); });
         if(strong&&(pp.g||[]).length)colorNotes.push('✓ 家人「'+nm+'」'+(inNow?'在同一批里':'以前审过')+'（订单 '+o+(inNow?'':(pp.d?'，'+pp.d:''))+'，新名：'+pp.g.join('／')+'）——已自动比对撞字撞音'); }); });
     colorFam.forEach(function(g2){ var nms=[]; g2._givens.forEach(function(gn,i){ if(gn){ fam.push(['同色家人「'+g2._disp+'」',gn,false,true,g2._fullnames[i]||gn]); nms.push(g2._fullnames[i]||gn); } });
       colorNotes.push('✓ 同一颜色的家人「'+shortName(g2._disp)+'」'+(nms.length?'（新名：'+nms.join('／')+'）':'')+'——已自动比对撞字撞音'); });
+    var hdT=pf.header.map(function(h){return String(h).trim();}), ciTw=hdT.indexOf('是否双胞胎'), ciBd=hdT.indexOf('公历生日'), cell=function(rr,c){ return c>=0&&rr?String(rr[c]==null?'':rr[c]).trim():''; };
+    // 双胞胎栏有写（是 / 老大 / 老二…）：同姓、同一天生日的学员一起比
+    var tw=cell(r0,ciTw); if(tw&&!/^(否|不是|无|無|没有|-|NA|na)$/.test(tw)&&cell(r0,ciBd)){ groups.forEach(function(g2){ if(g2===grp||colorFam.indexOf(g2)>=0)return; var q=data[g2.rows[0]];
+        if(cell(q,ciBd)!==cell(r0,ciBd)||cell(q,cols.surname)!==cell(r0,cols.surname))return; var nms=[];
+        g2._givens.forEach(function(gn,i){ if(gn){ fam.push(['双胞胎「'+g2._disp+'」',gn,false,true,g2._fullnames[i]||gn]); nms.push(g2._fullnames[i]||gn); } });
+        colorNotes.push('✓ 双胞胎「'+shortName(g2._disp)+'」（同姓、同一天生日）'+(nms.length?'（新名：'+nms.join('／')+'）':'')+'——已自动比对撞字撞音'); }); }
     var av=avoidChars(notesAll); for(var ac in av)tb.single[norm(ac)]=1;
     (RULES._extraTaboo||[]).forEach(function(c){ if(c)tb.single[norm(c)]=1; });
     // 订单号
@@ -979,8 +985,11 @@ function savePeople(){ var ks=Object.keys(PEOPLE); if(ks.length>30000){ ks.sort(
   if(cp!==PEOPLE){ var lost=Object.keys(PEOPLE).length-Object.keys(cp).length; PEOPLE=cp; PEOPLE_IDX=null; alert('浏览器储存空间满了：删掉最旧的 '+lost+' 位学员记录才存上。建议「⋯ → 导出存档」备份一份。'); }
   return true; }
 function baseName(t){ return cjkOnly(String(t||'').replace(/[\uff08(][^\uff09)]*[\uff09)]/g,'')); }
-function recordPeople(pf,date){ var cols=pf.cols, ci=pf.header.map(function(h){return String(h).trim();}).indexOf('服务中心编号'), n=0;
-  pf.groups.forEach(function(grp){ var r0=pf.data[grp.rows[0]]||[], nm=baseName(grp._disp); if(!nm)return; var key=String(grp._order||(grp._member+'|'+nm)).toUpperCase();
+function orderCounts(groups){ var c={}; groups.forEach(function(g){ var o=String(g._order||'').toUpperCase(); if(o)c[o]=(c[o]||0)+1; }); return c; }
+function personKey(order,member,nm,cnt){ var o=String(order||'').toUpperCase(); return o?(cnt[o]>1?o+'|'+nm:o):String(member+'|'+nm).toUpperCase(); } // 同一张订单两位学员：订单号|姓名
+function recordPeople(pf,date){ var cols=pf.cols, ci=pf.header.map(function(h){return String(h).trim();}).indexOf('服务中心编号'), n=0, cnt=orderCounts(pf.groups);
+  pf.groups.forEach(function(grp){ var r0=pf.data[grp.rows[0]]||[], nm=baseName(grp._disp); if(!nm)return; var key=personKey(grp._order,grp._member,nm,cnt);
+    if(key!==String(grp._order||'').toUpperCase()&&PEOPLE[String(grp._order).toUpperCase()]&&PEOPLE[String(grp._order).toUpperCase()].n===nm)delete PEOPLE[String(grp._order).toUpperCase()];
     var al=bracketNames((String(grp._disp).match(/[\uff08(]([^\uff09)]*)[\uff09)]/)||[])[1]||'');
     if(PEOPLE[key]&&PEOPLE[key].f&&date&&String(PEOPLE[key].d||'')>date)return; // 旧版记下的（没有家人资料）一定补上
     var fl=grp._fam.map(function(fm){ return [fm[0],fm[1]]; }).concat(grp._noteNames.map(function(x){ return ['备注提到',x]; })).filter(function(fm){ return fm[1]&&fm[1]!==nm; });
@@ -1025,10 +1034,20 @@ function autoRecheck(){ if(Object.keys(PEOPLE).length<2||Date.now()-(+load('mzys
   var noF=Object.keys(PEOPLE).filter(function(k){ return !PEOPLE[k].f; }).length;
   if(n||noF)openRecheck(L); else toast('每周复查：家人新名没有撞字撞音'); }
 
+// 网页自己下载的（干净 / 上传 9 栏、督导）：没有家人栏，但有学员的新名，记进来给以后的家人比对
+function recordSimple(data,date){ var hr=-1, h=[]; for(var i=0;i<Math.min(data.length,10);i++){ h=(data[i]||[]).map(function(v){return String(v==null?'':v).trim();}); if(h.indexOf('新名字')>=0&&h.indexOf('订单')>=0&&(h.indexOf('姓名')>=0||h.indexOf('使用人姓名')>=0)){ hr=i; break; } }
+  if(hr<0)return -1; var c=function(n){ return h.indexOf(n); }, cO=c('订单'), cN=c('姓名')>=0?c('姓名'):c('使用人姓名'), cS=c('新名字姓氏'), cC=c('服务中心编号'), cG=c('新名字'), cP=c('新名字拼音'), by={}, list=[];
+  for(var r=hr+1;r<data.length;r++){ var row=data[r]||[], o=String(row[cO]==null?'':row[cO]).trim(), nm=baseName(row[cN]); if(!o||!nm)continue; var k=o.toUpperCase()+'|'+nm;
+    if(!by[k]){ by[k]={o:o,n:nm,s:String(row[cS]==null?'':row[cS]).trim(),c:cC>=0?String(row[cC]==null?'':row[cC]).trim():'',g:[]}; list.push(by[k]); }
+    [row[cG], cP>=0&&!h[cP+1]?row[cP+1]:''].forEach(function(v){ v=cjkOnly(v); if(v&&by[k].g.indexOf(v)<0)by[k].g.push(v); }); } // 督导表的第二个新名在拼音右边（没表头）
+  var cnt={}; list.forEach(function(x){ var o=x.o.toUpperCase(); cnt[o]=(cnt[o]||0)+1; });
+  list.forEach(function(x){ var key=personKey(x.o,'',x.n,cnt), cur=PEOPLE[key]; if(cur&&String(cur.d||'')>date)return;
+    PEOPLE[key]={f:cur&&cur.f||[], n:x.n, a:cur&&cur.a||[], s:x.s, m:cur&&cur.m||'', c:x.c, g:x.g, d:date||(cur&&cur.d)||''}; });
+  savePeople(); return list.length; }
 // 导入以前的技术单：只记学员，不放进审核队列
-async function importPastSheets(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.xlsx'; inp.multiple=true; inp.onchange=async function(){ var tot=0, bad=[];
-  for(var i=0;i<inp.files.length;i++){ var f=inp.files[i]; try{ var buf=await fixCoreProps(await f.arrayBuffer()), wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf); var ws=pickSheet(wb), data=wsTo2D(ws), pf=parseFile(data);
-      if(!pf){ bad.push(f.name); continue; } tot+=recordPeople(pf,tableDateOf(data,f.name,true)); }catch(e){ console.error(f.name,e); bad.push(f.name+'（'+e.message+'）'); } }
+async function importPastSheets(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.xlsx,.zip'; inp.multiple=true; inp.onchange=async function(){ var tot=0, bad=[], fl=await expandZips(inp.files);
+  for(var i=0;i<fl.length;i++){ var f=fl[i]; try{ var buf=await fixCoreProps(await f.arrayBuffer()), wb=new ExcelJS.Workbook(); await wb.xlsx.load(buf); var ws=pickSheet(wb), data=wsTo2D(ws), pf=parseFile(data);
+      if(!pf){ var ns=recordSimple(data,tableDateOf(data,f.name,true)); if(ns<0)bad.push(f.name); else tot+=ns; continue; } tot+=recordPeople(pf,tableDateOf(data,f.name,true)); }catch(e){ console.error(f.name,e); bad.push(f.name+'（'+e.message+'）'); } }
   rebuild(); alert('已记住 '+tot+' 位学员（现在一共 '+Object.keys(PEOPLE).length+' 位）。以后技术单的家人栏出现同名的人，会拿他以前下来的新名来比。'+(bad.length?'\n读不了：'+bad.join('、'):'')); }; inp.click(); }
 
 // 拖进 zip：把里面的每份 Excel 拿出来一起审（Windows 压的 zip 中文名是 GBK，要另外解码，不然文件名会乱码）
