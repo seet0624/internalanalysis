@@ -1598,7 +1598,7 @@ async function downloadSup(){ if(!parsedFiles.length)return; var x=parsedFiles[a
   var rows=supRows(x); if(!rows.length){ toast('这份没有「通过」的学员'); return; }
   var miss=supMissing(x);
   if(miss.length&&!confirm('有 '+miss.length+' 位学员的督导、店铺或群还没填好（'+miss.slice(0,5).map(function(r){return shortName(r.disp)||('序'+r.sid);}).join('、')+(miss.length>5?'……':'')+'）。\n照样下载（那几格空着）？\n（按「取消」，去顶栏「督导」那张表一起填好）'))return;
-  var px=x.mixed?partOf(x,false):x; dl(new Blob([await (await buildSupWorkbook(px)).xlsx.writeBuffer()]),outName(px,'sup')); }
+  var px=x.mixed?partOf(x,false):x, nm=outName(px,'sup'), tg=await saveTargets([nm]); await dl(new Blob([await (await buildSupWorkbook(px)).xlsx.writeBuffer()]),nm,tg&&tg[0]); if(tg)toast('已存好：'+nm); }
 // 读 .xls / .xlsx：SheetJS 只在导入时才载入（本地 vendor 优先，载不到退回 cdnjs）
 function needXLSX(){ return new Promise(function(ok,bad){ if(window.XLSX)return ok(window.XLSX);
   function add(src,next){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){ window.XLSX?ok(window.XLSX):next(); }; sc.onerror=next; document.head.appendChild(sc); }
@@ -1660,28 +1660,40 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
       ws.unMergeCells(rr,lastCol+1,rr,lastCol+8); ws.mergeCells(rr,lastCol+1,rr,lastCol+8); }); } // 再次审核自己导出的「有问题」文件时，原因格已经合并过
   return wb; }
 function dateStr(){ var d=new Date(); function p(n){return(n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
-function dl(blob,name){ var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+// 下载前问存到哪里：一份 → 「另存为」；好几份（国内海外分开）→ 选一个文件夹全部存进去。Chrome / Edge 才有，别的浏览器照旧直接下载。
+// 要在按下按钮后马上问（浏览器只在点击后几秒内允许开对话框）：所以先算好文件名、先问位置，再去做文件。
+var MIME={'.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.xls':'application/vnd.ms-excel','.zip':'application/zip','.csv':'text/csv','.json':'application/json'};
+async function saveTargets(names){ if(!names.length)return null;
+  try{ if(names.length===1&&window.showSaveFilePicker){ var ext=(names[0].match(/\.[^.]+$/)||['.xlsx'])[0].toLowerCase(), acc={}; acc[MIME[ext]||'application/octet-stream']=[ext];
+        return [await window.showSaveFilePicker({suggestedName:names[0], types:[{description:ext==='.zip'?'压缩包':ext==='.csv'?'CSV 表格':ext==='.json'?'存档':'Excel 表格', accept:acc}]})]; }
+    if(names.length>1&&window.showDirectoryPicker){ var d=await window.showDirectoryPicker({id:'mzys-dl',mode:'readwrite'}), hs=[]; for(var i=0;i<names.length;i++)hs.push(await d.getFileHandle(names[i],{create:true})); return hs; } }
+  catch(e){ if(e&&e.name==='AbortError')throw e; console.warn(e); } // 取消就整个不下载；别的原因（例如等太久、浏览器不让）退回直接下载
+  return null; }
+async function dl(blob,name,handle){ if(handle){ var w=await handle.createWritable(); await w.write(blob); await w.close(); return; }
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+async function saveAs(blob,name){ var t=await saveTargets([name]); await dl(blob,name,t&&t[0]); if(t)toast('已存好：'+name); }
 function passCount(x){ return x.audit.results.length-problemCount(x); }
 async function downloadSplit(keepProblem){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile];
   if(keepProblem&&!problemCount(x)){ toast('这份没有「有问题」的学员'); return; }
   if(!keepProblem&&!passCount(x)){ toast('这份没有通过的学员，不用下载'+(keepBase(x)?'（干净）':'（上传）')+'文件'); return; }
-  var ps=partsOf(x), got=[]; for(var i=0;i<ps.length;i++){ var p=ps[i]; if(keepProblem?!problemCount(p):!passCount(p))continue;
-    var wb=keepProblem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p), nm=outName(p,keepProblem?'bad':'clean'); dl(new Blob([await wb.xlsx.writeBuffer()]),nm); got.push(nm); } twoDone(got); }
-async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x), got=[]; for(var i=0;i<ps.length;i++){ var nm=outName(ps[i],'orig'); dl(new Blob([await origBuffer(ps[i])]),nm); got.push(nm); } twoDone(got); }
-function dlCatch(p){ return Promise.resolve(p).catch(function(e){ console.error(e); alert(HQTool.friendly('下载的时候出错，这次没有下载完整（如果已经下载了一份，另一份没有）。',e)); }); } // 下载出错一定要让客服知道
-function twoDone(got){ if(got.length>1)alert('国内、海外分开，下载了 '+got.length+' 份：\n'+got.join('\n')+'\n\n浏览器如果问「要下载多个文件吗」，请按「允许」，不然第二份会没下载。也可以用「打包下载」一次拿全部。'); }
+  var ps=partsOf(x).filter(function(p){ return keepProblem?problemCount(p):passCount(p); }), names=ps.map(function(p){ return outName(p,keepProblem?'bad':'clean'); }), tg=await saveTargets(names);
+  for(var i=0;i<ps.length;i++){ var wb=keepProblem?await buildSplitWorkbook(ps[i],true):await buildCleanWorkbook(ps[i]); await dl(new Blob([await wb.xlsx.writeBuffer()]),names[i],tg&&tg[i]); } twoDone(names,tg); }
+async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x), names=ps.map(function(p){ return outName(p,'orig'); }), tg=await saveTargets(names);
+  for(var i=0;i<ps.length;i++)await dl(new Blob([await origBuffer(ps[i])]),names[i],tg&&tg[i]); twoDone(names,tg); }
+function dlCatch(p){ return Promise.resolve(p).catch(function(e){ if(e&&e.name==='AbortError'){ toast('已取消，没有下载'); return; } console.error(e); alert(HQTool.friendly('下载的时候出错，这次没有下载完整（如果已经下载了一份，另一份没有）。',e)); }); } // 下载出错一定要让客服知道
+function twoDone(got,tg){ if(tg){ toast('已存好 '+got.length+' 份'); return; } if(got.length>1)alert('国内、海外分开，下载了 '+got.length+' 份：\n'+got.join('\n')+'\n\n浏览器如果问「要下载多个文件吗」，请按「允许」，不然第二份会没下载。也可以用「打包下载」一次拿全部。'); }
 async function downloadZip(){ if(!parsedFiles.length||typeof JSZip==='undefined'){ alert('打包需要 JSZip，请确认网络。'); return; } var x=parsedFiles[activeFile]; var base=keepBase(x)||leadOf(x.name)+techBase(x);
-  var zip=new JSZip(); var folder=zip.folder(base), ps=partsOf(x);
+  var tg=await saveTargets([base+'.zip']); var zip=new JSZip(); var folder=zip.folder(base), ps=partsOf(x);
   for(var i=0;i<ps.length;i++){ var p=ps[i];
     folder.file(outName(p,'orig'), await origBuffer(p));
     if(problemCount(p))folder.file(outName(p,'bad'), await (await buildSplitWorkbook(p,true)).xlsx.writeBuffer());
     if(passCount(p))folder.file(outName(p,'clean'), await (await buildCleanWorkbook(p)).xlsx.writeBuffer());
     if(!p.overseas&&supRows(p).length)folder.file(outName(p,'sup'), await (await buildSupWorkbook(p)).xlsx.writeBuffer()); }
-  dl(await zip.generateAsync({type:'blob'}), base+'.zip'); }
+  await dl(await zip.generateAsync({type:'blob'}), base+'.zip', tg&&tg[0]); if(tg)toast('已存好：'+base+'.zip'); }
 function exportCSV(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var lines=['订单号,序号,使用人,新名,原因'];
   x.audit.results.filter(function(r){return r.problem;}).forEach(function(r){ var reasons=r.rows.map(function(rw){return rw.msgs.join('；');}).filter(Boolean).join(' / ');
     lines.push('"'+(r.order||'')+'","'+r.sid+'","'+(r.disp||'')+'","'+r.rows.map(function(rw){return rw.neu;}).join('/')+'","'+reasons.replace(/"/g,'""')+'"'); });
-  dl(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv'}), x.name.replace(/\.(xlsx|xls)$/i,'')+'_问题清单.csv'); }
+  dlCatch(saveAs(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv'}), x.name.replace(/\.(xlsx|xls)$/i,'')+'_问题清单.csv')); }
 
 /*==== report (all files) ====*/
 function openReport(){ if(!parsedFiles.length)return;
@@ -1705,11 +1717,11 @@ function openDB(){ var db=window._DB||{}; var keys=Object.keys(db);
   document.getElementById('dbSave').onclick=function(){ var nd={}; document.querySelectorAll('#dbBody tr').forEach(function(tr){ var k=(tr.querySelector('.dbk')||{}).value; var v=(tr.querySelector('.dbv')||{}).value; if(k&&k.trim()){ var names=(v||'').split(/[\s,，、;；]+/).filter(Boolean); if(names.length)nd[k.trim().toUpperCase()]=names; } }); importedDB=nd; saveDB(); document.getElementById('modal').style.display='none'; rebuild(); };
   bindDel(); }
 function bindDel(){ document.querySelectorAll('.dbdel').forEach(function(b){ b.onclick=function(){ b.closest('tr').remove(); }; }); }
-function exportDB(){ var db=window._DB||{}; var lines=[]; for(var k in db)lines.push(k+','+db[k].join(',')); dl(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv'}),'订单总库.csv'); }
+function exportDB(){ var db=window._DB||{}; var lines=[]; for(var k in db)lines.push(k+','+db[k].join(',')); dlCatch(saveAs(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv'}),'订单总库.csv')); }
 function importDB(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.csv,.txt'; inp.onchange=async function(){ var f=inp.files[0]; if(!f)return; var txt=await f.text(); txt.split(/\r?\n/).forEach(function(line){ var p=line.replace(/^\ufeff/,'').split(','); var k=(p[0]||'').trim().toUpperCase(); if(!k)return; var names=p.slice(1).map(function(s){return s.trim();}).filter(Boolean); if(names.length)importedDB[k]=(importedDB[k]||[]).concat(names); }); saveDB(); rebuild(); document.getElementById('modal').style.display='none'; }; inp.click(); }
 
 /*==== session save/restore ====*/
-function exportSession(){ var s={db:importedDB, verdicts:load('mzys_verdicts',{}), sup:{info:SUP.info,list:SUP.list,center:SUP.center,shops:SUP.shops,shopsMeta:SUP.shopsMeta}, people:PEOPLE, recheckOk:RECHECK_OK, rules:{POLY:RULES.POLY,_extraTaboo:RULES._extraTaboo||[]}}; dl(new Blob([JSON.stringify(s)],{type:'application/json'}),'名字审核_存档_'+dateStr()+'.json'); }
+function exportSession(){ var s={db:importedDB, verdicts:load('mzys_verdicts',{}), sup:{info:SUP.info,list:SUP.list,center:SUP.center,shops:SUP.shops,shopsMeta:SUP.shopsMeta}, people:PEOPLE, recheckOk:RECHECK_OK, rules:{POLY:RULES.POLY,_extraTaboo:RULES._extraTaboo||[]}}; dlCatch(saveAs(new Blob([JSON.stringify(s)],{type:'application/json'}),'名字审核_存档_'+dateStr()+'.json')); }
 function importSession(){ var inp=document.createElement('input'); inp.type='file'; inp.accept='.json'; inp.onchange=async function(){ var f=inp.files[0]; if(!f)return; try{ var s=JSON.parse(await f.text());
   if(s.db){ importedDB=s.db; saveDB(); } if(s.verdicts)store('mzys_verdicts',s.verdicts); if(s.sup){ ['info','list','center','shops','shopsMeta'].forEach(function(k){ if(s.sup[k])SUP[k]=s.sup[k]; }); saveSup(); } if(s.people&&typeof s.people==='object'){ Object.keys(s.people).forEach(function(pk){ var inc=s.people[pk], cur=PEOPLE[pk]; if(pk==='__proto__'||!inc||typeof inc.n!=='string'||!Array.isArray(inc.g))return;
       var str=function(v){ return typeof v==='string'; }; inc.g=inc.g.filter(str); inc.a=Array.isArray(inc.a)?inc.a.filter(str):[]; ['s','m','c'].forEach(function(k){ if(!str(inc[k]))inc[k]=''; });
@@ -1742,7 +1754,7 @@ function openSound(){ var L=soundList();
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,fb); else fb(); };
   document.getElementById('sndCsv').onclick=function(){ var q=function(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; };
     var lines=['文件,订单号,序号,学员,新名,拼音,类型,念起来,听起来像'].concat(L.map(function(o){ return [o.file,o.order,o.sid,o.who,o.neu,o.py,o.kind,o.read,o.like].map(q).join(','); }));
-    dl(new Blob(['﻿'+lines.join('\n')],{type:'text/csv'}),'发音清单_给客服.csv'); }; }
+    dlCatch(saveAs(new Blob(['﻿'+lines.join('\n')],{type:'text/csv'}),'发音清单_给客服.csv')); }; }
 
 function openQuality(){ if(!parsedFiles.length){ alert('先载入文件'); return; }
   var types={'撞字':0,'撞音(同调)':0,'撞音(异调)':0,'禁忌字':0,'禁忌/不要的音':0,'不雅谐音':0,'粤语谐音':0,'繁体':0,'状态备注':0,'历史重名':0,'调换顺序':0,'待补订单':0,'技术单拼音写错':0};
@@ -1780,6 +1792,9 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-06', title:'下载先问存到哪里', items:[
+    '按下载会先问存到哪里：一份就是「另存为」，国内海外分开的就选一个文件夹全部存进去（Chrome / Edge）；按取消就不下载',
+    'Firefox、Safari 没有这个功能，照旧直接下载；要每次问，在浏览器设定打开「下载前询问保存位置」']},
   {date:'2026-11-05', title:'可以拖 zip', items:[
     '拖进 zip（或选择文件时选 zip），里面的每份技术单都会拿出来一起审，家人跨文件照样比对；中文文件名不会乱码']},
   {date:'2026-11-05', title:'改好的「有问题」文件拖回来，名字照原样', items:[
