@@ -402,6 +402,8 @@ body.light .itabs button.on{background:var(--bg2)}
 .fc1{flex-wrap:wrap} .fc1 select{flex:1 1 100%;order:-1} .fc1 .hchip{margin-right:auto}
 .qi .qw{font-size:12px} .qi .qw.check{color:var(--muted)} .menu .mh,kbd{font-size:12px}
 .menu .danger{color:var(--bad)}
+.fwarn{margin:6px 0 2px;font-size:12px;line-height:1.5;color:var(--warn)}
+#dlMenu{min-width:380px} #dlMenu button{white-space:nowrap} #dlMenu .k{padding-left:16px}
 .suptbl tr.miss input.cell:placeholder-shown{border-color:var(--warn-line)}
 @media print{ header.top,.queue,.tools,.keys{display:none} body{overflow:visible;height:auto;display:block} .app,.main{display:block;overflow:visible} }
 </style>
@@ -484,11 +486,12 @@ body.light .itabs button.on{background:var(--bg2)}
   <div class="dd" id="dlWrap" style="display:none">
     <button type="button" class="btn pri" id="dlBtn" aria-haspopup="true" aria-expanded="false"><svg class="i"><use href="#i-dl"/></svg><span data-i18n="download">下载结果</span><svg class="i"><use href="#i-down"/></svg></button>
     <div class="menu" id="dlMenu" role="menu">
-      <button type="button" data-act="dlzip">三份一起下载（打包 zip）</button>
-      <button type="button" data-act="dlorig">原装文件（只改名）</button>
-      <button type="button" data-act="dlbad">只下载「有问题」</button>
-      <button type="button" data-act="dlclean">只下载「干净·可上传」</button>
-      <button type="button" data-act="dlsup" id="dlSupBtn">督导文件（国内）</button>
+      <div class="mh" id="dlHead" style="display:none"></div>
+      <button type="button" data-act="dlzip">全部打包下载（zip） <span class="k" id="kZip"></span></button>
+      <button type="button" data-act="dlorig">原装文件（只改名） <span class="k" id="kOrig"></span></button>
+      <button type="button" data-act="dlbad">只下载「有问题」 <span class="k" id="kBad"></span></button>
+      <button type="button" data-act="dlclean">只下载「干净·可上传」 <span class="k" id="kClean"></span></button>
+      <button type="button" data-act="dlsup" id="dlSupBtn">督导文件（国内） <span class="k" id="kSup"></span></button>
     </div>
   </div>
 </header>
@@ -517,6 +520,7 @@ body.light .itabs button.on{background:var(--bg2)}
         <button type="button" class="hchip" id="hBtn" data-act="overseas" title="国内 / 海外：看每位学员的「名册展示」，有填就算海外（表里没有这一栏才看文件名的 H）（文件名加（H））。点一下手动切换"></button>
         <button type="button" class="addfile" id="addMore" aria-label="再加文件" title="再加文件"><svg class="i"><use href="#i-plus"/></svg></button>
       </div>
+      <div id="fileWarn" class="fwarn" style="display:none"></div>
       <div class="prog"><span data-i18n="reviewed">已复核</span><div class="bar"><i id="revBar" style="width:0"></i></div><b id="revText">0 / 0</b></div>
     </div>
     <div class="qtabs" id="qtabs" role="tablist"></div>
@@ -918,12 +922,13 @@ function asDate(t){ t=String(t==null?'':t).trim(); var m;
   if(/^\d{5}(\.\d+)?$/.test(t)){ var d=new Date(Date.UTC(1899,11,30)+Math.floor(+t)*864e5); return ymd(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate()); }
   if((m=t.match(/(\d{4})\s*[-\/.年]\s*(\d{1,2})\s*[-\/.月]\s*(\d{1,2})/))&&+m[2]>=1&&+m[2]<=12&&+m[3]>=1&&+m[3]<=31)return ymd(m[1],m[2],m[3]);
   if((m=t.match(/(?:^|\D)(\d{1,2})\s*[.\/-]\s*(\d{1,2})\s*[.\/-]\s*(\d{4})(?!\d)/))&&+m[2]>=1&&+m[2]<=12&&+m[1]>=1&&+m[1]<=31)return ymd(m[3],m[2],m[1]); // 技术单审核台写「31.10.2026」
+  if((m=t.match(/(?:^|\D)(20\d{2})(\d{2})(\d{2})(?!\d)/))&&+m[2]>=1&&+m[2]<=12&&+m[3]>=1&&+m[3]<=31)return ymd(m[1],m[2],m[3]); // 「名正言顺技术单20261103」
   return ''; }
 // 日期先跟原文件名（表里的制表时间有时比文件名晚一天），文件名没有日期才看制表时间
-function tableDateOf(data,fname,noToday){ var fd=asDate(fname); if(fd)return fd;
+function tableDateOf(data,fname,noToday){ var fd=asDate(fname); tableDateOf.src='文件名'; if(fd)return fd; tableDateOf.src='制表时间';
   for(var r=data.length-1;r>=0;r--){ var row=data[r]||[]; for(var c=0;c<row.length;c++){ var t=String(row[c]==null?'':row[c]).trim(); if(t.indexOf('制表时间')!==0)continue;
     var d=asDate(t.replace(/^制表时间\s*[：:]?/,'')); for(var k=c+1;!d&&k<row.length;k++){ if(String(row[k]==null?'':row[k]).trim())d=asDate(row[k]); } if(d)return d; } }
-  return noToday?'':dateStr(); }
+  tableDateOf.src='今天'; return noToday?'':dateStr(); }
 // 海外单的「名册展示」会填（繁 / 简体和繁体…），国内单这一栏空着；只看学员那几行，表尾的回传时间不算
 function dispFilled(pf){ var c=pf.cols.disp; if(c==null||c<0)return false; return pf.groups.some(function(g){ return g.rows.some(function(ri){ return String((pf.data[ri]||[])[c]==null?'':pf.data[ri][c]).trim()!==''; }); }); }
 // 国内 / 海外：只看名册展示——有写的学员是海外，没写的是国内（文件名的 H 不算）；同一份两种都有就分开下载
@@ -939,7 +944,9 @@ function isOverseasName(n){ var b=String(n).replace(/\.(xlsx|xls)$/i,''); return
 var FRONT_BR=/^\s*(?:[（(][^）)]*[）)]\s*)+/;
 function leadOf(n){ var m=String(n).match(FRONT_BR); if(!m)return ''; return (m[0].match(/[（(][^）)]*[）)]/g)||[]).filter(function(t){ return !/^[（(]\s*(有问题|H|上传|督导|干净|名正言[顺順]|\d+)\s*[）)]$/i.test(t)&&!/拆分/.test(t); }).join(''); }
 function nameTags(n){ var out=[], b=String(n).replace(/\.(xlsx|xls)$/i,'').replace(FRONT_BR,''), m, re=/[（(]\s*([^）)]+?)\s*[）)]/g;
-  while((m=re.exec(b))){ var t=m[1]; if(/^(名正言[顺順]|H|上传|有问题|督导|\d+)$/i.test(t)||/拆分/.test(t))continue; if(out.indexOf(t)<0)out.push(t); } return out; }
+  while((m=re.exec(b))){ var t=m[1]; if(/^(名正言[顺順]|H|上传|有问题|督导|\d+)$/i.test(t)||/拆分/.test(t))continue; if(out.indexOf(t)<0)out.push(t); }
+  var bare=b.replace(/[（(][^）)]*[）)]/g,''); ['新生儿','特殊加急','单独发'].forEach(function(w){ if(bare.indexOf(w)>=0&&out.indexOf(w)<0)out.push(w); }); // 「新生儿名正言顺技术单 …」没括号也要留，不然跟普通那份同名
+  return out; }
 function techBase(x){ return '技术单 '+x.tableDate+'（名正言顺）'+(x.tags||[]).map(function(t){return '（'+t+'）';}).join('')+(x.overseas?'（H）':''); }
 function problemCount(x){ return x.audit.results.filter(function(r){return r.problem;}).length; }
 // 技术单审核台分好的文件（例如「新生儿名正言顺技术单 2026-10-31（1）H」）名字不改，后面加（干净）/（督导）就好
@@ -1066,7 +1073,7 @@ async function loadWithBuffers(fileList){ var start=parsedFiles.length; fileList
     if(!parsed){ alert('「'+f.name+'」找不到表头（需有「新名」「新名拼音」），略过。'); continue; }
     var om=load('mzys_overseas',{});
     recordPeople(parsed, tableDateOf(data,f.name,true));
-    parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), tags:nameTags(f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
+    parsedFiles.push({name:f.name, sheetName:ws.name, parsed:parsed, _buf:buf, tableDate:tableDateOf(data,f.name), dateSrc:tableDateOf.src, tags:nameTags(f.name), overseas:(f.name in om)?!!om[f.name]:(isOverseasName(f.name)||dispFilled(parsed))});
   }catch(e){ alert(HQTool.friendly('读「'+f.name+'」的时候出错。',e)); } }
   if(parsedFiles.length>start){ activeFile=start; curSid=null; queueFilter='all'; }
   rebuild();
@@ -1173,7 +1180,16 @@ function renderToolState(){ var x=parsedFiles[activeFile]; var n=x?refsOf(x).pen
   var sb2=document.getElementById('dlSupBtn'); if(sb2)sb2.style.display=(x&&x.overseas)?'none':'';
   var sbt=document.getElementById('supBtn'); if(sbt){ var dom=x&&!x.overseas; sbt.style.display=dom?'':'none'; var nm=dom?supMissing(x).length:0;
     sbt.classList.toggle('hot',nm>0); document.getElementById('supBadge').textContent=nm?String(nm):''; sbt.title=dom?(nm?('还有 '+nm+' 位「通过」的学员没填督导 / 店铺，点开一张表批量填'):'督导（国内）：全部填好了，点开可以改'):''; }
-  var hb=document.getElementById('hBtn'); hb.textContent=x&&x.mixed?'国内＋海外（分开下载）':x&&x.overseas?'海外（H）':'国内'; hb.classList.toggle('on',!!(x&&x.overseas));
+  if(x){ var ps=partsOf(x), reg=function(f){ var a=ps.filter(f); return a.length+' 份'+(x.mixed?' · '+a.map(function(p){return p.overseas?'海外':'国内';}).join('+'):''); };
+    var nB=ps.filter(function(p){return problemCount(p);}).length, nC=ps.filter(function(p){return passCount(p);}).length, dom=ps.filter(function(p){return !p.overseas&&supRows(p).length;}), nMiss=dom.length?supMissing(x).length:0;
+    document.getElementById('kOrig').textContent=reg(function(){return true;}); document.getElementById('kBad').textContent=nB?reg(function(p){return problemCount(p);}):'没有';
+    document.getElementById('kClean').textContent=nC?reg(function(p){return passCount(p);}):'没有'; document.getElementById('kSup').textContent=dom.length?'1 份'+(nMiss?' · 还有 '+nMiss+' 位没填':''):'没有';
+    document.getElementById('kZip').textContent=(ps.length+nB+nC+dom.length)+' 份';
+    var dh=document.getElementById('dlHead'); dh.style.display=x.mixed?'':'none'; dh.textContent='这份分国内 / 海外，各下载一份';
+    var fw=[], mine=ps.map(function(p){return outName(p,'orig');}); if(x.dateSrc==='今天')fw.push('文件名和表里都找不到日期，下载名先用今天（'+x.tableDate+'），请确认');
+    parsedFiles.forEach(function(y){ if(y===x)return; partsOf(y).forEach(function(q){ if(mine.indexOf(outName(q,'orig'))>=0)fw.push('跟「'+y.name+'」下载出来会同名，下载后可能互相盖掉，请先改其中一份的文件名'); }); });
+    var fwe=document.getElementById('fileWarn'); fwe.style.display=fw.length?'':'none'; fwe.textContent=fw.map(function(t){return '⚠ '+t;}).join('　'); }
+  var hb=document.getElementById('hBtn'); hb.textContent=x&&x.mixed?'国内 '+x.audit.results.filter(function(r){return !r.ov;}).length+' · 海外 '+x.audit.results.filter(function(r){return r.ov;}).length+'（分开下载）':x&&x.overseas?'海外（H）':'国内'; hb.classList.toggle('on',!!(x&&x.overseas));
   document.getElementById('undoBtn').disabled=!undoStack.length; document.getElementById('redoBtn').disabled=!redoStack.length; }
 function renderAll(){ if(!parsedFiles.length)return; var vis=visibleList();
   if(!vis.some(function(r){return String(r.sid)===String(curSid);}))curSid=vis.length?String(vis[0].sid):null;
