@@ -632,12 +632,16 @@ function splitNames(text){ var t=String(text==null?'':text); if(NULLS[t.trim()])
   for(var i=0;i<NOISE.length;i++)t=t.split(NOISE[i]).join('');
   var parts=t.split(/[@\uff0c,\u3001\uff1b;\uff1a:\u3000\s\/]+/).concat(extra),out=[];
   for(var j=0;j<parts.length;j++){var c=cjkOnly(parts[j]);if(!c||NULLS[c])continue; c=stripRel(c); if(c&&!NULLS[c]&&!REL_WORDS[c]&&!NO_NAME_RE.test(c)&&Array.from(c).length>=2&&out.indexOf(c)<0)out.push(c);} return out; }
+// 「爱人：罗红岩」「配偶：第一任：王小明」→ 名字前面最近的称谓（爱人 / 配偶）；找不到就空
+function isRelLabel(l){ return !!(REL_WORDS[l]||REL_FULL[l]||/^(外公|外婆|姥姥|姥爷|爷爷|奶奶|兄弟姐妹)$/.test(l)||new RegExp('^['+REL_MOD+']*['+REL_ROOT+']{1,3}$').test(l)); }
+function relLabelOf(raw,n){ var i=String(raw).indexOf(n); if(i<0)return ''; var seg=String(raw).slice(0,i).split(/[；;]/).pop(), m, last='', re=/([一-鿿]{1,8})\s*[：:]/g;
+  while((m=re.exec(seg))){ var l=m[1].replace(/(的)?名字$/,''); if(isRelLabel(l))last=l; } return last; }
 function familyMembers(row, cols){ var out=[];
   splitNames(row[cols.father]).forEach(function(n){out.push(['父亲',n]);});
   splitNames(row[cols.mother]).forEach(function(n){out.push(['母亲',n]);});
   var xraw=String(row[cols.sib]==null?'':row[cols.sib]),sib=xraw,sp='';var k=xraw.indexOf('伴侣');
   if(k>=0){sib=xraw.slice(0,k);sp=xraw.slice(k);}
-  splitNames(sib).forEach(function(n){out.push(['兄弟姐妹',n]);});
+  splitNames(sib).forEach(function(n){out.push([relLabelOf(sib,n)||'兄弟姐妹',n]);}); // 兄弟姐妹栏常常整家人都写（爱人：X、外婆：Y），照原文的称谓显示
   splitNames(sp).forEach(function(n){out.push(['伴侣',n]);});
   splitNames(row[cols.kids]).forEach(function(n){out.push(['子女',n]);});
   return out; }
@@ -1046,7 +1050,7 @@ function recordSimple(data,date){ var hr=-1, h=[]; for(var i=0;i<Math.min(data.l
   if(hr<0)return -1; var c=function(n){ return h.indexOf(n); }, cO=c('订单'), cN=c('姓名')>=0?c('姓名'):c('使用人姓名'), cS=c('新名字姓氏'), cC=c('服务中心编号'), cG=c('新名字'), cP=c('新名字拼音'), by={}, list=[];
   for(var r=hr+1;r<data.length;r++){ var row=data[r]||[], o=String(row[cO]==null?'':row[cO]).trim(), nm=baseName(row[cN]); if(!o||!nm)continue; var k=o.toUpperCase()+'|'+nm;
     if(!by[k]){ by[k]={o:o,n:nm,s:String(row[cS]==null?'':row[cS]).trim(),c:cC>=0?String(row[cC]==null?'':row[cC]).trim():'',g:[]}; list.push(by[k]); }
-    [row[cG], cP>=0&&!h[cP+1]?row[cP+1]:''].forEach(function(v){ v=cjkOnly(v); if(v&&by[k].g.indexOf(v)<0)by[k].g.push(v); }); } // 督导表的第二个新名在拼音右边（没表头）
+    [row[cG], c('新名字2')>=0?row[c('新名字2')]:(cP>=0&&!h[cP+1]?row[cP+1]:'')].forEach(function(v){ v=cjkOnly(v); if(v&&by[k].g.indexOf(v)<0)by[k].g.push(v); }); } // 督导表的第二个新名在拼音右边（没表头）
   var cnt={}; list.forEach(function(x){ var o=x.o.toUpperCase(); cnt[o]=(cnt[o]||0)+1; });
   list.forEach(function(x){ var key=personKey(x.o,'',x.n,cnt), cur=PEOPLE[key]; if(cur&&String(cur.d||'')>date)return;
     PEOPLE[key]={f:cur&&cur.f||[], n:x.n, a:cur&&cur.a||[], s:x.s, m:cur&&cur.m||'', c:x.c, g:x.g, d:date||(cur&&cur.d)||''}; });
@@ -1239,7 +1243,7 @@ function railHtml(r){ var det=r.rows[0].detail||{};
   var clashBy={}; r.rows.forEach(function(rw){ rw.hits.forEach(function(h){ if(h.fname)(clashBy[h.fname]||(clashBy[h.fname]={}))[h.fc]=1; }); });
   function chip(name){ var cs=clashBy[name]||{}; return '<button type="button" class="tchip" data-q="'+esc(name)+'" title="搜「'+esc(name)+'」">'+Array.from(String(name)).map(function(ch){ return '<span class="c'+(cs[ch]?' clash':'')+'">'+esc(ch)+'</span>'; }).join('')+'</button>'; }
   var groups=[['父亲','父'],['母亲','母'],['兄弟姐妹','兄弟姐妹'],['伴侣','伴侣'],['子女','子女']], known={}; groups.forEach(function(g){known[g[0]]=1;});
-  var by={}; (r._fam||[]).forEach(function(p){ if(JUNK_NAMES[p[1]])return; var k=known[p[0]]?p[0]:'其他'; var a=by[k]||(by[k]=[]); if(a.indexOf(p[1])<0)a.push(p[1]); });
+  var by={}; (r._fam||[]).forEach(function(p){ if(JUNK_NAMES[p[1]])return; var k=known[p[0]]?p[0]:/爱人|配偶|妻|夫|老公|老婆|伴侶|对象/.test(p[0])?'伴侣':isRelLabel(p[0])?'兄弟姐妹':'其他'; var a=by[k]||(by[k]=[]); if(a.indexOf(p[1])<0)a.push(p[1]); });
   var fam=groups.concat([['其他','其他比对']]).filter(function(g){return by[g[0]]&&by[g[0]].length;}).map(function(g){ return '<dt>'+g[1]+'</dt><dd>'+by[g[0]].map(chip).join('')+'</dd>'; }).join('');
   // 学员资料：姓氏放最前面；其余所有有填的栏位都能展开看
   var KEY_INFO=['新名字姓氏','使用人姓名','性别','公历生日','生肖','农历时辰','是否子时','是否双胞胎'], allKV=det.all||[], kvMap={}; allKV.forEach(function(kv){ if(!(kv[0] in kvMap))kvMap[kv[0]]=kv[1]; });
@@ -1433,6 +1437,7 @@ function whoOf(h,d){ var m=h.member, o;
   if(m==='父亲'||m==='母亲')return {who:m,isNew:isNewName(d,h.full)};
   if((o=m.match(/^关联订单\s*(\S+)\s*的新名$/)))return {who:relWord(d,o[1])||('订单 '+o[1]),isNew:true};
   if((o=m.match(/^关联学员「([^」]*)」\(([^)]*)\)$/)))return {who:relWord(d,o[2])||relWord(d,o[1])||o[1],isNew:true};
+  if((o=m.match(/^双胞胎「([^」]*)」$/)))return {who:relWord(d,shortName(o[1]))||('双胞胎'+shortName(o[1])),isNew:true};
   if((o=m.match(/^同色家人「([^」]*)」$/)))return {who:relWord(d,shortName(o[1]))||shortName(o[1]),isNew:true};
   if((o=m.match(/^(.+?)「([^」]*)」(?:同一批的|以前的)订单/)))return {who:({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]!=null?({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]||relWord(d,o[2])||o[2]):(relWord(d,o[2])||o[2])),isNew:true};
   return {who:relWord(d,h.full)||(m==='备注提到'?'备注里提到的人':m),isNew:isNewName(d,h.full)}; }
@@ -1462,13 +1467,15 @@ function footerDates(x){ var data=x.parsed.data, out=[], shift=null, ser=functio
   return out.map(function(o){ return {r:o.r,k:o.k,v:o.kind==='make'&&x.tableDate?x.tableDate:asDate(String(o.n+(shift||0)))}; }); }
 function applyFooter(ws,x){ var f=footerDates(x); f.forEach(function(o){ ws.getRow(o.r+1).getCell(o.k+1).value=o.v; }); return f.length; }
 // 改好再拖回来的「有问题」文件：学员那几行表头右边还留着上次的红字原因，下载时清掉
-function lastColOf(x){ var n=0; x.audit.header.forEach(function(h,i){ if(String(h).trim())n=i+1; }); return n; }
+function lastColOf(x){ var n=0; x.audit.header.forEach(function(h,i){ var t=String(h).trim(); if(t&&t!=='审核原因')n=i+1; }); return n; } // 「审核原因」是我们加在有问题文件的，不算表格本身
 function clearOldReasons(ws,x){ if(!/（有问题）/.test(x.name))return; var lc=lastColOf(x), argb=function(c){ return String(c&&c.argb||'').toUpperCase(); };
   x.audit.results.forEach(function(r){ r.rows.forEach(function(rw){ var row=ws.getRow(rw.row+1), c0=row.getCell(lc+1);
     if(c0.isMerged&&c0.master!==c0)return; // 从属于左边（表头范围内）的合并格：不是我们写的原因
-    if(argb(c0.font&&c0.font.color)!=='FFFF0000'||argb(c0.fill&&c0.fill.fgColor)!=='FFFFFF00')return; // 只清我们自己写的红字黄底
+    var nc=x.audit.cols.neu>=0?row.getCell(x.audit.cols.neu+1):null; if(nc&&argb(nc.fill&&nc.fill.fgColor)==='FFFBE9E7'){ var st=Object.assign({},nc.style); delete st.fill; nc.style=st; }
+    var ours=(argb(c0.font&&c0.font.color)==='FFFF0000'&&argb(c0.fill&&c0.fill.fgColor)==='FFFFFF00')||(c0.value==='这个名字没问题'&&argb(c0.font&&c0.font.color)==='FF808080'); if(!ours)return; // 只清我们自己写的（红字黄底原因、灰字没问题）
     (ws.model.merges||[]).slice().forEach(function(rg){ if(rg.split(':')[0]===c0.address)ws.unMergeCells(rg); });
-    for(var c=lc+1;c<=lc+8;c++){ var cell=row.getCell(c); if(cell.isMerged&&cell.master.col<=lc)continue; cell.value=null; cell.style={}; } }); }); }
+    for(var c=lc+1;c<=lc+8;c++){ var cell=row.getCell(c); if(cell.isMerged&&cell.master.col<=lc)continue; cell.value=null; cell.style={}; } }); });
+  var hc=ws.getRow(x.audit.hr+1).getCell(lc+1); if(hc.value==='审核原因'&&!(hc.isMerged&&hc.master!==hc)){ (ws.model.merges||[]).slice().forEach(function(rg){ if(rg.split(':')[0]===hc.address)ws.unMergeCells(rg); }); hc.value=null; hc.style={}; } }
 async function origBuffer(x){ if(x._drop&&x._drop.length)return await (await buildSplitWorkbook(x,'all')).xlsx.writeBuffer();
   if(!Object.keys(outNeuByRow(x)).length&&!footerDates(x).length&&!/（有问题）/.test(x.name))return x._buf.slice(0);
   var wb=new ExcelJS.Workbook(), ws; await wb.xlsx.load(x._buf.slice(0)); ws=wb.getWorksheet(x.sheetName)||wb.worksheets[0]; clearOldReasons(ws,x); applyTrad(ws,x); applyFooter(ws,x); return await wb.xlsx.writeBuffer(); }
@@ -1560,7 +1567,7 @@ function openSupTable(focusR){ var x=parsedFiles[activeFile]; if(!x)return;
 async function buildSupWorkbook(x){ var wb=new ExcelJS.Workbook(), ws=wb.addWorksheet('命名');
   var W=[8,12.6,46.2,18.1,16.3,15.3,43.8,6.7,16.7,6.7,9.6,13.4,8,12.8,100.4,12.4,123.9]; W.forEach(function(w,i){ ws.getColumn(i+1).width=w; });
   var thin={style:'thin'}, box={top:thin,left:thin,bottom:thin,right:thin};
-  var hd=['督导','分公司','店铺名称','服务中心编号','订单','新名字姓氏','姓名','性别','出生日期','生肖','新名字','新名字拼音','',''];
+  var hd=['督导','分公司','店铺名称','服务中心编号','订单','新名字姓氏','姓名','性别','出生日期','生肖','新名字','新名字拼音','新名字2','新名字拼音2'];
   var h=ws.getRow(1); h.height=18.75;
   hd.forEach(function(t,i){ var c=h.getCell(i+1); c.value=t; c.font={name:'宋体',size:14,bold:true}; c.border=box; c.alignment=i<4?{horizontal:'center'}:{horizontal:'center',vertical:'middle',wrapText:true}; });
   var o1=h.getCell(15); o1.value={formula:'_xlfn.TEXTJOIN(" ",TRUE,E1:N1)',result:hd.slice(4).filter(Boolean).join(' ')}; o1.font={name:'宋体',size:11}; o1.border=box;
@@ -1619,9 +1626,10 @@ async function buildCleanWorkbook(x){ var au=x.audit, data=x.parsed.data, hd=au.
 
 async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook(); await wb.xlsx.load(x._buf.slice(0));
   var ws=wb.getWorksheet(x.sheetName)||wb.worksheets[0]; var au=x.audit, hr=au.hr; clearOldReasons(ws,x); applyTrad(ws,x); applyFooter(ws,x);
-  var lastCol=0, reasonByRow={}, delRows=[]; au.header.forEach(function(h,i){ if(String(h).trim())lastCol=i+1; });
-  au.results.forEach(function(r){ var keep=keepProblem==='all'||(keepProblem?r.problem:!r.problem); var why=keep&&keepProblem===true?outReason(r):'';
-    r.rows.forEach(function(rw){ if(keep)reasonByRow[rw.row+1]=why; else delRows.push(rw.row+1); }); });
+  var lastCol=lastColOf(x), reasonByRow={}, delRows=[];
+  au.results.forEach(function(r){ var keep=keepProblem==='all'||(keepProblem?r.problem:!r.problem), anyMsg=r.rows.some(function(rw){return rw.msgs.length;});
+    r.rows.forEach(function(rw){ if(!keep){ delRows.push(rw.row+1); return; } if(keepProblem!==true)return; var bad=!anyMsg||rw.msgs.length>0; // 人工判有问题（没有机器原因）就每行都写
+      reasonByRow[rw.row+1]={bad:bad, t:bad?(anyMsg?outReason(Object.assign({},r,{rows:[rw]})):outReason(r)):'这个名字没问题'}; }); });
   (x._drop||[]).forEach(function(ri){ delRows.push(ri+1); });
   var gone=delRows.slice().sort(function(a,b){return a-b;}); function newRow(old){ var n=0; while(n<gone.length&&gone[n]<old)n++; return old-n; }
   // ExcelJS 删行不会把下面的合并格（例如表尾「回传时间」）一起往上移，先拆开，删完再按新位置合并回去
@@ -1633,9 +1641,14 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
   delRows.sort(function(a,b){return b-a;}).forEach(function(rn){ ws.spliceRows(rn,1); });
   moved.forEach(function(rg){ ws.mergeCells(rg); });
   if(keepProblem===true){
-    Object.keys(reasonByRow).forEach(function(k){ var rr=newRow(+k);
-      var c=ws.getRow(rr).getCell(lastCol+1); c.value=reasonByRow[k];
-      c.font={name:'宋体',size:12,color:{argb:'FFFF0000'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}}; c.alignment={horizontal:'center',vertical:'middle'};
+    var hcell=ws.getRow(hr+1).getCell(lastCol+1); hcell.value='审核原因'; hcell.font={name:'宋体',size:12,bold:true,color:{argb:'FFFF0000'}}; hcell.alignment={horizontal:'center',vertical:'middle'};
+    ws.unMergeCells(hr+1,lastCol+1,hr+1,lastCol+8); ws.mergeCells(hr+1,lastCol+1,hr+1,lastCol+8); ws.views=[{state:'frozen',xSplit:0,ySplit:hr+1}];
+    Object.keys(reasonByRow).forEach(function(k){ var rr=newRow(+k), rb=reasonByRow[k];
+      var c=ws.getRow(rr).getCell(lastCol+1); c.value=rb.t;
+      if(rb.bad){ c.font={name:'宋体',size:12,color:{argb:'FFFF0000'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}};
+        if(au.cols.neu>=0){ var zc=ws.getRow(rr).getCell(au.cols.neu+1); zc.style=Object.assign({},zc.style,{fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFFBE9E7'}}}); } } // 有问题的新名格子浅红底；同一栏的格子共用一个样式物件，要复制再改，不然整栏一起变色
+      else c.font={name:'宋体',size:12,color:{argb:'FF808080'}};
+      c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
       ws.unMergeCells(rr,lastCol+1,rr,lastCol+8); ws.mergeCells(rr,lastCol+1,rr,lastCol+8); }); } // 再次审核自己导出的「有问题」文件时，原因格已经合并过
   return wb; }
 function dateStr(){ var d=new Date(); function p(n){return(n<10?'0':'')+n;} return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
