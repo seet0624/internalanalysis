@@ -722,10 +722,9 @@
         if (holdOrder.length < holdHeads.length) add({ kind: 'holdsize', level: 'mid', text: holdHeads.filter(function (h) { return SIZE_COL.test(h); }).join('、') + ' 写了暂缓 — 尺寸晚点给，只标红，照常导出' });
       }
 
-      // 订单状态备注 asks for 加急: remind only (the file stays where the other rules put it)
-      if (/加急|急件|紧急|緊急/.test(get('订单状态备注')) && !urgentHits([get('备注'), get('总备注')], opts.urgentWords).length) {
-        add({ kind: 'status-urgent', level: 'high', text: '订单状态备注写了加急 — 请确认要不要放进加急文件（现在还在普通文件）' });
-      }
+      // 订单状态备注 asks for 加急 → 加急 like the remarks (own file, student's name in the file name)
+      // 「不用加急」「不急」 say the opposite
+      var statusUrgent = urgentHits([get('订单状态备注').replace(/(?:不用|不需要?|无需|無需|不必|不要)\s*(?:加急|急)|不急/g, '')], opts.urgentWords);
 
       // 名册展示 繁体 → red
       if (C['名册展示'] && /繁/.test(get('名册展示'))) {
@@ -878,9 +877,9 @@
         redCell(h);
         ds.forEach(function (d) { (d.birth ? births : d.days >= 0 && d.days <= d.monthDays ? near : far).push(d.text); });
       });
-      if (hits.length || near.length) {
+      if (hits.length || near.length || statusUrgent.length) {
         o.urgent = true;
-        add({ kind: 'urgent', level: 'high', text: '加急（' + hits.concat(near.map(function (x) { return x + ' 在一个月内'; })).join('、') + '）— 已标红，单独开文件' });
+        add({ kind: 'urgent', level: 'high', text: '加急（' + hits.concat(statusUrgent.map(function (x) { return '订单状态备注：' + x; }), near.map(function (x) { return x + ' 在一个月内'; })).join('、') + '）— 已标红，单独开文件' });
       }
       if (births.length) add({ kind: 'date', level: 'mid', text: '备注有预产 / 出生日期（' + births.join('、') + '）— 只标红，不加急' });
       if (far.length) add({ kind: 'date', level: 'mid', text: '备注有日期（' + far.join('、') + '）不在一个月内 — 只标红，不加急' });
