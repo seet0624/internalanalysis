@@ -723,7 +723,8 @@
       }
 
       // 订单状态备注 asks for 加急 → 加急 like the remarks (own file, student's name in the file name)
-      var statusUrgent = urgentHits([get('订单状态备注')], opts.urgentWords);
+      // 「不用加急」「不急」 say the opposite
+      var statusUrgent = urgentHits([get('订单状态备注').replace(/(?:不用|不需要?|无需|無需|不必|不要)\s*(?:加急|急)|不急/g, '')], opts.urgentWords);
 
       // 名册展示 繁体 → red
       if (C['名册展示'] && /繁/.test(get('名册展示'))) {
