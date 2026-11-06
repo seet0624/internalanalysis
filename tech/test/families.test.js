@@ -107,10 +107,21 @@ test('家人被分到不同文件（妈妈有问题、儿子没问题）：两�
   for (const o of res.outputs) assert.deepStrictEqual(await look(o.buffer), { colored: 0, notes: 0, hasNote: false }, o.name);
 });
 
-test('旧的输出文件（一个人、整行有家人颜色）再上传 → 颜色拿掉', async () => {
+test('旧的输出文件（一个人、有家人颜色 / 批注 / 说明页）再上传 → 全部拿掉', async () => {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load((await sheet([{ 订单编号: no(), 使用人姓名: '林美玉', 会员姓名: '林美玉', 子女: '1人，儿子：黄子轩' }])).buffer);
   wb.worksheets[0].getRow(3).eachCell((c) => { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFEB9C' } }; });
+  wb.worksheets[0].getRow(3).getCell(2).note = '家人订单 第2组（绿色）\n同组还有：黄子轩（名正言顺）';
+  wb.addWorksheet('说明').addRow(['第2组（绿色）', '林美玉、黄子轩']);
   const [res] = await E.processFiles([{ name: '名正言顺技术单.xlsx', buffer: Buffer.from(await wb.xlsx.writeBuffer()) }], {});
-  for (const o of res.outputs) assert.strictEqual((await look(o.buffer)).colored, 0, o.name);
+  for (const o of res.outputs) assert.deepStrictEqual(await look(o.buffer), { colored: 0, notes: 0, hasNote: false }, o.name);
+});
+
+// 网页用 review-engine.js?v=<版本> 载入：改了引擎却没换版本号，客服的浏览器会继续用旧的引擎
+test('tech/index.html 载入的引擎版本号 = 引擎档案的 md5 前 10 码', () => {
+  const fs = require('fs'), path = require('path'), crypto = require('crypto');
+  const dir = path.join(__dirname, '..');
+  const want = crypto.createHash('md5').update(fs.readFileSync(path.join(dir, 'review-engine.js'))).digest('hex').slice(0, 10);
+  const got = (fs.readFileSync(path.join(dir, 'index.html'), 'utf8').match(/review-engine\.js\?v=([0-9a-f]+)/) || [])[1];
+  assert.strictEqual(got, want, '把 tech/index.html 的 review-engine.js?v= 改成 ' + want);
 });

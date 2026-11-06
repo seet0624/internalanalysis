@@ -556,6 +556,9 @@
     zip.file('docProps/core.xml', fixed);
     return zip.generateAsync({ type: 'arraybuffer' });
   }
+  // ExcelJS 没有删批注的方法：c.note = undefined 会留下空批注，批注还另外存在格子的值里面；重设值才真的拿掉
+  function dropNote(c) { var v = c.value; c._comment = undefined; c.value = v; }
+
   async function load(buffer) {
     var ExcelJS = getExcelJS();
     if (!ExcelJS) throw new Error('读 Excel 的组件没有载入（网络慢或被挡），请按 Ctrl+F5 重新整理页面再上传');
@@ -567,6 +570,10 @@
   async function processFile(file, opts) {
     var wb = await load(file.buffer);
     var ws = wb.worksheets[0];
+    // 上次输出留下的家人批注、「说明」页：先拿掉，这次重新判断（家人颜色在下面标红那一段拿掉）
+    var oldNote = wb.getWorksheet('说明');
+    if (oldNote && wb.worksheets.length > 1) wb.removeWorksheet(oldNote.id);
+    ws.eachRow(function (row) { row.eachCell(function (c) { if (c.note && /^家人订单/.test(typeof c.note === 'string' ? c.note : (c.note.texts || []).map(function (t) { return t.text; }).join(''))) dropNote(c); }); });
     var header = findHeader(ws);
     // the product title inside the sheet names the tool; the file name is only a fallback
     // (a re-uploaded output is already called "许舒涵九合平衡牌技术单（特殊加急）…" or "天富手表（男款）技术单…")
