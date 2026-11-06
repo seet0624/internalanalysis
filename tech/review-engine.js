@@ -619,7 +619,12 @@
     // Cells that arrive with a coloured box in the order rows become red text instead.
     var filledCells = {};
     for (var fr = range.first; fr <= range.last; fr++) {
-      ws.getRow(fr).eachCell({ includeEmpty: false }, function (c) { if (hasFill(c) && !isSlave(c) && !isFamilyFill(c)) { filledCells[c.address] = true; paintRed(c); } });
+      ws.getRow(fr).eachCell({ includeEmpty: false }, function (c) {
+        if (!hasFill(c) || isSlave(c)) return;
+        // 上次输出留下的家人颜色：拿掉，这次重新判断（不然一个人的文件也会一直有颜色）
+        if (isFamilyFill(c)) c.style = Object.assign({}, c.style, { fill: { type: 'pattern', pattern: 'none' } });
+        else { filledCells[c.address] = true; paintRed(c); }
+      });
     }
     var headerOrder = Object.keys(C).sort(function (a, b) { return C[a] - C[b]; });
 
@@ -1079,36 +1084,54 @@
     return result;
   }
 
-  // 家人订单的说明（每个输出文件拆好之后才加，批注才会跟着对的那一行）：
-  // 订单编号加批注（同组是谁、为什么），文件里有家人订单才多一页「说明」
+  // 家人订单的颜色、批注、说明，都在每个输出文件拆好之后才定：同一个文件里有 2 张以上同一家的单才上色
+  // （一个人的文件不上色）；订单编号加批注（同组是谁、为什么），有上色才多一页「说明」
   async function familyNotes(buf, byNo) {
     if (!Object.keys(byNo).length) return buf;
     var wb = await load(buf), ws = wb.worksheets[0], header = findHeader(ws);
     var C = header && header.cols, col = C && C['订单编号'];
     if (!col) return buf;
-    var range = dataRowRange(ws, header), here = [];
+    var range = dataRowRange(ws, header), lastCol = Math.max.apply(null, Object.keys(C).map(function (h) { return C[h]; }));
+    // 这个文件里每组有几张单（名正言顺一人两行，按订单编号算）
+    var inFile = [], seen = {};
     for (var r = range.first; r <= range.last; r++) {
-      var c = ws.getRow(r).getCell(col), g = byNo[orderNo14(cellText(c))];
+      var n0 = orderNo14(cellText(ws.getRow(r).getCell(col))), g0 = byNo[n0];
+      if (!g0 || seen[n0]) continue;
+      seen[n0] = true; g0._here = (inFile.indexOf(g0) < 0 ? (inFile.push(g0), 0) : g0._here) + 1;
+    }
+    var here = inFile.filter(function (g) { return g._here >= 2; }), changed = false;
+    for (r = range.first; r <= range.last; r++) {
+      var row = ws.getRow(r), c = row.getCell(col), g = byNo[orderNo14(cellText(c))];
       if (!g) continue;
-      if (here.indexOf(g) < 0) here.push(g);
+      if (here.indexOf(g) < 0) {
+        // 同一个文件里没有他的家人：不上色、不加批注
+        for (var fc = 1; fc <= lastCol; fc++) {
+          var cc = row.getCell(fc), f = cc.fill;
+          if (!isSlave(cc) && f && f.fgColor && String(f.fgColor.argb).toUpperCase() === g.color) { cc.style = Object.assign({}, cc.style, { fill: { type: 'pattern', pattern: 'none' } }); changed = true; }
+        }
+        continue;
+      }
       var others = g.members.filter(function (m) { return orderNo14(m.id) !== orderNo14(cellText(c)); }).map(function (m) { return m.person + '（' + m.tool + '）'; });
       c.note = '家人订单 第' + g.n + '组（' + g.colorName + '）\n同组还有：' + others.join('、') + (g.why && g.why.length ? '\n为什么：' + g.why.join('；') : '');
+      changed = true;
     }
+    inFile.forEach(function (g) { delete g._here; });
     // 重新上传的输出文件已经有旧的「说明」：先拿掉，不然会重复加、或留着上次的家人
     var old = wb.getWorksheet('说明');
-    if (old) wb.removeWorksheet(old.id);
-    if (!here.length) return old ? wb.xlsx.writeBuffer() : buf;
-    var sh = wb.addWorksheet('说明');
-    sh.columns = [{ width: 18 }, { width: 90 }];
-    sh.addRow(['红字', '请专家注意的地方（规则标出来的，或客服改过的格子）']);
-    sh.addRow(['有底色的整行', '家人订单：同一个颜色是同一家，可能在不同的文件里；滑鼠移到订单编号看同组是谁']);
-    sh.addRow([]);
-    here.forEach(function (g) {
-      var row = sh.addRow(['第' + g.n + '组（' + g.colorName + '）', g.members.map(function (m) { return m.person + '（' + m.tool + '）'; }).join('、') + (g.why && g.why.length ? '\n为什么：' + g.why.join('；') : '')]);
-      row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: g.color } };
-      row.getCell(2).alignment = { wrapText: true, vertical: 'top' };
-    });
-    return wb.xlsx.writeBuffer();
+    if (old) { wb.removeWorksheet(old.id); changed = true; }
+    if (here.length) {
+      var sh = wb.addWorksheet('说明');
+      sh.columns = [{ width: 18 }, { width: 90 }];
+      sh.addRow(['红字', '请专家注意的地方（规则标出来的，或客服改过的格子）']);
+      sh.addRow(['有底色的整行', '家人订单：同一个文件里，同一个颜色是同一家；滑鼠移到订单编号看同组是谁']);
+      sh.addRow([]);
+      here.forEach(function (g) {
+        var row = sh.addRow(['第' + g.n + '组（' + g.colorName + '）', g.members.map(function (m) { return m.person + '（' + m.tool + '）'; }).join('、') + (g.why && g.why.length ? '\n为什么：' + g.why.join('；') : '')]);
+        row.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: g.color } };
+        row.getCell(2).alignment = { wrapText: true, vertical: 'top' };
+      });
+    }
+    return changed ? wb.xlsx.writeBuffer() : buf;
   }
 
   // 家人订单: an order whose sheet (父母 / 兄弟姐妹 / 子女 / 备注 …) names another uploaded order (its order number, or its 使用人姓名)

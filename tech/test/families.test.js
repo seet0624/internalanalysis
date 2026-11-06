@@ -83,3 +83,34 @@ test('输出文件再上传一次：「说明」不会重复加', async () => {
   const count = async (buf) => { const wb = new ExcelJS.Workbook(); await wb.xlsx.load(buf); return wb.getWorksheet('说明').rowCount; };
   assert.strictEqual(await count(again.outputs[0].buffer), await count(first.outputs[0].buffer));
 });
+
+// 你的规则：同一个文件里查到家人才上色；文件里只有一个人，就不能有颜色
+const FAMILY_ARGB = ['FFBDD7EE', 'FFC6EFCE', 'FFFFEB9C', 'FFF8CBAD', 'FFD9C3E9', 'FFB7E4E0', 'FFF4CCE0', 'FFD9D9D9'];
+async function look(buf) {
+  const wb = new ExcelJS.Workbook(); await wb.xlsx.load(buf);
+  let colored = 0, notes = 0;
+  wb.worksheets[0].eachRow((row, r) => { if (r < 3) return; row.eachCell((c) => {
+    const a = c.fill && c.fill.fgColor && String(c.fill.fgColor.argb).toUpperCase();
+    if (FAMILY_ARGB.includes(a)) colored++;
+    if (c.note) notes++;
+  }); });
+  return { colored, notes, hasNote: !!wb.getWorksheet('说明') };
+}
+
+test('家人被分到不同文件（妈妈有问题、儿子没问题）：两个文件都只有一个人 → 都不上色', async () => {
+  const rows = [
+    { 订单编号: no(), 使用人姓名: '林美玉', 会员姓名: '林美玉', 子女: '1人，儿子：黄子轩', 备注: '暂缓，等资料' },
+    { 订单编号: no(), 使用人姓名: '黄子轩', 会员姓名: '林美玉', 母亲名字: '林美玉' }
+  ];
+  const [res] = await E.processFiles([await sheet(rows)], {});
+  assert.ok(res.outputs.length >= 2, '应该分成两个文件：' + res.outputs.map((o) => o.name).join(' | '));
+  for (const o of res.outputs) assert.deepStrictEqual(await look(o.buffer), { colored: 0, notes: 0, hasNote: false }, o.name);
+});
+
+test('旧的输出文件（一个人、整行有家人颜色）再上传 → 颜色拿掉', async () => {
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load((await sheet([{ 订单编号: no(), 使用人姓名: '林美玉', 会员姓名: '林美玉', 子女: '1人，儿子：黄子轩' }])).buffer);
+  wb.worksheets[0].getRow(3).eachCell((c) => { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFEB9C' } }; });
+  const [res] = await E.processFiles([{ name: '名正言顺技术单.xlsx', buffer: Buffer.from(await wb.xlsx.writeBuffer()) }], {});
+  for (const o of res.outputs) assert.strictEqual((await look(o.buffer)).colored, 0, o.name);
+});
