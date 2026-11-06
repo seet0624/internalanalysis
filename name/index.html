@@ -396,6 +396,13 @@ body.light .itabs button.on{background:var(--bg2)}
   .han .hz{font-size:38px}
   .keys{display:none}
 }
+/* UI 设计部 2026-11：顶栏一行、文件名完整、「请确认」字改灰、危险操作红字、督导没填的格子黄框 */
+@media (min-width:901px){ .searchbox{flex:0 1 220px!important;min-width:0!important} header.top{gap:8px} }
+@media (max-width:1600px){ .swap{display:none} }
+.fc1{flex-wrap:wrap} .fc1 select{flex:1 1 100%;order:-1} .fc1 .hchip{margin-right:auto}
+.qi .qw{font-size:12px} .qi .qw.check{color:var(--muted)} .menu .mh,kbd{font-size:12px}
+.menu .danger{color:var(--bad)}
+.suptbl tr.miss input.cell:placeholder-shown{border-color:var(--warn-line)}
 @media print{ header.top,.queue,.tools,.keys{display:none} body{overflow:visible;height:auto;display:block} .app,.main{display:block;overflow:visible} }
 </style>
 </head>
@@ -450,11 +457,9 @@ body.light .itabs button.on{background:var(--bg2)}
     <button type="button" class="sqbtn" id="moreBtn" aria-label="更多" title="更多" aria-haspopup="true" aria-expanded="false"><svg class="i"><use href="#i-dots"/></svg></button>
     <div class="menu" id="moreMenu" role="menu">
       <div class="mh" data-need-file>文件</div>
-      <button type="button" data-act="removefile" data-need-file>移除当前文件</button>
       <button type="button" data-act="csv" data-need-file>问题清单 CSV</button>
       <hr data-need-file>
       <div class="mh" data-need-file>审核</div>
-      <button type="button" data-act="allok" data-need-file>本文件全部设为通过</button>
       <button type="button" data-act="sort" data-need-file>问题排前 <span class="k" id="sortState">开</span></button>
       <hr data-need-file>
       <div class="mh">换电脑用</div>
@@ -468,6 +473,10 @@ body.light .itabs button.on{background:var(--bg2)}
       <button type="button" data-act="pastimport">导入以前的技术单（记住学员）</button>
       <button type="button" data-act="recheck">每周复查（家人新名撞字撞音）</button>
       <button type="button" data-act="aicheck" data-need-file>AI 复核（复制指令给 Claude）</button>
+      <hr data-need-file>
+      <div class="mh" data-need-file>小心操作</div>
+      <button type="button" class="danger" data-act="allok" data-need-file>本文件全部设为通过</button>
+      <button type="button" class="danger" data-act="removefile" data-need-file>移除当前文件</button>
       <hr>
       <button type="button" data-act="lang" id="langBtn">English</button>
     </div>
@@ -1469,7 +1478,7 @@ function openSupTable(focusR){ var x=parsedFiles[activeFile]; if(!x)return;
         g.map(function(r){ var s=supOf(r), done=s.sup&&s.shop&&s.group, k=supKey(r), cc=centerOf(r);
           return '<tr class="'+(done?'done':'miss')+'"><td><input type="checkbox" class="rowchk" data-k="'+esc(k)+'"'+(checked[k]?' checked':'')+' aria-label="勾选 '+esc(shortName(r.disp))+'"></td><td class="st">'+(done?(s.auto?(s.src==='店铺资料'?'✓ 自动':'✓ 旧文件'):(s.edited?'✓ 手填':'✓')):'待填')+'</td>'+
             '<td class="nm">'+esc(shortName(r.disp)||('序'+r.sid))+'<small>序'+esc(r.sid)+' · '+esc(r.order||'')+'</small></td><td class="code" data-copy="'+esc(cc)+'" title="点一下复制">'+esc(cc||'—')+'</td>'+cell(r,'sup',s.sup)+cell(r,'branch',s.branch)+cell(r,'shop',s.shop)+'<td'+(s.group?'':' style="color:var(--warn)"')+' title="'+esc(s.src?('来源：'+s.src):'')+'">'+esc(s.group||(s.sup?'在上面填群':'—'))+'</td></tr>'; }).join(''); }).join('');
-    box.innerHTML='<h3>督导（国内）</h3><div class="desc">只放「通过」的学员，同一个店铺编号排在一起，店铺编号点一下就复制，方便去系统查。店铺资料里有的会自动带出；找不到的 <b>勾选几位 → 在下面填一次 → 「填到勾选的」</b>，就一起更新；表里每一格也可以直接改（手改的优先）。</div>'+shopBar+grpBar+
+    box.innerHTML='<h3>督导（国内）'+(miss?' · <span style="color:var(--warn)">还有 '+miss+' 位没填</span> / 共 '+supRows(x).length:' · 都填好了')+'</h3><div class="desc">只放「通过」的学员，同一个店铺编号排在一起，店铺编号点一下就复制，方便去系统查。店铺资料里有的会自动带出；找不到的 <b>勾选几位 → 在下面填一次 → 「填到勾选的」</b>，就一起更新；表里每一格也可以直接改（手改的优先）。</div>'+shopBar+grpBar+
       '<div class="supbulk"><div><label for="bk_sup">督导</label><input id="bk_sup" list="supList2" autocomplete="off" placeholder="填一次"></div><div><label for="bk_branch">分公司</label><input id="bk_branch" autocomplete="off" placeholder="填了督导会自动带出"></div>'+
       '<div><label for="bk_shop">店铺名称</label><input id="bk_shop" list="shopList2" autocomplete="off" placeholder="例：湖北省襄阳市樊城区（张雪）店铺"></div><div><label for="bk_group">群</label><input id="bk_group" autocomplete="off" placeholder="自动带出"></div>'+
       '<button type="button" class="btn pri" id="bkApply"'+(nSel?'':' disabled')+'>填到勾选的 '+nSel+' 位</button></div>'+
