@@ -900,9 +900,9 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
           '<td><span class="who-cell">' + (fg ? '<span class="sw" style="background:' + fg.group.css + '" title="家人第' + fg.group.n + '组"></span>' : '') + '<span>' + esc(o.person) + (showTool ? '<small>' + esc(it.r.tool) + '</small>' : '') + '</span></span></td>' +
           '<td><span class="st-' + st.c + '">' + st.t + '</span>' + (fg ? '<span class="small"> · 家人第' + fg.group.n + '组</span>' : '') + '</td>' +
           '<td>' + (uniq.length ? '<span class="mini">' + uniq.slice(0, 4).join('') + (uniq.length > 4 ? '<span>+' + (uniq.length - 4) + '</span>' : '') + '</span>' : '<span class="small">—</span>') + '</td>' +
-          '<td><span class="acts" style="gap:6px;flex-wrap:nowrap">' +
+          '<td><span class="acts" style="gap:6px;flex-wrap:nowrap;justify-content:flex-end">' +
           // 加急 / 不加急 right in the list, same switch as the detail panel (新生儿 always stay in the 新生儿 file)
-          (o.newborn ? '' : '<button type="button" class="btn small urg" data-urg="' + esc(it.mk) + '" data-auto="' + (o.autoUrgent ? 1 : 0) + '" aria-pressed="' + !!o.urgent + '" aria-label="' + esc(o.person) + (o.urgent ? ' 取消加急' : ' 设为特殊加急') + '">' + (o.urgent ? '不加急' : '加急') + '</button>') +
+          (o.newborn ? '' : '<button type="button" class="btn small urg" data-urg="' + esc(it.mk) + '" data-auto="' + (o.autoUrgent ? 1 : 0) + '" aria-pressed="' + !!o.urgent + '" aria-label="' + esc(o.person) + (o.urgent ? ' 不加急' : ' 加急') + '">' + (o.urgent ? '不加急' : '加急') + '</button>') +
           '<button type="button" class="btn small" data-open="' + esc(it.mk) + '">' + (state.sel === it.mk ? '正在看' : '打开') + '</button></span></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
