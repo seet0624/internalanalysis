@@ -332,11 +332,13 @@
     return chk.getUTCMonth() === b.m - 1 && chk.getUTCDate() === b.d ? b : null;
   }
   // 还没取名的写法：新生儿 / 宝宝 / BB / baby / 婴儿 / 待产 …（单字「宝」不算：王宝强是真名）
-  var NEWBORN_NAME = /新生儿|新生兒|宝宝|寶寶|婴儿|嬰兒|胎儿|胎兒|待产|待產|未出生|未出世|未取名|待定|预产|預產|男宝|女宝|二宝|三宝|囡囡|(^|[^a-z])(bb|baby)([^a-z]|$)/;
+  var NEWBORN_NAME = /新生儿|新生兒|宝宝|寶寶|婴儿|嬰兒|胎儿|胎兒|待产|待產|未出生|未出世|未取名|待定|预产|預產|男宝|女宝|(^|[^a-z])(bb|baby)([^a-z]|$)/;
+  // 二宝 / 三宝 / 囡囡 也是真名（张三宝、陈囡囡）：整格只写这几个字才算还没取名
+  var NEWBORN_ONLY = /^(大宝|二宝|三宝|小宝|囡囡|宝贝|寶貝)$/;
   function noNameYet(s) {
     var t = String(s || '').replace(/[\uff01-\uff5e]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xfee0); })
       .replace(/[\s\u3000]+/g, '').toLowerCase();
-    return NEWBORN_NAME.test(t);
+    return NEWBORN_NAME.test(t) || NEWBORN_ONLY.test(t);
   }
   // Rule: before 2月4日 → previous year's animal; after → this year's; on 2月4日 compare the exact
   // clock time with that year's 立春. Unknown time or only a 时辰 → this year's animal.

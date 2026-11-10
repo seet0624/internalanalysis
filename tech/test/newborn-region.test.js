@@ -51,6 +51,10 @@ const NEWBORN = [
   ['陈小明', '1990年01月01日', '祝小宝贝健康', false],
   ['Bobby', '1990年01月01日', '', false],   // 英文名里有 bb 不算
   ['', '2025年11月10日', '', false],       // 刚好满一岁
+  ['二宝', '', '', true],                  // 整格只写二宝 = 还没取名
+  ['张三宝', '', '', false],               // 真名
+  ['李二宝', '', '', false],
+  ['陈囡囡', '', '', false],
 ];
 for (const [name, bd, note, want] of NEWBORN) {
   test(`新生儿：姓名「${name}」生日「${bd}」备注「${note}」→ ${want ? '是' : '否'}`, async () => {
