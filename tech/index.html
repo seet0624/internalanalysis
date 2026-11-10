@@ -306,7 +306,7 @@ tr.on td{background:var(--sel)}
 if (!window.ExcelJS) document.write('<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>');
 if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
 </script>
-<script src="review-engine.js?v=8a2a83dc9a"></script>
+<script src="review-engine.js?v=abb6d4fa4b"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -491,7 +491,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   }
   // 自动 / 国内 / 海外: one row of buttons, used on the upload settings and the download page
   function regionPick() {
-    var opt = [['auto', '自动（看 H）'], ['domestic', '国内（没有 H）'], ['overseas', '海外（有 H）']];
+    var opt = [['auto', '自动'], ['domestic', '国内（没有 H）'], ['overseas', '海外（有 H）']];
     return '<div class="acts region-pick" role="group" aria-label="国内 / 海外" style="gap:6px;margin-top:6px">' + opt.map(function (o) {
       var on = state.set.region === o[0];
       return '<button type="button" class="btn small' + (on ? ' pick-on' : '') + '" data-region="' + o[0] + '" aria-pressed="' + on + '">' + o[1] + '</button>';
@@ -549,7 +549,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   var TAG = { red: ['红字', 'red'], urgent: ['加急', 'urg'], problem: ['有问题', 'prob'], choice: ['由你选', 'choice'] };
   var RB_FLOW = [
     { q: '要问人？或你按了「标为有问题」？', d: '暂缓 / 暂停、先问能不能做、换购没原单号、生肖不对、姓氏要问、刻名字是单号', to: '有问题文件', toD: '另一个 zip，先别发专家', tone: 'prob' },
-    { q: '新生儿？', d: '未满一岁，或使用人姓名写「新生儿」（加急的新生儿也算这里）', to: '新生儿文件', toD: '不写学员名；名正言顺回传 +7 天', tone: 'baby' },
+    { q: '新生儿？', d: '未满一岁或还没出生（生日也认 日.月.年）；使用人姓名写新生儿 / 宝宝 / BB / baby / 婴儿 / 待产 / 未取名；或名字空、备注写预产期（加急的新生儿也算这里）', to: '新生儿文件', toD: '不写学员名；名正言顺回传 +7 天', tone: 'baby' },
     { q: '加急？', d: '备注 / 总备注有加急字眼，或一个月内的日期；你也可以按「设为特殊加急 / 不加急」自己决定', to: '特殊加急', toD: '不进 zip，一个个下载', tone: 'urg' }
   ];
   var RB_RED = [
@@ -768,7 +768,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (hasRes) h += '<section class="card pad loaded"><div style="min-width:0"><b>已上传 ' + state.inputs.length + ' 个技术单</b><ul>' + state.inputs.map(function (f) { return '<li>' + esc(f.name) + '</li>'; }).join('') + '</ul></div>' +
       '<div class="acts"><button type="button" class="btn" data-reset>清空重来</button><button type="button" class="btn primary" data-view="review">继续处理待办</button></div></section>';
     h += '<label class="drop" id="drop"><span class="ico">' + ICON.up + '</span><span class="big">' + (hasRes ? '再拖文件进来（会合在一起审核）' : '拖文件到这里') + '</span><span class="small">或者</span>' +
-      '<span class="fake">选择文件</span><input id="pick" type="file" multiple accept=".xlsx,.zip"><span class="small">文件名有 H（例如「技术单_2026-10-14_H.zip」）会自动当作海外单</span></label>';
+      '<span class="fake">选择文件</span><input id="pick" type="file" multiple accept=".xlsx,.zip"><span class="small">名册展示写了简体 / 繁体就是海外单；没有名册展示这一栏才看文件名有没有 H</span></label>';
     h += settingsCard();
     if (!hasRes) h += '<section class="feats" aria-label="会做什么">' +
       feat('var(--crit-bg)', '<path d="M4 20h4l10-10-4-4L4 16v4z" fill="none" stroke="var(--crit)" stroke-width="1.8" stroke-linejoin="round"/>', '自动标红字', '子时、家人姓名、加急、起名要求……只改字体颜色，不动格式') +
@@ -969,6 +969,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var pend = open.filter(function (t) { return t.type === 'pending'; }).length, prob = open.length - pend;
     if (pend) warn.push('还有 ' + pend + ' 个备注没选要不要标红，没选的不会标红。');
     if (prob) warn.push('还有 ' + prob + ' 单要问人还没决定，现在会放在「有问题」文件。');
+    (state.results || []).forEach(function (r) { if (r.regionNote) warn.push(r.name + '：' + r.regionNote + '（不对就按下面的国内 / 海外改）'); });
     var n = (state.pick.good && good.length ? 1 : 0) + (state.pick.urgent ? urg.length : 0) + (state.pick.solo ? solo.length : 0) + (state.pick.bad && bad.length ? 1 : 0);
     var h = '<div class="page"><div class="narrow" style="max-width:880px;gap:20px">' +
       '<div style="display:flex;flex-direction:column;gap:4px"><h1 style="font-size:28px">下载前确认一下</h1><p class="lead" style="font-size:15px">这三项会写进每个文件，审核人每天可能不同，请看清楚。</p></div>' +
@@ -984,7 +985,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
           ? '<div class="fact"><label class="k" for="dl-rev">审核人（改好按「确定」，文件会马上更新）</label><div class="acts" style="margin-top:4px"><input id="dl-rev" class="inline-in" data-set="reviewer" type="text" value="' + esc(state.set.reviewer) + '" autocomplete="off">' +
             '<button type="button" class="btn small primary" data-saverev>确定</button><button type="button" class="btn small" data-cancelrev>取消</button></div></div>'
           : '<div class="fact"><span class="k">审核人</span><span class="v">' + esc(state.reviewer) + '</span><button type="button" class="btn link" style="align-self:flex-start;padding:0" data-editrev>不是我？在这里改</button></div>') +
-        '<div class="fact wide"><span class="k">国内 / 海外' + (state.set.region === 'auto' ? '（看文件名的 H）' : '（你选的）') + '</span><span class="v">' + esc(regionOf(outs)) + '</span>' + regionPick() + '</div></section>';
+        '<div class="fact wide"><span class="k">国内 / 海外' + (state.set.region === 'auto' ? '（看名册展示；没有这一栏才看 H）' : '（你选的）') + '</span><span class="v">' + esc(regionOf(outs)) + '</span>' + regionPick() + '</div></section>';
     if (warn.length) h += '<section class="warnbox" aria-label="提醒"><div style="display:flex;gap:10px;align-items:flex-start">' + ICON.warn + '<ul>' + warn.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>' +
       (open.length ? '<button type="button" class="btn small" data-view="review">回去处理</button>' : '') + '</section>';
     h += pkg('good', 'var(--ok)', '没问题', good.length + ' 个文件 · ' + orderTotal(good) + ' 单 · 一个 zip', good, outZipName(false, orderTotal(good), good), true);
@@ -1110,7 +1111,14 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (d.solo) {
       var so = b.getAttribute('aria-pressed') !== 'true';
       if (so) state.solos[d.solo] = true; else delete state.solos[d.solo];
-      run().then(function (ok) { if (ok) toast(so ? '这一单会自己一个文件，下载页在「单独发」' : '已取消单独发，放回原来的文件'); });
+      var sm = d.solo;
+      run().then(function (ok) {
+        if (!ok) return;
+        var it = findItem(sm);
+        // 有问题 still wins: the order waits in the 有问题 file until it is cleared
+        if (so && it && it.o.problem) toast('已标单独发，但这一单现在是「有问题」，先留在有问题文件；问清楚、取消有问题后才会单独发');
+        else toast(so ? '这一单会自己一个文件，下载页在「单独发」' : '已取消单独发，放回原来的文件');
+      });
       return;
     }
     if (d.urg) {
@@ -1141,7 +1149,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (d.region) {
       state.set.region = d.region;
       if (!state.results) { render(); return; }
-      run().then(function (ok) { if (ok) toast(d.region === 'auto' ? '国内 / 海外改回看文件名的 H' : '已全部改成' + (d.region === 'overseas' ? '海外（有 H）' : '国内（没有 H）') + '，文件已更新'); });
+      run().then(function (ok) { if (ok) toast(d.region === 'auto' ? '国内 / 海外改回自动（看名册展示 / H）' : '已全部改成' + (d.region === 'overseas' ? '海外（有 H）' : '国内（没有 H）') + '，文件已更新'); });
       return;
     }
     if ('editnd' in d) { state.editND = true; state.set.nameDate = state.nameDate || nameDatesText(allOutputs()).split('、')[0]; render(); var ni = $('dl-nd'); if (ni) { ni.focus(); ni.select(); } return; }

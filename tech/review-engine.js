@@ -316,8 +316,27 @@
   '鼠牛虎兔龙蛇马羊猴鸡狗猪'.split('').forEach(function (a) { ANIMAL_ALIAS[a] = a; });
   ANIMAL_ALIAS['龍'] = '龙'; ANIMAL_ALIAS['馬'] = '马'; ANIMAL_ALIAS['雞'] = '鸡'; ANIMAL_ALIAS['豬'] = '猪'; ANIMAL_ALIAS['犬'] = '狗';
   function parseBirthday(s) {
-    var m = String(s || '').match(/(\d{4})\s*[年\-\/.]\s*(\d{1,2})\s*[月\-\/.]\s*(\d{1,2})/);
-    return m ? { y: +m[1], m: +m[2], d: +m[3] } : null;
+    var t = String(s || '').trim(), m, b = null;
+    if ((m = t.match(/(\d{4})\s*[年\-\/.]\s*(\d{1,2})\s*[月\-\/.]\s*(\d{1,2})/))) b = { y: +m[1], m: +m[2], d: +m[3] };
+    // the team writes 日.月.年: 1.10.2026 / 01-10-2026
+    else if ((m = t.match(/^(\d{1,2})\s*[\-\/.]\s*(\d{1,2})\s*[\-\/.]\s*(\d{4})$/))) b = { y: +m[3], m: +m[2], d: +m[1] };
+    else if ((m = t.match(/^(\d{4})(\d{2})(\d{2})$/))) b = { y: +m[1], m: +m[2], d: +m[3] };
+    // a date cell stored as a plain Excel day number (46296 = 2026-10-01)
+    else if (/^\d{5}(\.0+)?$/.test(t) && +t > 20000 && +t < 80000) {
+      var dt = new Date(Date.UTC(1899, 11, 30) + Math.floor(+t) * 864e5);
+      b = { y: dt.getUTCFullYear(), m: dt.getUTCMonth() + 1, d: dt.getUTCDate() };
+    }
+    if (!b) return null;
+    // 2月30日 is not a date: don't let Date roll it over to 3月2日
+    var chk = new Date(Date.UTC(b.y, b.m - 1, b.d));
+    return chk.getUTCMonth() === b.m - 1 && chk.getUTCDate() === b.d ? b : null;
+  }
+  // 还没取名的写法：新生儿 / 宝宝 / BB / baby / 婴儿 / 待产 …（单字「宝」不算：王宝强是真名）
+  var NEWBORN_NAME = /新生儿|新生兒|宝宝|寶寶|婴儿|嬰兒|胎儿|胎兒|待产|待產|未出生|未出世|未取名|待定|预产|預產|男宝|女宝|二宝|三宝|囡囡|(^|[^a-z])(bb|baby)([^a-z]|$)/;
+  function noNameYet(s) {
+    var t = String(s || '').replace(/[\uff01-\uff5e]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xfee0); })
+      .replace(/[\s\u3000]+/g, '').toLowerCase();
+    return NEWBORN_NAME.test(t);
   }
   // Rule: before 2月4日 → previous year's animal; after → this year's; on 2月4日 compare the exact
   // clock time with that year's 立春. Unknown time or only a 时辰 → this year's animal.
@@ -594,6 +613,25 @@
     }
     var multi = products.length > 1;
     result.tool = multi ? products.join('、') : tool;
+    // 国内 / 海外：表里「名册展示」写了简体 / 繁体 → 海外；有这一栏但都没写 → 国内；
+    // 没有这一栏（手表、吊坠…）才看文件名的 H。说法跟 H 不一样就提醒审核人。
+    var regCol = Object.keys(C).filter(function (h) { return /^名[册冊](展示|显示|顯示)/.test(h); })[0];
+    if (regCol && opts.region !== 'overseas' && opts.region !== 'domestic') {
+      var regYes = 0, regBlank = 0, regOdd = [];
+      for (var rr = range.first; rr <= range.last; rr++) {
+        if (isBlank(cellText(ws.getRow(rr).getCell(C['订单编号'] || 1)))) continue;
+        var rv = squash(cellText(ws.getRow(rr).getCell(C[regCol])));
+        if (!rv || /^(无|無|否|没有|沒有|不需要|-+|—+|\/|nil|n\/a|na)$/i.test(rv)) regBlank++;
+        else if (/简|簡|繁/.test(rv)) regYes++;
+        else if (regOdd.indexOf(rv) < 0) regOdd.push(rv);
+      }
+      var nameH = overseas, colH = regYes ? true : regOdd.length ? null : false;
+      if (colH !== null) overseas = colH;
+      if (colH !== null && colH !== nameH) result.regionNote = regCol + (colH ? '写了简体 / 繁体，当海外（文件名没有 H）' : '都没写简体 / 繁体，当国内（文件名有 H）') + '，请确认';
+      else if (colH === null) result.regionNote = regCol + '写了「' + regOdd.join('、') + '」看不懂，照文件名当' + (nameH ? '海外' : '国内') + '，请确认';
+      else if (regYes && regBlank) result.regionNote = '有 ' + regBlank + ' 行' + regCol + '是空的，整个文件当海外，请确认';
+      result.overseas = overseas;
+    }
     var isWatch = /手表/.test(tool) || !!C['刻名字'];
     var isNaming = !!(C['新名字姓氏'] && C['父亲名字']);
     var brandSplit = function (t) { return isWatch && opts.splitWatchBrands.some(function (b) { return b && String(t).indexOf(b) >= 0; }); };
@@ -777,7 +815,7 @@
       // Any person's name in 备注 / 总备注 → red; family listed neatly for the reviewer.
       var fam = familyNames(get), famHits = [], otherHits = [];
       var own = {};
-      [get('使用人姓名'), get('会员姓名')].join(' ').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／]+/).forEach(function (x) { if (x && !NO_NAME_YET.test(x)) own[x] = true; });
+      [get('使用人姓名'), get('会员姓名')].join(' ').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／]+/).forEach(function (x) { if (x && !noNameYet(x)) own[x] = true; });
       // the student's own name, or only the given name (葉宛蓉 → 宛蓉)
       var selfForms = [];
       Object.keys(own).forEach(function (n) { if (n.length >= 2) selfForms.push(n); var g = givenName(n); if (g) selfForms.push(g); });
@@ -896,19 +934,31 @@
       if (births.length) add({ kind: 'date', level: 'mid', text: '备注有预产 / 出生日期（' + births.join('、') + '）— 只标红，不加急' });
       if (far.length) add({ kind: 'date', level: 'mid', text: '备注有日期（' + far.join('、') + '）不在一个月内 — 只标红，不加急' });
 
-      // 使用人姓名 still says 新生儿 (no real name yet) → red, and the order is a 新生儿 order
-      if (/新生儿|新生兒|宝宝|寶寶/.test(get('使用人姓名'))) {
+      // 使用人姓名 still says 新生儿 / 宝宝 / BB … (no real name yet) → red, and the order is a 新生儿 order
+      var nbName = noNameYet(get('使用人姓名'));
+      if (nbName) {
         redCell('使用人姓名');
         if (!o.newborn) { o.newborn = true; add({ kind: 'newborn', level: 'high', text: '使用人姓名写「' + get('使用人姓名').trim() + '」（还没有名字）— 已标红，新生儿单独开文件' }); }
         else add({ kind: 'newborn-name', level: 'mid', text: '使用人姓名写「' + get('使用人姓名').trim() + '」（还没有名字）— 已标红' });
       }
 
-      // 新生儿: born within one year before the processing date
-      var bd = parseBirthday(get('公历生日'));
+      // 新生儿: born within one year before the processing date, or not born yet (预产期 written as the birthday)
+      var bdText = get('公历生日').trim(), bd = parseBirthday(bdText);
+      var madeT = Date.UTC(made.y, made.m - 1, made.d), yearAgo = Date.UTC(made.y - 1, made.m - 1, made.d);
+      var nb = function (why) { if (!o.newborn) { o.newborn = true; add({ kind: 'newborn', level: 'high', text: '新生儿（' + why + '）— 单独开文件' }); } };
       if (bd) {
-        var bdT = Date.UTC(bd.y, bd.m - 1, bd.d), madeT = Date.UTC(made.y, made.m - 1, made.d), yearAgo = Date.UTC(made.y - 1, made.m - 1, made.d);
-        if (bdT > yearAgo && bdT <= madeT && !o.newborn) { o.newborn = true; add({ kind: 'newborn', level: 'high', text: '新生儿（' + get('公历生日').trim() + '，未满一岁）— 单独开文件' }); }
+        var bdT = Date.UTC(bd.y, bd.m - 1, bd.d);
+        if (bdT > yearAgo && bdT <= madeT) nb(bdText + '，未满一岁');
+        else if (bdT > madeT && bdT <= madeT + 300 * 864e5) nb(bdText + '，还没出生');
+        else if (bdT > madeT) add({ kind: 'birth-odd', level: 'high', text: '公历生日「' + bdText + '」是很久以后的日期 — 可能写错了，请确认' });
+        // 名字栏像新生儿，生日却已满一岁：两边说法不同，问清楚再做
+        if (nbName && bdT <= yearAgo) add({ kind: 'ask', level: 'high', problem: true, who: '下单者', text: '使用人姓名写「' + get('使用人姓名').trim() + '」像新生儿，但公历生日 ' + bdText + ' 已满一岁 — 问下单者是不是新生儿' });
+      } else if (!isBlank(bdText)) {
+        if (/未出生|未出世|待产|待產|预产|預產|待定|还没出生|還沒出生/.test(bdText)) nb('公历生日写「' + bdText + '」');
+        else add({ kind: 'birth-odd', level: 'high', text: '公历生日「' + bdText + '」看不懂 — 请确认日期（会不会是新生儿）' });
       }
+      // 名字和生日都空，备注写了预产期 → 还没出生的新生儿
+      if (!o.newborn && !bd && /预产|預產/.test(remarks) && (nbName || isBlank(get('使用人姓名')))) nb('备注写了预产期');
 
       // gender for split watches
       var g = /男女款/.test(get('商品标题')) ? '' : /男款/.test(get('商品标题')) ? '男款' : /女款/.test(get('商品标题')) ? '女款' : (get('性别').trim() === '男' ? '男款' : get('性别').trim() === '女' ? '女款' : '');
@@ -958,7 +1008,7 @@
             } else ask(chk.text + '，备注没有认祖归宗', '下单者');
           }
           // 使用人姓名 is only 新生儿 / 宝宝 (no name yet): nothing to compare the surname with
-          var ok2 = /新生儿|新生兒|宝宝|寶寶/.test(get('使用人姓名')) ? { kind: null } : surnameOwnKind(sn, get('使用人姓名'));
+          var ok2 = noNameYet(get('使用人姓名')) ? { kind: null } : surnameOwnKind(sn, get('使用人姓名'));
           if (ok2.kind === 'variant') {
             redCell('新名字姓氏'); keepRed = true;
             add({ kind: 'surname-variant', level: 'mid', text: '姓氏简繁体不同（新名字姓氏「' + sn + '」/ 使用人姓名「' + ok2.own + '」）— 已标红' });
@@ -1165,10 +1215,9 @@
       .filter(function (x) { return x.length >= 3 && x.length <= 4 && !REL_NONAME.test(x); });
   }
   // 「新生儿」「薛新生儿」「宝宝」是还没取名的占位字，不是名字：不然每张新生儿单都会互相连成一家、备注也会被当成写了本人名字
-  var NO_NAME_YET = /新生儿|新生兒|宝宝|寶寶|未取名|待定/;
   function ownNames(s) {
     return String(s || '').replace(/[（(][^）)]*[）)]/g, ' ').split(/[\s\/／,，、]+/).map(function (x) { return x.trim(); })
-      .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x) && !NO_NAME_YET.test(x); });
+      .filter(function (x) { return /^[\u4e00-\u9fff]{2,4}$/.test(x) && !noNameYet(x); });
   }
   var SELF_COLS = /^(序号|订单时间|订单编号|原订单编号|原訂單編號|会员编号|会员姓名|服务中心编号|商品标题|加工序号|产品配置编号|股东名称|新名字姓氏|使用人姓名|新名|新名拼音|名册展示|配置人|审核人|性别|生肖|公历生日|农历时辰|是否子时|是否双胞胎|数字|颜色|刻名字)$/;
   // 家人订单只在同一个文件里找：每个文件单独审核，不跟别的工具的单连起来
