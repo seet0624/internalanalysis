@@ -163,20 +163,28 @@ function AIFeed() {
   const s = useStore();
   const { tr } = useLang();
   const ago = useAgo();
-  const { events, chat, missions } = useLive();
+  const { events, chat, missions, mode } = useLive();
   const [open, setOpen] = useState(() => window.innerWidth >= 1024);
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), 30000); return () => window.clearInterval(id); }, []);
   const items = useMemo(() => {
     const no = (id?: string) => missions.find((m) => m.id === id)?.no;
-    const a = events.map((e) => ({ id: 'e' + e.id, from: e.actor, t: e.t, text: e.text, verb: KIND[e.kind]?.verb ?? '', to: KIND[e.kind]?.to, no: no(e.mission) }));
-    // 任务讨论（不放闲聊；排在未来的讨论时间到了才出现）
-    const b = chat.filter((m) => m.ch === 'mission' && !m.smallTalk && m.t <= now).map((m) => ({ id: 'c' + m.id, from: m.from, t: m.t, text: m.text, verb: '说', to: m.to, no: no(m.mission) }));
-    return [...a, ...b].filter((x) => x.t <= now).sort((x, y) => y.t - x.t).slice(0, 30);
-  }, [events, chat, missions, now]);
-  const who = (id: string) => (id === 'ceo-01' ? '老板' : tr(s.model.people.find((p) => p.id === id)?.name ?? { zh: id, en: id }));
+    // 只有后端盖章是老板（或本机模式，只有老板自己在写）才写「老板」：actor 可以造假
+    const from = (e: { actor: string; authorRole?: string }) => (e.actor === 'ceo-01' && e.authorRole && e.authorRole !== 'boss' ? 'system' : e.actor);
+    const a = events.map((e) => {
+      const k = KIND[e.kind], f = from(e);
+      // 流程上的下一棒；自己交给自己（Aria → Aria、老板 → 老板）就不画箭头
+      const to = k?.to && !((k.to === 'Aria' && f === 'ceo-02') || (k.to === '老板' && f === 'ceo-01') || (k.to === 'AI CEO' && f === 'ceo-02')) ? k.to : undefined;
+      return { id: 'e' + e.id, from: f, t: e.t, text: e.text, verb: k?.verb ?? '', to, no: no(e.mission) };
+    });
+    // 任务讨论（不放闲聊；排在未来的讨论 live.ts 时间到了才给）；老板派任务那句跟「派了任务」重复，不放
+    const b = chat.filter((m) => m.ch === 'mission' && !m.smallTalk && !(m.from === 'ceo-01' && m.text.startsWith('派了新任务')))
+      .map((m) => ({ id: 'c' + m.id, from: m.from, t: m.t, text: m.text, verb: '说', to: m.to, no: no(m.mission) }));
+    return [...a, ...b].sort((x, y) => y.t - x.t).slice(0, 30);
+  }, [events, chat, missions]);
+  const who = (id: string) => (id === 'ceo-01' ? '老板' : id === 'system' ? '系统' : s.model.people.find((p) => p.id === id) ? tr(s.model.people.find((p) => p.id === id)!.name) : id);
   if (!open) {
-    return <button type="button" onClick={() => setOpen(true)} className="pointer-events-auto self-end rounded-full border border-[#2A303C] bg-[#161A21]/90 px-4 py-2 text-sm backdrop-blur">AI 互动 · {items.length} ▸</button>;
+    return <button type="button" onClick={() => setOpen(true)} className="pointer-events-auto self-start rounded-full border border-[#2A303C] bg-[#161A21]/90 px-4 py-2 text-sm backdrop-blur">AI 互动 ▸</button>;
   }
   return (
     <section aria-label="AI 互动" className="pointer-events-auto flex max-h-full w-full max-w-[340px] flex-col rounded-2xl border border-[#2A303C] bg-[#161A21]/90 backdrop-blur">
@@ -184,18 +192,19 @@ function AIFeed() {
         <strong className="text-sm">AI 互动</strong>
         <button type="button" onClick={() => setOpen(false)} aria-label="收起 AI 互动" className="grid size-8 place-items-center rounded-lg text-[#9AA7BD] hover:bg-white/10">×</button>
       </div>
-      {items.length === 0 ? <p className="px-4 pb-4 text-sm text-[#9AA7BD]">还没有互动。派一个任务，AI 团队每小时 :35 会接手，这里会看到他们之间说了什么。</p> : (
+      {mode === 'local' && <p className="mx-3 mb-2 rounded-lg bg-[#F9AB00]/15 px-3 py-2 text-xs text-[#FDD663]">现在是本机模式：AI 团队看不到这台电脑的资料。请登出再登入，连上云端。</p>}
+      {items.length === 0 ? <p className="px-4 pb-4 text-sm text-[#9AA7BD]">{mode === 'connecting' ? '连云端中…' : mode === 'local' ? '本机模式没有 AI 团队的互动。' : '还没有互动。派一个任务，AI 团队每小时 :35 会接手，这里会看到他们之间说了什么。'}</p> : (
         <ol className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-3 pb-3">
           {items.map((x) => {
             const p = s.model.people.find((q) => q.id === x.from);
             return (
               <li key={x.id}>
-                <button type="button" onClick={() => p && s.selectPerson(p.id)} className="flex w-full gap-2.5 rounded-lg p-1.5 text-left hover:bg-white/5">
+                <button type="button" disabled={!p} onClick={() => p && s.selectPerson(p.id)} className="flex w-full gap-2.5 rounded-lg p-1.5 text-left enabled:hover:bg-white/5">
                   {p ? <img src={avatarUrl(p, 56)} alt="" className="size-7 shrink-0 rounded-lg" /> : <span className="size-7 shrink-0 rounded-lg bg-[#2A303C]" />}
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-baseline gap-x-1.5 text-[13px]">
                       <b>{who(x.from)}</b>
-                      {x.to && <span className="text-[#9AA7BD]">→ {x.to.startsWith('ceo-') || x.to.includes('-') ? who(x.to) : x.to}</span>}
+                      {x.to && <span className="text-[#9AA7BD]">→ {who(x.to)}</span>}
                       {x.verb && <span className="rounded bg-white/5 px-1 text-[11px] text-[#C8D0DC]">{x.verb}</span>}
                       {x.no && <span className="text-[11px] text-[#D7AEFB]">{x.no}</span>}
                       <span className="ml-auto text-[11px] text-[#6B7385]">{ago((now - x.t) / 60000)}</span>
@@ -231,7 +240,7 @@ export function Home() {
       <div className="pointer-events-none absolute inset-0 flex flex-col gap-3 p-3 md:p-5">
         <div className="pointer-events-auto mx-auto w-full max-w-3xl"><TaskBox /></div>
         <div className="flex min-h-0 flex-1 items-start justify-between gap-3">
-          <div className="flex h-full min-h-0 flex-col justify-end"><AIFeed /></div>
+          <div className="flex h-full min-h-0 w-full min-w-0 max-w-[340px] flex-col justify-end"><AIFeed /></div>
           {panel ? (
             <div className="pointer-events-auto relative max-h-full w-full max-w-[340px] overflow-y-auto">
               <button type="button" onClick={() => setPanel(false)} aria-label="收起任务面板" className="absolute right-2 top-2 z-10 grid size-8 place-items-center rounded-lg text-[#9AA7BD] hover:bg-white/10">×</button>
