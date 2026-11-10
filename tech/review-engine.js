@@ -531,14 +531,14 @@
     else return null;
     return mo >= 1 && mo <= 12 && d >= 1 && d <= 31 ? d + '.' + mo + '.' + y : null;
   }
-  function outName(tool, gender, urgent, date, count, person, problem, newborn, overseas) {
+  function outName(tool, gender, urgent, date, count, person, problem, newborn, overseas, solo) {
     // 许舒涵九合平衡牌技术单（特殊加急）9.10.2026（1）H — normal files keep a space: 九合平衡牌技术单 9.10.2026（2）H
     // 新生儿 goes in front: 新生儿名正言顺技术单 14.10.2026（1）H
     // 新生儿 files never carry a student name (it is only 姓 + 新生儿), and a plain one never （特殊加急）:
     // 新生儿名正言顺技术单 19.10.2026（1）H / 新生儿名正言顺技术单（有问题）19.10.2026（1）H
     if (newborn) { person = ''; if (!problem) urgent = false; }
     var tags = (urgent ? '（特殊加急）' : '') + (problem ? '（有问题）' : '');
-    return (newborn ? '新生儿' : '') + ((urgent || problem) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
+    return (newborn ? '新生儿' : '') + ((urgent || problem || solo) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
       '（' + count + '）' + (overseas ? 'H' : '') + '.xlsx';
   }
 
@@ -1005,7 +1005,7 @@
       if (first) o.fields.forEach(function (f) { var c = cell(f.h); f.red = !!(c && isRedCell(c)); f.manual = Object.prototype.hasOwnProperty.call(choice, f.h) ? !!choice[f.h] : null; });
     }
     // 有问题: automatic from flags, the reviewer's own choice (opts.problems) wins.
-    var marks = opts.problems || {}, urgs = opts.urgents || {};
+    var marks = opts.problems || {}, urgs = opts.urgents || {}, solos = opts.solos || {};
     orderList.forEach(function (o) {
       o.autoProblem = o.flags.some(function (f) { return f.problem; });
       var mk = file.name + '|' + o.key;
@@ -1013,9 +1013,11 @@
       // 加急 / 不加急: the reviewer's button (opts.urgents) wins over the 加急 words and dates
       o.autoUrgent = !!o.urgent;
       if (Object.prototype.hasOwnProperty.call(urgs, mk)) o.urgent = !!urgs[mk];
+      // 单独发: the reviewer wants this one order in its own file for the expert
+      o.solo = !!solos[mk];
     });
     result.orders = orderList.map(function (o) {
-      return { key: o.key, seq: o.seq, person: o.person, title: o.title, flags: o.flags, urgent: o.urgent, autoUrgent: o.autoUrgent, gender: o.gender,
+      return { key: o.key, seq: o.seq, person: o.person, title: o.title, flags: o.flags, urgent: o.urgent, autoUrgent: o.autoUrgent, solo: o.solo, gender: o.gender,
         autoProblem: o.autoProblem, problem: o.problem, newborn: !!o.newborn, family: o.family || null, fields: o.fields || [] };
     });
     result.isWatch = isWatch; result.splitBrand = splitBrand;
@@ -1052,8 +1054,9 @@
       var sb = brandSplit(multi ? o.product : tool);
       if (sb && !o.problem) tags.push(o.gender || '款式未知');
       if (multi) tags.unshift(o.product);
+      if (o.solo) tags.push('单独发 ' + o.key);
       var k = tags.join('|');
-      var gp0 = groups[k] = groups[k] || { tags: tags, urgent: o.urgent && !babyOnly, newborn: o.newborn, problem: o.problem, rows: [], count: 0, genders: {}, persons: {}, product: multi ? o.product : tool, sb: sb };
+      var gp0 = groups[k] = groups[k] || { tags: tags, urgent: o.urgent && !babyOnly, newborn: o.newborn, problem: o.problem, solo: o.solo, rows: [], count: 0, genders: {}, persons: {}, product: multi ? o.product : tool, sb: sb };
       // 名正言顺: every student has two identical rows; add the copy when only one came in.
       var rows = isNaming && o.rows.length === 1 ? [o.rows[0], o.rows[0]] : o.rows;
       if (rows.length !== o.rows.length) gp0.changed = true;
@@ -1085,7 +1088,7 @@
       var gender = gp.sb && gs.length === 1 && gs[0] !== '-' ? gs[0] : ''; // only 天威 / 天富 carry 男款 / 女款
       var ps = Object.keys(gp.persons);
       var person = ps.length === 1 ? ps[0] : '';
-      result.outputs.push({ back: fmtDate(gBack), nameDate: nameDate, name: outName(gp.product, gender, gp.urgent, nameDate, gp.count, person, gp.problem, gp.newborn, overseas), overseas: overseas, tags: gp.tags, urgent: gp.urgent, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
+      result.outputs.push({ back: fmtDate(gBack), nameDate: nameDate, name: outName(gp.product, gender, gp.urgent, nameDate, gp.count, person, gp.problem, gp.newborn, overseas, gp.solo), overseas: overseas, tags: gp.tags, urgent: gp.urgent, solo: !!gp.solo, problem: gp.problem, newborn: !!gp.newborn, gender: gender, orders: gp.count, buffer: buf });
     }
     return result;
   }
