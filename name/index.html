@@ -596,6 +596,8 @@ function norm(c){ return T2S[c]||c; }
 function detone(s){ return String(s).toLowerCase().normalize('NFD').replace(/u\u0308/g,'v').replace(/[\u0300-\u036f]/g,'').trim(); }
 function isCjk(c){ return /[\u4e00-\u9fff]/.test(c); }
 function cjkOnly(s){ var m=String(s==null?'':s).match(/[\u4e00-\u9fff]/g); return m?m.join(''):''; }
+// 当姓时的特别读音（字库只有平常读音），只给姓的拼音检查用
+var SUR_PY={'曾':['zeng'],'单':['shan'],'区':['ou'],'仇':['qiu'],'解':['xie'],'查':['zha'],'盖':['ge'],'乐':['yue'],'缪':['miao'],'翟':['zhai'],'朴':['piao'],'尉':['yu'],'覃':['qin'],'万':['mo'],'俟':['qi'],'澹':['tan'],'召':['shao'],'繁':['po'],'员':['yun'],'种':['chong'],'秘':['bi'],'郇':['huan'],'句':['gou'],'谌':['chen'],'折':['she'],'黑':['he'],'眭':['sui'],'哈':['ha'],'能':['nai']};
 function readingsOf(ch){ var prim=charSyllables(ch); var poly=RULES.POLY[ch]||RULES.POLY[norm(ch)]||[]; var all={}; prim.forEach(function(x){all[x]=1;}); poly.forEach(function(x){all[x]=1;}); return Object.keys(all); }
 function tradOf(ch){ return S2T[ch]||ch; }
 function simpOf(ch){ return T2S[ch]||ch; }
@@ -819,7 +821,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
         }
       }
       // 姓的拼音也要对得上（只比字母，声调不管；字库查不到的字跳过）
-      if(RULES.checkPyMatch!==false)surSyl.forEach(function(s,i){ var c=Array.from(neu)[i], rs=charSyllables(c); if(rs.length&&rs.indexOf(s)<0)warns.push('✏️ 技术单拼音写错：姓「'+c+'」写 '+s+'，字库读 '+rs.join(' / ')+'——请通知改技术单'); });
+      if(RULES.checkPyMatch!==false)surSyl.forEach(function(s,i){ var c=Array.from(neu)[i], rs=readingsOf(c).concat(SUR_PY[norm(c)]||[]); if(rs.length&&rs.indexOf(s)<0)warns.push('✏️ 技术单拼音写错：姓「'+c+'」写 '+s+'，字库读 '+rs.join(' / ')+'——请通知改技术单'); });
       function addHit(kind,ni,fc,p){ hits.push({kind:kind,ni:ni,pos:ni-1+sk,fc:fc,fname:p?p[1]:'',full:p?(p[4]||p[1]):'',member:p?p[0]:'',soft:p?!!p[2]:false}); }
       if(RULES.checkClash)given.forEach(function(ch,idx){ var nch=norm(ch); fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ if(norm(cmp[c])===nch){ var m='新名（'+neu+'）和'+p[0]+'（'+p[1]+'）撞字（'+ch+'）'; if(p[2])warns.push('⚠ '+m+'，请确认是否同一家人'); else {msgs.push(m); addHit('撞字',idx+1,cmp[c],p);} break; } } }); });
       if(RULES.checkHomo&&pyOk)given.forEach(function(ch,idx){ var si=syl[idx],nch=norm(ch);
@@ -1395,7 +1397,7 @@ function dt(s){ return detone(s); }
 function fgU(p,sur){ var n=p[1]; if(p[3])return n; if(sur&&n.indexOf(sur)===0&&n.length>sur.length)return n.slice(sur.length); if(n.length>=3&&typeof COMPOUND!=='undefined'&&COMPOUND[n.slice(0,2)])return n.slice(2); if(n.length>=2&&isSurname(n[0]))return n.slice(1); return n; }
 function recheck(r,neu,pyStr){ if(!neu)return []; var sur=(r&&r.rows&&r.rows[0]&&r.rows[0].surname)||''; var sk=surLen(neu,sur), given=Array.from(neu).slice(sk); var syl=pyStr.split(/\s+/).map(dt).filter(Boolean); if(syl.length===given.length+sk)syl=syl.slice(sk);
   var out=[]; var fam=(r&&r._fam)||[], tb=(r&&r._tb)||{single:{},combos:[]};
-  if(syl.length===given.length)given.forEach(function(ch,i){ var rs=charSyllables(ch); if(rs.length&&rs.indexOf(syl[i])<0)out.push('拼音写错：「'+ch+'」写 '+syl[i]+'，字库读 '+rs.join(' / ')); });
+  if(syl.length===given.length)given.forEach(function(ch,i){ var rs=readingsOf(ch); if(rs.length&&rs.indexOf(syl[i])<0)out.push('拼音写错：「'+ch+'」写 '+syl[i]+'，字库读 '+rs.join(' / ')); });
   given.forEach(function(ch){ var nch=norm(ch); fam.forEach(function(p){ var cmp=fgU(p,sur); for(var c=0;c<cmp.length;c++){ if(norm(cmp[c])===nch){ out.push('撞字：'+ch+' ↔ '+p[0]+'「'+p[1]+'」'+(p[2]?'（疑同家人）':'')); break; } } }); if(tb.single[nch])out.push('用了禁忌/不想用的字：'+ch); });
   if(syl.length===given.length)given.forEach(function(ch,idx){ var si=syl[idx],nch=norm(ch); fam.forEach(function(p){ var cmp=fgU(p,sur); for(var c=0;c<cmp.length;c++){ var fc=cmp[c]; if(norm(fc)===nch)continue; if(charSyllables(fc).indexOf(si)>=0)out.push('撞音：'+ch+'('+si+') ↔ '+p[0]+'「'+p[1]+'」的'+fc); } }); });
   else out.push('（没填拼音或字数对不上，只查了撞字/禁忌）');

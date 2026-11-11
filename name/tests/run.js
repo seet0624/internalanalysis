@@ -61,6 +61,17 @@ const CASES = require('./naming-cases.json');
     parsedFiles.length = 0; await loadWithBuffers([{ name: '（有问题）王小明 名正言顺技术单2026-10-01（1）.xlsx', arrayBuffer: async () => badBuf }]);
     const y = parsedFiles[0]; R.reName = outName(y, 'orig'); const o2 = await read(await origBuffer(y)); R.reAH = [3, 4, 5].map(r => o2.getRow(r).getCell(34).value);
     return R; });
+  // 姓的特别读音（曾 zēng、单 shàn、尉迟 yù chí、朴 piáo）不能误报
+  const sur = await p.evaluate(async () => {
+    const H = ['序号','订单编号','新名字姓氏','使用人姓名','父亲名字','母亲名字','兄弟姐妹','子女','禁忌字','新名','新名拼音','名册展示'];
+    const rows = [['曾','zēng zǐ hán'],['单','shàn zǐ hán'],['尉迟','yù chí zǐ hán'],['朴','piáo zǐ hán'],['赵','zǎo zǐ hán']];
+    const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('命名'); ws.addRow(H);
+    rows.forEach((x, i) => ws.addRow([String(i + 1), 'T00000000000' + (10 + i), x[0], x[0] + '一', '无', '无', '无', '无', '无', x[0] + '子涵', x[1], '']));
+    const buf = await wb.xlsx.writeBuffer(); parsedFiles.length = 0;
+    await loadWithBuffers([{ name: '姓 2026-10-01.xlsx', arrayBuffer: async () => buf }]);
+    return parsedFiles[0].audit.results.map(r => r.rows[0].neu + ':' + r.rows[0].warns.filter(m => /技术单拼音/.test(m)).length).join(' ');
+  });
+  ok(sur === '曾子涵:0 单子涵:0 尉迟子涵:0 朴子涵:0 赵子涵:1', '姓的特别读音不该报错、赵 写 zǎo 要报，实际 ' + sur);
   ok(JSON.stringify(e2e.py) === JSON.stringify({ 王山林: 0, 王晓云: 0, 李沐阳: 0, 李若溪: 1, 赵景行: 0, 赵知远: 1 }), '拼音提醒：字母不对（溪 nǐ、姓赵 zǎo）才提醒，声调不同不提醒，实际 ' + JSON.stringify(e2e.py));
   ok(e2e.lv === 'lv', 'lǚ 应该当成 lv（字库用 v），实际 ' + e2e.lv);
   ok(/拼音写错：「我」写 ni/.test(e2e.sb), '试改名字：我 写 nǐ 应该提醒，实际 ' + e2e.sb);
