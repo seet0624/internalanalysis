@@ -366,7 +366,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   var state = {
     inputs: [], results: null, problems: {}, urgents: {}, solos: {}, edits: {}, reds: {},
     view: 'upload', filter: 'todo', sel: null, tab: 'fields', allFields: false, q: '', openFiles: {},
-    pick: { good: true, urgent: true, solo: true, bad: true }, dled: {}, busy: false, error: '',
+    pick: { good: true, urgent: true, solo: true, bad: false }, dled: {}, busy: false, error: '',
     set: { date: E.todayStr(), reviewer: E.DEFAULTS.reviewer, brands: E.DEFAULTS.splitWatchBrands.join('，'), askfirst: E.DEFAULTS.askFirstProducts.join('，'), urgent: E.DEFAULTS.urgentWords.join('，'), nameDate: '', region: 'auto' }
   };
   // 审完还没下载就关页面：先提醒（判定只存在这一页）
@@ -1200,6 +1200,8 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   }
   // closing the drawer puts focus back on the 打开 button that opened it
   function closeDetail() {
+    var dirty = Array.prototype.some.call(document.querySelectorAll('#detail [data-orig]'), function (el) { return !el.readOnly && el.value !== el.dataset.orig; });
+    if (dirty && !window.confirm('这单改了还没按「保存修改」，关掉就不会保存。确定关闭？')) return;
     var mk = state.sel; state.sel = null; render();
     var ob = mk && document.querySelector('[data-open="' + CSS.escape(mk) + '"]'); if (ob) ob.focus();
   }
