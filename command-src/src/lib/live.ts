@@ -37,7 +37,7 @@ export type Mission = {
   reviewRound: number; createdBy: string; createdAt: number; updatedAt: number;
 };
 export type MissionEventKind = 'created' | 'plan' | 'assign' | 'review' | 'approve' | 'revise' | 'progress' | 'result' | 'accept' | 'reject' | 'comment' | 'status';
-export type MissionEvent = { id: string; mission: string; actor: string; kind: MissionEventKind; text: string; t: number };
+export type MissionEvent = { id: string; mission: string; actor: string; kind: MissionEventKind; text: string; t: number; authorRole?: string };   // authorRole：后端盖的章（actor 可以造假）
 export type CeoReport = { id: string; text: string; t: number; stats: Record<string, number> };
 
 export type LiveMode = 'connecting' | 'cloud' | 'local';
@@ -111,7 +111,7 @@ const mapMission = (r: Row): Mission => ({
   plan: (r.plan as string) ?? undefined, result: (r.result as string) ?? undefined, links: (r.links as Mission['links']) ?? [],
   reviewRound: Number(r.review_round ?? 0), createdBy: String(r.created_by), createdAt: ts(r.created_at), updatedAt: ts(r.updated_at)
 });
-const mapEvent = (r: Row): MissionEvent => ({ id: String(r.id), mission: String(r.mission_id), actor: String(r.actor), kind: r.kind as MissionEventKind, text: String(r.body), t: ts(r.at) });
+const mapEvent = (r: Row): MissionEvent => ({ id: String(r.id), mission: String(r.mission_id), actor: String(r.actor), kind: r.kind as MissionEventKind, text: String(r.body), t: ts(r.at), authorRole: r.author_role ? String(r.author_role) : undefined });
 const mapReport = (r: Row): CeoReport => ({ id: String(r.id), text: String(r.body), t: ts(r.at), stats: (r.stats as Record<string, number>) ?? {} });
 
 type ListKey = 'chat' | 'tickets' | 'tasks' | 'missions' | 'events' | 'reports';
