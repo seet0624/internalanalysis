@@ -1447,7 +1447,7 @@ function relWord(d,key){ if(!key)return ''; var SKIP=/名正言[顺順]|新名|�
   for(var i=0;i<fields.length;i++){ var t=String(fields[i]||''), at=t.indexOf(key); if(at<0)continue;
     var ms=t.slice(0,at).match(/[一-鿿]{1,4}(?=[：:])/g)||[];
     for(var j=ms.length-1;j>=0;j--){ if(SKIP.test(ms[j]))continue; var l=ms[j].replace(/(的)?名字$/,'')||ms[j];
-      if(/^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|子女|家人|家属)$/.test(l)){ fb=fb||l; break; } return l; } } // 「兄弟姐妹名字：」太笼统，先看备注有没有写「弟弟：」
+      if(/^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|子女|家人|家属)$/.test(l)){ fb=fb||l; break; } if(fb&&!isRelLabel(l))break; return l; } } // 往后找时只认真正的称呼（「客户要求：」不算） // 「兄弟姐妹名字：」太笼统，先看备注有没有写「弟弟：」
   return fb==='姐妹'||fb==='兄弟'?'兄弟姐妹':fb; }
 function isNewName(d,nm){ var re=new RegExp('(?:名正言[顺順]|新名|改名|更名)\\s*[\\uff1a:]?\\s*'+nm); return [d.father,d.mother,d.sib,d.kids].some(function(t){ return re.test(String(t||'')); }); }
 function whoOf(h,d){ var m=h.member, o;
