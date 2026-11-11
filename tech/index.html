@@ -306,7 +306,7 @@ tr.on td{background:var(--sel)}
 if (!window.ExcelJS) document.write('<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>');
 if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
 </script>
-<script src="review-engine.js?v=3a32aea450"></script>
+<script src="review-engine.js?v=547741d7be"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -905,7 +905,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var all = rows.every(function (it) { return it.o.solo; });
     return '<div class="acts" style="padding:8px 14px;gap:8px;align-items:center"><button type="button" class="btn small" data-soloall="' + ri + '" aria-pressed="' + all + '">' +
       (all ? '取消：放回合在一起' : '这个文件每单都单独发（' + rows.length + ' 个文件）') + '</button>' +
-      '<span class="small">' + (all ? '现在每单自己一个文件，文件名写学员名和（单独发）' : '每单自己一个文件、写学员名和（单独发），发给专家时就不会合在一起') + '</span></div>';
+      '<span class="small">' + (all ? '现在每单自己一个文件，文件名开头写（单独发）和学员名' : '每单自己一个文件，文件名开头写（单独发）和学员名，发给专家时就不会合在一起') + '</span></div>';
   }
   function orderTable(rows, showTool) {
     return '<div class="tbl"><table><thead><tr><th scope="col">序号</th><th scope="col">使用人</th><th scope="col">状态</th><th scope="col">标红 / 提醒</th><th scope="col"><span class="vh">操作</span></th></tr></thead><tbody>' +
@@ -1020,7 +1020,14 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   // ---------- actions ----------
   async function buildZip(outs, name) {
     var zip = new JSZip();
-    outs.forEach(function (o) { zip.file(o.name, o.buffer); });
+    // two files with the same name (e.g. two 新生儿 单独发) must both stay in the zip
+    var used = {};
+    outs.forEach(function (o) {
+      var n = o.name, i = 2;
+      while (used[n]) n = o.name.replace(/(\.xlsx)$/i, '-' + i++ + '$1');
+      used[n] = true;
+      zip.file(n, o.buffer);
+    });
     return save(name, await zip.generateAsync({ type: 'blob' }));
   }
   async function downloadAll() {
