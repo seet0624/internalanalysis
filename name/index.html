@@ -602,7 +602,7 @@ function readingsOf(ch){ var prim=charSyllables(ch); var poly=RULES.POLY[ch]||RU
 function tradOf(ch){ return S2T[ch]||ch; }
 function simpOf(ch){ return T2S[ch]||ch; }
 
-var NOISE=['兄弟姐妹','伴侣','姐姐','弟弟','妹妹','哥哥','大姐','大哥','二哥','三哥','三姐','大嫂','已故','已名正言顺','还没名正言顺','原名','现用名','曾用名','现用','曾用','改名为','改名','已改名','离婚','離婚','已离婚','已離婚','再婚','过继的','过继','過繼的','過繼','领养的','领养','領養的','領養','抱养的','抱养','收养的','收养','继子','继女','现在用','现用此名','儿子','女儿','现在用','爱人的名字','子女的名字','的名字','名字','姓名','调整名','数易名','第一任','第二任','第三任','未婚','健在','原配','长孙女','次孙女','小孙女','大孙女','长孙子','次孙子','小孙子','姥姥','姥爷','孩子','自己的','这边的','那边的','这边','那边','亲生'];
+var NOISE=['兄弟姐妹','子女','伴侣','姐姐','弟弟','妹妹','哥哥','大姐','大哥','二哥','三哥','三姐','大嫂','已故','已名正言顺','还没名正言顺','原名','现用名','曾用名','现用','曾用','改名为','改名','已改名','离婚','離婚','已离婚','已離婚','再婚','过继的','过继','過繼的','過繼','领养的','领养','領養的','領養','抱养的','抱养','收养的','收养','继子','继女','现在用','现用此名','儿子','女儿','现在用','爱人的名字','子女的名字','的名字','名字','姓名','调整名','数易名','第一任','第二任','第三任','未婚','健在','原配','长孙女','次孙女','小孙女','大孙女','长孙子','次孙子','小孙子','姥姥','姥爷','孩子','自己的','这边的','那边的','这边','那边','亲生'];
 var NULLS={'无':1,'無':1,'-':1,'NA':1,'na':1,'None':1,'':1};
 var REL_MOD='大小二三四五六七八九十老長长幼次親亲堂表繼继養养前現现阿細细家干契外';
 var REL_ROOT='哥弟姐妹兄姊爸媽妈父母爹娘夫妻公婆爺爷奶兒儿嫂嬸婶佬孫孙伯叔姑舅姨侄甥媳婿';
@@ -635,7 +635,7 @@ function splitNames(text){ var t=String(text==null?'':text); if(NULLS[t.trim()])
   var parts=t.split(/[@\uff0c,\u3001\uff1b;\uff1a:\u3000\s\/]+/).concat(extra),out=[];
   for(var j=0;j<parts.length;j++){var c=cjkOnly(parts[j]);if(!c||NULLS[c])continue; c=stripRel(c); if(c&&!NULLS[c]&&!REL_WORDS[c]&&!NO_NAME_RE.test(c)&&Array.from(c).length>=2&&out.indexOf(c)<0)out.push(c);} return out; }
 // 「爱人：罗小红」「配偶：第一任：王小明」→ 名字前面最近的称谓（爱人 / 配偶）；找不到就空
-function isRelLabel(l){ if(/^(曾用名|原名|现用名|调整名|数易名|健在|未婚|孩子|原配|第[一二三]任)$/.test(l))return false; return !!(REL_WORDS[l]||REL_FULL[l]||/^(外公|外婆|姥姥|姥爷|爷爷|奶奶|兄弟姐妹)$/.test(l)||new RegExp('^['+REL_MOD+']*['+REL_ROOT+']{1,3}$').test(l)); }
+function isRelLabel(l){ if(/^(曾用名|原名|现用名|调整名|数易名|健在|未婚|孩子|原配|第[一二三]任)$/.test(l))return false; return !!(REL_WORDS[l]||REL_FULL[l]||/^(外公|外婆|姥姥|姥爷|爷爷|奶奶|兄弟姐妹)$/.test(l)||new RegExp('^['+REL_MOD+']*['+REL_ROOT+']{1,4}$').test(l)); }
 function relLabelOf(raw,n){ var mm=new RegExp('(^|[^\\u4e00-\\u9fff])'+n+'(?![\\u4e00-\\u9fff])').exec(String(raw)); if(!mm)return ''; var i=mm.index+mm[1].length; var seg=String(raw).slice(0,i).split(/[；;]/).pop(), m, last='', re=/([一-鿿]{1,8})\s*[：:]/g;
   while((m=re.exec(seg))){ var l=m[1].replace(/(的)?名字$/,''); if(isRelLabel(l))last=l; } return last; }
 function familyMembers(row, cols){ var out=[];
@@ -1822,7 +1822,8 @@ var CHANGELOG=[
   {date:'2026-11-11', title:'有问题 Excel 的原因只写撞到的', items:[
     '原因只写撞字、撞音、禁忌字这类真正的问题；「请确认」「请人工看」这类提醒不写进去',
     '称呼照备注写（例：弟弟），「兄弟姐妹名字：」这种笼统的标题不当称呼',
-    '文件里看不见的排版字符会先拿掉：「名字」不再被当成人名、「字」不再被当成称呼']},
+    '文件里看不见的排版字符会先拿掉：「名字」不再被当成人名、「字」不再被当成称呼',
+    '「子女名字：」的「子女」不当成人名；「爷爷奶奶：」认得是称呼']},
   {date:'2026-11-11', title:'有问题 Excel：原因格拉宽、同订单同原因', items:[
     '不再写表头「审核原因」',
     '原因格拉宽，字多会自动加高，整句看得到',
