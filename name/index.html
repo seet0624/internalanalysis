@@ -1639,10 +1639,14 @@ async function buildCleanWorkbook(x){ var au=x.audit, data=x.parsed.data, hd=au.
 
 async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook(); await wb.xlsx.load(x._buf.slice(0));
   var ws=wb.getWorksheet(x.sheetName)||wb.worksheets[0]; var au=x.audit, hr=au.hr; clearOldReasons(ws,x); applyTrad(ws,x); applyFooter(ws,x);
-  var lastCol=lastColOf(x), reasonByRow={}, delRows=[];
+  var lastCol=lastColOf(x), reasonByRow={}, delRows=[], grpReason={};
+  // 同一个订单的每一行写一样的原因（包括没问题的那个名字）：先把同订单所有有问题学员的原因合起来
+  function grpKey(r){ var o=String(r.order||'').trim(); return isOrderNo(o)?o:('#'+r.sid); } // 订单号写「无」「-」不算同一单
+  if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem)return; var k=grpKey(r), seen=grpReason[k]||(grpReason[k]=[]);
+    outReason(r).split('；').forEach(function(t){ if(seen.indexOf(t)<0)seen.push(t); }); });
   au.results.forEach(function(r){ var keep=keepProblem==='all'||(keepProblem?r.problem:!r.problem), anyMsg=r.rows.some(function(rw){return rw.msgs.length;});
     r.rows.forEach(function(rw){ if(!keep){ delRows.push(rw.row+1); return; } if(keepProblem!==true)return; var bad=!anyMsg||rw.msgs.length>0||(rw.hits||[]).length>0||rw.warns.some(function(w){ return /撞|禁忌|不要的读音/.test(w); }); // 人工判有问题（没有机器原因）就每行都写
-      reasonByRow[rw.row+1]={bad:bad, t:bad?(anyMsg?outReason(Object.assign({},r,{rows:[rw]})):outReason(r)):'这个名字没问题'}; }); });
+      reasonByRow[rw.row+1]={bad:bad, t:grpReason[grpKey(r)].join('；')}; }); });
   (x._drop||[]).forEach(function(ri){ delRows.push(ri+1); });
   var gone=delRows.slice().sort(function(a,b){return a-b;}); function newRow(old){ var n=0; while(n<gone.length&&gone[n]<old)n++; return old-n; }
   // ExcelJS 删行不会把下面的合并格（例如表尾「回传时间」）一起往上移，先拆开，删完再按新位置合并回去
@@ -1654,13 +1658,14 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
   delRows.sort(function(a,b){return b-a;}).forEach(function(rn){ ws.spliceRows(rn,1); });
   moved.forEach(function(rg){ ws.mergeCells(rg); });
   if(keepProblem===true){
-    var hcell=ws.getRow(hr+1).getCell(lastCol+1); hcell.value='审核原因'; hcell.font={name:'宋体',size:12,bold:true,color:{argb:'FFFF0000'}}; hcell.alignment={horizontal:'center',vertical:'middle'};
-    ws.unMergeCells(hr+1,lastCol+1,hr+1,lastCol+8); ws.mergeCells(hr+1,lastCol+1,hr+1,lastCol+8); ws.views=[{state:'frozen',xSplit:0,ySplit:hr+1}];
+    ws.views=[{state:'frozen',xSplit:0,ySplit:hr+1}];
+    // 原因格拉宽（表格右边原本空着的 8 栏），行高照字数加高，整句看得到
+    var rw8=0; for(var cc=lastCol+1;cc<=lastCol+8;cc++){ var col=ws.getColumn(cc); if(!(col.width>=14))col.width=14; rw8+=col.width; }
     Object.keys(reasonByRow).forEach(function(k){ var rr=newRow(+k), rb=reasonByRow[k];
-      var c=ws.getRow(rr).getCell(lastCol+1); c.value=rb.t;
-      if(rb.bad){ c.font={name:'宋体',size:12,color:{argb:'FFFF0000'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}};
+      var c=ws.getRow(rr).getCell(lastCol+1); c.value=rb.t; c.font={name:'宋体',size:12,color:{argb:'FFFF0000'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}};
+      var tw=0; Array.from(rb.t).forEach(function(ch){ tw+=ch.charCodeAt(0)>255?2.2:1.2; }); var lines=Math.ceil(tw/(rw8-2)), row=ws.getRow(rr); if(lines>1&&!(row.height>=lines*16+4))row.height=lines*16+4;
+      if(rb.bad){
         if(au.cols.neu>=0){ var zc=ws.getRow(rr).getCell(au.cols.neu+1); zc.style=Object.assign({},zc.style,{fill:{type:'pattern',pattern:'solid',fgColor:{argb:'FFFBE9E7'}}}); } } // 有问题的新名格子浅红底；同一栏的格子共用一个样式物件，要复制再改，不然整栏一起变色
-      else c.font={name:'宋体',size:12,color:{argb:'FF808080'}};
       c.alignment={horizontal:'center',vertical:'middle',wrapText:true};
       ws.unMergeCells(rr,lastCol+1,rr,lastCol+8); ws.mergeCells(rr,lastCol+1,rr,lastCol+8); }); } // 再次审核自己导出的「有问题」文件时，原因格已经合并过
   return wb; }
@@ -1809,6 +1814,10 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-11', title:'有问题 Excel：原因格拉宽、同订单同原因', items:[
+    '不再写表头「审核原因」',
+    '原因格拉宽，字多会自动加高，整句看得到',
+    '同一个订单的每个名字都写一样的原因（没问题的那个名字也一样）']},
   {date:'2026-11-11', title:'拼音和字对不上会提醒', items:[
     '姓的拼音也查：技术单连姓一起写拼音时，姓写错（如 赵 写成 zao）会提醒',
     '只比字母，声调不同不算错（沐 写 mǔ 不提醒）',
