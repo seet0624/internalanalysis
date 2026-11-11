@@ -461,7 +461,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       state.results = await E.processFiles(state.inputs, { problems: state.problems, urgents: state.urgents, solos: state.solos, edits: state.edits, reds: state.reds, askFirstProducts: list(state.set.askfirst), date: date, reviewer: state.reviewer, nameDate: state.nameDate || '', region: state.set.region, splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
     } catch (e) { state.error = '审核失败：' + (e && e.message || e); }
     state.busy = false;
-    if (!state.error) state.dled = {};
+    if (!state.error) { state.dled = {}; downloadedOnce = false; }
     render();
     if (!state.error) reportToHQ('processed');
     return !state.error;
@@ -1094,7 +1094,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     return h + outs.map(function (o) {
       var ri = -1, oi = -1;
       (state.results || []).forEach(function (r, i) { var j = r.outputs.indexOf(o); if (j >= 0) { ri = i; oi = j; } });
-      return '<tr' + off + '><td></td><td class="fn">' + esc(o.name) + '</td><td>' + o.orders + '</td><td>' + st(o.name) + '</td><td><button type="button" class="btn small link" data-dl-r="' + ri + '" data-dl-o="' + oi + '" aria-label="只下载 ' + esc(o.name) + '">' + (state.dled[o.name] ? '再下载' : '单独下载') + '</button></td></tr>';
+      return '<tr' + off + '><td></td><td class="fn">' + esc(o.name) + '</td><td>' + o.orders + '</td><td>' + st(dkey(o)) + '</td><td><button type="button" class="btn small link" data-dl-r="' + ri + '" data-dl-o="' + oi + '" aria-label="只下载 ' + esc(o.name) + '">' + (state.dled[dkey(o)] ? '再下载' : '单独下载') + '</button></td></tr>';
     }).join('');
   }
   // 对账: every uploaded order came out exactly once, footers written, nothing unread, no two files with one name
@@ -1105,10 +1105,10 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var noFoot = res.filter(function (r) { return r.footer && !(r.footer.stamped && r.footer.stamped.reviewer && r.footer.stamped.made && r.footer.stamped.back); });
     var names = {}, dup = 0;
     outs.forEach(function (o) { if (names[o.name]) dup++; names[o.name] = true; });
-    var same = up === out;
+    var same = up === out && !failed.length;
     var line = function (ok, good, bad) { return '<li class="' + (ok ? 'good' : 'bad') + '">' + esc(ok ? '✓ ' + good : '✗ ' + bad) + '</li>'; };
-    return '<section class="card recon" aria-label="对账"><h2>对账</h2><div class="big ' + (same ? 'good' : 'bad') + '">' + up + (same ? ' = ' : ' ≠ ') + out + '</div>' +
-      '<span class="small">上传 ' + up + ' 单，输出 ' + out + ' 单' + (same ? '，没有漏、没有重复' : '，对不上，先别发，请告诉审核部') + '</span><ul>' +
+    return '<section class="card recon" aria-label="对账"><h2>对账</h2><div class="big ' + (same ? 'good' : 'bad') + '">' + up + (up === out ? ' = ' : ' ≠ ') + out + '</div>' +
+      '<span class="small">上传 ' + up + ' 单，输出 ' + out + ' 单' + (same ? '，没有漏、没有重复' : failed.length ? '；有文件读不出来，那些单没算进去' : '，对不上，先别发，请告诉审核部') + '</span><ul>' +
       line(!noFoot.length, '页脚（制表、审核人、回传）全部写上', noFoot.length + ' 个文件找不到页脚的位置：' + noFoot.map(function (r) { return r.name; }).join('、')) +
       line(!failed.length, '没有读不出来的文件', failed.length + ' 个文件读不出来：' + failed.map(function (r) { return r.name; }).join('、')) +
       line(!dup, '文件名没有重复', dup + ' 个文件名重复（打包时会自动加 -2）') + '</ul></section>';
@@ -1126,11 +1126,14 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     });
     return zip;
   }
+  function zipFail(e) { toast('打包失败，没有下载完：' + (e && e.message || e) + '。请再按一次，或者分开下载。'); }
   function zipBlob(outs) { return fillZip(new JSZip(), outs).generateAsync({ type: 'blob' }); }
   // save, then remember it as downloaded so the table shows ✓
-  async function saveMark(name, data, also) {
+  // single files are keyed by position: two outputs can share one name
+  function dkey(o) { return 'f' + allOutputs().indexOf(o); }
+  async function saveMark(name, data, keys) {
     var ok = await save(name, data);
-    if (ok) { [name].concat(also || []).forEach(function (n) { state.dled[n] = true; }); render(); }
+    if (ok) { (keys || [name]).forEach(function (n) { state.dled[n] = true; }); render(); }
     return ok;
   }
   function zipOf(k) {
@@ -1140,8 +1143,8 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   async function downloadAll() {
     var bk = buckets(allOutputs()), any = false;
     if (state.pick.good && bk.good.length) { var g = zipOf('good'); any = await saveMark(g.name, await zipBlob(g.outs)) || any; }
-    if (state.pick.urgent) for (var i = 0; i < bk.urg.length; i++) any = await saveMark(bk.urg[i].name, new Blob([bk.urg[i].buffer])) || any;
-    if (state.pick.solo) for (var j = 0; j < bk.solo.length; j++) any = await saveMark(bk.solo[j].name, new Blob([bk.solo[j].buffer])) || any;
+    if (state.pick.urgent) for (var i = 0; i < bk.urg.length; i++) any = await saveMark(bk.urg[i].name, new Blob([bk.urg[i].buffer]), [dkey(bk.urg[i])]) || any;
+    if (state.pick.solo) for (var j = 0; j < bk.solo.length; j++) any = await saveMark(bk.solo[j].name, new Blob([bk.solo[j].buffer]), [dkey(bk.solo[j])]) || any;
     if (state.pick.bad && bk.bad.length) { var b = zipOf('bad'); any = await saveMark(b.name, await zipBlob(b.outs)) || any; }
     if (any) { reportToHQ('downloaded'); downloadedOnce = true; }
   }
@@ -1149,8 +1152,8 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   async function downloadPacked() {
     var outs = allOutputs(), bk = buckets(outs), zip = new JSZip(), inside = [], n = 0, used = [];
     if (state.pick.good && bk.good.length) { var g = zipOf('good'); zip.file(g.name, await zipBlob(g.outs)); inside.push(g.name); n += orderTotal(g.outs); used = used.concat(g.outs); }
-    if (state.pick.urgent && bk.urg.length) { fillZip(zip.folder('特殊加急'), bk.urg); inside = inside.concat(bk.urg.map(function (o) { return o.name; })); n += orderTotal(bk.urg); used = used.concat(bk.urg); }
-    if (state.pick.solo && bk.solo.length) { fillZip(zip.folder('单独发'), bk.solo); inside = inside.concat(bk.solo.map(function (o) { return o.name; })); n += orderTotal(bk.solo); used = used.concat(bk.solo); }
+    if (state.pick.urgent && bk.urg.length) { fillZip(zip.folder('特殊加急'), bk.urg); inside = inside.concat(bk.urg.map(dkey)); n += orderTotal(bk.urg); used = used.concat(bk.urg); }
+    if (state.pick.solo && bk.solo.length) { fillZip(zip.folder('单独发'), bk.solo); inside = inside.concat(bk.solo.map(dkey)); n += orderTotal(bk.solo); used = used.concat(bk.solo); }
     if (state.pick.bad && bk.bad.length) { var b = zipOf('bad'); zip.file(b.name, await zipBlob(b.outs)); inside.push(b.name); n += orderTotal(b.outs); used = used.concat(b.outs); }
     if (!inside.length) { toast('没有勾要下载的文件'); return; }
     var h = used.every(function (o) { return o.overseas; });
@@ -1282,10 +1285,10 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       return;
     }
     if (d.copytext) { copyText(d.copytext, b); return; }
-    if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; saveMark(o.name, new Blob([o.buffer])); return; }
-    if (d.dlzip) { var z = zipOf(d.dlzip); zipBlob(z.outs).then(function (bl) { saveMark(z.name, bl); }); return; }
-    if ('godl' in d) { downloadAll(); return; }
-    if ('goall' in d) { downloadPacked(); return; }
+    if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; saveMark(o.name, new Blob([o.buffer]), [dkey(o)]); return; }
+    if (d.dlzip) { var z = zipOf(d.dlzip); zipBlob(z.outs).then(function (bl) { return saveMark(z.name, bl); }).catch(zipFail); return; }
+    if ('godl' in d) { downloadAll().catch(zipFail); return; }
+    if ('goall' in d) { downloadPacked().catch(zipFail); return; }
     if ('rulesPreview' in d) { state.rulesPreview = true; render(); var cb = document.querySelector('[data-rules-close]'); if (cb) cb.focus(); return; }
     if ('rulesClose' in d) { state.rulesPreview = false; render(); var pb = document.querySelector('[data-rules-preview]'); if (pb) pb.focus(); return; }
     if ('rulesDl' in d) { save('技术单审核规则 ' + E.todayStr() + '.html', new Blob([rulesDoc()], { type: 'text/html' })); return; }
