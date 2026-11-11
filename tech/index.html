@@ -1118,7 +1118,12 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (d.soloall != null) {
       var sr = state.results[+d.soloall], on2 = b.getAttribute('aria-pressed') !== 'true';
       sr.orders.forEach(function (o) { var k = sr.name + '|' + o.key; if (on2) state.solos[k] = true; else delete state.solos[k]; });
-      run().then(function (ok) { if (ok) toast(on2 ? '这个文件 ' + sr.orders.length + ' 单都分开了，每单一个文件' : '已放回合在一起'); });
+      var sn = sr.name;
+      run().then(function (ok) {
+        if (!ok) return;
+        var nr = (state.results || []).filter(function (r) { return r.name === sn; })[0], np = nr ? nr.orders.filter(function (o) { return o.problem; }).length : 0;
+        toast(!on2 ? '已放回合在一起' : '这个文件每单都分开了，每单一个文件' + (np ? '（' + np + ' 单有问题，先留在有问题文件）' : ''));
+      });
       return;
     }
     if (d.solo) {
