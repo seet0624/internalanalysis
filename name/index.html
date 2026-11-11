@@ -1462,7 +1462,8 @@ function outReason(r){ var out=[];
   r.rows.forEach(function(rw){ var g=Array.from(rw.given), d=rw.detail||{};
     rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var ch=g[h.ni-1]||h.fc, w=whoOf(h,d);
       // 完整但不长：新下来的名字（段冠宏）和弟弟新下来的名字（段冠羽）撞同一个字「冠」/ …和父亲的名字（赵大明）撞同音字「铭」「明」（míng）
-      var head='新下来的名字（'+rw.neu+'）和'+(w.who||'家人')+(w.isNew?'新下来的名字':'的名字')+'（'+h.full+'）';
+      var who=w.who; if(!who||/^(家人|家属)$/.test(who)||!(isRelLabel(who)||/^(父亲|母亲|子女|双胞胎)/.test(who)))who='兄弟姐妹'; // 判断不出关系（只有人名、订单号）就写兄弟姐妹
+      var head='新下来的名字（'+rw.neu+'）和'+who+(w.isNew?'新下来的名字':'的名字')+'（'+h.full+'）';
       if(h.kind==='撞字')out.push(head+'撞同一个字「'+ch+'」');
       else { var t=rw.tones[h.ni-1]||{}; out.push(head+'撞同音字「'+ch+'」「'+h.fc+'」（'+addTone(t.syl||'',toneOf(h.fc))+'）'); } });
     rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m))out.push(cleanMsg(m).replace(/[，,]?\s*请人工检查这单状态再决定$/,'')); }); });
