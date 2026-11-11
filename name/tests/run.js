@@ -37,8 +37,8 @@ const CASES = require('./naming-cases.json');
     const H = ['序号','订单时间','订单编号','会员编号','会员姓名','服务中心编号','商品标题','加工序号','产品配置编号','股东名称','新名字姓氏','使用人姓名','性别','公历生日','生肖',' 农历时辰 ','父亲名字','母亲名字','禁忌字','是否双胞胎','父亲生日','母亲生日','是否子时','兄弟姐妹','子女','新名','新名拼音','名册展示','配置人','审核人','订单状态备注','备注','总备注'];
     const stu = [ // [订单, 姓, 姓名, 父亲, 新名1, 拼音1, 新名2, 拼音2, 名册展示]
       ['T0000000000001', '王', '王小明', '王大山', '王山林', 'shān lín', '王晓云', 'xiǎo yún', ''],   // 王山林 和父亲王大山撞「山」→ 有问题
-      ['T0000000000002', '李', '李丽', '李大海', '李沐阳', 'mù yáng', '李若溪', 'ruò xī', ''],
-      ['T0000000000003', '赵', '赵一', '赵大川', '赵景行', 'jǐng xíng', '赵知远', 'zhī yuǎn', '简体']]; // 海外
+      ['T0000000000002', '李', '李丽', '李大海', '李沐阳', 'mǔ yáng', '李若溪', 'lǐ ruò nǐ', ''],   // 沐 声调不同不算错；溪 写成 nǐ 要提醒
+      ['T0000000000003', '赵', '赵一', '赵大川', '赵景行', 'zhào jǐng xíng', '赵知远', 'zǎo zhī yuǎn', '简体']]; // 海外；赵 写成 zǎo 要提醒
     const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('命名');
     ws.addRow(['命名配制信息表']); ws.addRow(['订单基本信息']); ws.addRow(H);
     stu.forEach((s, i) => [[s[4], s[5]], [s[6], s[7]]].forEach(nm => { const r = H.map(() => ''); const set = (h, v) => r[H.indexOf(h)] = v;
@@ -48,6 +48,8 @@ const CASES = require('./naming-cases.json');
     const buf = await wb.xlsx.writeBuffer();
     parsedFiles.length = 0; await loadWithBuffers([{ name: '技术单 2026-10-01（名正言顺）.xlsx', arrayBuffer: async () => buf }]);
     const x = parsedFiles[0], R = {};
+    R.py = {}; x.audit.results.forEach(r => r.rows.forEach(w => { R.py[w.neu] = w.warns.filter(m => /技术单拼音/.test(m)).length; }));
+    R.lv = detone('lǚ'); R.sb = recheck(null, '郑我', 'nǐ').join(' / ');
     R.n = x.audit.results.length; R.bad = x.audit.results.filter(r => r.problem).map(r => r.disp); R.mixed = x.mixed;
     const read = async (u) => { const w = new ExcelJS.Workbook(); await w.xlsx.load(u.buffer ? u : new Uint8Array(u)); return w.worksheets[0]; };
     const ps = partsOf(x), dom = ps.find(q => !q.overseas);
@@ -59,6 +61,20 @@ const CASES = require('./naming-cases.json');
     parsedFiles.length = 0; await loadWithBuffers([{ name: '（有问题）王小明 名正言顺技术单2026-10-01（1）.xlsx', arrayBuffer: async () => badBuf }]);
     const y = parsedFiles[0]; R.reName = outName(y, 'orig'); const o2 = await read(await origBuffer(y)); R.reAH = [3, 4, 5].map(r => o2.getRow(r).getCell(34).value);
     return R; });
+  // 姓的特别读音（曾 zēng、单 shàn、尉迟 yù chí、朴 piáo）不能误报
+  const sur = await p.evaluate(async () => {
+    const H = ['序号','订单编号','新名字姓氏','使用人姓名','父亲名字','母亲名字','兄弟姐妹','子女','禁忌字','新名','新名拼音','名册展示'];
+    const rows = [['曾','zēng zǐ hán'],['单','shàn zǐ hán'],['尉迟','yù chí zǐ hán'],['朴','piáo zǐ hán'],['赵','zǎo zǐ hán']];
+    const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('命名'); ws.addRow(H);
+    rows.forEach((x, i) => ws.addRow([String(i + 1), 'T00000000000' + (10 + i), x[0], x[0] + '一', '无', '无', '无', '无', '无', x[0] + '子涵', x[1], '']));
+    const buf = await wb.xlsx.writeBuffer(); parsedFiles.length = 0;
+    await loadWithBuffers([{ name: '姓 2026-10-01.xlsx', arrayBuffer: async () => buf }]);
+    return parsedFiles[0].audit.results.map(r => r.rows[0].neu + ':' + r.rows[0].warns.filter(m => /技术单拼音/.test(m)).length).join(' ');
+  });
+  ok(sur === '曾子涵:0 单子涵:0 尉迟子涵:0 朴子涵:0 赵子涵:1', '姓的特别读音不该报错、赵 写 zǎo 要报，实际 ' + sur);
+  ok(JSON.stringify(e2e.py) === JSON.stringify({ 王山林: 0, 王晓云: 0, 李沐阳: 0, 李若溪: 1, 赵景行: 0, 赵知远: 1 }), '拼音提醒：字母不对（溪 nǐ、姓赵 zǎo）才提醒，声调不同不提醒，实际 ' + JSON.stringify(e2e.py));
+  ok(e2e.lv === 'lv', 'lǚ 应该当成 lv（字库用 v），实际 ' + e2e.lv);
+  ok(/拼音写错：「我」写 ni/.test(e2e.sb), '试改名字：我 写 nǐ 应该提醒，实际 ' + e2e.sb);
   ok(e2e.n === 3, '假技术单应该读到 3 位学员，实际 ' + e2e.n);
   ok(JSON.stringify(e2e.bad) === '["王小明"]', '应该只有王小明有问题（王山林撞父亲王大山的山），实际 ' + JSON.stringify(e2e.bad));
   ok(e2e.mixed === true, '赵一名册展示有写，应该判成国内海外混合');

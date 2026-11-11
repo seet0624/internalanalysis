@@ -593,9 +593,11 @@ function surLen(neu,sur){ var a=Array.from(String(neu||'')), s=String(sur==null?
   if(a.length>=3&&typeof COMPOUND!=='undefined'&&COMPOUND[a[0]+a[1]])return 2; return a.length?1:0; }
 function isSurname(c){ if(!SURN_SET){SURN_SET={};for(var i=0;i<SURN.length;i++)SURN_SET[SURN[i]]=1;} return !!SURN_SET[c]; }
 function norm(c){ return T2S[c]||c; }
-function detone(s){ return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
+function detone(s){ return String(s).toLowerCase().normalize('NFD').replace(/u\u0308/g,'v').replace(/[\u0300-\u036f]/g,'').trim(); }
 function isCjk(c){ return /[\u4e00-\u9fff]/.test(c); }
 function cjkOnly(s){ var m=String(s==null?'':s).match(/[\u4e00-\u9fff]/g); return m?m.join(''):''; }
+// 当姓时的特别读音（字库只有平常读音），只给姓的拼音检查用
+var SUR_PY={'曾':['zeng'],'单':['shan'],'区':['ou'],'仇':['qiu'],'解':['xie'],'查':['zha'],'盖':['ge'],'乐':['yue'],'缪':['miao'],'翟':['zhai'],'朴':['piao'],'尉':['yu'],'覃':['qin'],'万':['mo'],'俟':['qi'],'澹':['tan'],'召':['shao'],'繁':['po'],'员':['yun'],'种':['chong'],'秘':['bi'],'郇':['huan'],'句':['gou'],'谌':['chen'],'折':['she'],'黑':['he'],'眭':['sui'],'哈':['ha'],'能':['nai']};
 function readingsOf(ch){ var prim=charSyllables(ch); var poly=RULES.POLY[ch]||RULES.POLY[norm(ch)]||[]; var all={}; prim.forEach(function(x){all[x]=1;}); poly.forEach(function(x){all[x]=1;}); return Object.keys(all); }
 function tradOf(ch){ return S2T[ch]||ch; }
 function simpOf(ch){ return T2S[ch]||ch; }
@@ -794,7 +796,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
     var rowData=rows.map(function(ri){ var neu=String(data[ri][cols.neu]==null?'':data[ri][cols.neu]).trim(); var aa=String(data[ri][cols.py]==null?'':data[ri][cols.py]);
       var sk=surLen(neu,grpSur); var surname=Array.from(neu).slice(0,sk).join(''); var given=Array.from(neu).slice(sk);
       var toneTokens=aa.split(/\s+/).filter(String); var syl=toneTokens.map(detone).filter(String);
-      if(sk&&syl.length===given.length+sk){ syl=syl.slice(sk); toneTokens=toneTokens.slice(sk); }
+      var surSyl=[]; if(sk&&syl.length===given.length+sk){ surSyl=syl.slice(0,sk); syl=syl.slice(sk); toneTokens=toneTokens.slice(sk); }
       var pyOk=(given.length>0&&syl.length===given.length);
       var msgs=[],warns=[],hits=[];
       var pyFixed='', pyBad=false; var rawSyl=syl.slice();
@@ -818,6 +820,8 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
           }
         }
       }
+      // 姓的拼音也要对得上（只比字母，声调不管；字库查不到的字跳过）
+      if(RULES.checkPyMatch!==false)surSyl.forEach(function(s,i){ var c=Array.from(neu)[i], rs=readingsOf(c).concat(SUR_PY[norm(c)]||[]); if(rs.length&&rs.indexOf(s)<0)warns.push('✏️ 技术单拼音写错：姓「'+c+'」写 '+s+'，字库读 '+rs.join(' / ')+'——请通知改技术单'); });
       function addHit(kind,ni,fc,p){ hits.push({kind:kind,ni:ni,pos:ni-1+sk,fc:fc,fname:p?p[1]:'',full:p?(p[4]||p[1]):'',member:p?p[0]:'',soft:p?!!p[2]:false}); }
       if(RULES.checkClash)given.forEach(function(ch,idx){ var nch=norm(ch); fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ if(norm(cmp[c])===nch){ var m='新名（'+neu+'）和'+p[0]+'（'+p[1]+'）撞字（'+ch+'）'; if(p[2])warns.push('⚠ '+m+'，请确认是否同一家人'); else {msgs.push(m); addHit('撞字',idx+1,cmp[c],p);} break; } } }); });
       if(RULES.checkHomo&&pyOk)given.forEach(function(ch,idx){ var si=syl[idx],nch=norm(ch);
@@ -1320,8 +1324,8 @@ function bindMain(main,r){
   sbt.onclick=function(){ sbx.classList.toggle('open'); if(sbx.classList.contains('open'))main.querySelector('#sbName').focus(); };
   function runSb(){ var nm=main.querySelector('#sbName').value.trim(), py=main.querySelector('#sbPy').value.trim();
     if(nm&&!py)py=Array.from(nm).map(function(c){ var rs=readingsOf(c); return rs.length?rs[0]:''; }).join(' ');
-    var out=recheck(r,nm,py);
-    main.querySelector('#sbRes').innerHTML=nm?(out.length?out.map(function(o){return '<div class="m">· '+esc(o)+'</div>';}).join(''):'<div style="color:var(--ok)">✓ 没撞、没禁忌</div>'):'<span style="color:var(--muted)">先输入一个名字</span>'; }
+    var out=recheck(r,nm,py), rd='<div style="color:var(--muted)">字库读音：'+esc(Array.from(nm).map(function(c){ var rs=readingsOf(c); return rs.length?rs.join('/'):'？'; }).join(' '))+'</div>';
+    main.querySelector('#sbRes').innerHTML=nm?rd+(out.length?out.map(function(o){return '<div class="m">· '+esc(o)+'</div>';}).join(''):'<div style="color:var(--ok)">✓ 没撞、没禁忌</div>'):'<span style="color:var(--muted)">先输入一个名字</span>'; }
   main.querySelector('#sbGo').onclick=runSb;
   main.querySelectorAll('#sbName,#sbPy').forEach(function(inp){ inp.onkeydown=function(ev){ if(ev.key==='Enter'){ ev.preventDefault(); runSb(); } }; });
   main.querySelectorAll('[data-q]').forEach(function(el){ el.onclick=function(){ doSearch(el.getAttribute('data-q')); }; el.onkeydown=function(ev){ if(el.tagName!=='BUTTON'&&(ev.key==='Enter'||ev.key===' ')){ ev.preventDefault(); doSearch(el.getAttribute('data-q')); } }; });
@@ -1389,10 +1393,11 @@ function hlText(s){
 function doSearch(q){ searchTerm=q||''; queueFilter='all'; var sb=document.getElementById('searchBox'); if(sb)sb.value=searchTerm; hidePop(); curSid=null; renderAll(); }
 
 /*==== sandbox recheck ====*/
-function dt(s){ return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
+function dt(s){ return detone(s); }
 function fgU(p,sur){ var n=p[1]; if(p[3])return n; if(sur&&n.indexOf(sur)===0&&n.length>sur.length)return n.slice(sur.length); if(n.length>=3&&typeof COMPOUND!=='undefined'&&COMPOUND[n.slice(0,2)])return n.slice(2); if(n.length>=2&&isSurname(n[0]))return n.slice(1); return n; }
 function recheck(r,neu,pyStr){ if(!neu)return []; var sur=(r&&r.rows&&r.rows[0]&&r.rows[0].surname)||''; var sk=surLen(neu,sur), given=Array.from(neu).slice(sk); var syl=pyStr.split(/\s+/).map(dt).filter(Boolean); if(syl.length===given.length+sk)syl=syl.slice(sk);
   var out=[]; var fam=(r&&r._fam)||[], tb=(r&&r._tb)||{single:{},combos:[]};
+  if(syl.length===given.length)given.forEach(function(ch,i){ var rs=readingsOf(ch); if(rs.length&&rs.indexOf(syl[i])<0)out.push('拼音写错：「'+ch+'」写 '+syl[i]+'，字库读 '+rs.join(' / ')); });
   given.forEach(function(ch){ var nch=norm(ch); fam.forEach(function(p){ var cmp=fgU(p,sur); for(var c=0;c<cmp.length;c++){ if(norm(cmp[c])===nch){ out.push('撞字：'+ch+' ↔ '+p[0]+'「'+p[1]+'」'+(p[2]?'（疑同家人）':'')); break; } } }); if(tb.single[nch])out.push('用了禁忌/不想用的字：'+ch); });
   if(syl.length===given.length)given.forEach(function(ch,idx){ var si=syl[idx],nch=norm(ch); fam.forEach(function(p){ var cmp=fgU(p,sur); for(var c=0;c<cmp.length;c++){ var fc=cmp[c]; if(norm(fc)===nch)continue; if(charSyllables(fc).indexOf(si)>=0)out.push('撞音：'+ch+'('+si+') ↔ '+p[0]+'「'+p[1]+'」的'+fc); } }); });
   else out.push('（没填拼音或字数对不上，只查了撞字/禁忌）');
@@ -1804,6 +1809,11 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-11', title:'拼音和字对不上会提醒', items:[
+    '姓的拼音也查：技术单连姓一起写拼音时，姓写错（如 赵 写成 zao）会提醒',
+    '只比字母，声调不同不算错（沐 写 mǔ 不提醒）',
+    'lǚ、nǚ 这种带 ü 的拼音认得，不再误报',
+    '试改名字的框会显示每个字的字库读音，拼音写错会直接说']},
   {date:'2026-11-06', title:'下载先问存到哪里', items:[
     '按下载会先问存到哪里：一份就是「另存为」，国内海外分开的就选一个文件夹全部存进去（Chrome / Edge）；按取消就不下载',
     'Firefox、Safari 没有这个功能，照旧直接下载；要每次问，在浏览器设定打开「下载前询问保存位置」']},
