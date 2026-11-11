@@ -826,7 +826,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
       if(RULES.checkClash)given.forEach(function(ch,idx){ var nch=norm(ch); fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ if(norm(cmp[c])===nch){ var m='新名（'+neu+'）和'+p[0]+'（'+p[1]+'）撞字（'+ch+'）'; if(p[2])warns.push('⚠ '+m+'，请确认是否同一家人'); else {msgs.push(m); addHit('撞字',idx+1,cmp[c],p);} break; } } }); });
       if(RULES.checkHomo&&pyOk)given.forEach(function(ch,idx){ var si=syl[idx],nch=norm(ch);
         fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ var fc=cmp[c]; if(norm(fc)===nch)continue;
-          if(charSyllables(fc).indexOf(si)>=0){ var tA=toneOf(ch), tB=toneOf(fc); var same=(tA&&tB&&tA===tB); var lvl=same?'完全同音同调':'同音不同调'; var hm='新名（'+neu+'）和'+p[0]+'（'+p[1]+'）撞谐音〔'+lvl+'〕（'+ch+'('+si+(tA?tA:'')+') ~ '+fc+'('+si+(tB?tB:'')+')）'; if(p[2])warns.push('⚠ '+hm+'，请确认是否同一家人'); else if(same){ msgs.push(hm); addHit('撞音',idx+1,fc,p); } else { warns.push('⚠ '+hm+'（声调不同，通常较轻，请判断）'); addHit('撞音软',idx+1,fc,p); } continue; }
+          if(charSyllables(fc).indexOf(si)>=0){ var tA=toneOf(ch), tB=toneOf(fc); var same=(tA&&tB&&tA===tB); var lvl=same?'完全同音同调':'同音不同调'; var hm='新名（'+neu+'）和'+p[0]+'（'+p[1]+'）撞谐音〔'+lvl+'〕（'+ch+'('+si+(tA?tA:'')+') ~ '+fc+'('+si+(tB?tB:'')+')）'; if(p[2])warns.push('⚠ '+hm+'，请确认是否同一家人'); else { msgs.push(hm); addHit('撞音',idx+1,fc,p); } continue; } // 老板规则：同音就算撞，声调不同也算
           if(RULES.checkPoly){ var poly=RULES.POLY[fc]||RULES.POLY[norm(fc)]; if(poly&&poly.indexOf(si)>=0)warns.push('⚠ 多音字：'+p[0]+'「'+p[1]+'」的「'+fc+'」也可能读「'+si+'」，那样和新名「'+ch+'」撞音，请用耳朵确认'); } } });
         if(RULES.checkPoly){ var ps=RULES.POLY[ch]||RULES.POLY[norm(ch)]; if(ps)ps.forEach(function(alt){ if(alt===si)return; fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ var fc=cmp[c]; if(norm(fc)===nch)continue; if(charSyllables(fc).indexOf(alt)>=0)warns.push('⚠ 多音字：新名「'+ch+'」也可能读「'+alt+'」，那样和'+p[0]+'「'+p[1]+'」的「'+fc+'」撞音，请确认'); } }); }); } });
       else if(RULES.checkHomo)warns.push('✏️ 技术单拼音有问题：「'+neu+'」有 '+given.length+' 个字，但拼音写了 '+syl.length+' 个（'+(aa.trim()||'空白')+'）——谐音没查到，请核对技术单');
@@ -1465,7 +1465,7 @@ function outReason(r){ var out=[];
       var who=/^(家人|家属)$/.test(w.who||'')?'':w.who; who=who||'兄弟姐妹'; // 判断不出关系（只有人名、订单号）就写兄弟姐妹
       var head='新下来的名字（'+rw.neu+'）和'+who+(w.isNew?'新下来的名字':'的名字')+'（'+h.full+'）';
       if(h.kind==='撞字')out.push(head+'撞同一个字「'+ch+'」');
-      else { var t=rw.tones[h.ni-1]||{}; out.push(head+'撞同音字「'+ch+'」「'+h.fc+'」（'+addTone(t.syl||'',toneOf(h.fc))+'）'); } });
+      else { var t=rw.tones[h.ni-1]||{}, pa=addTone(t.syl||'',toneOf(ch)), pb=addTone(t.syl||'',toneOf(h.fc)); out.push(head+'撞同音字「'+ch+'」「'+h.fc+'」（'+(pa===pb?pa:pa+' / '+pb)+'）'); } });
     rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m))out.push(cleanMsg(m).replace(/[，,]?\s*请人工检查这单状态再决定$/,'')); }); });
   var seen={}; out=out.filter(function(t){ if(seen[t])return false; seen[t]=1; return true; });
   return out.length?out.join('；'):'名字需要重新调整'; } // 只写撞到的、真正的问题；提醒类（请确认、请人工看）不写进给出去的文件
@@ -1786,12 +1786,12 @@ function openSound(){ var L=soundList();
     dlCatch(saveAs(new Blob(['﻿'+lines.join('\n')],{type:'text/csv'}),'发音清单_给客服.csv')); }; }
 
 function openQuality(){ if(!parsedFiles.length){ alert('先载入文件'); return; }
-  var types={'撞字':0,'撞音(同调)':0,'撞音(异调)':0,'禁忌字':0,'禁忌/不要的音':0,'不雅谐音':0,'粤语谐音':0,'繁体':0,'状态备注':0,'历史重名':0,'调换顺序':0,'待补订单':0,'技术单拼音写错':0};
+  var types={'撞字':0,'撞音':0,'禁忌字':0,'禁忌/不要的音':0,'不雅谐音':0,'粤语谐音':0,'繁体':0,'状态备注':0,'历史重名':0,'调换顺序':0,'待补订单':0,'技术单拼音写错':0};
   var perFile=[];
   var totS=0,totBad=0,totRev=0;
   parsedFiles.forEach(function(x){ var fb=0; x.audit.results.forEach(function(r){ totS++; if(r.problem){totBad++;fb++;} if(r.reviewed)totRev++;
     r.rows.forEach(function(rw){
-      rw.hits.forEach(function(h){ if(h.kind==='撞字')types['撞字']++; else if(h.kind==='撞音')types['撞音(同调)']++; else if(h.kind==='撞音软')types['撞音(异调)']++; else if(h.kind==='禁忌')types['禁忌字']++; else if(h.kind==='禁音')types['禁忌/不要的音']++; else if(h.kind==='简体')types['繁体']++; });
+      rw.hits.forEach(function(h){ if(h.kind==='撞字')types['撞字']++; else if(h.kind==='撞音')types['撞音']++; else if(h.kind==='禁忌')types['禁忌字']++; else if(h.kind==='禁音')types['禁忌/不要的音']++; else if(h.kind==='简体')types['繁体']++; });
       rw.msgs.forEach(function(m){ if(m.indexOf('订单状态备注')>=0)types['状态备注']++; if(m.indexOf('调换顺序')>=0)types['调换顺序']++; });
       (rw.sound||[]).forEach(function(sd){ types[sd.kind]++; });
       rw.warns.forEach(function(w){ if(w.indexOf('历史重名')>=0)types['历史重名']++; if(w.indexOf('技术单拼音')>=0)types['技术单拼音写错']++; });
@@ -1821,6 +1821,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-11', title:'同音就算撞（声调不同也算）', items:[
+    '新名跟家人名字同音，声调不同也判有问题、写进有问题文件，例：撞同音字「籽」「子」（zǐ / zi）']},
   {date:'2026-11-11', title:'有问题 Excel 的原因只写撞到的', items:[
     '原因只写撞字、撞音、禁忌字这类真正的问题；「请确认」「请人工看」这类提醒不写进去',
     '称呼照备注写（例：弟弟），「兄弟姐妹名字：」这种笼统的标题不当称呼',
@@ -1968,7 +1970,7 @@ function infoHtml(tab){
     function col(cls,label,sub,items){ return '<div class="tcol '+cls+'"><div class="th"><span class="tier '+cls+'">'+label+'</span><span>'+sub+'</span></div><ul>'+items.map(function(it){ return '<li><b>'+it[0]+'</b>'+(it[1]?'：'+it[1]:'')+'</li>'; }).join('')+'</ul></div>'; }
     h+='<div class="rtop"><span>每一项检查都会归到三级之一。两个新名只要有一个是「必须改」，整个学员就不能上传。</span><span class="grow"></span><button type="button" class="linkbtn" data-act="settings" style="margin:0;font-size:13px">规则设定（开关 / 加禁忌字）→</button></div>';
     h+='<div class="tiers">'+
-      col('must','必须改','不能上传',[['撞字','和父母、兄弟姐妹、伴侣、子女同一个字（括号里写的「名正言顺：XXX」、「新名（旧名）」都算；文件里涂同一颜色的学员算一家人；家人以前审过、会员编号或店铺编号一样的，拿他下来的新名比）'],['撞音','和家人完全同音同调'],['禁忌字 / 不要的音','禁忌栏或备注写的字，或写成拼音（如 cheng）'],['两个名太像','同样的字调换顺序，或拼音完全一样']])+
+      col('must','必须改','不能上传',[['撞字','和父母、兄弟姐妹、伴侣、子女同一个字（括号里写的「名正言顺：XXX」、「新名（旧名）」都算；文件里涂同一颜色的学员算一家人；家人以前审过、会员编号或店铺编号一样的，拿他下来的新名比）'],['撞音','和家人同音（声调不同也算）'],['禁忌字 / 不要的音','禁忌栏或备注写的字，或写成拼音（如 cheng）'],['两个名太像','同样的字调换顺序，或拼音完全一样']])+
       col('check','请确认','人工看过再决定',[['订单状态备注','有写就先卡住，看过再放行（「申请二次命名」的不卡）'],['同音不同调','和家人同音但声调不同'],['禁忌字同音','不是同一个字，但读音一样'],['繁体有几种写法','例如 云 / 雲、后 / 後，已先转，请确认'],['粤语谐音','用粤语念近不吉的音（也记进「发音清单」）'],['生肖忌用部首',''],['同批重名 / 历史重名',''],['要查的订单 / 会员编号','家人的名字还没下来']])+
       col('info','参考','不影响上传',[['名册要繁体','新名自动改成繁体（姓不动），下载的三份文件都用繁体'],['不雅谐音','连姓一起念像不好的词——先放行，记进顶栏「发音清单」给客服'],['技术单拼音写错','会用正确读音再查一遍，记得通知改单'],['多音字','提醒确认读法'],['生肖喜用部首',''],['已自动关联的编号','家人在同一批文件里，已比对过']])+'</div>';
     h+='<div class="rchips"><span>现在开着：</span>'+RULE_DEFS.map(function(d){ var on=!!RULES[d[0]]; return '<button type="button" class="rchip'+(on?'':' off')+'" data-act="settings" title="'+(on?'开着':'关着')+'，点一下去规则设定">'+d[1]+'</button>'; }).join('')+'</div>';
