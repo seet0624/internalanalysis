@@ -602,7 +602,7 @@ function readingsOf(ch){ var prim=charSyllables(ch); var poly=RULES.POLY[ch]||RU
 function tradOf(ch){ return S2T[ch]||ch; }
 function simpOf(ch){ return T2S[ch]||ch; }
 
-var NOISE=['兄弟姐妹','伴侣','姐姐','弟弟','妹妹','哥哥','大姐','大哥','二哥','三哥','三姐','大嫂','已故','已名正言顺','还没名正言顺','原名','现用名','曾用名','现用','曾用','改名为','改名','已改名','离婚','離婚','已离婚','已離婚','再婚','过继的','过继','過繼的','過繼','领养的','领养','領養的','領養','抱养的','抱养','收养的','收养','继子','继女','现在用','现用此名','儿子','女儿','现在用','爱人的名字','子女的名字','的名字','名字','姓名','调整名','数易名','第一任','第二任','第三任','未婚','健在','原配','长孙女','次孙女','小孙女','大孙女','长孙子','次孙子','小孙子','姥姥','姥爷','孩子','自己的','这边的','那边的','这边','那边','亲生'];
+var NOISE=['兄弟姐妹','子女','伴侣','姐姐','弟弟','妹妹','哥哥','大姐','大哥','二哥','三哥','三姐','大嫂','已故','已名正言顺','还没名正言顺','原名','现用名','曾用名','现用','曾用','改名为','改名','已改名','离婚','離婚','已离婚','已離婚','再婚','过继的','过继','過繼的','過繼','领养的','领养','領養的','領養','抱养的','抱养','收养的','收养','继子','继女','现在用','现用此名','儿子','女儿','现在用','爱人的名字','子女的名字','的名字','名字','姓名','调整名','数易名','第一任','第二任','第三任','未婚','健在','原配','长孙女','次孙女','小孙女','大孙女','长孙子','次孙子','小孙子','姥姥','姥爷','孩子','自己的','这边的','那边的','这边','那边','亲生'];
 var NULLS={'无':1,'無':1,'-':1,'NA':1,'na':1,'None':1,'':1};
 var REL_MOD='大小二三四五六七八九十老長长幼次親亲堂表繼继養养前現现阿細细家干契外';
 var REL_ROOT='哥弟姐妹兄姊爸媽妈父母爹娘夫妻公婆爺爷奶兒儿嫂嬸婶佬孫孙伯叔姑舅姨侄甥媳婿';
@@ -635,7 +635,7 @@ function splitNames(text){ var t=String(text==null?'':text); if(NULLS[t.trim()])
   var parts=t.split(/[@\uff0c,\u3001\uff1b;\uff1a:\u3000\s\/]+/).concat(extra),out=[];
   for(var j=0;j<parts.length;j++){var c=cjkOnly(parts[j]);if(!c||NULLS[c])continue; c=stripRel(c); if(c&&!NULLS[c]&&!REL_WORDS[c]&&!NO_NAME_RE.test(c)&&Array.from(c).length>=2&&out.indexOf(c)<0)out.push(c);} return out; }
 // 「爱人：罗小红」「配偶：第一任：王小明」→ 名字前面最近的称谓（爱人 / 配偶）；找不到就空
-function isRelLabel(l){ if(/^(曾用名|原名|现用名|调整名|数易名|健在|未婚|孩子|原配|第[一二三]任)$/.test(l))return false; return !!(REL_WORDS[l]||REL_FULL[l]||/^(外公|外婆|姥姥|姥爷|爷爷|奶奶|兄弟姐妹)$/.test(l)||new RegExp('^['+REL_MOD+']*['+REL_ROOT+']{1,3}$').test(l)); }
+function isRelLabel(l){ if(/^(曾用名|原名|现用名|调整名|数易名|健在|未婚|孩子|原配|第[一二三]任)$/.test(l))return false; return !!(REL_WORDS[l]||REL_FULL[l]||/^(外公|外婆|姥姥|姥爷|爷爷|奶奶|兄弟姐妹)$/.test(l)||new RegExp('^['+REL_MOD+']*['+REL_ROOT+']{1,4}$').test(l)); }
 function relLabelOf(raw,n){ var mm=new RegExp('(^|[^\\u4e00-\\u9fff])'+n+'(?![\\u4e00-\\u9fff])').exec(String(raw)); if(!mm)return ''; var i=mm.index+mm[1].length; var seg=String(raw).slice(0,i).split(/[；;]/).pop(), m, last='', re=/([一-鿿]{1,8})\s*[：:]/g;
   while((m=re.exec(seg))){ var l=m[1].replace(/(的)?名字$/,''); if(isRelLabel(l))last=l; } return last; }
 function familyMembers(row, cols){ var out=[];
@@ -920,7 +920,10 @@ function applyLang(){ var i=lang==='cn'?0:1;
 function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
 /*==== excel read ====*/
-function cellText(v){ if(v==null)return ''; if(typeof v==='object'){ if(v.richText)return v.richText.map(function(t){return t.text;}).join(''); if(v.text!=null)return String(v.text); if(v.result!=null)return String(v.result); if(v instanceof Date)return v.getFullYear()+'-'+(v.getMonth()+1)+'-'+v.getDate(); return ''; } return String(v); }
+// 拿掉看不见的排版字符（例：「名\u202c字」），不然「名字」会被当成人名、「字」当成称呼
+var INVIS_RE=/[\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]/g;
+function cellText(v){ return cellText0(v).replace(INVIS_RE,''); }
+function cellText0(v){ if(v==null)return ''; if(typeof v==='object'){ if(v.richText)return v.richText.map(function(t){return t.text;}).join(''); if(v.text!=null)return String(v.text); if(v.result!=null)return String(v.result); if(v instanceof Date)return v.getFullYear()+'-'+(v.getMonth()+1)+'-'+v.getDate(); return ''; } return String(v); }
 function wsTo2D(ws){ var data=[],maxC=ws.columnCount||0; for(var r=1;r<=ws.rowCount;r++){ var row=ws.getRow(r),arr=[]; for(var c=1;c<=maxC;c++)arr.push(cellText(row.getCell(c).value)); data.push(arr);} return data; }
 // 每一行的底色（序号格和使用人格同色才算），用来认「同一家人」；没涂色、白色都当没颜色
 function fillKey(cell){ var f=cell&&cell.fill; if(!f||f.type!=='pattern'||!f.pattern||f.pattern==='none')return ''; var c=f.fgColor||{};
@@ -1440,11 +1443,12 @@ function showPop(el,ch){ var pop=document.getElementById('pop'); var reads=readi
 // 「有问题」那份的原因：一句话说清楚，跟客服回传的写法一样
 function relWord(d,key){ if(!key)return ''; var SKIP=/名正言[顺順]|新名|改名|更名/;
   if(String(d.mother||'').indexOf(key)>=0)return '妈妈'; if(String(d.father||'').indexOf(key)>=0)return '爸爸';
-  var fields=[d.sib,d.kids,d.note1,d.note2];
+  var fields=[d.sib,d.kids,d.note1,d.note2], fb='';
   for(var i=0;i<fields.length;i++){ var t=String(fields[i]||''), at=t.indexOf(key); if(at<0)continue;
     var ms=t.slice(0,at).match(/[一-鿿]{1,4}(?=[：:])/g)||[];
-    for(var j=ms.length-1;j>=0;j--){ if(!SKIP.test(ms[j]))return ms[j].replace(/(的)?名字$/,'')||ms[j]; } }
-  return ''; }
+    for(var j=ms.length-1;j>=0;j--){ if(SKIP.test(ms[j]))continue; var l=ms[j].replace(/(的)?名字$/,'')||ms[j];
+      if(/^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|子女|家人|家属)$/.test(l)){ fb=fb||l; break; } if(fb&&!isRelLabel(l))break; return l; } } // 往后找时只认真正的称呼（「客户要求：」不算） // 「兄弟姐妹名字：」太笼统，先看备注有没有写「弟弟：」
+  return fb==='姐妹'||fb==='兄弟'?'兄弟姐妹':fb; }
 function isNewName(d,nm){ var re=new RegExp('(?:名正言[顺順]|新名|改名|更名)\\s*[\\uff1a:]?\\s*'+nm); return [d.father,d.mother,d.sib,d.kids].some(function(t){ return re.test(String(t||'')); }); }
 function whoOf(h,d){ var m=h.member, o;
   if(m==='父亲'||m==='母亲')return {who:m,isNew:isNewName(d,h.full)};
@@ -1457,13 +1461,13 @@ function whoOf(h,d){ var m=h.member, o;
 function outReason(r){ var out=[];
   r.rows.forEach(function(rw){ var g=Array.from(rw.given), d=rw.detail||{};
     rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var ch=g[h.ni-1]||h.fc, w=whoOf(h,d);
-      var head='新下来的名字（'+rw.neu+'）跟'+w.who+(w.isNew?'新下来的名字':'的名字')+'（'+h.full+'）';
-      if(h.kind==='撞字')out.push(head+'撞同一个字（'+ch+'）');
-      else { var t=rw.tones[h.ni-1]||{}; out.push(head+'撞同音字（'+ch+' '+(t.toned||t.syl||'')+'，'+h.fc+' '+addTone(t.syl||'',toneOf(h.fc))+'）'); } });
-    rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m))out.push(cleanMsg(m)); }); });
-  if(!out.length)r.rows.forEach(function(rw){ rw.warns.forEach(function(w){ if(warnTier(w)==='check')out.push(cleanMsg(w)); }); });
+      // 短句、讲重点：「段冠宏」与弟弟新名「段冠羽」撞「冠」字 /「孙孟洺」与爱人「段如明」撞音（洺/明 míng）
+      var head='「'+rw.neu+'」与'+(w.who||'家人')+(w.isNew?'新名':'')+'「'+h.full+'」';
+      if(h.kind==='撞字')out.push(head+'撞「'+ch+'」字');
+      else { var t=rw.tones[h.ni-1]||{}; out.push(head+'撞音（'+ch+'/'+h.fc+' '+addTone(t.syl||'',toneOf(h.fc))+'）'); } });
+    rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m))out.push(cleanMsg(m).replace(/[，,]?\s*请人工检查这单状态再决定$/,'')); }); });
   var seen={}; out=out.filter(function(t){ if(seen[t])return false; seen[t]=1; return true; });
-  return out.length?out.join('；'):'人工判定有问题'; }
+  return out.length?out.join('；'):'名字需要重新调整'; } // 只写撞到的、真正的问题；提醒类（请确认、请人工看）不写进给出去的文件
 
 // 「干净·可上传」那份：上传系统要的精简表（一个新名一行，9 栏）
 var UPLOAD_COLS=[['订单',['订单编号'],16.28],['服务中心编号',['服务中心编号'],18.14],['新名字姓氏',['新名字姓氏'],15.28],['姓名',['使用人姓名'],32.5],['性别',['性别'],6.72],
@@ -1643,7 +1647,9 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
   // 同一个订单的每一行写一样的原因（包括没问题的那个名字）：先把同订单所有有问题学员的原因合起来
   function grpKey(r){ var o=String(r.order||'').trim(); return isOrderNo(o)?o:('#'+r.sid); } // 订单号写「无」「-」不算同一单
   if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem)return; var k=grpKey(r), seen=grpReason[k]||(grpReason[k]=[]);
-    outReason(r).split('；').forEach(function(t){ if(seen.indexOf(t)<0)seen.push(t); }); });
+    outReason(r).split('；').forEach(function(t){ var k=pairKey(t); if(seen.indexOf(t)<0&&!(k&&seen.some(function(o){ return pairKey(o)===k; })))seen.push(t); }); });
+  // 「A 跟哥哥 B 撞字」和「B 跟弟弟 A 撞字」是同一件事，同一单只写一次
+  function pairKey(t){ var m=/^「([^」]+)」与[^「]*「([^」]+)」(撞.*)$/.exec(t); return m?[m[1],m[2]].sort().join('|')+(m[3].match(/\p{Script=Han}/gu)||[]).sort().join(''):''; }
   au.results.forEach(function(r){ var keep=keepProblem==='all'||(keepProblem?r.problem:!r.problem), anyMsg=r.rows.some(function(rw){return rw.msgs.length;});
     r.rows.forEach(function(rw){ if(!keep){ delRows.push(rw.row+1); return; } if(keepProblem!==true)return; var bad=!anyMsg||rw.msgs.length>0||(rw.hits||[]).length>0||rw.warns.some(function(w){ return /撞|禁忌|不要的读音/.test(w); }); // 人工判有问题（没有机器原因）就每行都写
       reasonByRow[rw.row+1]={bad:bad, t:grpReason[grpKey(r)].join('；')}; }); });
@@ -1814,6 +1820,12 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-11', title:'有问题 Excel 的原因只写撞到的', items:[
+    '原因只写撞字、撞音、禁忌字这类真正的问题；「请确认」「请人工看」这类提醒不写进去',
+    '称呼照备注写（例：弟弟），「兄弟姐妹名字：」这种笼统的标题不当称呼',
+    '文件里看不见的排版字符会先拿掉：「名字」不再被当成人名、「字」不再被当成称呼',
+    '「子女名字：」的「子女」不当成人名；「爷爷奶奶：」认得是称呼',
+    '原因改成短句：「段冠宏」与弟弟新名「段冠羽」撞「冠」字；「赵子铭」与父亲「赵大明」撞音（铭/明 míng）']},
   {date:'2026-11-11', title:'有问题 Excel：原因格拉宽、同订单同原因', items:[
     '不再写表头「审核原因」',
     '原因格拉宽，字多会自动加高，整句看得到',
