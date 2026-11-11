@@ -1106,7 +1106,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var names = {}, dup = 0;
     outs.forEach(function (o) { if (names[o.name]) dup++; names[o.name] = true; });
     var same = up === out;
-    var line = function (ok, good, bad) { return '<li class="' + (ok ? 'good' : 'bad') + '">' + (ok ? '✓ ' + good : '✗ ' + bad) + '</li>'; };
+    var line = function (ok, good, bad) { return '<li class="' + (ok ? 'good' : 'bad') + '">' + esc(ok ? '✓ ' + good : '✗ ' + bad) + '</li>'; };
     return '<section class="card recon" aria-label="对账"><h2>对账</h2><div class="big ' + (same ? 'good' : 'bad') + '">' + up + (same ? ' = ' : ' ≠ ') + out + '</div>' +
       '<span class="small">上传 ' + up + ' 单，输出 ' + out + ' 单' + (same ? '，没有漏、没有重复' : '，对不上，先别发，请告诉审核部') + '</span><ul>' +
       line(!noFoot.length, '页脚（制表、审核人、回传）全部写上', noFoot.length + ' 个文件找不到页脚的位置：' + noFoot.map(function (r) { return r.name; }).join('、')) +
