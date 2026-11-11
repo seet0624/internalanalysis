@@ -1641,7 +1641,7 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
   var ws=wb.getWorksheet(x.sheetName)||wb.worksheets[0]; var au=x.audit, hr=au.hr; clearOldReasons(ws,x); applyTrad(ws,x); applyFooter(ws,x);
   var lastCol=lastColOf(x), reasonByRow={}, delRows=[], grpReason={};
   // 同一个订单的每一行写一样的原因（包括没问题的那个名字）：先把同订单所有有问题学员的原因合起来
-  function grpKey(r){ return String(r.order||'').trim()||('#'+r.sid); }
+  function grpKey(r){ var o=String(r.order||'').trim(); return isOrderNo(o)?o:('#'+r.sid); } // 订单号写「无」「-」不算同一单
   if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem)return; var k=grpKey(r), seen=grpReason[k]||(grpReason[k]=[]);
     outReason(r).split('；').forEach(function(t){ if(seen.indexOf(t)<0)seen.push(t); }); });
   au.results.forEach(function(r){ var keep=keepProblem==='all'||(keepProblem?r.problem:!r.problem), anyMsg=r.rows.some(function(rw){return rw.msgs.length;});
