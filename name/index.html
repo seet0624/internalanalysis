@@ -1452,17 +1452,17 @@ function relWord(d,key){ if(!key)return ''; var SKIP=/名正言[顺順]|新名|�
 function isNewName(d,nm){ var re=new RegExp('(?:名正言[顺順]|新名|改名|更名)\\s*[\\uff1a:]?\\s*'+nm); return [d.father,d.mother,d.sib,d.kids].some(function(t){ return re.test(String(t||'')); }); }
 function whoOf(h,d){ var m=h.member, o;
   if(m==='父亲'||m==='母亲')return {who:m,isNew:isNewName(d,h.full)};
-  if((o=m.match(/^关联订单\s*(\S+)\s*的新名$/)))return {who:relWord(d,o[1])||('订单 '+o[1]),isNew:true};
-  if((o=m.match(/^关联学员「([^」]*)」\(([^)]*)\)$/)))return {who:relWord(d,o[2])||relWord(d,o[1])||o[1],isNew:true};
-  if((o=m.match(/^双胞胎「([^」]*)」$/)))return {who:relWord(d,shortName(o[1]))||('双胞胎'+shortName(o[1])),isNew:true};
-  if((o=m.match(/^同色家人「([^」]*)」$/)))return {who:relWord(d,shortName(o[1]))||shortName(o[1]),isNew:true};
-  if((o=m.match(/^(.+?)「([^」]*)」(?:同一批的|以前的)订单/)))return {who:({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]!=null?({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]||relWord(d,o[2])||o[2]):(relWord(d,o[2])||o[2])),isNew:true};
-  return {who:relWord(d,h.full)||(m==='备注提到'?'备注里提到的人':m),isNew:isNewName(d,h.full)}; }
+  if((o=m.match(/^关联订单\s*(\S+)\s*的新名$/)))return {who:relWord(d,o[1]),isNew:true};
+  if((o=m.match(/^关联学员「([^」]*)」\(([^)]*)\)$/)))return {who:relWord(d,o[2])||relWord(d,o[1]),isNew:true};
+  if((o=m.match(/^双胞胎「([^」]*)」$/)))return {who:relWord(d,shortName(o[1]))||'双胞胎',isNew:true};
+  if((o=m.match(/^同色家人「([^」]*)」$/)))return {who:relWord(d,shortName(o[1])),isNew:true};
+  if((o=m.match(/^(.+?)「([^」]*)」(?:同一批的|以前的)订单/)))return {who:({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]!=null?({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]||relWord(d,o[2])):(relWord(d,o[2])||o[1])),isNew:true};
+  return {who:relWord(d,h.full)||(m==='备注提到'?'':m),isNew:isNewName(d,h.full)}; } // 判断不出关系就回空，outReason 写兄弟姐妹
 function outReason(r){ var out=[];
   r.rows.forEach(function(rw){ var g=Array.from(rw.given), d=rw.detail||{};
     rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var ch=g[h.ni-1]||h.fc, w=whoOf(h,d);
       // 完整但不长：新下来的名字（段冠宏）和弟弟新下来的名字（段冠羽）撞同一个字「冠」/ …和父亲的名字（赵大明）撞同音字「铭」「明」（míng）
-      var who=w.who; if(!who||/^(家人|家属)$/.test(who)||!(isRelLabel(who)||/^(父亲|母亲|子女|双胞胎)/.test(who)))who='兄弟姐妹'; // 判断不出关系（只有人名、订单号）就写兄弟姐妹
+      var who=/^(家人|家属)$/.test(w.who||'')?'':w.who; who=who||'兄弟姐妹'; // 判断不出关系（只有人名、订单号）就写兄弟姐妹
       var head='新下来的名字（'+rw.neu+'）和'+who+(w.isNew?'新下来的名字':'的名字')+'（'+h.full+'）';
       if(h.kind==='撞字')out.push(head+'撞同一个字「'+ch+'」');
       else { var t=rw.tones[h.ni-1]||{}; out.push(head+'撞同音字「'+ch+'」「'+h.fc+'」（'+addTone(t.syl||'',toneOf(h.fc))+'）'); } });
