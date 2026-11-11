@@ -1461,10 +1461,10 @@ function whoOf(h,d){ var m=h.member, o;
 function outReason(r){ var out=[];
   r.rows.forEach(function(rw){ var g=Array.from(rw.given), d=rw.detail||{};
     rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var ch=g[h.ni-1]||h.fc, w=whoOf(h,d);
-      // 短句、讲重点：「段冠宏」与弟弟新名「段冠羽」撞「冠」字 /「孙孟洺」与爱人「段如明」撞音（洺/明 míng）
-      var head='「'+rw.neu+'」与'+(w.who||'家人')+(w.isNew?'新名':'')+'「'+h.full+'」';
-      if(h.kind==='撞字')out.push(head+'撞「'+ch+'」字');
-      else { var t=rw.tones[h.ni-1]||{}; out.push(head+'撞音（'+ch+'/'+h.fc+' '+addTone(t.syl||'',toneOf(h.fc))+'）'); } });
+      // 完整但不长：新下来的名字（段冠宏）和弟弟新下来的名字（段冠羽）撞同一个字「冠」/ …和父亲的名字（赵大明）撞同音字「铭」「明」（míng）
+      var head='新下来的名字（'+rw.neu+'）和'+(w.who||'家人')+(w.isNew?'新下来的名字':'的名字')+'（'+h.full+'）';
+      if(h.kind==='撞字')out.push(head+'撞同一个字「'+ch+'」');
+      else { var t=rw.tones[h.ni-1]||{}; out.push(head+'撞同音字「'+ch+'」「'+h.fc+'」（'+addTone(t.syl||'',toneOf(h.fc))+'）'); } });
     rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m))out.push(cleanMsg(m).replace(/[，,]?\s*请人工检查这单状态再决定$/,'')); }); });
   var seen={}; out=out.filter(function(t){ if(seen[t])return false; seen[t]=1; return true; });
   return out.length?out.join('；'):'名字需要重新调整'; } // 只写撞到的、真正的问题；提醒类（请确认、请人工看）不写进给出去的文件
@@ -1649,7 +1649,7 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
   if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem)return; var k=grpKey(r), seen=grpReason[k]||(grpReason[k]=[]);
     outReason(r).split('；').forEach(function(t){ var k=pairKey(t); if(seen.indexOf(t)<0&&!(k&&seen.some(function(o){ return pairKey(o)===k; })))seen.push(t); }); });
   // 「A 跟哥哥 B 撞字」和「B 跟弟弟 A 撞字」是同一件事，同一单只写一次
-  function pairKey(t){ var m=/^「([^」]+)」与[^「]*「([^」]+)」(撞.*)$/.exec(t); return m?[m[1],m[2]].sort().join('|')+(m[3].match(/\p{Script=Han}/gu)||[]).sort().join(''):''; }
+  function pairKey(t){ var m=/^新下来的名字（([^）]+)）和[^（]*（([^）]+)）(撞.*)$/.exec(t); return m?[m[1],m[2]].sort().join('|')+(m[3].match(/\p{Script=Han}/gu)||[]).sort().join(''):''; }
   au.results.forEach(function(r){ var keep=keepProblem==='all'||(keepProblem?r.problem:!r.problem), anyMsg=r.rows.some(function(rw){return rw.msgs.length;});
     r.rows.forEach(function(rw){ if(!keep){ delRows.push(rw.row+1); return; } if(keepProblem!==true)return; var bad=!anyMsg||rw.msgs.length>0||(rw.hits||[]).length>0||rw.warns.some(function(w){ return /撞|禁忌|不要的读音/.test(w); }); // 人工判有问题（没有机器原因）就每行都写
       reasonByRow[rw.row+1]={bad:bad, t:grpReason[grpKey(r)].join('；')}; }); });
@@ -1825,7 +1825,7 @@ var CHANGELOG=[
     '称呼照备注写（例：弟弟），「兄弟姐妹名字：」这种笼统的标题不当称呼',
     '文件里看不见的排版字符会先拿掉：「名字」不再被当成人名、「字」不再被当成称呼',
     '「子女名字：」的「子女」不当成人名；「爷爷奶奶：」认得是称呼',
-    '原因改成短句：「段冠宏」与弟弟新名「段冠羽」撞「冠」字；「赵子铭」与父亲「赵大明」撞音（铭/明 míng）']},
+    '原因写完整但不长：新下来的名字（段冠宏）和弟弟新下来的名字（段冠羽）撞同一个字「冠」']},
   {date:'2026-11-11', title:'有问题 Excel：原因格拉宽、同订单同原因', items:[
     '不再写表头「审核原因」',
     '原因格拉宽，字多会自动加高，整句看得到',
