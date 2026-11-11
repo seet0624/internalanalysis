@@ -558,7 +558,8 @@
     // 新生儿 files never carry a student name (it is only 姓 + 新生儿), and a plain one never （特殊加急）:
     // 新生儿名正言顺技术单 19.10.2026（1）H / 新生儿名正言顺技术单（有问题）19.10.2026（1）H
     if (newborn) { person = ''; if (!problem) urgent = false; }
-    var tags = (urgent ? '（特殊加急）' : '') + (problem ? '（有问题）' : '');
+    // 单独发: 李小明天祥手表技术单（单独发）6.11.2026（1） / 林欣沂名正言顺技术单（特殊加急）（单独发）…
+    var tags = (urgent ? '（特殊加急）' : '') + (solo ? '（单独发）' : '') + (problem ? '（有问题）' : '');
     return (newborn ? '新生儿' : '') + ((urgent || problem || solo) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
       '（' + count + '）' + (overseas ? 'H' : '') + '.xlsx';
   }
