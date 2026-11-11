@@ -72,6 +72,24 @@ const CASES = require('./naming-cases.json');
     return parsedFiles[0].audit.results.map(r => r.rows[0].neu + ':' + r.rows[0].warns.filter(m => /技术单拼音/.test(m)).length).join(' ');
   });
   ok(sur === '曾子涵:0 单子涵:0 尉迟子涵:0 朴子涵:0 赵子涵:1', '姓的特别读音不该报错、赵 写 zǎo 要报，实际 ' + sur);
+  // 有问题文件的原因：看不见的排版字符（名\u202c字）不能让「名字」变人名、「字」变称呼；不写「人工」
+  const inv = await p.evaluate(async () => {
+    const H = ['序号','订单编号','新名字姓氏','使用人姓名','父亲名字','母亲名字','兄弟姐妹','子女','禁忌字','新名','新名拼音','名册展示','备注'];
+    const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('命名'); ws.addRow(H);
+    ws.addRow(['1', 'T0000000000021', '孙', '孙甲', '无', '无', '兄弟姐妹名\u202c字：孙乙，爱人\u202c名字：段丙', '无', '无', '孙孟洺', 'mèng míng', '', '']);
+    ws.addRow(['2', 'T0000000000022', '段', '段丙', '无', '无', '兄弟姐妹名\u202c字：段丁，段戊', '无', '无', '段冠宏', 'guàn hóng', '', '弟弟：段戊']);
+    ws.addRow(['3', 'T0000000000022', '段', '段戊', '无', '无', '兄弟姐妹名\u202c字：段丙', '无', '无', '段冠羽', 'guàn yǔ', '', '']);
+    [3, 4].forEach(r => [1, 4].forEach(c => { ws.getRow(r).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } }; })); // 段丙、段戊涂同色 = 一家人
+    const buf = await wb.xlsx.writeBuffer(); parsedFiles.length = 0;
+    await loadWithBuffers([{ name: '看不见字符 2026-10-01.xlsx', arrayBuffer: async () => buf }]);
+    const rs = parsedFiles[0].audit.results, bw = (await buildSplitWorkbook(parsedFiles[0], true)).worksheets[0];
+    const once = [2, 3].map(r => bw.getRow(r).getCell(14).value);
+    return { once, sun: rs[0].problem, duan: outReason(rs[1]), manual: outReason({ rows: [{ given: '甲', hits: [], msgs: [], warns: ['【备注提到 朋友/避免/同名，可能有别姓的人要避开，请人工看】'], detail: {} }] }) };
+  });
+  ok(inv.sun === false, '「爱人\u202c名字」里的「名字」不是人名，孙孟洺不该有问题');
+  ok(/跟弟弟新下来的名字（段冠羽）/.test(inv.duan), '称呼要写「弟弟」（备注写的），不能写「字」或「姐妹」，实际 ' + inv.duan);
+  ok(inv.once[0] === inv.once[1] && (String(inv.once[0]).match(/撞同一个字/g) || []).length === 1, '同一单兄弟互撞只写一次，实际 ' + JSON.stringify(inv.once));
+  ok(!/人工|人手/.test(inv.manual), '有问题文件的原因不能写「人工」，实际 ' + inv.manual);
   ok(JSON.stringify(e2e.py) === JSON.stringify({ 王山林: 0, 王晓云: 0, 李沐阳: 0, 李若溪: 1, 赵景行: 0, 赵知远: 1 }), '拼音提醒：字母不对（溪 nǐ、姓赵 zǎo）才提醒，声调不同不提醒，实际 ' + JSON.stringify(e2e.py));
   ok(e2e.lv === 'lv', 'lǚ 应该当成 lv（字库用 v），实际 ' + e2e.lv);
   ok(/拼音写错：「我」写 ni/.test(e2e.sb), '试改名字：我 写 nǐ 应该提醒，实际 ' + e2e.sb);
