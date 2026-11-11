@@ -306,7 +306,7 @@ tr.on td{background:var(--sel)}
 if (!window.ExcelJS) document.write('<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>');
 if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
 </script>
-<script src="review-engine.js?v=ef5ebf4872"></script>
+<script src="review-engine.js?v=547741d7be"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -898,7 +898,14 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     return '<details class="card file" data-file="' + esc(key) + '"' + (open ? ' open' : '') + '><summary><span class="t"><b>' + esc(r.tool) + '</b><span class="small">' + r.orders.length + ' 单 → ' + r.outputs.length + ' 个文件' +
       (r.footer ? ' · 回传 ' + esc(r.footer.back) : '') + '</span></span>' +
       (td ? '<span class="tag crit">' + td + ' 件待决定</span>' : r.orders.some(function (o) { return o.problem || o.urgent || o.newborn; }) ? '<span class="tag plain">已处理</span>' : '<span class="tag ok">全部没问题</span>') + '</summary>' +
-      orderTable(rows, false) + '</details>';
+      (rows.length > 1 ? soloAllBar(rows, ri) : '') + orderTable(rows, false) + '</details>';
+  }
+  // 一份表合了好几单、其实每单都要单独发给专家：一按全部分开
+  function soloAllBar(rows, ri) {
+    var all = rows.every(function (it) { return it.o.solo; });
+    return '<div class="acts" style="padding:8px 14px;gap:8px;align-items:center"><button type="button" class="btn small" data-soloall="' + ri + '" aria-pressed="' + all + '">' +
+      (all ? '取消：放回合在一起' : '这个文件每单都单独发（' + rows.length + ' 个文件）') + '</button>' +
+      '<span class="small">' + (all ? '现在每单自己一个文件，文件名开头写（单独发）和学员名' : '每单自己一个文件，文件名开头写（单独发）和学员名，发给专家时就不会合在一起') + '</span></div>';
   }
   function orderTable(rows, showTool) {
     return '<div class="tbl"><table><thead><tr><th scope="col">序号</th><th scope="col">使用人</th><th scope="col">状态</th><th scope="col">标红 / 提醒</th><th scope="col"><span class="vh">操作</span></th></tr></thead><tbody>' +
@@ -1013,7 +1020,14 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   // ---------- actions ----------
   async function buildZip(outs, name) {
     var zip = new JSZip();
-    outs.forEach(function (o) { zip.file(o.name, o.buffer); });
+    // two files with the same name (e.g. two 新生儿 单独发) must both stay in the zip
+    var used = {};
+    outs.forEach(function (o) {
+      var n = o.name, i = 2;
+      while (used[n]) n = o.name.replace(/(\.[^.]*)?$/, '-' + i++ + '$1');
+      used[n] = true;
+      zip.file(n, o.buffer);
+    });
     return save(name, await zip.generateAsync({ type: 'blob' }));
   }
   async function downloadAll() {
@@ -1108,6 +1122,17 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (d.undo) { delete state.edits[d.undo]; run(); return; }
     if (d.unred) { delete state.reds[d.unred]; run(); return; }
     if (d.mark) { state.problems[d.mark] = b.getAttribute('aria-pressed') !== 'true'; run(); return; }
+    if (d.soloall != null) {
+      var sr = state.results[+d.soloall], on2 = b.getAttribute('aria-pressed') !== 'true';
+      sr.orders.forEach(function (o) { var k = sr.name + '|' + o.key; if (on2) state.solos[k] = true; else delete state.solos[k]; });
+      var sn = sr.name;
+      run().then(function (ok) {
+        if (!ok) return;
+        var nr = (state.results || []).filter(function (r) { return r.name === sn; })[0], np = nr ? nr.orders.filter(function (o) { return o.problem; }).length : 0;
+        toast(!on2 ? '已放回合在一起' : '这个文件每单都分开了，每单一个文件' + (np ? '（' + np + ' 单有问题，先留在有问题文件）' : ''));
+      });
+      return;
+    }
     if (d.solo) {
       var so = b.getAttribute('aria-pressed') !== 'true';
       if (so) state.solos[d.solo] = true; else delete state.solos[d.solo];

@@ -485,7 +485,7 @@
   function toolName(fileName) {
     var base = String(fileName).replace(/\.xlsx$/i, '');
     var m = base.match(/^(.*?)技术单/);
-    return (m ? m[1] : base.split(/\s/)[0]).replace(/^新生儿/, '').replace(/[（(](男款|女款|男女款)[）)]/g, '');
+    return (m ? m[1] : base.split(/\s/)[0]).replace(/^（单独发）/, '').replace(/^新生儿/, '').replace(/[（(](男款|女款|男女款)[）)]/g, '');
   }
 
   // --- subset files: keep only some data rows, pack them up, pull the footer up, keep merges intact ---
@@ -558,8 +558,9 @@
     // 新生儿 files never carry a student name (it is only 姓 + 新生儿), and a plain one never （特殊加急）:
     // 新生儿名正言顺技术单 19.10.2026（1）H / 新生儿名正言顺技术单（有问题）19.10.2026（1）H
     if (newborn) { person = ''; if (!problem) urgent = false; }
+    // 单独发 goes in front: （单独发）李小明天祥手表技术单 6.11.2026（1） / （单独发）林欣沂名正言顺技术单（特殊加急）…
     var tags = (urgent ? '（特殊加急）' : '') + (problem ? '（有问题）' : '');
-    return (newborn ? '新生儿' : '') + ((urgent || problem || solo) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
+    return (solo ? '（单独发）' : '') + (newborn ? '新生儿' : '') + ((urgent || problem || solo) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
       '（' + count + '）' + (overseas ? 'H' : '') + '.xlsx';
   }
 

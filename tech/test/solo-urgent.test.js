@@ -23,11 +23,11 @@ const two = () => [
 ];
 const names = (r) => r.outputs.map((o) => o.name).sort();
 
-test('单独发：这一单自己一个文件，文件名写学员名，不写特殊加急', async () => {
+test('单独发：这一单自己一个文件，文件名开头写（单独发）再写学员名，不写特殊加急', async () => {
   const rows = two();
   const f = await sheet(NAME, rows);
   const [r] = await E.processFiles([f], { solos: { [NAME + '|' + rows[1].订单编号]: true } });
-  assert.deepStrictEqual(names(r), ['天祥手表技术单 6.11.2026（1）.xlsx', '李小明天祥手表技术单 6.11.2026（1）.xlsx']);
+  assert.deepStrictEqual(names(r), ['天祥手表技术单 6.11.2026（1）.xlsx', '（单独发）李小明天祥手表技术单 6.11.2026（1）.xlsx']);
   const solo = r.outputs.find((o) => o.solo);
   assert.ok(solo && !solo.urgent && !solo.problem);
 });
@@ -45,3 +45,13 @@ for (const [note, urgent] of [['客户要求加急', true], ['急件', true], ['
     assert.deepStrictEqual(names(r), [urgent ? '王一一天祥手表技术单（特殊加急）6.11.2026（1）.xlsx' : '天祥手表技术单 6.11.2026（1）.xlsx']);
   });
 }
+
+test('整个文件每单都单独发：两单加急原本合成一个，分开后每单一个、写学员名', async () => {
+  const rows = two().map((r) => ({ ...r, 备注: '请加急' }));
+  const f = await sheet(NAME, rows);
+  const [merged] = await E.processFiles([f], {});
+  assert.deepStrictEqual(names(merged), ['天祥手表技术单（特殊加急）6.11.2026（2）.xlsx']);
+  const solos = Object.fromEntries(rows.map((r) => [NAME + '|' + r.订单编号, true]));
+  const [split] = await E.processFiles([f], { solos });
+  assert.deepStrictEqual(names(split), ['（单独发）李小明天祥手表技术单（特殊加急）6.11.2026（1）.xlsx', '（单独发）陈大文天祥手表技术单（特殊加急）6.11.2026（1）.xlsx']);
+});
