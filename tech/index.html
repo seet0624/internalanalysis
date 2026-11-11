@@ -179,6 +179,13 @@ th:last-child,td:last-child{padding-right:18px;text-align:right}
 tr.on td{background:var(--sel)}
 .who-cell{display:flex;align-items:center;gap:8px;font-weight:700}
 .who-cell small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.who-cell>span:last-child{white-space:nowrap}
+/* 加急 / 单独发：开着有颜色和 ✓，关着是虚线框；字不变，看颜色就知道 */
+.chip-tg{display:inline-flex;align-items:center;justify-content:center;min-width:6.2em;min-height:32px;padding:0 10px;border-radius:999px;border:1px dashed var(--line);background:transparent;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.chip-tg:hover{border-style:solid;color:var(--ink)}
+.chip-tg[aria-pressed="true"]{border-style:solid;font-weight:700}
+.chip-tg.urg[aria-pressed="true"]{background:var(--warn-bg);border-color:var(--orange);color:var(--orange)}
+.chip-tg.solo[aria-pressed="true"]{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
 .sw{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.18);display:inline-block}
 .st-crit{color:var(--crit);font-weight:500}.st-orange{color:var(--orange);font-weight:500}.st-blue{color:var(--blue);font-weight:500}.st-ok{color:var(--ok);font-weight:500}
 .mini{display:flex;flex-wrap:wrap;gap:4px}
@@ -915,12 +922,12 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
         var uniq = tags.filter(function (x, i) { return tags.indexOf(x) === i; });
         return '<tr' + (state.sel === it.mk ? ' class="on"' : '') + '><td>' + esc(o.seq) + '</td>' +
           '<td><span class="who-cell">' + (fg ? '<span class="sw" style="background:' + fg.group.css + '" title="家人第' + fg.group.n + '组"></span>' : '') + '<span>' + esc(o.person) + (showTool ? '<small>' + esc(it.r.tool) + '</small>' : '') + '</span></span></td>' +
-          '<td><span class="st-' + st.c + '">' + st.t + '</span>' + (o.solo ? '<span class="small"> · 单独发</span>' : '') + (fg ? '<span class="small"> · 家人第' + fg.group.n + '组</span>' : '') + '</td>' +
+          '<td><span class="st-' + st.c + '">' + st.t + '</span>' + (fg ? '<span class="small"> · 家人第' + fg.group.n + '组</span>' : '') + '</td>' +
           '<td>' + (uniq.length ? '<span class="mini">' + uniq.slice(0, 4).join('') + (uniq.length > 4 ? '<span>+' + (uniq.length - 4) + '</span>' : '') + '</span>' : '<span class="small">—</span>') + '</td>' +
           '<td><span class="acts" style="gap:6px;flex-wrap:nowrap;justify-content:flex-end">' +
           // 加急 / 不加急 right in the list, same switch as the detail panel (新生儿 always stay in the 新生儿 file)
-          (o.newborn ? '' : '<button type="button" class="btn small urg" data-urg="' + esc(it.mk) + '" data-auto="' + (o.autoUrgent ? 1 : 0) + '" aria-pressed="' + !!o.urgent + '" aria-label="' + esc(o.person) + (o.urgent ? ' 不加急' : ' 加急') + '">' + (o.urgent ? '不加急' : '加急') + '</button>') +
-          '<button type="button" class="btn small" data-solo="' + esc(it.mk) + '" aria-pressed="' + !!o.solo + '" aria-label="' + esc(o.person) + (o.solo ? ' 取消单独发' : ' 单独发') + '">' + (o.solo ? '取消单独发' : '单独发') + '</button>' +
+          (o.newborn ? '' : '<button type="button" class="chip-tg urg" data-urg="' + esc(it.mk) + '" data-auto="' + (o.autoUrgent ? 1 : 0) + '" aria-pressed="' + !!o.urgent + '" aria-label="' + esc(o.person) + ' 加急" title="' + (o.urgent ? '现在是特殊加急，按一下放回普通文件' : '按一下设为特殊加急') + '">' + (o.urgent ? '✓ ' : '') + '加急</button>') +
+          '<button type="button" class="chip-tg solo" data-solo="' + esc(it.mk) + '" aria-pressed="' + !!o.solo + '" aria-label="' + esc(o.person) + ' 单独发" title="' + (o.solo ? '现在自己一个文件，按一下放回' : '按一下让这一单自己一个文件') + '">' + (o.solo ? '✓ ' : '') + '单独发</button>' +
           '<button type="button" class="btn small" data-open="' + esc(it.mk) + '">' + (state.sel === it.mk ? '正在看' : '打开') + '</button></span></td></tr>';
       }).join('') + '</tbody></table></div>';
   }
@@ -1142,7 +1149,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
         var it = findItem(sm);
         // 有问题 still wins: the order waits in the 有问题 file until it is cleared
         if (so && it && it.o.problem) toast('已标单独发，但这一单现在是「有问题」，先留在有问题文件；问清楚、取消有问题后才会单独发');
-        else toast(so ? '这一单会自己一个文件，下载页在「单独发」' : '已取消单独发，放回原来的文件');
+        else toast(so ? '这一单会自己一个文件，下载页在「' + (it && it.o.urgent ? '特殊加急' : '单独发') + '」' : '已取消单独发，放回原来的文件');
       });
       return;
     }
