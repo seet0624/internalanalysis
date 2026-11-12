@@ -103,9 +103,8 @@ p{margin:0}
 .drop{position:relative;border:2px dashed var(--field);border-radius:20px;background:var(--surface);padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;cursor:pointer}
 .drop.over{border-color:var(--accent);background:var(--accent-soft)}
 .drop input{position:absolute;width:1px;height:1px;opacity:0}
-.drop .ico{width:72px;height:72px;border-radius:20px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent)}
 .drop .big{font-size:20px;font-weight:700}
-.drop .fake{display:inline-flex;align-items:center;min-height:48px;padding:0 28px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:16px}
+.drop .fake{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 28px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:16px}
 .loaded{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
 .loaded ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
 .loaded li{font-size:13px;padding:2px 10px;border-radius:999px;background:var(--sunk);color:var(--muted);overflow-wrap:anywhere}
@@ -125,8 +124,9 @@ details[open]>summary::before{transform:rotate(45deg)}
 ol.rules{margin:8px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:6px;font-size:14px}
 ol.rules b.red{color:var(--crit)}
 .feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:16px}
-.feat{display:flex;gap:12px;align-items:flex-start}
-.feat .ic{flex:none;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.feat{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:16px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 18px -10px rgba(110,75,18,.25)}
+.feat .ic{flex:none;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+.feat .ic svg{width:22px;height:22px}
 .feat b{display:block}
 
 /* review = 工作台 */
@@ -829,8 +829,12 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (!hasRes) h += '<section class="g-hero"><h2>技术单审核</h2><p>把今天的技术单拖进来：自动标红字、列出要你决定的事、分好文件再下载</p></section>';
     if (hasRes) h += '<section class="card pad loaded"><div style="min-width:0"><b>已上传 ' + state.inputs.length + ' 个技术单</b><ul>' + state.inputs.map(function (f) { return '<li>' + esc(f.name) + '</li>'; }).join('') + '</ul></div>' +
       '<div class="acts"><button type="button" class="btn" data-reset>清空重来</button><button type="button" class="btn primary" data-view="review" data-filter="todo">回工作台</button></div></section>';
-    h += '<label class="drop" id="drop"><span class="ico">' + ICON.up + '</span><span class="big">' + (hasRes ? '再拖文件进来（会合在一起审核）' : '拖文件到这里') + '</span><span class="small">或者</span>' +
-      '<span class="fake">选择文件</span><input id="pick" type="file" multiple accept=".xlsx,.zip"><span class="small">名册展示写了简体 / 繁体就是海外单；没有名册展示这一栏才看文件名有没有 H</span></label>';
+    h += '<label class="drop g-drop" id="drop"><img class="g-drop-art" src="../hq/brand/upload-art.svg" alt="" width="250" height="183"><span class="g-drop-txt">' +
+      '<span class="big">' + (hasRes ? '再拖文件进来（会合在一起审核）' : '把今天的技术单拖进来') + '</span>' +
+      '<span class="small">可以一次放多个 .xlsx、或者整包 .zip。所有处理都会在你的电脑里完成，不会上传到网上。</span>' +
+      '<span class="fake g-btn3d">' + ICON.up + '选择文件</span>' +
+      '<span class="small g-tip">名册展示写了简体 / 繁体就是海外单；没有名册展示这一栏才看文件名有没有 H</span></span>' +
+      '<input id="pick" type="file" multiple accept=".xlsx,.zip"></label>';
     h += settingsCard();
     if (!hasRes) h += '<section class="feats" aria-label="会做什么">' +
       feat('var(--crit-bg)', '<path d="M4 20h4l10-10-4-4L4 16v4z" fill="none" stroke="var(--crit)" stroke-width="1.8" stroke-linejoin="round"/>', '自动标红字', '子时、家人姓名、加急、起名要求……只改字体颜色，不动格式') +

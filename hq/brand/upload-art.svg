@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 190" width="260" height="190" role="img" aria-label="上传文件">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFBF2"/><stop offset="1" stop-color="#EBDDC2"/></linearGradient>
+    <linearGradient id="paper2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F6EBD6"/><stop offset="1" stop-color="#DCC8A3"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F1CC80"/><stop offset=".55" stop-color="#C9963F"/><stop offset="1" stop-color="#9A6B22"/></linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3DBB72"/><stop offset="1" stop-color="#14783F"/></linearGradient>
+    <linearGradient id="zip" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD36B"/><stop offset="1" stop-color="#E59A1C"/></linearGradient>
+    <radialGradient id="puff" cx=".45" cy=".35" r=".7"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F1E6D2"/></radialGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#8A6424" flood-opacity=".22"/></filter>
+    <filter id="sh2" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#5A3E10" flood-opacity=".25"/></filter>
+  </defs>
+  <!-- 底下的软云 -->
+  <g fill="url(#puff)" filter="url(#sh)">
+    <ellipse cx="70" cy="160" rx="46" ry="18"/><ellipse cx="190" cy="162" rx="48" ry="17"/><ellipse cx="130" cy="166" rx="70" ry="16"/>
+    <circle cx="52" cy="148" r="16"/><circle cx="208" cy="150" r="15"/>
+  </g>
+  <!-- 后面的文件 -->
+  <g transform="rotate(-9 120 80)" filter="url(#sh)">
+    <path d="M86 22h52l18 18v86a8 8 0 0 1-8 8H86a8 8 0 0 1-8-8V30a8 8 0 0 1 8-8z" fill="url(#paper2)"/>
+  </g>
+  <!-- 前面的文件 -->
+  <g transform="rotate(7 140 80)" filter="url(#sh)">
+    <path d="M110 18h56l20 20v92a8 8 0 0 1-8 8h-68a8 8 0 0 1-8-8V26a8 8 0 0 1 8-8z" fill="url(#paper)"/>
+    <path d="M166 18v14a6 6 0 0 0 6 6h14z" fill="#E2CFAA"/>
+    <g stroke="#D9C49C" stroke-width="4" stroke-linecap="round"><path d="M118 52h40M118 64h52M118 76h46"/></g>
+  </g>
+  <!-- 金色云 + 上传箭头 -->
+  <g filter="url(#sh)">
+    <path d="M92 150a24 24 0 0 1-2-48 32 32 0 0 1 61-10 26 26 0 0 1 33 25 17 17 0 0 1-3 33z" fill="url(#gold)"/>
+    <path d="M100 112a24 24 0 0 1 22-20" stroke="#FFF1C9" stroke-width="4" stroke-linecap="round" fill="none" opacity=".6"/>
+    <path d="M136 141v-30m0 0l-13 13m13-13l13 13" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  <!-- 左上：绿色表格文件 -->
+  <g transform="rotate(-8 40 52)" filter="url(#sh2)">
+    <rect x="22" y="34" width="38" height="38" rx="9" fill="url(#green)"/>
+    <g stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" opacity=".95"><path d="M31 45h20M31 53h20M31 61h20M41 43v20"/></g>
+  </g>
+  <!-- 左下：小文件 -->
+  <g transform="rotate(-12 44 122)" filter="url(#sh2)">
+    <path d="M32 104h18l8 8v24a4 4 0 0 1-4 4H32a4 4 0 0 1-4-4v-28a4 4 0 0 1 4-4z" fill="url(#paper2)"/>
+    <g stroke="#CDB68C" stroke-width="2.4" stroke-linecap="round"><path d="M34 118h16M34 126h12"/></g>
+  </g>
+  <!-- 右下：ZIP -->
+  <g transform="rotate(10 214 124)" filter="url(#sh2)">
+    <rect x="196" y="108" width="40" height="32" rx="8" fill="url(#zip)"/>
+    <text x="216" y="130" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="800" fill="#FFFFFF">ZIP</text>
+  </g>
+</svg>

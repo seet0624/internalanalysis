@@ -35,3 +35,21 @@
 .g-hero h1,.g-hero h2{font-family:'Noto Serif SC','Songti SC','SimSun',serif;font-size:30px;font-weight:700;letter-spacing:2px;color:#2B2620}
 .g-hero p{max-width:30em;font-size:14px;color:#5E5546}
 @media (max-width:600px){.g-hero{padding:22px 20px;min-height:120px}.g-hero::before{background:linear-gradient(90deg,rgba(246,241,231,.95) 55%,rgba(246,241,231,.55))}.g-hero h1,.g-hero h2{font-size:24px}}
+
+/* 上传卡：左边插图、右边说明和按钮（截图的设计） */
+.g-drop{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;text-align:left;gap:clamp(16px,4vw,44px);padding:clamp(20px,3vw,32px) clamp(20px,4vw,48px);border:1.5px dashed #D9C39A}
+.g-drop-art{flex:none;width:clamp(170px,22vw,250px);height:auto}
+.g-drop-txt{display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0}
+.g-drop-txt h2,.g-drop-txt .big{margin:0;font-size:clamp(20px,2vw,26px);font-weight:700}
+.g-tip{display:flex;align-items:flex-start;gap:6px}
+.g-tip::before{content:"i";flex:none;display:inline-grid;place-items:center;width:16px;height:16px;margin-top:2px;border-radius:50%;background:#B8873A;color:#FFFFFF;font:700 11px/1 Georgia,serif}
+@media (max-width:640px){.g-drop{flex-direction:column;text-align:center}.g-drop-txt{align-items:center}.g-tip{text-align:left}}
+
+/* 3D 金色主按钮：上亮下暗、底下一条厚边，按下去会沉 */
+.btn.primary,.btn.pri,.g-btn3d{background:linear-gradient(180deg,#D3A456 0%,#9E6E25 48%,#85591A 100%);color:#FFFFFF;border:1px solid #7A5418;
+  box-shadow:inset 0 1px 0 rgba(255,241,201,.65),inset 0 -2px 0 rgba(0,0,0,.18),0 3px 0 #6E4B12,0 8px 18px -6px rgba(110,75,18,.55);
+  text-shadow:0 1px 1px rgba(0,0,0,.3);transition:transform .08s,box-shadow .08s,filter .15s}
+.btn.primary:hover,.btn.pri:hover,.g-btn3d:hover{background:linear-gradient(180deg,#DDB065 0%,#A87628 48%,#8C5E1C 100%);color:#FFFFFF;border-color:#7A5418;filter:none;transform:translateY(-1px)}
+.btn.primary:active,.btn.pri:active,.g-btn3d:active,label:active>.g-drop-txt .g-btn3d{transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #6E4B12,0 2px 6px -2px rgba(110,75,18,.4)}
+.btn.primary[disabled],.btn.pri:disabled{transform:none}
+.g-btn3d svg{width:20px;height:20px;flex:none}
