@@ -1461,15 +1461,17 @@ function whoOf(h,d){ var m=h.member, o;
   if((o=m.match(/^(.+?)「([^」]*)」(?:同一批的|以前的)订单/)))return {who:({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]!=null?({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]||relWord(d,o[2])):(relWord(d,o[2])||o[1])),isNew:true};
   return {who:relWord(d,h.full)||(m==='备注提到'?'':m),isNew:isNewName(d,h.full)}; } // 判断不出关系就回空，outReason 写兄弟姐妹
 function outReason(r){ var out=[];
-  r.rows.forEach(function(rw){ var g=Array.from(rw.given), d=rw.detail||{}, tails=[], fams={};
+  r.rows.forEach(function(rw){ var g=Array.from(rw.given), d=rw.detail||{}, famOrder=[], byFam={};
     // 一个新名写一句，撞字撞音合起来：新下来的名字（王籽寓）和弟弟的名字（王子鸿）、妹妹的名字（王子娴）撞同音字「籽」「子」（zǐ），和父亲的名字（…）撞同一个字「…」
     rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var ch=g[h.ni-1]||h.fc, w=whoOf(h,d), tail;
       var who=/^(家人|家属)$/.test(w.who||'')?'':w.who; who=who||'兄弟姐妹'; // 判断不出关系（只有人名、订单号）就写兄弟姐妹
       if(h.kind==='撞字')tail='撞同一个字「'+ch+'」';
       else { var t=rw.tones[h.ni-1]||{}, tp=tonePair(ch,h.fc), pa=addTone(t.syl||'',tp[0]), pb=addTone(t.syl||'',tp[1]); tail='撞同音字「'+ch+'」「'+h.fc+'」（'+(pa===pb?pa:pa+' / '+pb)+'）'; }
       var fam=who+(w.isNew?'新下来的名字':'的名字')+'（'+h.full+'）';
-      if(!fams[tail]){ fams[tail]=[]; tails.push(tail); } if(fams[tail].indexOf(fam)<0)fams[tail].push(fam); });
-    if(tails.length)out.push('新下来的名字（'+rw.neu+'）'+tails.map(function(tl){ return '和'+fams[tl].join('、')+tl; }).join('，'));
+      if(!byFam[fam]){ byFam[fam]=[]; famOrder.push(fam); } if(byFam[fam].indexOf(tail)<0)byFam[fam].push(tail); });
+    // 同一位家人又撞字又撞音写一次：和弟弟的名字（钱明义）撞同一个字「明」、撞同音字「怡」「义」；撞法一样的家人用「、」并在一起
+    var clauses=[], famsOf={}; famOrder.forEach(function(f){ var k=byFam[f].join('、'); if(!famsOf[k]){ famsOf[k]=[]; clauses.push(k); } famsOf[k].push(f); });
+    if(clauses.length)out.push('新下来的名字（'+rw.neu+'）'+clauses.map(function(k){ return '和'+famsOf[k].join('、')+k; }).join('，'));
     rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m))out.push(cleanMsg(m).replace(/[，,]?\s*请人工检查这单状态再决定$/,'')); }); });
   var seen={}; out=out.filter(function(t){ if(seen[t])return false; seen[t]=1; return true; });
   return out.length?out.join('；'):'名字需要重新调整'; } // 只写撞到的、真正的问题；提醒类（请确认、请人工看）不写进给出去的文件
@@ -1827,7 +1829,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 var CHANGELOG=[
   {date:'2026-11-11', title:'同音就算撞（声调不同也算）', items:[
     '新名跟家人名字同音，声调不同也判有问题、写进有问题文件；每周复查也一样',
-    '一个新名的撞字、撞音合成一句：新下来的名字（钱明怡）和父亲的名字（钱大明）撞同一个字「明」，和弟弟的名字（钱小义）撞同音字「怡」「义」（yí / yì）']},
+    '一个新名的撞字、撞音合成一句：新下来的名字（钱明怡）和父亲的名字（钱大明）撞同一个字「明」，和弟弟的名字（钱小义）撞同音字「怡」「义」（yí / yì）',
+    '同一位家人又撞字又撞音，名字只写一次：和弟弟的名字（钱明义）撞同一个字「明」、撞同音字「怡」「义」']},
   {date:'2026-11-11', title:'有问题 Excel 的原因只写撞到的', items:[
     '原因只写撞字、撞音、禁忌字这类真正的问题；「请确认」「请人工看」这类提醒不写进去',
     '称呼照备注写（例：弟弟），「兄弟姐妹名字：」这种笼统的标题不当称呼',
