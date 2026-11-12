@@ -55,3 +55,27 @@ test('整个文件每单都单独发：两单加急原本合成一个，分开�
   const [split] = await E.processFiles([f], { solos });
   assert.deepStrictEqual(names(split), ['（单独发）李小明天祥手表技术单（特殊加急）6.11.2026（1）.xlsx', '（单独发）陈大文天祥手表技术单（特殊加急）6.11.2026（1）.xlsx']);
 });
+
+// 新生儿：备注写加急照旧留在新生儿文件；老板按了「加急」按钮才另开特殊加急文件（不写学员名）
+const BABY = '名正言顺技术单 12.11.2026（2）.xlsx';
+const babies = () => [
+  { 订单编号: no(), 使用人姓名: '新生儿', 会员姓名: '林大同', 商品标题: '名正言顺命名', 公历生日: '', 备注: '预产期 20.12.2026，请加急' },
+  { 订单编号: no(), 使用人姓名: '宝宝', 会员姓名: '王小明', 商品标题: '名正言顺命名', 公历生日: '' , 备注: '预产期 25.12.2026' }
+];
+test('新生儿备注写加急、没按按钮：两单都在新生儿文件，不写特殊加急', async () => {
+  const [r] = await E.processFiles([await sheet(BABY, babies())], { date: '12.11.2026' });
+  assert.ok(r.orders.every((o) => o.newborn));
+  assert.ok(r.outputs.every((o) => o.newborn && !o.urgent), names(r).join(' / '));
+  assert.strictEqual(r.outputs.length, 1);
+});
+test('新生儿按了加急：这一单另开新生儿特殊加急文件，不写学员名', async () => {
+  const rows = babies();
+  const [r] = await E.processFiles([await sheet(BABY, rows)], { date: '12.11.2026', urgents: { [BABY + '|' + rows[1].订单编号]: true } });
+  const u = r.outputs.find((o) => o.urgent);
+  assert.ok(u, names(r).join(' / '));
+  assert.ok(u.newborn && u.orders === 1);
+  assert.match(u.name, /^新生儿名正言顺(命名)?技术单（特殊加急）/);
+  assert.ok(!/王小明|宝宝/.test(u.name));
+  assert.ok(r.orders.find((o) => o.key === rows[1].订单编号).babyUrgent);
+  assert.strictEqual(r.outputs.filter((o) => !o.urgent).length, 1);
+});

@@ -557,7 +557,8 @@
     // 新生儿 goes in front: 新生儿名正言顺技术单 14.10.2026（1）H
     // 新生儿 files never carry a student name (it is only 姓 + 新生儿), and a plain one never （特殊加急）:
     // 新生儿名正言顺技术单 19.10.2026（1）H / 新生儿名正言顺技术单（有问题）19.10.2026（1）H
-    if (newborn) { person = ''; if (!problem) urgent = false; }
+    // （特殊加急）on a 新生儿 file only when the reviewer pressed 加急 (the grouping already drops 加急 words)
+    if (newborn) person = '';
     // 单独发 goes in front: （单独发）李小明天祥手表技术单 6.11.2026（1） / （单独发）林欣沂名正言顺技术单（特殊加急）…
     var tags = (urgent ? '（特殊加急）' : '') + (problem ? '（有问题）' : '');
     return (solo ? '（单独发）' : '') + (newborn ? '新生儿' : '') + ((urgent || problem || solo) && person ? person : '') + tool + (gender ? '（' + gender + '）' : '') + '技术单' + (tags || ' ') + date +
@@ -1066,11 +1067,13 @@
       // 加急 / 不加急: the reviewer's button (opts.urgents) wins over the 加急 words and dates
       o.autoUrgent = !!o.urgent;
       if (Object.prototype.hasOwnProperty.call(urgs, mk)) o.urgent = !!urgs[mk];
+      // 新生儿: only the reviewer's 加急 button opens a 新生儿（特殊加急）file; 加急 words alone keep it in the 新生儿 file
+      o.babyUrgent = !!(o.newborn && urgs[mk]);
       // 单独发: the reviewer wants this one order in its own file for the expert
       o.solo = !!solos[mk];
     });
     result.orders = orderList.map(function (o) {
-      return { key: o.key, seq: o.seq, person: o.person, title: o.title, flags: o.flags, urgent: o.urgent, autoUrgent: o.autoUrgent, solo: o.solo, gender: o.gender,
+      return { key: o.key, seq: o.seq, person: o.person, title: o.title, flags: o.flags, urgent: o.urgent, autoUrgent: o.autoUrgent, babyUrgent: o.babyUrgent, solo: o.solo, gender: o.gender,
         autoProblem: o.autoProblem, problem: o.problem, newborn: !!o.newborn, family: o.family || null, fields: o.fields || [] };
     });
     result.isWatch = isWatch; result.splitBrand = splitBrand;
@@ -1100,8 +1103,8 @@
     famOrder.forEach(function (o) {
       var tags = [];
       if (o.problem) tags.push('有问题');
-      // 新生儿 (not 有问题) always share one 新生儿 file, urgent or not
-      var babyOnly = o.newborn && !o.problem;
+      // 新生儿 (not 有问题) share one 新生儿 file, urgent words or not — unless the reviewer pressed 加急
+      var babyOnly = o.newborn && !o.problem && !o.babyUrgent;
       if (o.urgent && !babyOnly) tags.push('加急');
       if (o.newborn) tags.push('新生儿');
       var sb = brandSplit(multi ? o.product : tool);
