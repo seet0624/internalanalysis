@@ -182,7 +182,7 @@ button{cursor:pointer}
 .lg-lines{position:fixed;right:0;bottom:0;width:min(70vw,900px);height:auto;z-index:0;pointer-events:none;opacity:.8}
 .lg-brand{flex:0 1 520px;text-align:center;align-self:flex-start;margin-top:8vh;text-shadow:0 2px 18px rgba(0,0,0,.55)}
 .lg-brand img{width:clamp(72px,8vw,110px);height:auto;filter:drop-shadow(0 6px 22px rgba(232,190,110,.45))}
-.lg-brand h1{margin:10px 0 0;font-family:'Noto Serif SC','Songti SC','STSong','SimSun',serif;font-weight:900;font-size:clamp(34px,5vw,68px);letter-spacing:.08em;line-height:1.15;
+.lg-brand h1{margin:10px 0 0;font-family:"ShuyiBrush","KaiTi","STKaiti",serif;font-weight:400;font-size:clamp(34px,5vw,68px);letter-spacing:.08em;line-height:1.15;
   background:linear-gradient(180deg,#FFF1C9 0%,#E9C27A 45%,#B8873A 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .lg-brand p{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;font-size:clamp(14px,1.5vw,20px);letter-spacing:.12em;color:#F3EBDA}
 .lg-brand p::before,.lg-brand p::after{content:"";width:clamp(24px,5vw,64px);height:1px;background:linear-gradient(90deg,transparent,#E9C27A)}
@@ -190,7 +190,9 @@ button{cursor:pointer}
 .login form{flex:0 1 560px;width:min(560px,100%);padding:clamp(24px,4vw,48px) clamp(20px,5vw,72px);display:flex;flex-direction:column;gap:18px;
   background:linear-gradient(160deg,rgba(28,36,52,.78),rgba(12,18,30,.82));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
   border:1px solid rgba(233,194,122,.55);border-radius:28px;box-shadow:0 0 0 1px rgba(233,194,122,.12),0 0 40px -6px rgba(233,194,122,.35),0 30px 70px -20px rgba(0,0,0,.7)}
-.login h2{margin:0 0 6px;font-size:clamp(24px,2.4vw,34px);font-weight:700;letter-spacing:.06em;color:#FFFFFF}
+@font-face{font-family:"ShuyiBrush";src:url(hq/fonts/shuyi-brush.woff2) format("woff2");font-display:swap}
+.login h2{margin:0 0 6px;font-family:"ShuyiBrush","KaiTi","STKaiti",serif;font-size:clamp(28px,2.6vw,38px);font-weight:400;letter-spacing:.1em;color:#FFFFFF}
+.lg-brand p{font-family:"KaiTi","STKaiti","Kaiti SC",serif}
 .lg-field{position:relative;display:flex;align-items:center}
 .lg-field>svg{position:absolute;left:18px;width:22px;height:22px;color:#E8DFC9;pointer-events:none}
 .login input{width:100%;min-height:58px;padding:0 54px;border:1px solid rgba(233,225,207,.35);border-radius:14px;background:rgba(8,12,22,.45);color:#F7F1E3;font-size:17px}
@@ -386,8 +388,8 @@ const enterName = (g) => '进入' + g.name.replace(/(组|部)$/, '');
 // ---------- 登入 ----------
 const params = new URLSearchParams(location.search);
 // 从别的页面被带回来登入的，登入后回去那一页
-// 登入后：有 next 就回原本那页；不然进各自的仪表板（老板 → 公司总览，国内客服 → 2F 工作台）。?classic 看原本的 3D 办公室
-function goNext(sess) { const nx = params.get('next'); if (nx && HQAuth.can(nx, sess)) { location.replace(HQAuth.root + nx); return true; } if (!params.has('classic')) { location.replace(HQAuth.root + 'command/'); return true; } return false; }
+// 登入后：有 next 就回原本那页；不然老板进公司总览（command/），国内客服直接进名字审核。?classic 看原本的 3D 办公室
+function goNext(sess) { const nx = params.get('next'); if (nx && HQAuth.can(nx, sess)) { location.replace(HQAuth.root + nx); return true; } if (!params.has('classic')) { location.replace(HQAuth.root + (sess.role === 'cs' ? 'name/' : 'command/')); return true; } return false; }
 const SESSION = HQAuth.session() || await new Promise((resolve) => {
   const box = $('login'); box.hidden = false; $('skeleton').hidden = true;
   if (params.get('next')) { $('loginMsg').textContent = '请先登录，登录后会带你回刚才的页面。'; $('loginMsg').classList.remove('vh'); }
@@ -403,14 +405,19 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
     $('loginEye').innerHTML = show ? EYE.on : EYE.off;
     $('loginEye').setAttribute('aria-pressed', String(show)); $('loginEye').setAttribute('aria-label', show ? '隐藏密码' : '显示密码');
   });
-  $('loginForgot').addEventListener('click', () => { $('loginErr').textContent = '忘记密码请找老板（管理员）重设。'; });
+  $('loginForgot').addEventListener('click', () => { $('loginMsg').textContent = '忘记密码请找老板（管理员）重设。'; $('loginMsg').classList.remove('vh'); });
+  // 上次取消了「记住账号」，这次也不勾
+  try { $('loginRemember').checked = localStorage.getItem('hq-remember-off') !== '1'; } catch (e) {}
   let busy = false;
   $('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     if (busy) return;
     const sess = HQAuth.login($('loginId').value, $('loginPass').value);
     if (!sess) { $('loginErr').textContent = '账号或密码不对，请再试一次'; $('loginPass').select(); return; }
-    try { if ($('loginRemember').checked) localStorage.setItem('hq-remember-id', $('loginId').value.trim()); else localStorage.removeItem('hq-remember-id'); } catch (e) {}
+    try {
+      if ($('loginRemember').checked) { localStorage.setItem('hq-remember-id', $('loginId').value.trim()); localStorage.removeItem('hq-remember-off'); }
+      else { localStorage.removeItem('hq-remember-id'); localStorage.setItem('hq-remember-off', '1'); }
+    } catch (e) {}
     busy = true;
     const btn = $('loginForm').querySelector('button[type=submit]');
     if (btn) { btn.disabled = true; btn.textContent = '连接公司云端…'; }

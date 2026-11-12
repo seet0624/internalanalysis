@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="160" viewBox="0 0 220 160" fill="none" stroke="#B8873A" stroke-opacity=".09" stroke-width="2" stroke-linecap="round">
+  <!-- 祥云：两朵小云，交错排列 -->
+  <path d="M30 60c-8 0-14-6-14-13s6-13 14-13c2-9 10-15 19-15 11 0 20 9 20 20 7 0 12 5 12 11s-5 10-12 10H30z"/>
+  <path d="M40 47c0-5 4-9 9-9s9 4 9 9-4 8-8 8"/>
+  <path d="M140 140c-8 0-14-6-14-13s6-13 14-13c2-9 10-15 19-15 11 0 20 9 20 20 7 0 12 5 12 11s-5 10-12 10h-39z"/>
+  <path d="M150 127c0-5 4-9 9-9s9 4 9 9-4 8-8 8"/>
+</svg>
