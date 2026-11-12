@@ -79,3 +79,6 @@
 
 /* 背景淡淡的祥云纹 */
 .g-pat{background-image:url(brand/cloud-pattern.svg);background-size:220px auto;background-repeat:repeat}
+.g-out{margin-top:8px;color:#C9BFA9}
+body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto}
+@media (max-width:600px){.g-hero h1,.g-hero h2{font-size:26px}}   /* 手机：放在上面那条大小之后才生效 */
