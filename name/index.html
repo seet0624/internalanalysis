@@ -438,7 +438,7 @@ body.light .itabs button.on{background:var(--bg2)}
 </svg>
 
 <aside class="g-side" aria-label="审核总部导航">
-  <a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="">审核总部</a>
+  <a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-gold.png" alt="">国内客服系统</a>
   <a class="g-sys" href="./" aria-current="page"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v15l-3.5-2-3.5 2-3.5-2z"/><path d="M8.5 9h7M8.5 12.5h4.5"/></svg></span>名字审核</a>
   <a class="g-sys" href="../tech/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="3.5" rx="1"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 13l2 2 4-4"/></svg></span>技术单审核</a>
   <div class="g-label">名字审核</div>
@@ -446,7 +446,7 @@ body.light .itabs button.on{background:var(--bg2)}
   <button type="button" class="g-sys" data-act="settings"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>规则设定</button>
   <button type="button" class="g-sys" data-act="help"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg></span>使用说明</button>
   <div class="g-label">资料</div><a class="g-sys" href="../handbook/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg></span>业务手册</a><a class="g-sys" href="../guide/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.8v6.4l5-3.2z"/></svg></span>工具教程</a><a class="g-sys" href="../docs/dongfang/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 17.5h2"/></svg></span>商城教程</a>
-  <button type="button" class="g-sys g-out" onclick="HQAuth.logout();location.href='../'"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>登出</button>
+  <button type="button" class="g-sys g-out" onclick="HQAuth.logout();location.href='../'"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>退出</button>
 </aside>
 <header class="top">
   <div class="brand"><a class="home" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="" width="22" height="22" style="vertical-align:-6px;margin-right:6px">审核总部</a><span class="crumb" aria-hidden="true">/</span><div class="logo">名</div><b id="t_title">名字审核</b><button type="button" class="verchip" id="verChip" data-act="changelog" title="看版本更新"></button><nav class="g-seg" aria-label="切换审核系统"><a href="./" aria-current="page">名字审核</a><a href="../tech/">技术单审核</a></nav></div>
@@ -470,6 +470,7 @@ body.light .itabs button.on{background:var(--bg2)}
   <span class="tsep"></span>
   <button type="button" class="sqbtn" data-act="settings" aria-label="规则设定" title="规则设定"><svg class="i"><use href="#i-sliders"/></svg></button>
   <button type="button" class="sqbtn" data-act="theme" aria-label="深色 / 浅色" title="深色 / 浅色"><svg class="i"><use href="#i-sun"/></svg></button>
+  <button type="button" class="tbtn g-logout" onclick="HQAuth.logout();location.href='../'" title="退出登入" aria-label="退出"><svg viewBox="0 0 24 24" class="i" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg><span class="lbl">退出</span></button>
   <button type="button" class="sqbtn" data-act="help" aria-label="使用说明" title="使用说明 · 快捷键（?）"><svg class="i"><use href="#i-help"/></svg></button>
   <div class="dd" id="moreWrap">
     <button type="button" class="sqbtn" id="moreBtn" aria-label="更多" title="更多" aria-haspopup="true" aria-expanded="false"><svg class="i"><use href="#i-dots"/></svg></button>

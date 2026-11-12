@@ -307,6 +307,57 @@ table.dl .fn{overflow-wrap:anywhere}
 .pv-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 10px 18px;border-bottom:1px solid var(--line)}
 .pv iframe{flex:1;width:100%;border:0;background:#F8F9FA}
 .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--accent-ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+
+/* ---------- 今日工作台（老板给的设计）：标题图示、问候列、有图示的数字卡、一排筛选、待决定表格、快捷操作 ---------- */
+.g-topbg{overflow:hidden}
+.g-topbg::after{content:"";position:absolute;inset:0;pointer-events:none;background:url(../hq/brand/ink-hero.webp) right 32%/auto 620% no-repeat;opacity:.6;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 80%);mask-image:linear-gradient(90deg,transparent 30%,#000 80%)}
+:root[data-theme="dark"] .g-topbg::after{opacity:.12}
+.g-topbg .top-in{position:relative;z-index:1}
+.g-titlerow{display:flex;align-items:center;gap:14px}
+.g-tile{flex:none;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;color:#9A6B22;background:linear-gradient(180deg,#FFF8EA,#EEDDBB);box-shadow:inset 0 1px 0 #FFFFFF,0 6px 14px -6px rgba(110,75,18,.45)}
+.g-tile svg{width:26px;height:26px}
+@media (min-width:1000px){.top h1{font-size:28px;letter-spacing:2px}.top .sub{font-size:14px}}
+.g-sysnav{display:flex;gap:12px}
+.g-sysnav a{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 22px;border-radius:12px;text-decoration:none;font-size:16px;letter-spacing:1px}
+.g-sysnav a[aria-current="page"]{outline:2px solid rgba(233,194,122,.55);outline-offset:2px}
+.g-sysnav svg{width:20px;height:20px;flex:none}
+.g-user{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-weight:600}
+.g-user:empty{display:none}
+.g-hello{display:flex;flex-wrap:wrap;align-items:center;row-gap:6px;font-size:16px;color:var(--ink)}
+.g-hello>span{display:inline-flex;align-items:center;gap:8px;padding:0 18px;border-left:1px solid var(--line)}
+.g-hello>span:first-child{padding-left:0;border-left:0}
+.g-hello svg{color:var(--accent)}
+.g-hello b{font-size:18px}.g-hello b.r{color:var(--crit)}
+@media (min-width:1280px){.kpis{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.kpi{flex-direction:row;align-items:center;gap:14px;padding:16px;border-radius:16px;background:linear-gradient(135deg,var(--surface) 40%,color-mix(in srgb,var(--k) 7%,var(--surface)));box-shadow:0 10px 24px -16px rgba(110,75,18,.45)}
+.kpi .ki{flex:none;width:50px;height:50px;border-radius:14px;display:grid;place-items:center;color:var(--k);background:color-mix(in srgb,var(--k) 14%,transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+.kpi .ki svg{width:26px;height:26px}
+.kpi .kt{display:flex;flex-direction:column;min-width:0}
+.kpi .l{font-size:14px}
+.g-pillbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.g-pillbar .ftags{gap:2px;padding:4px;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.g-pillbar .ftag{border:0;background:transparent;border-radius:10px;min-height:40px;padding:0 14px;font-size:15px}
+.g-pillbar .ftag .n{color:inherit}
+.g-pillbar .ftag[aria-pressed="true"]{color:#FFFFFF;font-weight:700;text-shadow:0 1px 1px rgba(60,32,0,.5);background:linear-gradient(180deg,#F3CF85 0%,#DCA54E 20%,#B57A26 46%,#9C6418 56%,#87560F 100%);box-shadow:inset 0 1px 0 rgba(255,246,218,.9),0 2px 0 #6B420C,0 8px 16px -8px rgba(120,75,15,.6)}
+.g-tbl{padding:0;overflow:hidden;counter-reset:td}
+.g-tbl .todo{border:0;border-top:1px solid var(--line-soft);border-radius:0;counter-increment:td}
+.g-th{display:none}
+@media (min-width:1280px){
+  .g-th{display:grid;grid-template-columns:36px 190px minmax(0,1fr) 360px;column-gap:16px;padding:12px 18px;background:var(--sunk);font-size:14px;font-weight:700;color:var(--muted)}
+  .g-tbl .todo{display:grid;grid-template-columns:36px 190px minmax(0,1fr) 360px;column-gap:16px;row-gap:0;align-items:start;padding:14px 18px}
+  .g-tbl .todo::before{content:counter(td);grid-column:1;grid-row:1/span 30;align-self:center;font-weight:700;color:var(--muted)}
+  .g-tbl .todo>*{grid-column:3;margin:0 0 6px}
+  .g-tbl .todo>.todo-h{grid-column:2;grid-row:1/span 30;align-self:center;flex-direction:column;align-items:flex-start;gap:2px;margin:0}
+  .g-tbl .todo>.acts{grid-column:4;grid-row:1/span 30;align-self:center;justify-content:flex-end;margin:0}
+  .g-tbl .todo>.tag{justify-self:start}
+  .g-tbl .todo .meta{font-size:13px;line-height:1.5}
+}
+.g-quick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g-quick .btn{justify-content:flex-start;min-height:48px;padding:0 14px;border-radius:12px;box-shadow:0 4px 10px -8px rgba(110,75,18,.4)}
+.g-quick .btn svg{color:var(--accent)}
+.g-note{background:linear-gradient(var(--surface) 45%,color-mix(in srgb,var(--surface) 55%,transparent)),url(../hq/brand/ink-hero.webp) right bottom/320% auto no-repeat var(--surface)}
+.g-note h2,.summary h2{display:flex;align-items:center;gap:8px}
+.g-note h2 svg{width:20px;height:20px;color:var(--accent)}
 </style>
 <link rel="stylesheet" href="../hq/gold.css">
 </head>
@@ -316,8 +367,8 @@ table.dl .fn{overflow-wrap:anywhere}
 <div class="shell">
   <aside class="side g-side" id="side" aria-label="主要导航"></aside>
   <div style="min-width:0">
-    <header class="top"><div class="top-in"><div id="toph" style="min-width:0"></div>
-      <div class="top-r"><nav class="g-seg desk-only" aria-label="切换审核系统"><a href="../name/">名字审核</a><a href="./" aria-current="page">技术单审核</a></nav><div class="top-r" id="topacts"></div><button type="button" class="btn small theme" id="theme" aria-pressed="false"></button></div></div></header>
+    <header class="top g-topbg"><div class="top-in"><div id="toph" style="min-width:0"></div>
+      <div class="top-r"><nav class="g-sysnav desk-only" aria-label="切换审核系统"><a class="g-btn3d" href="../name/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>名字审核</a><a class="g-btn3d" href="./" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>技术单审核</a></nav><div class="top-r" id="topacts"></div><button type="button" class="btn small theme" id="theme" aria-pressed="false"></button><span class="g-user desk-only" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.logout();location.href='../'"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg>退出</button></div></div></header>
     <div id="app"></div>
   </div>
 </div>
@@ -349,6 +400,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     b.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
     b.setAttribute('aria-label', mode === 'dark' ? '切换到浅色' : '切换到深色');
   }
+  try { var _s = window.HQAuth && HQAuth.session(); if (_s) $('gUser').innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>' + esc(_s.id); } catch (e) {}
   var savedTheme = 'light';
   try { if (localStorage.getItem('tsr-theme3') === 'dark') savedTheme = 'dark'; } catch (e) {}
   applyTheme(savedTheme);
@@ -376,6 +428,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   function normDate(d) { return String(d || '').trim().replace(/[\-\/]/g, '.').replace(/^0(\d)\./, '$1.').replace(/\.0(\d)\./, '.$1.'); }
 
   var ICON = {
+    cal: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
     up: '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17H6a4 4 0 0 1-.5-7.97A6 6 0 0 1 17.3 7.5 4.5 4.5 0 0 1 18 16.9"/><path d="M12 12v9M8.5 15.5L12 12l3.5 3.5"/></svg>',
     dl: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>',
     x: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -780,25 +833,26 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       return '<button type="button" class="' + cls + '" ' + n[3] + (here === n[0] ? ' aria-current="page"' : '') + (n[5] ? ' disabled' : '') + '>' + n[2] + (short || n[1]) + n[4] + '</button>';
     };
     var date = state.date || state.set.date, rev = state.reviewer || state.set.reviewer || 'martin';
-    $('side').innerHTML = '<a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="">审核总部</a>' +
+    $('side').innerHTML = '<a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-gold.png" alt="">国内客服系统</a>' +
       '<a class="g-sys" href="../name/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v15l-3.5-2-3.5 2-3.5-2z"/><path d="M8.5 9h7M8.5 12.5h4.5"/></svg></span>名字审核</a><a class="g-sys" href="./" aria-current="page"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="3.5" rx="1"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 13l2 2 4-4"/></svg></span>技术单审核</a><div class="g-label">技术单</div>' +
       NAV.map(function (n) { return btn('nav', n); }).join('') +
       '<div class="g-label">资料</div><a class="g-sys" href="../handbook/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg></span>业务手册</a><a class="g-sys" href="../guide/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.8v6.4l5-3.2z"/></svg></span>工具教程</a><a class="g-sys" href="../docs/dongfang/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 17.5h2"/></svg></span>商城教程</a>' +
       '<div class="today"><span>今日设置</span><b>' + esc(date) + ' · ' + esc(rev) + '</b><span>' + esc(res ? regionOf(allOutputs()) : (state.set.region === 'auto' ? '国内 / 海外：自动' : state.set.region === 'overseas' ? '海外（有 H）' : '国内（没有 H）')) + '</span>' +
       '<button type="button" class="btn link" style="align-self:flex-start;padding:0;min-height:30px" data-view="upload" data-focus="f-reviewer">改设置</button></div>' +
-      '<button type="button" class="g-sys g-out" onclick="HQAuth.logout();location.href=\'../\'"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>登出</button>';
+      '<button type="button" class="g-sys g-out" onclick="HQAuth.logout();location.href=\'../\'"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>退出</button>';
     $('tabbar').innerHTML = [NAV[0], NAV[1], NAV[2], NAV[3]].map(function (n, i) { return btn('', n, ['工作台', '上传', '订单', '下载'][i]); }).join('');
     var T = {
       upload: [res ? '加文件或改设置' : '上传技术单', '可以一次放多个 .xlsx 或整包 .zip；所有处理都在你的电脑里完成，不会上传到网上'],
-      home: ['今日工作台', res ? state.results.length + ' 个文件 · ' + items().length + ' 单 · ' + date + ' · ' + rev : ''],
+      home: ['今日工作台', '快速处理待审核的订单与文件'],
       orders: ['全部订单', res ? state.results.length + ' 个文件 · ' + items().length + ' 单' : ''],
       download: ['下载中心', '下载前看一下这几项；改了以后文件马上更新'],
       rules: ['审核规则手册', '先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红']
     }[here];
-    $('toph').innerHTML = '<a class="home ph-only" href="../">← 审核总部</a><h1>' + esc(T[0]) + '</h1><p class="sub">' + esc(T[1]) + '</p>';
+    var TI = { home: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>', upload: ICON.upl, orders: ICON.rows, download: ICON.down, rules: ICON.book }[here];
+    $('toph').innerHTML = '<a class="home ph-only" href="../">← 审核总部</a><div class="g-titlerow"><span class="g-tile desk-only">' + TI + '</span><div><h1>' + esc(T[0]) + '</h1><p class="sub">' + esc(T[1]) + '</p></div></div>';
     var n = res ? picked() : 0;
     $('topacts').innerHTML = here === 'home' || here === 'orders'
-      ? '<button type="button" class="btn small desk-only" data-view="upload">' + ICON.upl + '上传新一批</button><button type="button" class="btn small primary" data-view="download">' + ICON.dl + '去下载</button>'
+      ? '<button type="button" class="btn small ph-only" data-view="upload">' + ICON.upl + '上传新一批</button>'   // 宽屏在右边「快捷操作」
       : here === 'download'
         ? '<button type="button" class="btn small" data-godl' + (n ? '' : ' disabled') + '>分开下载（' + n + ' 个）</button><button type="button" class="btn small primary" data-goall' + (n ? '' : ' disabled') + '>' + ICON.dl + '全部打包成一个下载</button>'
         : here === 'rules'
@@ -856,9 +910,19 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (state.error) h += '<div class="error" role="alert">' + esc(state.error) + '</div>';
     if (state.busy) h += '<div class="status" role="status"><span class="spin" aria-hidden="true"></span>正在重新审核……</div>';
     var cnt = function (k) { var f = FILTERS.filter(function (x) { return x.k === k; })[0]; return all.filter(function (it) { return f.test(it.o); }).length; };
-    var kpi = function (k, t, dot, n, cls, attr) {
-      return '<button type="button" class="kpi' + (cls || '') + '" ' + (attr || 'data-filter="' + k + '" aria-pressed="' + (state.filter === k) + '"') + '><span class="l"><span class="dot" style="background:' + dot + '"></span>' + t + '</span><span class="n">' + n + '<small>' + (k === 'todo' ? '件' : '单') + '</small></span></button>';
+    var KI = {
+      todo: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+      problem: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.3a2.6 2.6 0 0 1 5 .9c0 1.8-2.5 2.2-2.5 3.8M12 17.2v.3"/>',
+      ready: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12.5l3 3 5-6"/>',
+      urgent: '<path d="M13 2L5 14h6l-1 8 8-12h-6z"/>',
+      solo: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+      newborn: '<circle cx="12" cy="13" r="8"/><path d="M9.5 12h.01M14.5 12h.01M9.5 15.5c1.4 1.2 3.6 1.2 5 0M12 5c-1-1.5 0-3 1.5-2.5"/>'
     };
+    var kpi = function (k, t, dot, n, cls, attr) {
+      return '<button type="button" class="kpi' + (cls || '') + '" style="--k:' + dot + '" ' + (attr || 'data-filter="' + k + '" aria-pressed="' + (state.filter === k) + '"') + '><span class="ki"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + KI[k] + '</svg></span><span class="kt"><span class="l">' + t + '</span><span class="n">' + n + '<small>' + (k === 'todo' ? '件' : '单') + '</small></span></span></button>';
+    };
+    var WD = '日一二三四五六', dm = String(state.date || '').split('.'), wd = dm.length === 3 ? new Date(+dm[2], dm[1] - 1, +dm[0]).getDay() : -1;
+    h += '<div class="g-hello"><span>' + ICON.cal + esc(state.date) + (wd >= 0 ? '（周' + WD[wd] + '）' : '') + '</span><span>您好，' + esc(state.reviewer || 'martin') + '</span><span>' + state.results.length + ' 个文件 · 今日共 <b>' + all.length + '</b> 单' + (open.length ? '，<b class="r">' + open.length + '</b> 件待你决定' : '') + '</span></div>';
     h += '<section class="kpis" aria-label="这批的数字">' +
       kpi('todo', '待你决定', 'var(--crit)', open.length, open.length ? ' hot' : '') +
       kpi('problem', '有问题', 'var(--crit)', cnt('problem')) +
@@ -870,7 +934,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var fam = (state.results.families || []);
     h += '<div class="dash"><section class="main" aria-label="订单">';
     if (state.filter === 'todo') {
-      h += '<div class="main-h"><h2>待你决定 · ' + open.length + '</h2>' + searchBox() + '</div>';
+      h += '<h2 class="vh">待你决定 · ' + open.length + '</h2>' + pillBar(cnt, fam, open.length);
       // 要问下单者的话术：一次复制全部，直接贴到群里
       var lines = [];
       td.forEach(function (t) { (t.flags || []).forEach(function (f) { if (f.copy && lines.indexOf(f.copy) < 0) lines.push(f.copy); }); });
@@ -879,20 +943,15 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       if (!open.length) h += '<div class="card alldone"><b style="font-size:18px">没有要你决定的事了</b><span class="small">可以去下载，或者在下面按文件检查每一单。</span></div>';
       var pendOpen = shown.filter(function (x) { return x.type === 'pending'; });
       if (pendOpen.length > 1) h += '<div class="card bulk"><span><b>' + pendOpen.length + ' 个备注</b>只写祝福语，要一起决定吗？</span><span class="acts"><button type="button" class="btn small pick-on" data-redall="0">全部不标红</button><button type="button" class="btn small red-out" data-redall="1">全部标红</button></span></div>';
-      h += shown.map(todoCard).join('');
+      if (shown.length) h += '<div class="card g-tbl"><div class="g-th" aria-hidden="true"><span>#</span><span>订单信息</span><span>订单状态 / 备注</span><span>操作</span></div>' + shown.map(todoCard).join('') + '</div>';
       var dec = td.filter(function (t) { return t.decided && matchesQ(t.it); });
       if (dec.length) h += '<details class="card" style="padding:4px 18px"' + (state.decOpen ? ' open' : '') + ' data-dec><summary>已决定的 ' + dec.length + ' 件（可以改）</summary><div style="display:flex;flex-direction:column;gap:10px;padding:4px 0 14px">' + dec.map(todoCard).join('') + '</div></details>';
-      h += '<div class="main-h" style="margin-top:12px"><h2>全部订单 · 按文件</h2></div><div class="files">' + state.results.map(fileBlock).join('') + '</div>';
+      h += '<div class="main-h" style="margin-top:12px"><h2>文件批次 · 全部订单</h2></div><div class="files">' + state.results.map(fileBlock).join('') + '</div>';
     } else {
       var f = FILTERS.filter(function (x) { return x.k === state.filter; })[0] || FILTERS[0];
       var rows = all.filter(function (it) { return f.test(it.o) && matchesQ(it); });
       if (f.fam) rows.sort(function (a, b) { return (famOf(a.o).group.n - famOf(b.o).group.n); });
-      h += '<div class="main-h"><h2>' + f.t + ' · ' + rows.length + '</h2>' + searchBox() + '</div>';
-      h += '<nav class="ftags" aria-label="筛选">' + FILTERS.map(function (x) {
-        var n = x.fam ? fam.length : cnt(x.k);
-        if (!n && x.k !== 'all' && x.k !== state.filter) return '';
-        return '<button type="button" class="ftag" data-filter="' + x.k + '" aria-pressed="' + (state.filter === x.k) + '">' + (x.dot ? '<span class="dot" style="background:' + x.dot + '"></span>' : '') + x.t + '<span class="n">' + n + (x.fam ? ' 组' : '') + '</span></button>';
-      }).join('') + '</nav>';
+      h += '<h2 class="vh">' + f.t + ' · ' + rows.length + '</h2>' + pillBar(cnt, fam, open.length);
       if (f.fam && fam.length) h += '<div class="card pad" style="display:flex;flex-direction:column;gap:8px"><span class="small">父母、兄弟姐妹、子女、备注等任何一栏写了别的单的订单号、姓名或它的父母兄弟姐妹名字，而那张单也在同一个文件里 → 同一家，整行涂同一个颜色。每个文件单独审核，不跟别的工具的单连起来。</span>' +
         fam.map(function (g) { return '<div style="display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center"><b style="display:flex;align-items:center;gap:8px"><span class="sw" style="background:' + g.css + '"></span>第' + g.n + '组 ' + esc(g.label) + '（' + g.colorName + '）</b><span class="small">' + (g.file ? esc(g.file) + '：' : '') + g.members.map(function (m) { return esc(m.person) + ' · ' + esc(m.tool); }).join('、') + '</span></div>'; }).join('') + '</div>';
       h += rows.length ? '<div class="card" style="overflow:hidden">' + orderTable(rows, true) + '</div>' : '<div class="card alldone"><span class="small">没有符合的订单</span></div>';
@@ -917,7 +976,10 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       parts.map(function (p) { return p[2] ? '<span style="flex:' + p[2] + ';background:' + p[1] + '"></span>' : ''; }).join('') + '</div>' +
       '<ul class="legend">' + parts.map(function (p) { return '<li><span class="dot" style="background:' + p[1] + '"></span>' + p[0] + '<span>' + p[2] + ' 单</span></li>'; }).join('') + '</ul>' +
       '<button type="button" class="btn primary" data-view="download">' + ICON.dl + '去下载中心</button></section>' +
-      '<section class="card"><h2>要注意</h2>' + (w.length ? '<ul class="notes">' + w.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '<span class="small">没有要注意的事</span>') + '</section></aside>';
+      '<section class="card g-note"><h2>' + ICON.warn + '要注意</h2>' + (w.length ? '<ul class="notes">' + w.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '<span class="small">没有要注意的事</span>') + '</section>' +
+      '<section class="card"><h2>快捷操作</h2><div class="g-quick">' +
+        '<button type="button" class="btn" data-view="upload">' + ICON.upl + '上传文件</button><button type="button" class="btn" data-view="review" data-filter="all">' + ICON.rows + '全部订单</button>' +
+        '<button type="button" class="btn" data-view="download">' + ICON.down + '下载中心</button><button type="button" class="btn" data-view="rules">' + ICON.book + '规则手册</button></div></section></aside>';
   }
   // easy to miss: unread files, settings changed but not re-run, 国内 / 海外 guesses, two files with one name
   function notes() {
@@ -934,12 +996,21 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if (dup.length) w.push('有 ' + dup.length + ' 个文件名一样：' + dup.join('、') + '。打包时会自动加 -2；分开下载时浏览器会自己改名。');
     return w;
   }
+  // 一排筛选：待你决定排第一，其他有单的才出现；右边搜索
+  function pillBar(cnt, fam, nOpen) {
+    var pill = function (k, t, n, unit) { return '<button type="button" class="ftag" data-filter="' + k + '" aria-pressed="' + (state.filter === k) + '">' + t + '<span class="n">（' + n + (unit || '') + '）</span></button>'; };
+    return '<div class="g-pillbar"><nav class="ftags" aria-label="筛选">' + pill('todo', '待你决定', nOpen) + FILTERS.map(function (x) {
+      var n = x.fam ? fam.length : cnt(x.k);
+      return !n && x.k !== 'all' && x.k !== state.filter ? '' : pill(x.k, x.t, n, x.fam ? ' 组' : '');
+    }).join('') + '</nav>' + searchBox() + '</div>';
+  }
   function searchBox() { return '<label class="search">' + ICON.search + '<span class="vh">搜索姓名或订单号</span><input type="search" data-q placeholder="搜索姓名或订单号" value="' + esc(state.q) + '"></label>'; }
 
   function todoCard(t) {
     var it = t.it, o = it.o, sw = famOf(o);
-    var h = '<article class="card todo' + (t.decided ? ' decided' : '') + '"><div class="todo-h"><span class="tag ' + (t.type === 'pending' ? 'warn' : 'crit') + '">' + esc(t.label) + '</span>' +
-      '<span class="nm">' + (sw ? '<span class="sw" style="background:' + sw.group.css + ';margin-right:6px"></span>' : '') + esc(o.person) + '</span><span class="meta">' + esc(o.title || it.r.tool) + ' · ' + esc(o.key) + ' · 序号 ' + esc(o.seq) + '</span></div>';
+    var h = '<article class="card todo' + (t.decided ? ' decided' : '') + '"><div class="todo-h">' +
+      '<span class="nm">' + (sw ? '<span class="sw" style="background:' + sw.group.css + ';margin-right:6px"></span>' : '') + esc(o.person) + '</span><span class="meta">' + esc(o.title || it.r.tool) + '<br>订单号：' + esc(o.key) + ' · 序号 ' + esc(o.seq) + '</span></div>' +
+      '<span class="tag ' + (t.type === 'pending' ? 'warn' : 'crit') + '">' + esc(t.label) + '</span>';
     if (t.type === 'pending') {
       var val = (o.fields.filter(function (x) { return x.h === t.f.pending.h; })[0] || {}).value || '';
       var why = /子时/.test(t.f.text) ? '这单是子时' : '名册展示是繁体';
