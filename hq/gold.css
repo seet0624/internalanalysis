@@ -1,11 +1,12 @@
 /* 审核总部 · 金色主题：名字审核、技术单审核共用的水墨左栏、上面两个系统切换、山水横幅。
    颜色写死在这里（不跟页面深浅色走）：左栏永远是墨色，横幅永远是米色山水。 */
-.g-side{background:#1A1916 url(brand/ink-side.webp) center bottom/100% auto no-repeat;color:#E9E1CF;border-right:0} /* 不设 position：技术单是 sticky、名字审核是 fixed，各页自己定 */
-.g-side::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(26,25,22,.2) 0,rgba(26,25,22,.6) 200px,#1A1916 360px)} /* 图片高约 370–400px：上缘盖住，不会有一条硬边 */
+.g-side{background:#0E1626 url(brand/side-night.webp) center bottom/100% auto no-repeat;color:#E9E1CF;border-right:0} /* 不设 position：技术单是 sticky、名字审核是 fixed，各页自己定 */
+.g-side::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(14,22,38,0) 0,rgba(14,22,38,.2) 180px,#0E1626 330px)} /* 夜景图上面已经淡入深蓝，不会有硬边 */
 .g-side>*{position:relative}
-.g-brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px;color:#F3EBDA;text-decoration:none;font-size:17px;font-weight:700;letter-spacing:1px}
-.g-brand img{width:28px;height:28px;border-radius:7px}
-.g-brand:hover{color:#E2BE7A}
+.g-brand{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px 22px;margin-bottom:6px;border-bottom:1px solid rgba(233,194,122,.18);text-decoration:none;font-size:17px;font-weight:700;letter-spacing:1px;
+  background:linear-gradient(180deg,#FFF1C9,#E9C27A 55%,#C4954A);-webkit-background-clip:text;background-clip:text;color:transparent}
+.g-brand img{width:58px;height:auto;filter:drop-shadow(0 4px 12px rgba(233,194,122,.4))}
+.g-brand:hover{filter:brightness(1.1)}
 .g-label{font-size:11px;letter-spacing:2px;color:#A79E8A;padding:14px 12px 4px}
 .g-sys{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 14px;border-radius:12px;color:#E9E1CF;text-decoration:none;font-size:15px;border:0;background:transparent;width:100%;text-align:left;font-family:inherit}
 .g-sys:hover{background:rgba(233,225,207,.08);color:#FFFFFF}
@@ -46,21 +47,22 @@
 @media (max-width:640px){.g-drop{flex-direction:column;text-align:center}.g-drop-txt{align-items:center}.g-tip{text-align:left}}
 
 /* 3D 金色主按钮：上亮下暗、底下一条厚边，按下去会沉 */
-.btn.primary,.btn.pri,.g-btn3d{background:linear-gradient(180deg,#D3A456 0%,#9E6E25 48%,#85591A 100%);color:#FFFFFF;border:1px solid #7A5418;
-  box-shadow:inset 0 1px 0 rgba(255,241,201,.65),inset 0 -2px 0 rgba(0,0,0,.18),0 3px 0 #6E4B12,0 8px 18px -6px rgba(110,75,18,.55);
-  text-shadow:0 1px 1px rgba(0,0,0,.3);transition:transform .08s,box-shadow .08s,filter .15s}
-.btn.primary:hover,.btn.pri:hover,.g-btn3d:hover{background:linear-gradient(180deg,#DDB065 0%,#A87628 48%,#8C5E1C 100%);color:#FFFFFF;border-color:#7A5418;filter:none;transform:translateY(-1px)}
-.btn.primary:active,.btn.pri:active,.g-btn3d:active,label:active>.g-drop-txt .g-btn3d{transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #6E4B12,0 2px 6px -2px rgba(110,75,18,.4)}
+.btn.primary,.btn.pri,.g-btn3d{background:linear-gradient(180deg,#F3CF85 0%,#DCA54E 20%,#B57A26 46%,#9C6418 56%,#87560F 100%);color:#FFFFFF;border:1px solid #6F440B;font-weight:700;
+  box-shadow:inset 0 1px 0 rgba(255,246,218,.95),inset 0 -3px 6px rgba(70,38,4,.35),0 3px 0 #6B420C,0 10px 22px -8px rgba(120,75,15,.6);
+  text-shadow:0 1px 1px rgba(60,32,0,.55);transition:transform .08s,box-shadow .08s,filter .15s}
+.btn.primary:hover,.btn.pri:hover,.g-btn3d:hover{background:linear-gradient(180deg,#F8D894 0%,#E3AE58 20%,#BE832C 46%,#A06A1C 56%,#8C5B12 100%);color:#FFFFFF;border-color:#6F440B;filter:none;transform:translateY(-1px)}
+.btn.primary:active,.btn.pri:active,.g-btn3d:active,label:active>.g-drop-txt .g-btn3d{transform:translateY(3px);box-shadow:inset 0 2px 5px rgba(60,32,0,.4),0 0 0 #6B420C,0 2px 6px -2px rgba(110,75,18,.4)}
 .btn.primary[disabled],.btn.pri:disabled{transform:none}
 .g-btn3d svg{width:20px;height:20px;flex:none}
 
-/* 中国风字体：大标题用毛笔字（马善政楷书，只截了用到的字），其他标题用电脑自带的楷体 */
-@font-face{font-family:"ShuyiBrush";src:url(fonts/shuyi-brush.woff2) format("woff2");font-display:swap}
-:root{--g-brush:"ShuyiBrush","KaiTi","STKaiti","Kaiti SC",serif;--g-kai:"KaiTi","STKaiti","Kaiti SC","BiauKai",serif}
-.g-hero h1,.g-hero h2,.g-brand{font-family:var(--g-brush);font-weight:400;letter-spacing:4px}
+/* 字体：思源宋体（老板选的 C），大标题特粗、其他标题粗体；只截了页面上会出现的字，缺的字用电脑自带宋体 */
+@font-face{font-family:"ShuyiSerif";src:url(fonts/shuyi-serif-black.woff2) format("woff2");font-weight:900;font-display:swap}
+@font-face{font-family:"ShuyiSerif";src:url(fonts/shuyi-serif-bold.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{--g-brush:"ShuyiSerif","Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;--g-kai:var(--g-brush)}
+.g-hero h1,.g-hero h2,.g-brand{font-family:var(--g-brush);font-weight:900;letter-spacing:4px}
 .g-brand{font-size:24px;letter-spacing:3px}
 .g-hero h1,.g-hero h2{font-size:clamp(30px,3.4vw,44px)}
-.g-sys,.g-label,.g-drop-txt h2,.g-drop-txt .big,.g-feat b,.top h1,.card h2,.card h3{font-family:var(--g-kai)}
+.g-sys,.g-label,.g-drop-txt h2,.g-drop-txt .big,.g-feat b,.top h1,.card h2,.card h3,.btn.primary,.btn.pri,.g-btn3d,.kpi .l,.ftag{font-family:var(--g-kai);font-weight:700}
 .g-drop-txt h2,.g-drop-txt .big{font-size:clamp(22px,2.2vw,30px);letter-spacing:1px}
 
 /* 左栏图示 */
@@ -82,3 +84,24 @@
 .g-out{margin-top:8px;color:#C9BFA9}
 body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto}
 @media (max-width:600px){.g-hero h1,.g-hero h2{font-size:26px}}   /* 手机：放在上面那条大小之后才生效 */
+
+/* 字调亮、立体：按钮字米白 + 压纹阴影；左栏字亮一点；标题有浮雕感 */
+.btn.primary,.btn.pri,.g-btn3d,.g-pillbar .ftag[aria-pressed="true"]{color:#FFFBEF;letter-spacing:.04em;text-shadow:0 1px 0 rgba(90,50,0,.65),0 -1px 0 rgba(255,236,190,.25),0 0 10px rgba(255,214,140,.25)}
+.btn.primary:hover,.btn.pri:hover,.g-btn3d:hover{color:#FFFFFF}
+.g-sys,.g-side .nav{color:#F4EBD8;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.g-side .nav[aria-current="page"]{color:#FFE2A2}
+.g-sys[aria-current="page"]{text-shadow:0 1px 0 rgba(255,246,218,.6)}
+.g-label{color:#C9BC9E}
+.g-hero h1,.g-hero h2{background:linear-gradient(180deg,#5C3B0E,#2B2014);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(255,255,255,.9)) drop-shadow(0 3px 4px rgba(110,75,18,.25))}
+.top h1,.card h2,.g-drop-txt h2,.g-drop-txt .big,.g-feat b{text-shadow:0 1px 0 rgba(255,255,255,.85),0 2px 4px rgba(110,75,18,.15)}
+:root[data-theme="dark"] .top h1,:root[data-theme="dark"] .card h2,body:not(.light) .card h2,body:not(.light) .g-drop-txt h2,body:not(.light) .g-feat b{text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.g-logout{color:#9A3B2E}.g-logout svg{flex:none}
+.tbtn.g-logout .lbl{display:inline!important}
+
+/* 退出确认窗口 */
+.g-confirm{border:1px solid #E2CFA8;border-radius:20px;padding:26px 28px 22px;width:min(400px,calc(100% - 32px));background:#FFFDF8;color:#2B2620;box-shadow:0 30px 70px -20px rgba(43,32,20,.45)}
+.g-confirm::backdrop{background:rgba(20,16,10,.45);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.g-confirm h2{margin:0 0 8px;font-size:22px;font-family:var(--g-kai)}
+.g-confirm p{margin:0;color:#6F6553;font-size:15px}
+.g-confirm-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.g-confirm-acts .btn{min-width:96px;min-height:44px;justify-content:center;font-size:15px}

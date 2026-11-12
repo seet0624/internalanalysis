@@ -148,7 +148,17 @@
   }
   function here() { return location.href.split('#')[0].split('?')[0].replace(ROOT, ''); }
 
-  window.HQAuth = { session: session, login: login, logout: logout, cloudLogin: cloudLogin, cloudGet: cloudGet, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
+  // 退出前先跳一个确认窗口；按「退出」才登出回首页（Esc、取消都不会登出）
+  function confirmLogout() {
+    var d = document.createElement('dialog');
+    d.className = 'g-confirm';
+    d.innerHTML = '<form method="dialog"><h2>确定要退出吗？</h2><p>退出后要重新输入账号和密码才能使用。</p>' +
+      '<div class="g-confirm-acts"><button type="submit" value="no" class="btn" autofocus>取消</button><button type="submit" value="yes" class="btn primary pri">退出</button></div></form>';
+    document.body.appendChild(d);
+    d.addEventListener('close', function () { var yes = d.returnValue === 'yes'; d.remove(); if (yes) { logout(); location.href = ROOT; } });
+    d.showModal();
+  }
+  window.HQAuth = { session: session, login: login, logout: logout, confirmLogout: confirmLogout, cloudLogin: cloudLogin, cloudGet: cloudGet, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
 
   if (isHQ) return;
   // 其他页：没登入、或这个身份不能进 → 回首页
