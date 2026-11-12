@@ -9,24 +9,24 @@
 <script src="../hq/bus.js"></script>
 
 <style>
-/* Dashboard 版：左边导航、上面标题、数字卡、工作区 + 右边摘要；冷灰底、白卡片（深色模式墨黑底）。
+/* Dashboard 版：水墨左栏、上面标题、数字卡、工作区 + 右边摘要；米色底、金色重点（深色模式墨黑底）。
    颜色分工：红 = 有问题，橙 = 加急，紫 = 单独发，青 = 新生儿，绿 = 没问题。 */
 :root{
-  --bg:#F4F6F9; --surface:#FFFFFF; --sunk:#F1F3F4; --ink:#202124; --muted:#5F6368; --faint:#6B7280; --line:#E3E6EA; --line-soft:#EEF0F2; --field:#DADCE0;
-  --accent:#1A73E8; --accent-hover:#1765CC; --accent-soft:#E8F0FE; --accent-ink:#174EA6; --on-accent:#FFFFFF;
+  --bg:#F6F1E7; --surface:#FFFDF8; --sunk:#F3ECDF; --ink:#2B2620; --muted:#6F6553; --faint:#7A6F5C; --line:#E8DFCC; --line-soft:#F0E9DB; --field:#DCCFB4;
+  --accent:#9A6B22; --accent-hover:#7E5718; --accent-soft:#F6ECD9; --accent-ink:#6E4B12; --on-accent:#FFFFFF;
   --crit:#B3261E; --crit-bg:#FBE9E7; --crit-ink:#8C1D18; --warn:#7A4300; --warn-bg:#FFF1DC; --orange:#C26A00;
   --blue:#1A73E8; --blue-bg:#E8F0FE; --blue-ink:#174EA6; --ok:#137333; --ok-bg:#E6F4EA;
   --solo:#8430CE; --solo-bg:#F3E8FD; --solo-ink:#681DA8; --baby:#00897B; --baby-bg:#E0F2F1; --baby-ink:#00695C;
-  --bar:#174EA6; --bar-ink:#FFFFFF; --bar-warn:#F2B866; --sel:#E8F0FE;
+  --bar:#2B2620; --bar-ink:#FFFFFF; --bar-warn:#F2B866; --sel:#F6ECD9;
   --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
 }
 :root[data-theme="dark"]{
   --bg:#0F1217; --surface:#161A21; --sunk:#12151B; --ink:#E8EAED; --muted:#9AA7BD; --faint:#6B7385; --line:#2A303C; --line-soft:#1E232C; --field:#343B49;
-  --accent:#8AB4F8; --accent-hover:#AECBFA; --accent-soft:#1F3A5F; --accent-ink:#AECBFA; --on-accent:#14110F;
+  --accent:#D4AA5E; --accent-hover:#E2BE7A; --accent-soft:#3A2F1C; --accent-ink:#E9C98A; --on-accent:#1A1916;
   --crit:#FF8A80; --crit-bg:#3A1C1A; --crit-ink:#FFB3AB; --warn:#F2B866; --warn-bg:#33270F; --orange:#F0A64B;
   --blue:#8AB4F8; --blue-bg:#1F3A5F; --blue-ink:#AECBFA; --ok:#7FCC8C; --ok-bg:#183020;
   --solo:#C58AF9; --solo-bg:#35214A; --solo-ink:#E3C8FD; --baby:#4DB6AC; --baby-bg:#11302D; --baby-ink:#8EDDD3;
-  --bar:#0B0D11; --bar-ink:#F8F9FA; --bar-warn:#F2B866; --sel:#1F3A5F; color-scheme:dark}
+  --bar:#0B0D11; --bar-ink:#F8F9FA; --bar-warn:#F2B866; --sel:#3A2F1C; color-scheme:dark}
 *{box-sizing:border-box}
 html{background:var(--bg)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
@@ -46,11 +46,6 @@ p{margin:0}
   .shell{display:grid;grid-template-columns:240px minmax(0,1fr)}
   .side{display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);padding:16px 12px}
 }
-.brandrow{display:flex;align-items:center;gap:10px;padding:4px 8px 14px}
-.brandrow b{display:block;font-size:16px;line-height:1.25}
-.brandrow a{font-size:12px;color:var(--muted);text-decoration:none}
-.brandrow a:hover{color:var(--accent)}
-.tlogo{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:700;flex:none}
 .nav{display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--ink);font-size:15px;text-align:left}
 .nav:hover{background:var(--sunk)}
 .nav[aria-current="page"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
@@ -60,8 +55,6 @@ p{margin:0}
 .badge.ok{background:var(--ok-bg);color:var(--ok)}
 .today{margin-top:auto;padding:12px 14px;border-radius:12px;background:var(--sunk);font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
 .today b{color:var(--ink)}
-.swap{align-self:flex-start;margin-top:10px;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
-.swap:hover{border-color:var(--accent)}
 .top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
 .top-in{padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
 @media (min-width:720px){.top-in{padding:14px 28px}}
@@ -107,7 +100,7 @@ p{margin:0}
 @media (prefers-reduced-motion:reduce){.spin{animation:none}}
 
 /* upload */
-.drop{position:relative;border:2px dashed #AECBFA;border-radius:20px;background:var(--surface);padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;cursor:pointer}
+.drop{position:relative;border:2px dashed var(--field);border-radius:20px;background:var(--surface);padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;cursor:pointer}
 .drop.over{border-color:var(--accent);background:var(--accent-soft)}
 .drop input{position:absolute;width:1px;height:1px;opacity:0}
 .drop .ico{width:72px;height:72px;border-radius:20px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent)}
@@ -315,15 +308,16 @@ table.dl .fn{overflow-wrap:anywhere}
 .pv iframe{flex:1;width:100%;border:0;background:#F8F9FA}
 .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--accent-ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 </style>
+<link rel="stylesheet" href="../hq/gold.css">
 </head>
 <body>
 
 
 <div class="shell">
-  <aside class="side" id="side" aria-label="主要导航"></aside>
+  <aside class="side g-side" id="side" aria-label="主要导航"></aside>
   <div style="min-width:0">
     <header class="top"><div class="top-in"><div id="toph" style="min-width:0"></div>
-      <div class="top-r"><div class="top-r" id="topacts"></div><button type="button" class="btn small theme" id="theme" aria-pressed="false"></button></div></div></header>
+      <div class="top-r"><nav class="g-seg desk-only" aria-label="切换审核系统"><a href="../name/">名字审核</a><a href="./" aria-current="page">技术单审核</a></nav><div class="top-r" id="topacts"></div><button type="button" class="btn small theme" id="theme" aria-pressed="false"></button></div></div></header>
     <div id="app"></div>
   </div>
 </div>
@@ -343,7 +337,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   var $ = function (id) { return document.getElementById(id); };
   var E = window.ReviewEngine;
 
-  // 深色 by default（跟指挥中心一样）；浅色 only when chosen here (remembered in this browser)
+  // 金色浅色 by default（审核总部主题）；深色 only when chosen here (remembered in this browser)
   var THEME_ICON = {
     dark: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
     light: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
@@ -355,13 +349,13 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     b.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
     b.setAttribute('aria-label', mode === 'dark' ? '切换到浅色' : '切换到深色');
   }
-  var savedTheme = 'dark';
-  try { if (localStorage.getItem('tsr-theme2') === 'light') savedTheme = 'light'; } catch (e) {}
+  var savedTheme = 'light';
+  try { if (localStorage.getItem('tsr-theme3') === 'dark') savedTheme = 'dark'; } catch (e) {}
   applyTheme(savedTheme);
   $('theme').addEventListener('click', function () {
     var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     applyTheme(next);
-    try { localStorage.setItem('tsr-theme2', next); } catch (e) {}
+    try { localStorage.setItem('tsr-theme3', next); } catch (e) {}
   });
   var state = {
     inputs: [], results: null, problems: {}, urgents: {}, solos: {}, edits: {}, reds: {},
@@ -786,11 +780,11 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       return '<button type="button" class="' + cls + '" ' + n[3] + (here === n[0] ? ' aria-current="page"' : '') + (n[5] ? ' disabled' : '') + '>' + n[2] + (short || n[1]) + n[4] + '</button>';
     };
     var date = state.date || state.set.date, rev = state.reviewer || state.set.reviewer || 'martin';
-    $('side').innerHTML = '<div class="brandrow"><span class="tlogo" aria-hidden="true">技</span><div><b>技术单审核台</b><a href="../" title="回到审核总部">← 审核总部</a></div></div>' +
+    $('side').innerHTML = '<a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="">审核总部</a>' +
+      '<a class="g-sys" href="../name/">名字审核</a><a class="g-sys" href="./" aria-current="page">技术单审核</a><div class="g-label">技术单</div>' +
       NAV.map(function (n) { return btn('nav', n); }).join('') +
       '<div class="today"><span>今日设置</span><b>' + esc(date) + ' · ' + esc(rev) + '</b><span>' + esc(res ? regionOf(allOutputs()) : (state.set.region === 'auto' ? '国内 / 海外：自动' : state.set.region === 'overseas' ? '海外（有 H）' : '国内（没有 H）')) + '</span>' +
-      '<button type="button" class="btn link" style="align-self:flex-start;padding:0;min-height:30px" data-view="upload" data-focus="f-reviewer">改设置</button></div>' +
-      '<a class="swap" href="../name/" title="切换到名字审核">切换：名字审核 →</a>';
+      '<button type="button" class="btn link" style="align-self:flex-start;padding:0;min-height:30px" data-view="upload" data-focus="f-reviewer">改设置</button></div>';
     $('tabbar').innerHTML = [NAV[0], NAV[1], NAV[2], NAV[3]].map(function (n, i) { return btn('', n, ['工作台', '上传', '订单', '下载'][i]); }).join('');
     var T = {
       upload: [res ? '加文件或改设置' : '上传技术单', '可以一次放多个 .xlsx 或整包 .zip；所有处理都在你的电脑里完成，不会上传到网上'],
@@ -832,6 +826,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var h = '<div class="page"><div class="narrow">';
     if (state.error) h += '<div class="error" role="alert">' + esc(state.error) + '</div>';
     if (state.busy) h += '<div class="status" role="status"><span class="spin" aria-hidden="true"></span>正在审核……</div>';
+    if (!hasRes) h += '<section class="g-hero"><h2>技术单审核</h2><p>把今天的技术单拖进来：自动标红字、列出要你决定的事、分好文件再下载</p></section>';
     if (hasRes) h += '<section class="card pad loaded"><div style="min-width:0"><b>已上传 ' + state.inputs.length + ' 个技术单</b><ul>' + state.inputs.map(function (f) { return '<li>' + esc(f.name) + '</li>'; }).join('') + '</ul></div>' +
       '<div class="acts"><button type="button" class="btn" data-reset>清空重来</button><button type="button" class="btn primary" data-view="review" data-filter="todo">回工作台</button></div></section>';
     h += '<label class="drop" id="drop"><span class="ico">' + ICON.up + '</span><span class="big">' + (hasRes ? '再拖文件进来（会合在一起审核）' : '拖文件到这里') + '</span><span class="small">或者</span>' +
