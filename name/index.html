@@ -828,7 +828,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
       if(RULES.checkClash)given.forEach(function(ch,idx){ var nch=norm(ch); fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ if(norm(cmp[c])===nch){ var m='新名（'+neu+'）和'+p[0]+'（'+p[1]+'）撞字（'+ch+'）'; if(p[2])warns.push('⚠ '+m+'，请确认是否同一家人'); else {msgs.push(m); addHit('撞字',idx+1,cmp[c],p);} break; } } }); });
       if(RULES.checkHomo&&pyOk)given.forEach(function(ch,idx){ var si=syl[idx],nch=norm(ch);
         fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ var fc=cmp[c]; if(norm(fc)===nch)continue;
-          if(charSyllables(fc).indexOf(si)>=0){ var tp=tonePair(ch,fc), tA=tp[0], tB=tp[1]; var same=(tA&&tB&&tA===tB); var lvl=same?'完全同音同调':'同音不同调'; var hm='新名（'+neu+'）和'+p[0]+'（'+p[1]+'）撞谐音〔'+lvl+'〕（'+ch+'('+si+(tA?tA:'')+') ~ '+fc+'('+si+(tB?tB:'')+')）'; if(p[2])warns.push('⚠ '+hm+'，请确认是否同一家人'); else { msgs.push(hm); addHit('撞音',idx+1,fc,p); } continue; } // 老板规则：同音就算撞，声调不同也算
+          if(charSyllables(fc).indexOf(si)>=0){ var tp=tonePair(ch,fc), tA=tp[0], tB=tp[1]; var same=(tA&&tB&&tA===tB); var lvl=same?'完全同音同调':'同音不同调'; var hm='新名（'+neu+'）和'+p[0]+'（'+p[1]+'）撞谐音〔'+lvl+'〕（'+ch+'('+si+(tA?tA:'')+') ~ '+fc+'('+si+(tB?tB:'')+')）'; if(p[2])warns.push('⚠ '+hm+'，请确认是否同一家人'); else if(!same&&(RULES.POLY[fc]||RULES.POLY[norm(fc)]))warns.push('⚠ '+hm+'（家人的「'+fc+'」是多音字，请确认读法）'); else { msgs.push(hm); addHit('撞音',idx+1,fc,p); } continue; } // 老板规则：同音就算撞，声调不同也算；家人的字是多音字（长 cháng/zhǎng）又不同调，就只提醒
           if(RULES.checkPoly){ var poly=RULES.POLY[fc]||RULES.POLY[norm(fc)]; if(poly&&poly.indexOf(si)>=0)warns.push('⚠ 多音字：'+p[0]+'「'+p[1]+'」的「'+fc+'」也可能读「'+si+'」，那样和新名「'+ch+'」撞音，请用耳朵确认'); } } });
         if(RULES.checkPoly){ var ps=RULES.POLY[ch]||RULES.POLY[norm(ch)]; if(ps)ps.forEach(function(alt){ if(alt===si)return; fam.forEach(function(p){ var cmp=fg(p); for(var c=0;c<cmp.length;c++){ var fc=cmp[c]; if(norm(fc)===nch)continue; if(charSyllables(fc).indexOf(alt)>=0)warns.push('⚠ 多音字：新名「'+ch+'」也可能读「'+alt+'」，那样和'+p[0]+'「'+p[1]+'」的「'+fc+'」撞音，请确认'); } }); }); } });
       else if(RULES.checkHomo)warns.push('✏️ 技术单拼音有问题：「'+neu+'」有 '+given.length+' 个字，但拼音写了 '+syl.length+' 个（'+(aa.trim()||'空白')+'）——谐音没查到，请核对技术单');
@@ -1048,7 +1048,7 @@ function recheckLine(o){ return keyOrder(o.ka)+' '+o.A.n+'（'+o.A.d+'）新名 
 function openRecheck(L){ L=L||recheckPeople(); store('mzys_recheck_last',Date.now()); var noF=Object.keys(PEOPLE).filter(function(k){ return !PEOPLE[k].f&&!PEOPLE[k].simple; }).length;
   var rows=L.map(function(o,i){ return '<tr'+(o.ok?' style="opacity:.45"':'')+'><td>'+(o.strong?'<b style="color:var(--bad)">必须看</b>':'请确认<div class="lbl">只是同名</div>')+'</td><td>'+esc(keyOrder(o.ka))+'<div><b>'+esc(o.A.n)+'</b> '+esc(uniq(o.hit.map(function(x){return x.a;})).join('／'))+'</div><div class="lbl">'+esc(o.A.d||'')+'</div></td><td>'+esc(o.rel)+' '+esc(keyOrder(o.kb))+'<div><b>'+esc(o.B.n)+'</b> '+esc(uniq(o.hit.map(function(x){return x.b;})).join('／'))+'</div><div class="lbl">'+esc(o.B.d||'')+'</div></td><td>'+esc(uniq(o.hit.map(function(x){return x.why;})).join('、'))+'</td><td style="white-space:nowrap"><label class="lbl" style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" data-rk="'+i+'"'+(o.ok?' checked':'')+'> 已处理</label></td></tr>'; }).join('');
   document.getElementById('modalBox').classList.add('wide');
-  document.getElementById('modalBox').innerHTML='<h3>每周复查：家人新名撞字撞音</h3><div class="desc">把这台电脑记住的 '+Object.keys(PEOPLE).length+' 位学员两两比一次：家人栏写了对方名字、两边下来的新名撞字或同音同调的，列在这里。审的时候对方新名还没下来，所以当时抓不到。<b>必须看</b> = 会员编号或店铺编号也一样；勾「已处理」以后不再提醒。每 7 天打开网页会自动复查一次。</div>'+
+  document.getElementById('modalBox').innerHTML='<h3>每周复查：家人新名撞字撞音</h3><div class="desc">把这台电脑记住的 '+Object.keys(PEOPLE).length+' 位学员两两比一次：家人栏写了对方名字、两边下来的新名撞字或同音（声调不同也算）的，列在这里。审的时候对方新名还没下来，所以当时抓不到。<b>必须看</b> = 会员编号或店铺编号也一样；勾「已处理」以后不再提醒。每 7 天打开网页会自动复查一次。</div>'+
     (noF?'<div class="lbl" style="margin-bottom:8px">有 '+noF+' 位是旧版记下的，没有家人资料——请到「⋯ → 导入以前的技术单」再导入一次。</div>':'')+
     (L.length?'<table class="dbtable"><tr><th></th><th>学员</th><th>家人</th><th>撞了</th><th></th></tr>'+rows+'</table>':'<div class="lbl" style="padding:8px 0">没有发现撞字撞音。</div>')+
     '<div class="mfoot"><button type="button" class="btn" id="rcClose">关闭</button>'+(L.length?'<button type="button" class="btn pri" id="rcCopy">复制清单</button>':'')+'</div>';
@@ -1877,7 +1877,7 @@ var CHANGELOG=[
   {date:'2026-11-04', title:'「有问题」文件改名', items:[
     '改成「（有问题）郑小东 名正言顺技术单2026-10-01（1）」：只有 1 位学员有问题就写他的名字，好几位就不写名字；海外照样加（H）']},
   {date:'2026-11-03', title:'每周复查：家人新名撞字撞音', items:[
-    '每 7 天打开网页自动把记住的学员两两比一次：家人栏写了对方名字、两边下来的新名撞字或同音同调的，弹出清单（审的时候对方新名还没下来，当时抓不到）',
+    '每 7 天打开网页自动把记住的学员两两比一次：家人栏写了对方名字、两边下来的新名撞字或同音（声调不同也算）的，弹出清单（审的时候对方新名还没下来，当时抓不到）',
     '会员编号或店铺编号一样的标「必须看」，只是同名的标「请确认」；勾「已处理」以后不再提醒',
     '「⋯ → 每周复查」随时手动跑；以前导入过的技术单请再导入一次，才有家人资料']},
   {date:'2026-11-03', title:'家人以前下来的新名也会比', items:[
