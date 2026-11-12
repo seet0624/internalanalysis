@@ -174,34 +174,51 @@ button{cursor:pointer}
 @media (prefers-reduced-motion: reduce){.drawer,.hq-tag,[data-tip]::after,.needs dd i{transition:none}}
 
 /* ---------- 手机 ---------- */
-/* ---------- 登入 ---------- */
-.login{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px;background:#F8F9FA url("hq/brand/login-bg.webp") center/cover no-repeat;overflow:hidden}
-/* 背景：公司 3D 模板的截图，慢慢推近；没载入前先是米白 */
-.login::before{content:"";position:absolute;inset:-4%;background:inherit;filter:blur(3px) saturate(1.05);animation:loginDrift 60s ease-in-out infinite alternate}
-.login::after{content:"";position:absolute;inset:0;background:radial-gradient(70% 70% at 50% 50%,rgba(250,247,240,.25),rgba(250,247,240,.65))}
-@keyframes loginDrift{from{transform:scale(1)}to{transform:scale(1.08) translate(-1.5%,-1%)}}
-@media (prefers-reduced-motion:reduce){.login::before{animation:none}}
-.login form{position:relative;z-index:1;width:min(400px,100%);padding:32px;display:flex;flex-direction:column;gap:16px;background:rgba(255,253,248,.76);-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2);border:1px solid rgba(232,225,211,.9);border-radius:20px;box-shadow:var(--shadow-lg)}
-.login .lg-logo{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--gold)}
-.login .lg-logo img{width:52px;height:52px}
-.login .lg-logo b{display:block;font-size:22px;letter-spacing:.06em;color:var(--ink-strong)}
-.login .lg-logo small{display:block;font-size:13px;color:var(--faint);letter-spacing:.04em}
-.login h1{font-size:18px;font-weight:600}
-.login p{color:var(--muted);font-size:14px}
-.login label{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:500}
-.login input{min-height:46px;border:1px solid var(--field);border-radius:12px;padding:0 14px;font-size:16px;background:#FFFFFF}
-/* 登入页改深色（跟指挥中心的深色办公室同一套）：背景是方块小人办公室，卡片深灰 */
-.login{background:#0F1217 url("hq/brand/login-office.webp") center/cover no-repeat}
-.login::after{background:radial-gradient(70% 70% at 50% 50%,rgba(15,18,23,.45),rgba(15,18,23,.88))}
-.login form{background:rgba(22,26,33,.86);border-color:#2A303C;color:#E8EAED;box-shadow:0 24px 60px -12px rgba(0,0,0,.6)}
-.login .lg-logo{border-bottom-color:#2A303C}
-.login .lg-logo b{color:#FFFFFF}
-.login .lg-logo small,.login p{color:#9AA7BD}
-.login input{background:#0F1217;border-color:#343B49;color:#E8EAED}
-/* 浏览器自动填入会变蓝底：改回深色 */
-.login input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #0F1217 inset;-webkit-text-fill-color:#E8EAED;caret-color:#E8EAED}
-.login input:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--accent)}
-.login .err{color:var(--bad);font-size:14px;min-height:20px}
+/* ---------- 登入：夜色山水 + 金色（左边标题、右边玻璃卡片） ---------- */
+.login{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;gap:clamp(24px,6vw,96px);padding:24px clamp(16px,5vw,80px);overflow:auto;
+  background:#0B1424 url("hq/brand/login-night.webp") left center/cover no-repeat;color:#F3EBDA}
+.login::after{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(8,14,26,.15) 0,rgba(8,14,26,.05) 45%,rgba(8,14,26,.55) 100%)}
+.login>*{position:relative;z-index:1}
+.lg-lines{position:fixed;right:0;bottom:0;width:min(70vw,900px);height:auto;z-index:0;pointer-events:none;opacity:.8}
+.lg-brand{flex:0 1 520px;text-align:center;align-self:flex-start;margin-top:8vh;text-shadow:0 2px 18px rgba(0,0,0,.55)}
+.lg-brand img{width:clamp(72px,9vw,120px);height:auto;filter:drop-shadow(0 6px 22px rgba(232,190,110,.45))}
+.lg-brand h1{margin:10px 0 0;font-family:'Noto Serif SC','Songti SC','STSong','SimSun',serif;font-weight:900;font-size:clamp(34px,5vw,68px);letter-spacing:.08em;line-height:1.15;
+  background:linear-gradient(180deg,#FFF1C9 0%,#E9C27A 45%,#B8873A 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lg-brand p{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;font-size:clamp(14px,1.5vw,20px);letter-spacing:.12em;color:#F3EBDA}
+.lg-brand p::before,.lg-brand p::after{content:"";width:clamp(24px,5vw,64px);height:1px;background:linear-gradient(90deg,transparent,#E9C27A)}
+.lg-brand p::after{transform:scaleX(-1)}
+.login form{flex:0 1 560px;width:min(560px,100%);padding:clamp(24px,4vw,48px) clamp(20px,5vw,72px);display:flex;flex-direction:column;gap:18px;
+  background:linear-gradient(160deg,rgba(28,36,52,.78),rgba(12,18,30,.82));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border:1px solid rgba(233,194,122,.55);border-radius:28px;box-shadow:0 0 0 1px rgba(233,194,122,.12),0 0 40px -6px rgba(233,194,122,.35),0 30px 70px -20px rgba(0,0,0,.7)}
+.login h2{margin:0 0 6px;font-size:clamp(24px,2.4vw,34px);font-weight:700;letter-spacing:.06em;color:#FFFFFF}
+.lg-field{position:relative;display:flex;align-items:center}
+.lg-field>svg{position:absolute;left:18px;width:22px;height:22px;color:#E8DFC9;pointer-events:none}
+.login input{width:100%;min-height:58px;padding:0 54px;border:1px solid rgba(233,225,207,.35);border-radius:14px;background:rgba(8,12,22,.45);color:#F7F1E3;font-size:17px}
+.login input::placeholder{color:#B9B09D}
+.login input:-webkit-autofill{-webkit-box-shadow:0 0 0 40px #101827 inset;-webkit-text-fill-color:#F7F1E3;caret-color:#F7F1E3}
+.login input:focus{outline:2px solid #E9C27A;outline-offset:1px;border-color:#E9C27A}
+.lg-eye{position:absolute;right:8px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:none;color:#E8DFC9}
+.lg-eye:hover{color:#FFFFFF}
+.lg-eye svg{width:22px;height:22px}
+.lg-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.lg-check{display:flex;align-items:center;gap:10px;font-size:16px;color:#F3EBDA;cursor:pointer;min-height:44px}
+.lg-check input{width:22px;height:22px;min-height:0;padding:0;accent-color:#E2BE7A}
+.lg-forgot{border:0;background:none;padding:8px 0;min-height:44px;font-size:16px;color:#E9C27A}
+.lg-forgot:hover{color:#FFE2A6;text-decoration:underline}
+.lg-go{display:flex;align-items:center;justify-content:center;gap:14px;min-height:60px;border:0;border-radius:999px;font-size:20px;font-weight:700;letter-spacing:.5em;text-indent:.5em;color:#1A1408;
+  background:linear-gradient(180deg,#F6DDA0,#D9AE5E 55%,#C4954A);box-shadow:0 8px 26px -6px rgba(233,194,122,.6),inset 0 1px 0 rgba(255,255,255,.5)}
+.lg-go:hover{filter:brightness(1.06)}
+.lg-go:disabled{opacity:.7;letter-spacing:.1em;text-indent:0}
+.lg-go svg{width:22px;height:22px;flex:none}
+#loginMsg{margin:-8px 0 0;color:#D9D0BD;font-size:14px}
+.login .err{color:#FFB3AB;font-size:14px;min-height:20px;margin:-6px 0}
+.lg-note{display:flex;align-items:flex-start;gap:8px;font-size:14px;color:#D9D0BD;line-height:1.6}
+.lg-note svg{flex:none;width:16px;height:16px;margin-top:3px;color:#E9C27A}
+@media (max-width:860px){
+  .login{flex-direction:column;justify-content:flex-start;gap:20px;background-position:22% center}
+  .lg-brand{align-self:center;margin-top:2vh;flex:none}
+  .login form{flex:none}
+}
 .acct{font-size:13px;color:var(--faint);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .acct button{border:0;background:none;color:var(--accent);font-size:13px;padding:8px 4px;min-height:32px;text-decoration:underline}
 /* ---------- 公司对话 ---------- */
@@ -328,14 +345,25 @@ button{cursor:pointer}
   <ol id="feedList" aria-live="off"></ol>
 </section>
 <div class="login" id="login" hidden>
-  <form class="card" id="loginForm" autocomplete="on">
-    <div class="lg-logo"><img src="hq/brand/shuyi-logo-180.png" alt="" width="52" height="52"><span><b>数易 · AI 指挥中心</b><small>SHUYI AI COMPANY HQ</small></span></div>
-    <h1>登入</h1>
-    <p id="loginMsg">用公司给你的账号登入。</p>
-    <label>账号<input id="loginId" name="username" autocomplete="username" required></label>
-    <label>密码<input id="loginPass" name="password" type="password" autocomplete="current-password" required></label>
+  <svg class="lg-lines" viewBox="0 0 900 400" aria-hidden="true" fill="none"><defs><linearGradient id="lgl" x1="0" x2="1"><stop offset="0" stop-color="#E9C27A" stop-opacity="0"/><stop offset=".6" stop-color="#E9C27A" stop-opacity=".9"/><stop offset="1" stop-color="#FFF1C9"/></linearGradient></defs>
+    <path d="M0 380C260 360 520 330 900 120" stroke="url(#lgl)" stroke-width="2"/><path d="M60 395C320 370 560 350 900 190" stroke="url(#lgl)" stroke-width="1.2" opacity=".7"/><path d="M180 400C420 385 640 360 900 250" stroke="url(#lgl)" stroke-width="1" opacity=".5"/></svg>
+  <div class="lg-brand">
+    <img src="hq/brand/shuyi-logo-gold.webp" alt="" width="120" height="120">
+    <h1>国内客服系统</h1>
+    <p>服务管理 · 审核处理 · 订单跟进</p>
+  </div>
+  <form id="loginForm" autocomplete="on" aria-labelledby="loginTitle">
+    <h2 id="loginTitle">用户登录</h2>
+    <p class="vh" id="loginMsg">用公司给你的账号登录。</p>
+    <div class="lg-field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+      <input id="loginId" name="username" autocomplete="username" placeholder="请输入账号" aria-label="账号" required></div>
+    <div class="lg-field"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>
+      <input id="loginPass" name="password" type="password" autocomplete="current-password" placeholder="请输入密码" aria-label="密码" required>
+      <button type="button" class="lg-eye" id="loginEye" aria-label="显示密码" aria-pressed="false"></button></div>
+    <div class="lg-row"><label class="lg-check"><input type="checkbox" id="loginRemember" checked>记住账号</label><button type="button" class="lg-forgot" id="loginForgot">忘记密码?</button></div>
     <div class="err" id="loginErr" role="alert"></div>
-    <button type="submit" class="btn pri">登入</button>
+    <button type="submit" class="lg-go">登入<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+    <p class="lg-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>请先登录系统，登录后即可使用「名字审核」及「技术单审核」等功能。</p>
   </form>
 </div>
 <div class="vh" id="announce" role="status" aria-live="polite"></div>
@@ -362,17 +390,30 @@ const params = new URLSearchParams(location.search);
 function goNext(sess) { const nx = params.get('next'); if (nx && HQAuth.can(nx, sess)) { location.replace(HQAuth.root + nx); return true; } if (!params.has('classic')) { location.replace(HQAuth.root + 'command/'); return true; } return false; }
 const SESSION = HQAuth.session() || await new Promise((resolve) => {
   const box = $('login'); box.hidden = false; $('skeleton').hidden = true;
-  if (params.get('next')) $('loginMsg').textContent = '请先登入，登入后会带你回刚才的页面。';
-  $('loginId').focus();
+  if (params.get('next')) { $('loginMsg').textContent = '请先登录，登录后会带你回刚才的页面。'; $('loginMsg').classList.remove('vh'); }
+  // 记住账号：只记账号，不记密码
+  let savedId = ''; try { savedId = localStorage.getItem('hq-remember-id') || ''; } catch (e) {}
+  if (savedId) { $('loginId').value = savedId; $('loginPass').focus(); } else $('loginId').focus();
+  const EYE = { off: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/></svg>',
+    on: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z"/><circle cx="12" cy="12" r="3"/></svg>' };
+  $('loginEye').innerHTML = EYE.off;
+  $('loginEye').addEventListener('click', () => {
+    const show = $('loginPass').type === 'password';
+    $('loginPass').type = show ? 'text' : 'password';
+    $('loginEye').innerHTML = show ? EYE.on : EYE.off;
+    $('loginEye').setAttribute('aria-pressed', String(show)); $('loginEye').setAttribute('aria-label', show ? '隐藏密码' : '显示密码');
+  });
+  $('loginForgot').addEventListener('click', () => { $('loginErr').textContent = '忘记密码请找老板（管理员）重设。'; });
   let busy = false;
   $('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     if (busy) return;
     const sess = HQAuth.login($('loginId').value, $('loginPass').value);
     if (!sess) { $('loginErr').textContent = '账号或密码不对，请再试一次'; $('loginPass').select(); return; }
+    try { if ($('loginRemember').checked) localStorage.setItem('hq-remember-id', $('loginId').value.trim()); else localStorage.removeItem('hq-remember-id'); } catch (e) {}
     busy = true;
-    const btn = $('loginForm').querySelector('button[type=submit],button:not([type])');
-    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = '连接公司云端…'; }
+    const btn = $('loginForm').querySelector('button[type=submit]');
+    if (btn) { btn.disabled = true; btn.textContent = '连接公司云端…'; }
     await HQAuth.cloudLogin($('loginId').value, $('loginPass').value);   // 连不上也照样进去（本机模式）
     box.hidden = true; $('skeleton').hidden = false; resolve(sess);
   });

@@ -109,8 +109,6 @@ kbd{font-family:inherit;font-size:11px;color:var(--muted);border:1px solid var(-
 .welcome{flex:1;overflow:auto;padding:36px 20px 48px}
 .home{max-width:1040px;margin:0 auto}
 .dropcard{text-align:center;border:1.5px dashed var(--sel-line);border-radius:20px;padding:38px 32px 34px;background:var(--panel);transition:.2s;margin-bottom:28px;cursor:pointer}
-.dropcard .dicon{width:68px;height:68px;border-radius:18px;background:var(--accent-soft);color:var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
-.dropcard .dicon svg.i{width:32px;height:32px;stroke-width:1.6}
 .dropcard.over{border-color:var(--gold);background:var(--panel2)}
 .dropcard .big{font-family:var(--serif-tc);font-size:40px;font-weight:700;color:var(--gold);letter-spacing:6px;margin-bottom:8px}
 .dropcard h2{margin:0;font-weight:700;font-size:24px;color:var(--ink)}
@@ -515,11 +513,13 @@ body.light .itabs button.on{background:var(--bg2)}
 <div class="welcome" id="welcome">
   <div class="home">
     <section class="g-hero" style="margin-bottom:20px"><h2>名字审核</h2><p>把名正言顺技术单拖进来：撞名、读音、家人要求一次查完，再下载结果</p></section>
-    <section class="dropcard" id="drop" aria-label="载入技术单">
-      <div class="dicon"><svg class="i"><use href="#i-upload"/></svg></div>
+    <section class="dropcard g-drop" id="drop" aria-label="载入技术单">
+      <img class="g-drop-art" src="../hq/brand/upload-art.svg" alt="" width="250" height="183">
+      <div class="g-drop-txt">
       <h2 id="t_drop1">把名正言顺技术单拖到这里</h2>
       <p id="t_drop2">拖到页面任何地方都行 · 可一次拖多份，也可以拖 zip · 会自动建「订单号 → 新名」总库做跨文件比对</p>
-      <button type="button" class="btn pri" id="pickBtn"><svg class="i"><use href="#i-file"/></svg><span data-i18n="pick">选择文件</span></button>
+      <button type="button" class="btn pri" id="pickBtn"><svg class="i"><use href="#i-upload"/></svg><span data-i18n="pick">选择文件</span></button>
+      </div>
     </section>
     <div id="homeInfo"></div>
     <div class="priv" data-i18n="foot1">所有处理都在你的浏览器里完成，文件不会上传到任何服务器。</div>
