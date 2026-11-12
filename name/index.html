@@ -55,19 +55,15 @@ svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-widt
 /* ---------- top bar ---------- */
 header.top{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--bg2);position:relative;z-index:40}
 .brand{display:flex;align-items:center;gap:10px;margin-right:4px}
-.logo{width:32px;height:32px;border-radius:8px;background:var(--gold);color:var(--pri-ink);display:flex;align-items:center;justify-content:center;font-family:var(--serif-tc);font-weight:700;font-size:17px}
 
 .brand b{font-size:15px;letter-spacing:.5px}
 .brand .home{font-size:13px;color:var(--muted);text-decoration:none;padding:6px 2px;white-space:nowrap}
-.g-seg{margin-left:8px}
-@media (max-width:720px){header.top .g-seg{display:none}}
-@media (max-width:1599px){body.has-file header.top .g-seg{display:none}} /* 打开文件后工具列要位置；跟以前的「切换」一样收起 */
 /* 水墨左栏：宽屏才出现，固定在左边（工具列要一整行，所以 1440 以上才放） */
 .g-side{display:none}
 @media (min-width:1440px){
   body>.g-side{display:flex;flex-direction:column;gap:2px;position:fixed;left:0;top:0;bottom:0;width:220px;padding:16px 12px;overflow-y:auto;z-index:45}
   body{padding-left:220px}
-  header.top .g-seg,.brand .home,.brand .crumb{display:none} /* 左栏已经有，省位置给工具列 */
+  .brand .home,.brand .crumb{display:none} /* 左栏已经有，省位置给工具列 */
 }
 .brand .home:hover{color:var(--gold)}
 .brand .crumb{color:var(--line2)}
@@ -448,14 +444,15 @@ body.light .itabs button.on{background:var(--bg2)}
   <div class="g-label">资料</div><a class="g-sys" href="https://shuyitoolguidance.netlify.app/" target="_blank" rel="noopener"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.8v6.4l5-3.2z"/></svg></span>工具启动教程</a><a class="g-sys" href="../docs/dongfang/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 17.5h2"/></svg></span>商城教程</a>
   <button type="button" class="g-sys g-out" onclick="HQAuth.confirmLogout()"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>退出</button>
 </aside>
-<header class="top">
-  <div class="brand"><a class="home" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="" width="22" height="22" style="vertical-align:-6px;margin-right:6px">审核总部</a><span class="crumb" aria-hidden="true">/</span><div class="logo">名</div><b id="t_title">名字审核</b><button type="button" class="verchip" id="verChip" data-act="changelog" title="看版本更新"></button><nav class="g-seg" aria-label="切换审核系统"><a href="./" aria-current="page">名字审核</a><a href="../tech/">技术单审核</a></nav></div>
+<header class="top g-topbg">
+  <div class="brand"><a class="home" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="" width="22" height="22" style="vertical-align:-6px;margin-right:6px">审核总部</a><span class="crumb" aria-hidden="true">/</span><span class="g-tile g-tile-sm" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v15l-3.5-2-3.5 2-3.5-2z"/><path d="M8.5 9h7M8.5 12.5h4.5"/></svg></span><span class="g-tt"><b id="t_title">名字审核</b><span class="g-sub">撞名、读音、家人要求一次查完</span></span><button type="button" class="verchip" id="verChip" data-act="changelog" title="看版本更新"></button></div>
   <label class="ctl searchbox" id="searchWrap" style="display:none">
     <svg class="i" style="color:var(--muted)"><use href="#i-search"/></svg>
     <input id="searchBox" placeholder="搜学员、订单号、字…" aria-label="搜索学员、订单号、家人、字、拼音" title="可搜学员、订单号、家人、字、拼音" data-i18n-ph="search">
     <kbd>/</kbd>
   </label>
   <div class="grow"></div>
+  <nav class="g-sysnav g-nofile" aria-label="切换审核系统"><a class="g-btn3d" href="./" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>名字审核</a><a class="g-btn3d" href="../tech/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>技术单审核</a></nav>
   <div class="tgroup" data-need-file>
     <button type="button" class="tg" id="undoBtn" data-act="undo" aria-label="撤销判定（Ctrl Z）" title="撤销判定（Ctrl Z）"><svg class="i"><use href="#i-undo"/></svg></button>
     <button type="button" class="tg" id="redoBtn" data-act="redo" aria-label="重做判定" title="重做判定"><svg class="i"><use href="#i-redo"/></svg></button>
@@ -470,6 +467,7 @@ body.light .itabs button.on{background:var(--bg2)}
   <span class="tsep"></span>
   <button type="button" class="sqbtn" data-act="settings" aria-label="规则设定" title="规则设定"><svg class="i"><use href="#i-sliders"/></svg></button>
   <button type="button" class="sqbtn" data-act="theme" aria-label="深色 / 浅色" title="深色 / 浅色"><svg class="i"><use href="#i-sun"/></svg></button>
+  <span class="g-user" id="gUser"></span>
   <button type="button" class="tbtn g-logout" onclick="HQAuth.confirmLogout()" title="退出登入" aria-label="退出"><svg viewBox="0 0 24 24" class="i" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg><span class="lbl">退出</span></button>
   <button type="button" class="sqbtn" data-act="help" aria-label="使用说明" title="使用说明 · 快捷键（?）"><svg class="i"><use href="#i-help"/></svg></button>
   <div class="dd" id="moreWrap">
@@ -512,6 +510,7 @@ body.light .itabs button.on{background:var(--bg2)}
     </div>
   </div>
 </header>
+<script>try { var _s = HQAuth.session(); if (_s) document.getElementById('gUser').innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>' + String(_s.id).replace(/[<>&"]/g, ''); } catch (e) {}</script>
 
 <div class="welcome g-pat" id="welcome">
   <div class="home">

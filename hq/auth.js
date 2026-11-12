@@ -167,6 +167,20 @@
     location.replace(ROOT + (s ? '?denied=' : '?next=') + encodeURIComponent(here()));
     return;
   }
+  // 只有老板能看办公室（首页）：其他人点「国内客服系统 / 审核总部」直接回名字审核，不经过首页
+  if (s.role !== 'boss') {
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('a[href]');
+      if (!a) return;
+      var to = new URL(a.getAttribute('href'), location.href), home = new URL(ROOT).pathname;
+      if (to.origin === location.origin && (to.pathname === home || to.pathname === home + 'index.html')) {
+        e.preventDefault(); location.href = ROOT + 'name/';
+      }
+    }, true);
+  }
+  // 进入动画：刚打开页面时才播（gold.css 的 .g-enter），1.6 秒后拿掉，之后画面重画不会再播
+  document.documentElement.classList.add('g-enter');
+  setTimeout(function () { document.documentElement.classList.remove('g-enter'); }, 1600);
   // 左下角小标签：回审核总部、目前身份
   if (noBadge) return;
   document.addEventListener('DOMContentLoaded', function () {
