@@ -15,7 +15,7 @@
 .g-side .nav{color:#D9D0BD}
 .g-side .nav:hover{background:rgba(233,225,207,.08);color:#FFFFFF}
 .g-side .nav[aria-current="page"]{background:rgba(217,182,110,.16);color:#E9C98A}
-.g-side .badge{background:rgba(233,225,207,.12);color:#E9E1CF}
+.g-side .badge:not(.hot):not(.ok){background:rgba(233,225,207,.12);color:#E9E1CF}
 .g-side .today{background:rgba(26,25,22,.72);border:1px solid rgba(217,182,110,.25);color:#A79E8A}
 .g-side .today b{color:#F3EBDA}
 .g-side .today .btn.link{color:#E2BE7A}
