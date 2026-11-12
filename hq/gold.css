@@ -124,7 +124,7 @@ body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto
 @keyframes gUp{from{opacity:0;transform:translateY(20px)}}
 
 /* 顶栏（两页共用）：山水装饰、圆形图示、金色系统按钮、登入的人 */
-.g-topbg{overflow:hidden}
+/* 不能 overflow:hidden：名字审核顶栏的下拉选单（⋯、下载结果）会被切掉；山水图本身用 clip-path 裁在顶栏里 */
 .g-topbg::after{content:"";position:absolute;inset:0;pointer-events:none;background:url(brand/ink-hero.webp) right 32%/auto 620% no-repeat;opacity:.6;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 80%);mask-image:linear-gradient(90deg,transparent 30%,#000 80%)}
 :root[data-theme="dark"] .g-topbg::after{opacity:.12}
 .g-titlerow{display:flex;align-items:center;gap:14px}
@@ -136,7 +136,7 @@ body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto
 .g-sysnav svg{width:20px;height:20px;flex:none}
 .g-user{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-weight:600}
 .g-user:empty{display:none}
-.g-topbg::after{z-index:0}
+.g-topbg::after{z-index:0;clip-path:inset(0)}
 body:not(.light):not(.g-pat) .g-topbg::after{opacity:.12}
 header.g-topbg>*{position:relative;z-index:1}
 .g-tile-sm{width:46px;height:46px}.g-tile-sm svg{width:22px;height:22px}
