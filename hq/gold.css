@@ -53,3 +53,32 @@
 .btn.primary:active,.btn.pri:active,.g-btn3d:active,label:active>.g-drop-txt .g-btn3d{transform:translateY(3px);box-shadow:inset 0 2px 4px rgba(0,0,0,.25),0 0 0 #6E4B12,0 2px 6px -2px rgba(110,75,18,.4)}
 .btn.primary[disabled],.btn.pri:disabled{transform:none}
 .g-btn3d svg{width:20px;height:20px;flex:none}
+
+/* 中国风字体：大标题用毛笔字（马善政楷书，只截了用到的字），其他标题用电脑自带的楷体 */
+@font-face{font-family:"ShuyiBrush";src:url(fonts/shuyi-brush.woff2) format("woff2");font-display:swap}
+:root{--g-brush:"ShuyiBrush","KaiTi","STKaiti","Kaiti SC",serif;--g-kai:"KaiTi","STKaiti","Kaiti SC","BiauKai",serif}
+.g-hero h1,.g-hero h2,.g-brand{font-family:var(--g-brush);font-weight:400;letter-spacing:4px}
+.g-brand{font-size:24px;letter-spacing:3px}
+.g-hero h1,.g-hero h2{font-size:clamp(30px,3.4vw,44px)}
+.g-sys,.g-label,.g-drop-txt h2,.g-drop-txt .big,.g-feat b,.top h1,.card h2,.card h3{font-family:var(--g-kai)}
+.g-drop-txt h2,.g-drop-txt .big{font-size:clamp(22px,2.2vw,30px);letter-spacing:1px}
+
+/* 左栏图示 */
+.g-sys .gi{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(233,225,207,.08)}
+.g-sys .gi svg{width:17px;height:17px}
+.g-sys[aria-current="page"] .gi{background:rgba(26,25,22,.15)}
+
+/* 首页功能卡：三张有颜色的卡 */
+.g-feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:16px;margin:20px 0}
+.g-feat{position:relative;overflow:hidden;display:flex;gap:14px;align-items:flex-start;padding:18px 20px;border-radius:16px;background:var(--panel,var(--surface,#FFFDF8));border:1px solid var(--line,#E8DFCC);box-shadow:0 8px 22px -14px rgba(110,75,18,.35);color:var(--ink,#2B2620)}
+.g-feat::after{content:"";position:absolute;right:-18px;bottom:-18px;width:90px;height:90px;border-radius:50%;background:var(--c);opacity:.08}
+.g-feat .gi{flex:none;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;color:#FFFFFF;background:var(--c);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 14px -6px var(--c)}
+.g-feat .gi svg{width:22px;height:22px}
+.g-feat b{display:block;font-size:18px;margin-bottom:2px}
+.g-feat span{font-size:13px;color:var(--muted,#6F6553);line-height:1.6}
+
+/* 背景淡淡的祥云纹 */
+.g-pat{background-image:url(brand/cloud-pattern.svg);background-size:220px auto;background-repeat:repeat}
+.g-out{margin-top:8px;color:#C9BFA9}
+body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto}
+@media (max-width:600px){.g-hero h1,.g-hero h2{font-size:26px}}   /* 手机：放在上面那条大小之后才生效 */

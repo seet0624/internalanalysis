@@ -439,12 +439,14 @@ body.light .itabs button.on{background:var(--bg2)}
 
 <aside class="g-side" aria-label="审核总部导航">
   <a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="">审核总部</a>
-  <a class="g-sys" href="./" aria-current="page">名字审核</a>
-  <a class="g-sys" href="../tech/">技术单审核</a>
+  <a class="g-sys" href="./" aria-current="page"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v15l-3.5-2-3.5 2-3.5-2z"/><path d="M8.5 9h7M8.5 12.5h4.5"/></svg></span>名字审核</a>
+  <a class="g-sys" href="../tech/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="3.5" rx="1"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 13l2 2 4-4"/></svg></span>技术单审核</a>
   <div class="g-label">名字审核</div>
-  <button type="button" class="g-sys" data-act="db">订单库</button>
-  <button type="button" class="g-sys" data-act="settings">规则设定</button>
-  <button type="button" class="g-sys" data-act="help">使用说明</button>
+  <button type="button" class="g-sys" data-act="db"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg></span>订单库</button>
+  <button type="button" class="g-sys" data-act="settings"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></span>规则设定</button>
+  <button type="button" class="g-sys" data-act="help"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg></span>使用说明</button>
+  <div class="g-label">资料</div><a class="g-sys" href="../handbook/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg></span>业务手册</a><a class="g-sys" href="../guide/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.8v6.4l5-3.2z"/></svg></span>工具教程</a><a class="g-sys" href="../docs/dongfang/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 17.5h2"/></svg></span>商城教程</a>
+  <button type="button" class="g-sys g-out" onclick="HQAuth.logout();location.href='../'"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>登出</button>
 </aside>
 <header class="top">
   <div class="brand"><a class="home" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="" width="22" height="22" style="vertical-align:-6px;margin-right:6px">审核总部</a><span class="crumb" aria-hidden="true">/</span><div class="logo">名</div><b id="t_title">名字审核</b><button type="button" class="verchip" id="verChip" data-act="changelog" title="看版本更新"></button><nav class="g-seg" aria-label="切换审核系统"><a href="./" aria-current="page">名字审核</a><a href="../tech/">技术单审核</a></nav></div>
@@ -510,7 +512,7 @@ body.light .itabs button.on{background:var(--bg2)}
   </div>
 </header>
 
-<div class="welcome" id="welcome">
+<div class="welcome g-pat" id="welcome">
   <div class="home">
     <section class="g-hero" style="margin-bottom:20px"><h2>名字审核</h2><p>把名正言顺技术单拖进来：撞名、读音、家人要求一次查完，再下载结果</p></section>
     <section class="dropcard g-drop" id="drop" aria-label="载入技术单">
@@ -521,6 +523,7 @@ body.light .itabs button.on{background:var(--bg2)}
       <button type="button" class="btn pri" id="pickBtn"><svg class="i"><use href="#i-upload"/></svg><span data-i18n="pick">选择文件</span></button>
       </div>
     </section>
+    <section class="g-feats" aria-label="会做什么"><div class="g-feat" style="--c:#C0392B"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h3M16 12h3"/><circle cx="12" cy="12" r="3.5"/><path d="M12 4v2M12 18v2"/></svg></span><div><b>撞字撞音一次查完</b><span>新名跟家人、同单兄弟比对，同字、同音（声调不同也算）自动标红</span></div></div><div class="g-feat" style="--c:#D9822B"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c.6-3.4 2.6-5 5-5s4.4 1.6 5 5M13.5 19c.5-2.6 1.9-3.8 3.5-3.8s3 1.2 3.5 3.8"/></svg></span><div><b>家人要求自动对照</b><span>备注里的订单号、关联编号会去订单库找家人新名，跨文件也能比</span></div></div><div class="g-feat" style="--c:#2E8B57"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg></span><div><b>结果分两份下载</b><span>「有问题」和「干净 · 可上传」分开下载，每位写一句原因</span></div></div></section>
     <div id="homeInfo"></div>
     <div class="priv" data-i18n="foot1">所有处理都在你的浏览器里完成，文件不会上传到任何服务器。</div>
   </div>

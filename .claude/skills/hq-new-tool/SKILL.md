@@ -37,5 +37,5 @@ description: Add a new review tool / feature page to the 审核总部 site and w
 - 没登入开 `xxx/` 会被带回首页登入，登入后回到 `xxx/`；国内账号 `dongfangcs` 能不能进符合预期
 - 处理一份测试文件后 `HQBus.list()` 最后一笔是这个工具的事件、数字正确
 - 回首页 3D 总部：员工照 workflow 走去交接、「公司对话」有对话
-- 开 `command/`：2F 对应的 AI 员工状态变「工作中 / 已完成」，任务、执行纪录有这一笔，上方出现即时通知
+- 用老板账号开 `command/`：2F 对应的 AI 员工状态变「工作中 / 已完成」，任务、执行纪录有这一笔，上方出现即时通知（客服账号进不了 `command/`）
 - 主控台没有错误

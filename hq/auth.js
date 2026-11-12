@@ -17,7 +17,7 @@
   // 每个身份能进的页面（网站根目录下的路径开头）
   var ACCESS = {
     boss: ['*'],
-    cs: ['', 'index.html', 'name/', 'tech/', 'handbook/', 'guide/', 'numera/', 'docs/', 'command/']
+    cs: ['', 'index.html', 'name/', 'tech/', 'handbook/', 'guide/', 'numera/', 'docs/']   // 客服不进 3D 办公室（command/），登入直接到名字审核
   };
 
   // ---------- SHA-256（不靠 crypto.subtle，http 网址也能用） ----------
