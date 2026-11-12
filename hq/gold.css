@@ -122,3 +122,28 @@ body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto
 @keyframes gSlide{from{opacity:0;transform:translateX(-28px)}}
 @keyframes gDown{from{opacity:0;transform:translateY(-12px)}}
 @keyframes gUp{from{opacity:0;transform:translateY(20px)}}
+
+/* 顶栏（两页共用）：山水装饰、圆形图示、金色系统按钮、登入的人 */
+.g-topbg{overflow:hidden}
+.g-topbg::after{content:"";position:absolute;inset:0;pointer-events:none;background:url(brand/ink-hero.webp) right 32%/auto 620% no-repeat;opacity:.6;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 80%);mask-image:linear-gradient(90deg,transparent 30%,#000 80%)}
+:root[data-theme="dark"] .g-topbg::after{opacity:.12}
+.g-titlerow{display:flex;align-items:center;gap:14px}
+.g-tile{flex:none;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;color:#9A6B22;background:linear-gradient(180deg,#FFF8EA,#EEDDBB);box-shadow:inset 0 1px 0 #FFFFFF,0 6px 14px -6px rgba(110,75,18,.45)}
+.g-tile svg{width:26px;height:26px}
+.g-sysnav{display:flex;gap:12px}
+.g-sysnav a{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 22px;border-radius:12px;text-decoration:none;font-size:16px;letter-spacing:1px}
+.g-sysnav a[aria-current="page"]{outline:2px solid rgba(233,194,122,.55);outline-offset:2px}
+.g-sysnav svg{width:20px;height:20px;flex:none}
+.g-user{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-weight:600}
+.g-user:empty{display:none}
+.g-topbg::after{z-index:0}
+body:not(.light):not(.g-pat) .g-topbg::after{opacity:.12}
+header.g-topbg>*{position:relative;z-index:1}
+.g-tile-sm{width:46px;height:46px}.g-tile-sm svg{width:22px;height:22px}
+.g-tt{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.g-tt b{font-family:var(--g-brush);font-weight:900;font-size:22px;letter-spacing:2px}
+.g-sub{font-size:12.5px;color:var(--muted,#6F6553);white-space:nowrap}
+body.has-file .g-nofile{display:none}
+/* 打开文件后工具列最重要：标题缩小，图示、说明、版本、名字收起（退出还在） */
+body.has-file header .g-tile,body.has-file .g-sub,body.has-file .verchip,body.has-file .g-user{display:none}
+body.has-file .g-tt b{font-size:19px;letter-spacing:1px}
