@@ -94,7 +94,7 @@ body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto
 .g-label{color:#C9BC9E}
 .g-hero h1,.g-hero h2{background:linear-gradient(180deg,#5C3B0E,#2B2014);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(255,255,255,.9)) drop-shadow(0 3px 4px rgba(110,75,18,.25))}
 .top h1,.card h2,.g-drop-txt h2,.g-drop-txt .big,.g-feat b{text-shadow:0 1px 0 rgba(255,255,255,.85),0 2px 4px rgba(110,75,18,.15)}
-:root[data-theme="dark"] .top h1,:root[data-theme="dark"] .card h2,body:not(.light) .card h2,body:not(.light) .g-drop-txt h2,body:not(.light) .g-feat b{text-shadow:0 1px 3px rgba(0,0,0,.6)}
+:root[data-theme="dark"] .top h1,:root[data-theme="dark"] .card h2,body:not(.light):not(.g-pat) .card h2,body:not(.light):not(.g-pat) .g-drop-txt h2,body:not(.light):not(.g-pat) .g-feat b{text-shadow:0 1px 3px rgba(0,0,0,.6)}
 .g-logout{color:#9A3B2E}.g-logout svg{flex:none}
 .tbtn.g-logout .lbl{display:inline!important}
 
@@ -105,3 +105,20 @@ body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto
 .g-confirm p{margin:0;color:#6F6553;font-size:15px}
 .g-confirm-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
 .g-confirm-acts .btn{min-width:96px;min-height:44px;justify-content:center;font-size:15px}
+
+/* 退出窗口的「取消」：自己定颜色，不跟页面深浅色 */
+.g-confirm-acts .btn:not(.pri):not(.primary){background:#FAF5EA;color:#2B2620;border:1px solid #DCCFB4;text-shadow:none}
+.g-confirm-acts .btn:not(.pri):not(.primary):hover{background:#F3E8D2;color:#2B2620}
+
+/* 进入动画：左栏从左边滑进来、上面那条往下、内容一块块升上来 */
+@media (prefers-reduced-motion:no-preference){
+  .g-enter .g-side{animation:gSlide .6s cubic-bezier(.2,.8,.2,1) both}
+  .g-enter header.top{animation:gDown .5s .08s cubic-bezier(.2,.8,.2,1) both}
+  .g-enter .g-hero,.g-enter .g-hello{animation:gUp .6s .14s cubic-bezier(.2,.8,.2,1) both}
+  .g-enter .g-drop,.g-enter .kpis{animation:gUp .6s .24s cubic-bezier(.2,.8,.2,1) both}
+  .g-enter .g-feats,.g-enter .g-pillbar,.g-enter .page>.narrow>.card{animation:gUp .6s .34s cubic-bezier(.2,.8,.2,1) both}
+  .g-enter .dash,.g-enter .feats,.g-enter #homeInfo{animation:gUp .6s .44s cubic-bezier(.2,.8,.2,1) both}
+}
+@keyframes gSlide{from{opacity:0;transform:translateX(-28px)}}
+@keyframes gDown{from{opacity:0;transform:translateY(-12px)}}
+@keyframes gUp{from{opacity:0;transform:translateY(20px)}}

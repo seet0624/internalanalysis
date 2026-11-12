@@ -214,6 +214,19 @@ button{cursor:pointer}
 .lg-go:disabled{opacity:.7;letter-spacing:.1em;text-indent:0}
 .lg-go svg{width:22px;height:22px;flex:none}
 #loginMsg{margin:-8px 0 0;color:#D9D0BD;font-size:14px}
+/* 已登入转页中：只显示会呼吸的金色 logo */
+.hq-go body{background:#0E1626!important}
+.hq-go body>*{visibility:hidden!important}
+.hq-go body::after{content:"";position:fixed;inset:0;margin:auto;width:110px;height:105px;background:url(hq/brand/shuyi-logo-gold.png) center/contain no-repeat;visibility:visible;animation:hqPulse 1.2s ease-in-out infinite}
+@keyframes hqPulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
+/* 登入成功：卡片淡出、标题发金光、整页渐暗，再转页 */
+.login.lg-leave form{animation:lgOut .5s ease forwards}
+.login.lg-leave .lg-brand{animation:lgBrand .7s ease forwards}
+.login.lg-leave::before{content:"";position:fixed;inset:0;z-index:3;background:#0E1626;animation:lgFade .7s ease forwards;pointer-events:none}
+@keyframes lgOut{to{opacity:0;transform:translateY(18px) scale(.96)}}
+@keyframes lgBrand{45%{transform:scale(1.05);filter:drop-shadow(0 0 28px rgba(233,194,122,.85))}to{opacity:0;transform:scale(1.08)}}
+@keyframes lgFade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.hq-go body::after,.login.lg-leave form,.login.lg-leave .lg-brand,.login.lg-leave::before{animation:none}}
 .login .err{color:#FFB3AB;font-size:14px;min-height:20px;margin:-6px 0}
 .lg-note{display:flex;align-items:flex-start;gap:8px;font-size:14px;color:#D9D0BD;line-height:1.6}
 .lg-note svg{flex:none;width:16px;height:16px;margin-top:3px;color:#E9C27A}
@@ -287,6 +300,10 @@ button{cursor:pointer}
 }
 </style>
 <script src="hq/auth.js" data-page="hq"></script>
+<script>
+// 已经登入、会被转到别页的：先盖住旧办公室，只留金色 logo，免得闪一下
+try { var _s = HQAuth.session(); if (_s && (_s.role === 'cs' || !/[?&]classic/.test(location.search))) document.documentElement.classList.add('hq-go'); } catch (e) {}
+</script>
 <script src="hq/bus.js"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
 </head>
@@ -390,8 +407,13 @@ const enterName = (g) => '进入' + g.name.replace(/(组|部)$/, '');
 const params = new URLSearchParams(location.search);
 // 从别的页面被带回来登入的，登入后回去那一页
 // 登入后：有 next 就回原本那页；不然老板进公司总览（command/），国内客服直接进名字审核。?classic 看原本的 3D 办公室
-function goNext(sess) { const nx = params.get('next'); if (nx && HQAuth.can(nx, sess)) { location.replace(HQAuth.root + nx); return true; } if (sess.role === 'cs') { location.replace(HQAuth.root + 'name/'); return true; }   // 客服不看 3D 办公室（?classic 也一样）
-  if (!params.has('classic')) { location.replace(HQAuth.root + 'command/'); return true; } return false; }
+function nextUrl(sess) {
+  const nx = params.get('next');
+  if (nx && HQAuth.can(nx, sess)) return HQAuth.root + nx;
+  if (sess.role === 'cs') return HQAuth.root + 'name/';   // 客服不看 3D 办公室（?classic 也一样）
+  return params.has('classic') ? '' : HQAuth.root + 'command/';
+}
+function goNext(sess) { const u = nextUrl(sess); if (u) location.replace(u); return !!u; }
 const SESSION = HQAuth.session() || await new Promise((resolve) => {
   const box = $('login'); box.hidden = false; $('skeleton').hidden = true;
   if (params.get('next')) { $('loginMsg').textContent = '请先登录，登录后会带你回刚才的页面。'; $('loginMsg').classList.remove('vh'); }
@@ -424,6 +446,10 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
     const btn = $('loginForm').querySelector('button[type=submit]');
     if (btn) { btn.disabled = true; btn.textContent = '连接公司云端…'; }
     await HQAuth.cloudLogin($('loginId').value, $('loginPass').value);   // 连不上也照样进去（本机模式）
+    if (nextUrl(sess)) {   // 要转页：不显示办公室，播完进入动画就走
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      box.classList.add('lg-leave'); setTimeout(() => goNext(sess), still ? 0 : 700); return;
+    }
     box.hidden = true; $('skeleton').hidden = false; resolve(sess);
   });
 });

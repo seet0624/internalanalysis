@@ -167,6 +167,9 @@
     location.replace(ROOT + (s ? '?denied=' : '?next=') + encodeURIComponent(here()));
     return;
   }
+  // 进入动画：刚打开页面时才播（gold.css 的 .g-enter），1.6 秒后拿掉，之后画面重画不会再播
+  document.documentElement.classList.add('g-enter');
+  setTimeout(function () { document.documentElement.classList.remove('g-enter'); }, 1600);
   // 左下角小标签：回审核总部、目前身份
   if (noBadge) return;
   document.addEventListener('DOMContentLoaded', function () {
