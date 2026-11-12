@@ -47,10 +47,10 @@
 @media (max-width:640px){.g-drop{flex-direction:column;text-align:center}.g-drop-txt{align-items:center}.g-tip{text-align:left}}
 
 /* 3D 金色主按钮：上亮下暗、底下一条厚边，按下去会沉 */
-.btn.primary,.btn.pri,.g-btn3d{background:linear-gradient(180deg,#F3CF85 0%,#DCA54E 20%,#B57A26 46%,#9C6418 56%,#87560F 100%);color:#FFFFFF;border:1px solid #6F440B;font-weight:700;
+.btn.primary,.btn.pri,.g-btn3d{background:linear-gradient(180deg,#EFC77A 0%,#C48A35 14%,#9A6418 26%,#8F5C14 60%,#7A4D0C 100%);color:#FFFFFF;border:1px solid #6F440B;font-weight:700;
   box-shadow:inset 0 1px 0 rgba(255,246,218,.95),inset 0 -3px 6px rgba(70,38,4,.35),0 3px 0 #6B420C,0 10px 22px -8px rgba(120,75,15,.6);
   text-shadow:0 1px 1px rgba(60,32,0,.55);transition:transform .08s,box-shadow .08s,filter .15s}
-.btn.primary:hover,.btn.pri:hover,.g-btn3d:hover{background:linear-gradient(180deg,#F8D894 0%,#E3AE58 20%,#BE832C 46%,#A06A1C 56%,#8C5B12 100%);color:#FFFFFF;border-color:#6F440B;filter:none;transform:translateY(-1px)}
+.btn.primary:hover,.btn.pri:hover,.g-btn3d:hover{background:linear-gradient(180deg,#F5D18A 0%,#CC9440 14%,#A36B1C 26%,#966217 60%,#80520F 100%);color:#FFFFFF;border-color:#6F440B;filter:none;transform:translateY(-1px)}
 .btn.primary:active,.btn.pri:active,.g-btn3d:active,label:active>.g-drop-txt .g-btn3d{transform:translateY(3px);box-shadow:inset 0 2px 5px rgba(60,32,0,.4),0 0 0 #6B420C,0 2px 6px -2px rgba(110,75,18,.4)}
 .btn.primary[disabled],.btn.pri:disabled{transform:none}
 .g-btn3d svg{width:20px;height:20px;flex:none}
@@ -147,3 +147,9 @@ body.has-file .g-nofile{display:none}
 /* 打开文件后工具列最重要：标题缩小，图示、说明、版本、名字收起（退出还在） */
 body.has-file header .g-tile,body.has-file .g-sub,body.has-file .verchip,body.has-file .g-user{display:none}
 body.has-file .g-tt b{font-size:19px;letter-spacing:1px}
+
+/* 设计部：两页顶栏一样大小、手机顶栏精简、山水装饰不要压在按钮下面 */
+header .g-tile{width:46px;height:46px} header .g-tile svg{width:22px;height:22px}
+.g-tt b,.top h1{font-size:22px;letter-spacing:2px}
+.g-user,header .g-logout,header .btn.small{min-height:40px}
+.g-topbg::after{opacity:.38}

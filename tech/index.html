@@ -310,7 +310,11 @@ table.dl .fn{overflow-wrap:anywhere}
 
 /* ---------- 今日工作台（老板给的设计）：标题图示、问候列、有图示的数字卡、一排筛选、待决定表格、快捷操作 ---------- */
 .g-topbg .top-in{position:relative;z-index:1}
-@media (min-width:1000px){.top h1{font-size:28px;letter-spacing:2px}.top .sub{font-size:14px}}
+@media (min-width:1000px){.top .sub{font-size:14px}}
+/* 设计部：1280–1599 宽顶栏不再变两行；空的 topacts 不占位置 */
+#topacts:empty{display:none}
+.g-titlerow,.g-titlerow>div{min-width:0}
+@media (min-width:1000px){.top-in{flex-wrap:nowrap}#toph{flex:1 1 auto;min-width:0}.top-r{flex-wrap:nowrap;flex:none}.top .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 .g-hello{display:flex;flex-wrap:wrap;align-items:center;row-gap:6px;font-size:16px;color:var(--ink)}
 .g-hello>span{display:inline-flex;align-items:center;gap:8px;padding:0 18px;border-left:1px solid var(--line)}
 .g-hello>span:first-child{padding-left:0;border-left:0}
@@ -840,7 +844,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       rules: ['审核规则手册', '先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红']
     }[here];
     var TI = { home: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>', upload: ICON.upl, orders: ICON.rows, download: ICON.down, rules: ICON.book }[here];
-    $('toph').innerHTML = '<a class="home ph-only" href="../">← 审核总部</a><div class="g-titlerow"><span class="g-tile desk-only">' + TI + '</span><div><h1>' + esc(T[0]) + '</h1><p class="sub">' + esc(T[1]) + '</p></div></div>';
+    $('toph').innerHTML = '<a class="home ph-only" href="../">← 审核总部</a><div class="g-titlerow"><span class="g-tile desk-only">' + TI + '</span><div><h1>' + esc(T[0]) + '</h1><p class="sub" title="' + esc(T[1]) + '">' + esc(T[1]) + '</p></div></div>';
     var n = res ? picked() : 0;
     $('topacts').innerHTML = here === 'home' || here === 'orders'
       ? '<button type="button" class="btn small ph-only" data-view="upload">' + ICON.upl + '上传新一批</button>'   // 宽屏在右边「快捷操作」
