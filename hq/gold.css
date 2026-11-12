@@ -1,6 +1,6 @@
 /* 审核总部 · 金色主题：名字审核、技术单审核共用的水墨左栏、上面两个系统切换、山水横幅。
    颜色写死在这里（不跟页面深浅色走）：左栏永远是墨色，横幅永远是米色山水。 */
-.g-side{background:#1A1916 url(brand/ink-side.webp) center bottom/100% auto no-repeat;color:#E9E1CF;position:relative;border-right:0}
+.g-side{background:#1A1916 url(brand/ink-side.webp) center bottom/100% auto no-repeat;color:#E9E1CF;border-right:0} /* 不设 position：技术单是 sticky、名字审核是 fixed，各页自己定 */
 .g-side::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(26,25,22,.2) 0,rgba(26,25,22,.6) 200px,#1A1916 360px)} /* 图片高约 370–400px：上缘盖住，不会有一条硬边 */
 .g-side>*{position:relative}
 .g-brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px;color:#F3EBDA;text-decoration:none;font-size:17px;font-weight:700;letter-spacing:1px}
