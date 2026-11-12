@@ -182,7 +182,7 @@ button{cursor:pointer}
 .lg-lines{position:fixed;right:0;bottom:0;width:min(70vw,900px);height:auto;z-index:0;pointer-events:none;opacity:.8}
 .lg-brand{flex:0 1 520px;text-align:center;align-self:flex-start;margin-top:8vh;text-shadow:0 2px 18px rgba(0,0,0,.55)}
 .lg-brand img{width:clamp(72px,8vw,110px);height:auto;filter:drop-shadow(0 6px 22px rgba(232,190,110,.45))}
-.lg-brand h1{margin:10px 0 0;font-family:"ShuyiBrush","KaiTi","STKaiti",serif;font-weight:400;font-size:clamp(34px,5vw,68px);letter-spacing:.08em;line-height:1.15;
+.lg-brand h1{margin:10px 0 0;font-family:"ShuyiSerif","Songti SC","SimSun",serif;font-weight:900;font-size:clamp(34px,5vw,68px);letter-spacing:.08em;line-height:1.15;
   background:linear-gradient(180deg,#FFF1C9 0%,#E9C27A 45%,#B8873A 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .lg-brand p{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:14px;font-size:clamp(14px,1.5vw,20px);letter-spacing:.12em;color:#F3EBDA}
 .lg-brand p::before,.lg-brand p::after{content:"";width:clamp(24px,5vw,64px);height:1px;background:linear-gradient(90deg,transparent,#E9C27A)}
@@ -190,9 +190,10 @@ button{cursor:pointer}
 .login form{flex:0 1 560px;width:min(560px,100%);padding:clamp(24px,4vw,48px) clamp(20px,5vw,72px);display:flex;flex-direction:column;gap:18px;
   background:linear-gradient(160deg,rgba(28,36,52,.78),rgba(12,18,30,.82));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
   border:1px solid rgba(233,194,122,.55);border-radius:28px;box-shadow:0 0 0 1px rgba(233,194,122,.12),0 0 40px -6px rgba(233,194,122,.35),0 30px 70px -20px rgba(0,0,0,.7)}
-@font-face{font-family:"ShuyiBrush";src:url(hq/fonts/shuyi-brush.woff2) format("woff2");font-display:swap}
-.login h2{margin:0 0 6px;font-family:"ShuyiBrush","KaiTi","STKaiti",serif;font-size:clamp(28px,2.6vw,38px);font-weight:400;letter-spacing:.1em;color:#FFFFFF}
-.lg-brand p{font-family:"KaiTi","STKaiti","Kaiti SC",serif}
+@font-face{font-family:"ShuyiSerif";src:url(hq/fonts/shuyi-serif-black.woff2) format("woff2");font-weight:900;font-display:swap}
+@font-face{font-family:"ShuyiSerif";src:url(hq/fonts/shuyi-serif-bold.woff2) format("woff2");font-weight:700;font-display:swap}
+.login h2{margin:0 0 6px;font-family:"ShuyiSerif","Songti SC","SimSun",serif;font-size:clamp(28px,2.6vw,38px);font-weight:900;letter-spacing:.1em;color:#FFFFFF}
+.lg-brand p{font-family:"ShuyiSerif","Songti SC","SimSun",serif;font-weight:700}
 .lg-field{position:relative;display:flex;align-items:center}
 .lg-field>svg{position:absolute;left:18px;width:22px;height:22px;color:#E8DFC9;pointer-events:none}
 .login input{width:100%;min-height:58px;padding:0 54px;border:1px solid rgba(233,225,207,.35);border-radius:14px;background:rgba(8,12,22,.45);color:#F7F1E3;font-size:17px}

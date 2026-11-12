@@ -55,13 +55,14 @@
 .btn.primary[disabled],.btn.pri:disabled{transform:none}
 .g-btn3d svg{width:20px;height:20px;flex:none}
 
-/* 中国风字体：大标题用毛笔字（马善政楷书，只截了用到的字），其他标题用电脑自带的楷体 */
-@font-face{font-family:"ShuyiBrush";src:url(fonts/shuyi-brush.woff2) format("woff2");font-display:swap}
-:root{--g-brush:"ShuyiBrush","KaiTi","STKaiti","Kaiti SC",serif;--g-kai:"KaiTi","STKaiti","Kaiti SC","BiauKai",serif}
-.g-hero h1,.g-hero h2,.g-brand{font-family:var(--g-brush);font-weight:400;letter-spacing:4px}
+/* 字体：思源宋体（老板选的 C），大标题特粗、其他标题粗体；只截了页面上会出现的字，缺的字用电脑自带宋体 */
+@font-face{font-family:"ShuyiSerif";src:url(fonts/shuyi-serif-black.woff2) format("woff2");font-weight:900;font-display:swap}
+@font-face{font-family:"ShuyiSerif";src:url(fonts/shuyi-serif-bold.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{--g-brush:"ShuyiSerif","Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;--g-kai:var(--g-brush)}
+.g-hero h1,.g-hero h2,.g-brand{font-family:var(--g-brush);font-weight:900;letter-spacing:4px}
 .g-brand{font-size:24px;letter-spacing:3px}
 .g-hero h1,.g-hero h2{font-size:clamp(30px,3.4vw,44px)}
-.g-sys,.g-label,.g-drop-txt h2,.g-drop-txt .big,.g-feat b,.top h1,.card h2,.card h3{font-family:var(--g-kai)}
+.g-sys,.g-label,.g-drop-txt h2,.g-drop-txt .big,.g-feat b,.top h1,.card h2,.card h3,.btn.primary,.btn.pri,.g-btn3d,.kpi .l,.ftag{font-family:var(--g-kai);font-weight:700}
 .g-drop-txt h2,.g-drop-txt .big{font-size:clamp(22px,2.2vw,30px);letter-spacing:1px}
 
 /* 左栏图示 */
@@ -96,3 +97,11 @@ body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto
 :root[data-theme="dark"] .top h1,:root[data-theme="dark"] .card h2,body:not(.light) .card h2,body:not(.light) .g-drop-txt h2,body:not(.light) .g-feat b{text-shadow:0 1px 3px rgba(0,0,0,.6)}
 .g-logout{color:#9A3B2E}.g-logout svg{flex:none}
 .tbtn.g-logout .lbl{display:inline!important}
+
+/* 退出确认窗口 */
+.g-confirm{border:1px solid #E2CFA8;border-radius:20px;padding:26px 28px 22px;width:min(400px,calc(100% - 32px));background:#FFFDF8;color:#2B2620;box-shadow:0 30px 70px -20px rgba(43,32,20,.45)}
+.g-confirm::backdrop{background:rgba(20,16,10,.45);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.g-confirm h2{margin:0 0 8px;font-size:22px;font-family:var(--g-kai)}
+.g-confirm p{margin:0;color:#6F6553;font-size:15px}
+.g-confirm-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.g-confirm-acts .btn{min-width:96px;min-height:44px;justify-content:center;font-size:15px}
