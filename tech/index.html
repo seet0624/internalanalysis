@@ -383,7 +383,7 @@ table.dl .fn{overflow-wrap:anywhere}
 if (!window.ExcelJS) document.write('<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>');
 if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
 </script>
-<script src="review-engine.js?v=547741d7be"></script>
+<script src="review-engine.js?v=354ece7ac7"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -597,6 +597,8 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   function statusOf(o) {
     return o.problem ? { t: '有问题', c: 'crit', d: 'var(--crit)' } : o.newborn ? { t: '新生儿', c: 'baby', d: 'var(--baby)' } : o.urgent ? { t: '特殊加急', c: 'orange', d: 'var(--orange)' } : { t: '没问题', c: 'ok', d: 'var(--ok)' };
   }
+  // 新生儿 count as 特殊加急 only when the reviewer pressed 加急; 加急 words keep them in the 新生儿 file
+  function isUrg(o) { return o.newborn ? !!o.babyUrgent : !!o.urgent; }
   var PROB_LABEL = { hold: '暂缓 / 暂停', product: '先问能不能做', exchange: '换购要原单号', ask: '要问下单者', zodiac: '要问下单者', 'engrave-no': '刻名字要确认' };
   var OK_LABEL = { hold: '已恢复，放回普通文件', product: '可以做，放回普通文件', exchange: '已有原单号，放回普通文件', ask: '已问过，没问题', zodiac: '已问过，没问题', 'engrave-no': '已确认，放回普通文件' };
   // Things only the reviewer can decide: orders the rules sent to 有问题, and 备注 that may or may not turn red.
@@ -619,7 +621,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   var FILTERS = [
     { k: 'all', t: '全部订单', test: function () { return true; } },
     { k: 'problem', t: '有问题', dot: 'var(--crit)', test: function (o) { return o.problem; } },
-    { k: 'urgent', t: '特殊加急', dot: 'var(--orange)', test: function (o) { return o.urgent && !o.problem && !o.newborn; } },
+    { k: 'urgent', t: '特殊加急', dot: 'var(--orange)', test: function (o) { return isUrg(o) && !o.problem; } },
     { k: 'solo', t: '单独发', dot: 'var(--solo)', test: function (o) { return o.solo && !o.problem; } },
     { k: 'newborn', t: '新生儿', dot: 'var(--baby)', test: function (o) { return o.newborn && !o.problem; } },
     { k: 'family', t: '家人订单', fam: true, test: function (o) { return !!famOf(o); } },
@@ -635,7 +637,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   var TAG = { red: ['红字', 'red'], urgent: ['加急', 'urg'], problem: ['有问题', 'prob'], choice: ['由你选', 'choice'] };
   var RB_FLOW = [
     { q: '要问人？或你按了「标为有问题」？', d: '暂缓 / 暂停、先问能不能做、换购没原单号、生肖不对、姓氏要问、刻名字是单号', to: '有问题文件', toD: '另一个 zip，先别发专家', tone: 'prob' },
-    { q: '新生儿？', d: '未满一岁或还没出生（生日也认 日.月.年）；使用人姓名写新生儿 / 宝宝 / BB / baby / 婴儿 / 待产 / 未取名；或名字空、备注写预产期（加急的新生儿也算这里）', to: '新生儿文件', toD: '不写学员名；名正言顺回传 +7 天', tone: 'baby' },
+    { q: '新生儿？', d: '未满一岁或还没出生（生日也认 日.月.年）；使用人姓名写新生儿 / 宝宝 / BB / baby / 婴儿 / 待产 / 未取名；或名字空、备注写预产期（备注写加急的也算这里；你按了「加急」的才另开特殊加急文件）', to: '新生儿文件', toD: '不写学员名；名正言顺回传 +7 天', tone: 'baby' },
     { q: '加急？', d: '备注 / 总备注有加急字眼，或一个月内的日期；你也可以按「设为特殊加急 / 不加急」自己决定', to: '特殊加急', toD: '不进 zip，一个个下载', tone: 'urg' }
   ];
   var RB_RED = [
@@ -680,7 +682,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   var RB_NAMES = [
     ['普通', '工具 +（男 / 女款）+ 技术单 + 日期 +（单数）+ H', '天富手表（女款）技术单 14.10.2026（2）H'],
     ['特殊加急', '一位学员时名字放最前；（特殊加急）在技术单后', '许思涵九合平衡牌技术单（特殊加急）14.10.2026（1）H'],
-    ['新生儿', '新生儿放最前；不写学员名、不写（特殊加急），加急的新生儿也放这里', '新生儿名正言顺技术单 14.10.2026（1）H'],
+    ['新生儿', '新生儿放最前；不写学员名；备注写加急也放这里。你按了「加急」才写（特殊加急）、另开文件', '新生儿名正言顺技术单 14.10.2026（1）H / 新生儿名正言顺技术单（特殊加急）14.10.2026（1）H'],
     ['有问题', '（有问题）在技术单后', '周子平鸿运手表技术单（有问题）14.10.2026（1）H'],
     ['打包', '单数 = 全部工具加起来；特殊加急不放进 zip', '技术单 14.10.2026（44）H.zip']
   ];
@@ -1070,7 +1072,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
           '<td class="c-tags">' + (uniq.length ? '<span class="mini">' + uniq.slice(0, 4).join('') + (uniq.length > 4 ? '<span>+' + (uniq.length - 4) + '</span>' : '') + '</span>' : '<span class="small">—</span>') + '</td>' +
           '<td class="c-act"><span class="acts" style="gap:6px;flex-wrap:nowrap;justify-content:flex-end">' +
           // 加急 / 不加急 right in the list, same switch as the detail panel (新生儿 always stay in the 新生儿 file)
-          (o.newborn ? '' : '<button type="button" class="chip-tg urg" data-urg="' + esc(it.mk) + '" data-auto="' + (o.autoUrgent ? 1 : 0) + '" aria-pressed="' + !!o.urgent + '" aria-label="' + esc(o.person) + ' 加急" title="' + (o.urgent ? '现在是特殊加急，按一下放回普通文件' : '按一下设为特殊加急') + '">' + (o.urgent ? '✓ ' : '') + '加急</button>') +
+          '<button type="button" class="chip-tg urg" data-urg="' + esc(it.mk) + '" data-auto="' + (!o.newborn && o.autoUrgent ? 1 : 0) + '" aria-pressed="' + isUrg(o) + '" aria-label="' + esc(o.person) + ' 加急" title="' + (isUrg(o) ? '现在是特殊加急，按一下放回' + (o.newborn ? '新生儿' : '普通') + '文件' : '按一下设为特殊加急') + '">' + (isUrg(o) ? '✓ ' : '') + '加急</button>' +
           '<button type="button" class="chip-tg solo" data-solo="' + esc(it.mk) + '" aria-pressed="' + !!o.solo + '" aria-label="' + esc(o.person) + ' 单独发" title="' + (o.solo ? '现在自己一个文件，按一下放回' : '按一下让这一单自己一个文件') + '">' + (o.solo ? '✓ ' : '') + '单独发</button>' +
           '<button type="button" class="btn small" data-open="' + esc(it.mk) + '">' + (state.sel === it.mk ? '正在看' : '打开') + '</button></span></td></tr>';
       }).join('') + '</tbody></table></div>';
@@ -1108,7 +1110,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     h += '</div><div class="detail-f">' +
       (state.tab === 'fields' ? '<button type="button" class="btn primary" data-save="' + esc(mk) + '">保存修改</button>' : '') +
       '<button type="button" class="btn danger" data-mark="' + esc(mk) + '" aria-pressed="' + !!o.problem + '">' + (o.problem ? '取消有问题' : '标为有问题') + '</button>' +
-      (o.newborn ? '' : '<button type="button" class="btn urg" data-urg="' + esc(mk) + '" data-auto="' + (o.autoUrgent ? 1 : 0) + '" aria-pressed="' + !!o.urgent + '">' + (o.urgent ? '不加急，放回普通文件' : '设为特殊加急') + '</button>') +
+      '<button type="button" class="btn urg" data-urg="' + esc(mk) + '" data-auto="' + (!o.newborn && o.autoUrgent ? 1 : 0) + '" aria-pressed="' + isUrg(o) + '">' + (isUrg(o) ? '不加急，放回' + (o.newborn ? '新生儿' : '普通') + '文件' : '设为特殊加急') + '</button>' +
       '<button type="button" class="btn" data-solo="' + esc(mk) + '" aria-pressed="' + !!o.solo + '">' + (o.solo ? '取消单独发，放回原来的文件' : '单独发（自己一个文件给专家）') + '</button>' +
       (has(state.urgents, mk) ? '<span class="small">已手动' + (o.urgent ? '设为加急' : '取消加急') + '（原本' + (o.autoUrgent ? '是' : '不是') + '加急）</span>' : '') +
       (state.edits[mk] ? '<button type="button" class="btn" data-undo="' + esc(mk) + '">还原修改</button>' : '') +
@@ -1143,10 +1145,10 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var probWho = items().filter(function (it) { return it.o.problem; }).map(function (it) { return it.o.person; });
     h += '<div class="dlgrid"><section class="card" aria-label="要下载的文件" style="overflow:hidden"><div class="panel-h"><h2>要下载的文件</h2><span class="small">勾的才会下载</span></div>' +
       '<div class="tbl"><table class="dl"><thead><tr><th scope="col"><span class="vh">要下载</span></th><th scope="col">文件名</th><th scope="col">单数</th><th scope="col">状态</th><th scope="col"><span class="vh">操作</span></th></tr></thead><tbody>' +
-      dlGroup('good', 'var(--ok)', '没问题 → 发给专家', '一个 zip', good, outZipName(false, orderTotal(good), good)) +
+      dlGroup('good', 'var(--ok)', '没问题 → 发给专家', good.length > 1 ? '可以下载整个 zip，也可以只下载其中一个' : '只有一个，直接下载，不打包', good, outZipName(false, orderTotal(good), good)) +
       dlGroup('urgent', 'var(--orange)', '特殊加急', '不放进 zip，一个个发', urg) +
       dlGroup('solo', 'var(--solo)', '单独发', '每单一个文件，单独发给专家', solo) +
-      dlGroup('bad', 'var(--crit)', '有问题 → 先别发专家', '另一个 zip' + (probWho.length ? '：' + probWho.join('、') : ''), bad, outZipName(true, orderTotal(bad), bad)) +
+      dlGroup('bad', 'var(--crit)', '有问题 → 先别发专家', (bad.length > 1 ? '另一个 zip' : '只有一个，不打包') + (probWho.length ? '：' + probWho.join('、') : ''), bad, outZipName(true, orderTotal(bad), bad)) +
       '</tbody></table></div></section>';
     h += '<aside class="summary" aria-label="对账和提醒">' + reconCard(outs) +
       (warn.length ? '<section class="warnbox" aria-label="下载前看一下"><b style="display:flex;gap:8px;align-items:center">' + ICON.warn + '下载前看一下（' + warn.length + ' 件）</b><ul>' + warn.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>' +
@@ -1157,17 +1159,18 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       '<button type="button" class="btn primary" data-goall' + (n ? '' : ' disabled') + '>' + ICON.dl + '全部打包成一个下载</button></div>';
     return h + '</div>';
   }
-  // one category of the download table: a header row with its tick box, then the zip (or each file)
+  // one category of the download table: a header row with its tick box, then the zip (2+ files) and every file on its own row
   function dlGroup(k, dot, title, sub, outs, zipName) {
     if (!outs.length) return '';
     var on = state.pick[k], off = on ? '' : ' class="off"';
     var st = function (name) { return state.dled[name] ? '<span class="st-done">✓ 已下载</span>' : '<span class="st-todo">还没下载</span>'; };
     var h = '<tr class="grp"><td><input type="checkbox" data-pick="' + k + '"' + (on ? ' checked' : '') + ' aria-label="下载' + esc(title) + '"></td><td colspan="4"><span style="display:inline-flex;align-items:center;gap:8px"><span class="dot" style="background:' + dot + '"></span>' + esc(title) + '</span> <span class="small" style="font-weight:400">' + outs.length + ' 个文件 · ' + esc(sub) + '</span></td></tr>';
-    if (zipName) return h + '<tr' + off + '><td></td><td class="fn"><b>' + esc(zipName) + '</b></td><td>' + orderTotal(outs) + '</td><td>' + st(zipName) + '</td><td><button type="button" class="btn small link" data-dlzip="' + k + '">' + (state.dled[zipName] ? '再下载' : '单独下载') + '</button></td></tr>';
+    var zipped = zipName && outs.length > 1;
+    if (zipped) h += '<tr' + off + '><td></td><td class="fn"><b>' + esc(zipName) + '</b></td><td>' + orderTotal(outs) + '</td><td>' + st(zipName) + '</td><td><button type="button" class="btn small link" data-dlzip="' + k + '">' + (state.dled[zipName] ? '再下载 zip' : '下载 zip') + '</button></td></tr>';
     return h + outs.map(function (o) {
       var ri = -1, oi = -1;
       (state.results || []).forEach(function (r, i) { var j = r.outputs.indexOf(o); if (j >= 0) { ri = i; oi = j; } });
-      return '<tr' + off + '><td></td><td class="fn">' + esc(o.name) + '</td><td>' + o.orders + '</td><td>' + st(dkey(o)) + '</td><td><button type="button" class="btn small link" data-dl-r="' + ri + '" data-dl-o="' + oi + '" aria-label="只下载 ' + esc(o.name) + '">' + (state.dled[dkey(o)] ? '再下载' : '单独下载') + '</button></td></tr>';
+      return '<tr' + off + '><td></td><td class="fn">' + (zipped ? '<span class="small" aria-hidden="true">└ </span>' : '') + esc(o.name) + '</td><td>' + o.orders + '</td><td>' + st(dkey(o)) + '</td><td><button type="button" class="btn small link" data-dl-r="' + ri + '" data-dl-o="' + oi + '" aria-label="只下载 ' + esc(o.name) + '">' + (state.dled[dkey(o)] ? '再下载' : '单独下载') + '</button></td></tr>';
     }).join('');
   }
   // 对账: every uploaded order came out exactly once, footers written, nothing unread, no two files with one name
@@ -1213,21 +1216,32 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var outs = allOutputs(), bk = buckets(outs), list = k === 'bad' ? bk.bad : bk.good;
     return { outs: list, name: outZipName(k === 'bad', orderTotal(list), list) };
   }
+  // 没问题 / 有问题: a zip only when there are 2+ files; a single file downloads as itself
+  async function saveGroup(k) {
+    var z = zipOf(k), one = z.outs.length === 1 && z.outs[0];
+    return one ? saveMark(one.name, new Blob([one.buffer]), [dkey(one)]) : saveMark(z.name, await zipBlob(z.outs));
+  }
   async function downloadAll() {
     var bk = buckets(allOutputs()), any = false;
-    if (state.pick.good && bk.good.length) { var g = zipOf('good'); any = await saveMark(g.name, await zipBlob(g.outs)) || any; }
+    if (state.pick.good && bk.good.length) any = await saveGroup('good') || any;
     if (state.pick.urgent) for (var i = 0; i < bk.urg.length; i++) any = await saveMark(bk.urg[i].name, new Blob([bk.urg[i].buffer]), [dkey(bk.urg[i])]) || any;
     if (state.pick.solo) for (var j = 0; j < bk.solo.length; j++) any = await saveMark(bk.solo[j].name, new Blob([bk.solo[j].buffer]), [dkey(bk.solo[j])]) || any;
-    if (state.pick.bad && bk.bad.length) { var b = zipOf('bad'); any = await saveMark(b.name, await zipBlob(b.outs)) || any; }
+    if (state.pick.bad && bk.bad.length) any = await saveGroup('bad') || any;
     if (any) { reportToHQ('downloaded'); downloadedOnce = true; }
   }
   // one download for everything ticked: the usual zips as they are, 特殊加急 / 单独发 in their own folders
   async function downloadPacked() {
     var outs = allOutputs(), bk = buckets(outs), zip = new JSZip(), inside = [], n = 0, used = [];
-    if (state.pick.good && bk.good.length) { var g = zipOf('good'); zip.file(g.name, await zipBlob(g.outs)); inside.push(g.name); n += orderTotal(g.outs); used = used.concat(g.outs); }
+    var addGroup = async function (k) {
+      var z = zipOf(k);
+      if (z.outs.length === 1) { zip.file(z.outs[0].name, z.outs[0].buffer); inside.push(dkey(z.outs[0])); }
+      else { zip.file(z.name, await zipBlob(z.outs)); inside.push(z.name); }
+      n += orderTotal(z.outs); used = used.concat(z.outs);
+    };
+    if (state.pick.good && bk.good.length) await addGroup('good');
     if (state.pick.urgent && bk.urg.length) { fillZip(zip.folder('特殊加急'), bk.urg); inside = inside.concat(bk.urg.map(dkey)); n += orderTotal(bk.urg); used = used.concat(bk.urg); }
     if (state.pick.solo && bk.solo.length) { fillZip(zip.folder('单独发'), bk.solo); inside = inside.concat(bk.solo.map(dkey)); n += orderTotal(bk.solo); used = used.concat(bk.solo); }
-    if (state.pick.bad && bk.bad.length) { var b = zipOf('bad'); zip.file(b.name, await zipBlob(b.outs)); inside.push(b.name); n += orderTotal(b.outs); used = used.concat(b.outs); }
+    if (state.pick.bad && bk.bad.length) await addGroup('bad');
     if (!inside.length) { toast('没有勾要下载的文件'); return; }
     var h = used.every(function (o) { return o.overseas; });
     if (await saveMark('全部技术单 ' + nameDateOf(used) + '（' + n + '）' + (h ? 'H' : '') + '.zip', await zip.generateAsync({ type: 'blob' }), inside)) { reportToHQ('downloaded'); downloadedOnce = true; }
@@ -1354,8 +1368,8 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
         if (!ok) return;
         var it = findItem(um);
         // an old cached engine ignores the choice: say so instead of doing nothing
-        if (it && !!it.o.urgent !== on) { toast('没有生效：网页还是旧版本，请按 Ctrl+F5（Mac 按 Cmd+Shift+R）重新整理后再按一次'); return; }
-        toast(on ? '已设为特殊加急，单独开文件' : '已取消加急，放回普通文件');
+        if (it && isUrg(it.o) !== on) { toast('没有生效：网页还是旧版本，请按 Ctrl+F5（Mac 按 Cmd+Shift+R）重新整理后再按一次'); return; }
+        toast(on ? '已设为特殊加急，单独开文件' : '已取消加急，放回' + (it && it.o.newborn ? '新生儿' : '普通') + '文件');
       });
       return;
     }
