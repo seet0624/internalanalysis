@@ -9,12 +9,14 @@
 <script src="../hq/bus.js"></script>
 
 <style>
-/* Three steps: 上传 → 处理待办 → 下载. 数易品牌：米白底、白卡片、金色强调（深色模式墨黑底）。 */
+/* Dashboard 版：左边导航、上面标题、数字卡、工作区 + 右边摘要；冷灰底、白卡片（深色模式墨黑底）。
+   颜色分工：红 = 有问题，橙 = 加急，紫 = 单独发，青 = 新生儿，绿 = 没问题。 */
 :root{
-  --bg:#F8F9FA; --surface:#FFFFFF; --sunk:#F1F3F4; --ink:#202124; --muted:#55544E; --faint:#6B6A64; --line:#DADCE0; --line-soft:#EEF0F2; --field:#D6D3CA;
+  --bg:#F4F6F9; --surface:#FFFFFF; --sunk:#F1F3F4; --ink:#202124; --muted:#5F6368; --faint:#6B7280; --line:#E3E6EA; --line-soft:#EEF0F2; --field:#DADCE0;
   --accent:#1A73E8; --accent-hover:#1765CC; --accent-soft:#E8F0FE; --accent-ink:#174EA6; --on-accent:#FFFFFF;
   --crit:#B3261E; --crit-bg:#FBE9E7; --crit-ink:#8C1D18; --warn:#7A4300; --warn-bg:#FFF1DC; --orange:#C26A00;
-  --blue:#1A73E8; --blue-bg:#EFE7DB; --blue-ink:#5B4A3A; --ok:#2C6A37; --ok-bg:#E6F2E8;
+  --blue:#1A73E8; --blue-bg:#E8F0FE; --blue-ink:#174EA6; --ok:#137333; --ok-bg:#E6F4EA;
+  --solo:#8430CE; --solo-bg:#F3E8FD; --solo-ink:#681DA8; --baby:#00897B; --baby-bg:#E0F2F1; --baby-ink:#00695C;
   --bar:#174EA6; --bar-ink:#FFFFFF; --bar-warn:#F2B866; --sel:#E8F0FE;
   --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
 }
@@ -23,6 +25,7 @@
   --accent:#8AB4F8; --accent-hover:#AECBFA; --accent-soft:#1F3A5F; --accent-ink:#AECBFA; --on-accent:#14110F;
   --crit:#FF8A80; --crit-bg:#3A1C1A; --crit-ink:#FFB3AB; --warn:#F2B866; --warn-bg:#33270F; --orange:#F0A64B;
   --blue:#8AB4F8; --blue-bg:#1F3A5F; --blue-ink:#AECBFA; --ok:#7FCC8C; --ok-bg:#183020;
+  --solo:#C58AF9; --solo-bg:#35214A; --solo-ink:#E3C8FD; --baby:#4DB6AC; --baby-bg:#11302D; --baby-ink:#8EDDD3;
   --bar:#0B0D11; --bar-ink:#F8F9FA; --bar-warn:#F2B866; --sel:#1F3A5F; color-scheme:dark}
 *{box-sizing:border-box}
 html{background:var(--bg)}
@@ -36,31 +39,44 @@ a{color:var(--accent)}
 h1,h2,h3{margin:0;line-height:1.3;text-wrap:balance}
 p{margin:0}
 
-/* header + steps */
-.top{background:var(--surface);border-bottom:1px solid var(--line)}
-.top-in{max-width:1360px;margin:0 auto;padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 24px}
-@media (min-width:720px){.top-in{padding:14px 24px}}
-.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700}
-.brand .home{font-size:15px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 2px;white-space:nowrap}
-.tlogo{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:700}
-.swap{margin-left:6px;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
+/* app shell: 左边导航（宽屏）· 上面标题 · 手机底部分页 */
+.shell{min-height:100vh}
+.side{display:none}
+@media (min-width:1000px){
+  .shell{display:grid;grid-template-columns:240px minmax(0,1fr)}
+  .side{display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--surface);border-right:1px solid var(--line);padding:16px 12px}
+}
+.brandrow{display:flex;align-items:center;gap:10px;padding:4px 8px 14px}
+.brandrow b{display:block;font-size:16px;line-height:1.25}
+.brandrow a{font-size:12px;color:var(--muted);text-decoration:none}
+.brandrow a:hover{color:var(--accent)}
+.tlogo{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--accent);color:var(--on-accent);font-size:15px;font-weight:700;flex:none}
+.nav{display:flex;align-items:center;gap:12px;width:100%;min-height:42px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--ink);font-size:15px;text-align:left}
+.nav:hover{background:var(--sunk)}
+.nav[aria-current="page"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
+.nav[disabled]{opacity:.45;cursor:default}
+.badge{margin-left:auto;min-width:22px;text-align:center;padding:0 7px;border-radius:999px;font-size:12px;font-weight:700;background:var(--sunk);color:var(--muted)}
+.badge.hot{background:var(--crit);color:#FFFFFF}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}
+.today{margin-top:auto;padding:12px 14px;border-radius:12px;background:var(--sunk);font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.today b{color:var(--ink)}
+.swap{align-self:flex-start;margin-top:10px;font-size:13px;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
 .swap:hover{border-color:var(--accent)}
-@media (max-width:900px){.swap{display:none}}
-.brand .home:hover{color:var(--accent)}
-.brand .crumb{color:var(--field);font-weight:400}
-.steps{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
-.step{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--faint);font-weight:500}
-.step .num{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--faint);display:inline-flex;align-items:center;justify-content:center;font-size:13px}
-.step.done{color:var(--accent)}
-.step.done .num{border:0;background:var(--accent-soft)}
-.step[aria-current="step"]{background:var(--accent);color:var(--on-accent)}
-.step[aria-current="step"] .num{border:0;background:var(--on-accent);color:var(--accent);font-weight:700}
-.step[disabled]{cursor:default;opacity:.7}
-.arrow{color:var(--field)}
-.top-r{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.top{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+.top-in{padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
+@media (min-width:720px){.top-in{padding:14px 28px}}
+.top h1{font-size:21px}
+.top .sub{font-size:13px;color:var(--muted)}
+.top .home{font-size:13px;color:var(--muted);text-decoration:none}
+.top-r{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .theme svg{flex:none}
-.who{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;color:var(--muted);font-size:14px}
-.who b{color:var(--ink)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:4px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+.tabbar button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:60px;min-height:50px;border:0;background:transparent;color:var(--muted);font-size:12px}
+.tabbar button[aria-current="page"]{color:var(--accent-ink);font-weight:700}
+.tabbar button[disabled]{opacity:.45}
+.tabbar .badge{position:absolute;top:2px;right:6px;margin:0;font-size:11px;min-width:18px;padding:0 5px}
+@media (min-width:1000px){.tabbar,.ph-only{display:none!important}}
+@media (max-width:999px){.desk-only{display:none!important}}
 
 /* buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid var(--field);border-radius:10px;background:var(--surface);color:var(--ink);font-weight:500;text-decoration:none;white-space:nowrap}
@@ -76,8 +92,9 @@ p{margin:0}
 .btn[aria-pressed="true"].pick-red{background:var(--crit);border-color:var(--crit);color:#FFFFFF}
 .btn.red-out{border-color:var(--crit);color:var(--crit)}
 
-.page{max-width:1360px;margin:0 auto;padding:24px 16px 120px;display:flex;flex-direction:column;gap:20px}
-@media (min-width:720px){.page{padding:28px 24px 120px}}
+.page{max-width:1440px;margin:0 auto;padding:20px 16px 110px;display:flex;flex-direction:column;gap:20px}
+@media (min-width:720px){.page{padding:24px 28px 110px}}
+@media (min-width:1000px){.page{padding-bottom:48px}}
 .narrow{max-width:960px;width:100%;margin:0 auto;display:flex;flex-direction:column;gap:24px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px}
 .pad{padding:20px 22px}
@@ -90,8 +107,6 @@ p{margin:0}
 @media (prefers-reduced-motion:reduce){.spin{animation:none}}
 
 /* upload */
-.hero h1{font-size:30px;font-weight:700}
-@media (min-width:720px){.hero h1{font-size:32px}}
 .drop{position:relative;border:2px dashed #AECBFA;border-radius:20px;background:var(--surface);padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;cursor:pointer}
 .drop.over{border-color:var(--accent);background:var(--accent-soft)}
 .drop input{position:absolute;width:1px;height:1px;opacity:0}
@@ -121,27 +136,35 @@ ol.rules b.red{color:var(--crit)}
 .feat .ic{flex:none;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center}
 .feat b{display:block}
 
-/* review */
-.progress{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 32px}
-.progress .big{font-size:24px;font-weight:700}
-.progress .big em{font-style:normal;color:var(--crit)}
-.progress .big.done em{color:var(--ok)}
-.bar{flex:1 1 260px;max-width:420px;display:flex;flex-direction:column;gap:6px}
-.track{height:10px;border-radius:999px;background:var(--line-soft);overflow:hidden}
-.track span{display:block;height:100%;background:var(--accent);border-radius:999px}
-.cols{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
-.filters{flex:1 1 220px;max-width:260px;padding:10px;display:flex;flex-direction:column;gap:2px}
-@media (max-width:760px){.filters{max-width:none;flex-direction:row;flex-wrap:wrap}.filters .sep{display:none}.filters .sub{padding-left:12px}}
-.flt{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:var(--ink);text-align:left}
-.flt:hover{background:var(--sunk)}
-.flt[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
-.flt .n{color:var(--faint);font-weight:400;font-variant-numeric:tabular-nums}
-.flt .n.hot{min-width:26px;padding:0 8px;border-radius:999px;background:var(--crit);color:#FFFFFF;text-align:center;font-size:13px;font-weight:700}
-.flt.sub{padding-left:28px;font-size:14px;min-height:38px;color:var(--muted)}
-.flt .lab{display:flex;align-items:center;gap:8px}
-.dot{width:8px;height:8px;border-radius:50%;flex:none}
-.sep{height:1px;background:var(--line-soft);margin:8px 4px}
-.main{flex:999 1 520px;min-width:0;display:flex;flex-direction:column;gap:12px}
+/* review = 工作台 */
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (min-width:900px){.kpis{grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}}
+.kpi{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);text-align:left}
+.kpi:hover{border-color:var(--faint)}
+.kpi[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.kpi .l{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.kpi .n{font-size:26px;font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi .n small{font-size:13px;font-weight:400;color:var(--muted);margin-left:2px}
+.kpi.hot{border-color:var(--crit);box-shadow:inset 0 3px 0 var(--crit)}
+.kpi.hot .n{color:var(--crit)}
+.kpi.ready .n{color:var(--ok)}
+.dash{display:grid;gap:20px;align-items:start}
+@media (min-width:1200px){.dash{grid-template-columns:minmax(0,1fr) 320px}}
+.summary{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (min-width:1200px){.summary{position:sticky;top:96px}}
+.summary .card{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.summary h2{font-size:16px}
+.flow{display:flex;height:10px;border-radius:999px;overflow:hidden;gap:2px;background:var(--line-soft)}
+.legend{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.legend li{display:flex;align-items:center;gap:8px}
+.legend li span:last-child{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+.notes{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px;overflow-wrap:anywhere}
+.ftags{display:flex;flex-wrap:wrap;gap:6px}
+.ftag{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid var(--field);border-radius:999px;background:var(--surface);color:var(--ink);font-size:14px}
+.ftag[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.ftag .n{color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}
+.main{min-width:0;display:flex;flex-direction:column;gap:12px}
 .main-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
 .main-h h2{font-size:18px}
 .search{display:flex;align-items:center;gap:8px;min-height:42px;padding:0 12px;border:1px solid var(--field);border-radius:10px;background:var(--surface);flex:0 1 260px}
@@ -155,6 +178,8 @@ ol.rules b.red{color:var(--crit)}
 .tag.crit{background:var(--crit-bg);color:var(--crit-ink)}
 .tag.warn{background:var(--warn-bg);color:var(--warn)}
 .tag.blue{background:var(--blue-bg);color:var(--blue-ink)}
+.tag.baby{background:var(--baby-bg);color:var(--baby-ink)}
+.tag.solo{background:var(--solo-bg);color:var(--solo-ink)}
 .tag.ok{background:var(--ok-bg);color:var(--ok)}
 .tag.plain{background:var(--sunk);color:var(--muted);font-weight:500}
 .todo .why{color:var(--ink)}
@@ -172,7 +197,7 @@ ol.rules b.red{color:var(--crit)}
 .file[open]>summary{border-bottom:1px solid var(--line-soft)}
 .tbl{overflow-x:auto;position:relative}
 table{width:100%;border-collapse:collapse;font-size:14px;min-width:580px}
-th{text-align:left;color:var(--muted);font-weight:500;font-size:13px;padding:8px}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:12px;padding:10px 8px;background:var(--sunk)}
 td{padding:10px 8px;border-top:1px solid var(--line-soft);vertical-align:middle}
 th:first-child,td:first-child{padding-left:18px}
 th:last-child,td:last-child{padding-right:18px;text-align:right}
@@ -185,17 +210,28 @@ tr.on td{background:var(--sel)}
 .chip-tg:hover{border-style:solid;color:var(--ink)}
 .chip-tg[aria-pressed="true"]{border-style:solid;font-weight:700}
 .chip-tg.urg[aria-pressed="true"]{background:var(--warn-bg);border-color:var(--orange);color:var(--warn)}
-.chip-tg.solo[aria-pressed="true"]{background:var(--blue-bg);border-color:var(--blue);color:var(--blue-ink)}
+.chip-tg.solo[aria-pressed="true"]{background:var(--solo-bg);border-color:var(--solo);color:var(--solo-ink)}
 .sw{width:12px;height:12px;border-radius:3px;flex:none;border:1px solid rgba(0,0,0,.18);display:inline-block}
-.st-crit{color:var(--crit);font-weight:500}.st-orange{color:var(--orange);font-weight:500}.st-blue{color:var(--blue);font-weight:500}.st-ok{color:var(--ok);font-weight:500}
+.st-crit{color:var(--crit);font-weight:500}.st-orange{color:var(--orange);font-weight:500}.st-baby{color:var(--baby-ink);font-weight:500}.st-ok{color:var(--ok);font-weight:500}
 .mini{display:flex;flex-wrap:wrap;gap:4px}
 .mini span{font-size:12px;padding:1px 8px;border-radius:999px;background:var(--sunk);color:var(--muted)}
 .mini span.hi{background:var(--crit-bg);color:var(--crit-ink)}
 .ferr{padding:12px 18px;color:var(--crit)}
+/* 手机：订单表变成一张张卡 */
+@media (max-width:700px){
+  .tbl table{min-width:0}
+  .tbl thead{display:none}
+  .tbl tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:12px 16px;border-top:1px solid var(--line-soft)}
+  .tbl td{display:block;border:0;padding:0!important;text-align:left!important}
+  .tbl .c-seq{display:none}
+  .tbl .c-tags,.tbl .c-act{grid-column:1/-1}
+  .tbl .c-act .acts{justify-content:flex-start!important;flex-wrap:wrap!important}
+  .tbl .chip-tg,.tbl .c-act .btn{min-height:44px}
+}
 
 /* detail */
-.detail{flex:1 1 340px;max-width:440px;display:flex;flex-direction:column;align-self:flex-start;position:sticky;top:12px;max-height:calc(100vh - 110px)}
-@media (max-width:1100px){.detail{position:static;max-height:none;max-width:none}}
+.scrim{position:fixed;inset:0;z-index:50;border:0;padding:0;background:rgba(10,12,16,.38);cursor:default}
+.detail{position:fixed;top:0;right:0;bottom:0;z-index:51;width:min(500px,100vw);display:flex;flex-direction:column;border-radius:0;border-width:0 0 0 1px;box-shadow:-16px 0 48px rgba(0,0,0,.22)}
 .detail-h{padding:16px 18px;border-bottom:1px solid var(--line-soft);display:flex;flex-direction:column;gap:6px}
 .detail-h .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .detail-h .nm{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700;overflow-wrap:anywhere}
@@ -232,41 +268,33 @@ tr.on td{background:var(--sel)}
 .fam .hit{color:var(--crit);font-weight:700}
 .detail-f{margin-top:auto;padding:12px 18px;border-top:1px solid var(--line-soft);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .detail-f .btn{flex:1 1 130px}
-.detail-empty{padding:28px 20px;color:var(--muted);text-align:center}
 
-/* bottom bar */
-.dock{position:sticky;bottom:0;z-index:20;background:var(--bar);color:var(--bar-ink)}
-.dock-in{max-width:1360px;margin:0 auto;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 24px}
-@media (min-width:720px){.dock-in{padding-inline:24px}}
-.dock .sum{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px}
-.dock .w{color:var(--bar-warn)}
 .eng{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--sunk)}
 .eng-in{min-height:40px;padding:0 12px;border:1px solid var(--field);border-radius:8px;background:var(--surface);font-size:15px;flex:1 1 180px;min-width:0;max-width:260px}
 .bulk{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 16px;padding:12px 18px;background:var(--warn-bg);border-color:transparent;color:var(--warn)}
-@media (max-width:600px){.dock .sum span:not(.w){display:none}.dock-in{flex-wrap:nowrap}.dock .btn{min-height:44px}.steps .step{padding:0 10px}}
-.dock .btn{background:var(--bar-ink);color:var(--bar);border-color:var(--bar-ink);font-weight:700;min-height:48px}
 
-/* download */
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}
-.fact{padding:18px 22px;display:flex;flex-direction:column;gap:2px;border-bottom:1px solid var(--line-soft)}
-@media (min-width:720px){.fact{border-bottom:0;border-right:1px solid var(--line-soft)}.fact:last-child{border-right:0}}
-.fact.wide{grid-column:1/-1;border-top:1px solid var(--line-soft);border-right:0}
+/* download = 下载中心 */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:12px}
+.fact{padding:14px 18px;display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:14px;min-width:0}
 .fact .k{font-size:13px;color:var(--muted)}
-.fact .v{font-size:22px;font-weight:700;overflow-wrap:anywhere}
-.inline-in{min-height:44px;padding:0 12px;border:1px solid var(--field);border-radius:10px;background:var(--surface);font-size:18px;font-weight:700;width:100%;max-width:200px;min-width:0;flex:1 1 140px}
-.warnbox{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding:14px 18px;border-radius:14px;background:var(--warn-bg);color:var(--warn)}
-.warnbox ul{margin:0;padding-left:20px}
-.pkg{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
-.pkg.off{opacity:.65}
-.pkg-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
-.pkg-h .t{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px}
-.pkg-h b{font-size:17px}
+.fact .v{font-size:20px;font-weight:700;overflow-wrap:anywhere}
+.dlgrid{display:grid;gap:18px;align-items:start}
+@media (min-width:1100px){.dlgrid{grid-template-columns:minmax(0,1fr) 340px}}
+.panel-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line-soft)}
+.panel-h h2{font-size:16px}
+table.dl td:first-child{width:44px}
+table.dl tr.grp td{background:var(--sunk);font-weight:700;text-align:left}
+table.dl tr.off td{opacity:.55}
+table.dl .fn{overflow-wrap:anywhere}
+.st-done{color:var(--ok);font-weight:500;white-space:nowrap}.st-todo{color:var(--muted);white-space:nowrap}
 .chk{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer}
-.chk input{width:20px;height:20px;accent-color:var(--accent)}
-.fname{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:8px 8px 8px 14px;border-radius:10px;background:var(--sunk);overflow-wrap:anywhere}
-.fname span{min-width:0;flex:1 1 260px}
-.fname.zip{font-weight:700}
-.flist{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.chk input,table.dl input{width:20px;height:20px;accent-color:var(--accent)}
+.recon .big{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700}
+.recon ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:14px}
+.recon .bad{color:var(--crit)}.recon .good{color:var(--ok)}
+.inline-in{min-height:44px;padding:0 12px;border:1px solid var(--field);border-radius:10px;background:var(--surface);font-size:18px;font-weight:700;width:100%;max-width:200px;min-width:0;flex:1 1 140px}
+.warnbox{display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:14px;background:var(--warn-bg);color:var(--warn)}
+.warnbox ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;overflow-wrap:anywhere}
 .go{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px}
 
 .rules-box{display:flex;flex-direction:column;gap:14px}
@@ -291,19 +319,15 @@ tr.on td{background:var(--sel)}
 <body>
 
 
-<div class="top"><div class="top-in">
-  <div class="brand">
-    <a class="home" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-64.png" alt="" width="22" height="22" style="vertical-align:-5px;margin-right:6px">审核总部</a><span class="crumb" aria-hidden="true">/</span>
-    <span class="tlogo" aria-hidden="true">技</span>
-    技术单审核台
-    <a class="swap" href="../name/" title="切换到名字审核">切换：名字审核 →</a>
+<div class="shell">
+  <aside class="side" id="side" aria-label="主要导航"></aside>
+  <div style="min-width:0">
+    <header class="top"><div class="top-in"><div id="toph" style="min-width:0"></div>
+      <div class="top-r"><div class="top-r" id="topacts"></div><button type="button" class="btn small theme" id="theme" aria-pressed="false"></button></div></div></header>
+    <div id="app"></div>
   </div>
-  <nav class="steps" aria-label="步骤" id="steps"></nav>
-  <div class="top-r"><div class="who" id="who"></div>
-  <button type="button" class="btn small theme" id="theme" aria-pressed="false"></button></div>
-</div></div>
-
-<div id="app"></div>
+</div>
+<nav class="tabbar" id="tabbar" aria-label="主要导航"></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="../vendor/exceljs.min.js"></script>
@@ -342,7 +366,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   var state = {
     inputs: [], results: null, problems: {}, urgents: {}, solos: {}, edits: {}, reds: {},
     view: 'upload', filter: 'todo', sel: null, tab: 'fields', allFields: false, q: '', openFiles: {},
-    pick: { good: true, urgent: true, solo: true, bad: false }, busy: false, error: '',
+    pick: { good: true, urgent: true, solo: true, bad: false }, dled: {}, busy: false, error: '',
     set: { date: E.todayStr(), reviewer: E.DEFAULTS.reviewer, brands: E.DEFAULTS.splitWatchBrands.join('，'), askfirst: E.DEFAULTS.askFirstProducts.join('，'), urgent: E.DEFAULTS.urgentWords.join('，'), nameDate: '', region: 'auto' }
   };
   // 审完还没下载就关页面：先提醒（判定只存在这一页）
@@ -366,6 +390,11 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     search: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
     warn: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l10 18H2L12 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v5M12 18v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     eye: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+    home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>',
+    upl: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>',
+    rows: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
+    down: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>',
+    book: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zM4 19a2 2 0 0 1 2-2h13"/></svg>',
     globe: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
   };
 
@@ -432,6 +461,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       state.results = await E.processFiles(state.inputs, { problems: state.problems, urgents: state.urgents, solos: state.solos, edits: state.edits, reds: state.reds, askFirstProducts: list(state.set.askfirst), date: date, reviewer: state.reviewer, nameDate: state.nameDate || '', region: state.set.region, splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
     } catch (e) { state.error = '审核失败：' + (e && e.message || e); }
     state.busy = false;
+    if (!state.error) { state.dled = {}; downloadedOnce = false; }
     render();
     if (!state.error) reportToHQ('processed');
     return !state.error;
@@ -517,7 +547,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   function findItem(mk) { return items().filter(function (it) { return it.mk === mk; })[0] || null; }
   function famOf(o) { return o.flags.filter(function (f) { return f.group; })[0] || null; }
   function statusOf(o) {
-    return o.problem ? { t: '有问题', c: 'crit', d: 'var(--crit)' } : o.newborn ? { t: '新生儿', c: 'blue', d: 'var(--blue)' } : o.urgent ? { t: '特殊加急', c: 'orange', d: 'var(--orange)' } : { t: '没问题', c: 'ok', d: 'var(--ok)' };
+    return o.problem ? { t: '有问题', c: 'crit', d: 'var(--crit)' } : o.newborn ? { t: '新生儿', c: 'baby', d: 'var(--baby)' } : o.urgent ? { t: '特殊加急', c: 'orange', d: 'var(--orange)' } : { t: '没问题', c: 'ok', d: 'var(--ok)' };
   }
   var PROB_LABEL = { hold: '暂缓 / 暂停', product: '先问能不能做', exchange: '换购要原单号', ask: '要问下单者', zodiac: '要问下单者', 'engrave-no': '刻名字要确认' };
   var OK_LABEL = { hold: '已恢复，放回普通文件', product: '可以做，放回普通文件', exchange: '已有原单号，放回普通文件', ask: '已问过，没问题', zodiac: '已问过，没问题', 'engrave-no': '已确认，放回普通文件' };
@@ -542,7 +572,8 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     { k: 'all', t: '全部订单', test: function () { return true; } },
     { k: 'problem', t: '有问题', dot: 'var(--crit)', test: function (o) { return o.problem; } },
     { k: 'urgent', t: '特殊加急', dot: 'var(--orange)', test: function (o) { return o.urgent && !o.problem && !o.newborn; } },
-    { k: 'newborn', t: '新生儿', dot: 'var(--blue)', test: function (o) { return o.newborn && !o.problem; } },
+    { k: 'solo', t: '单独发', dot: 'var(--solo)', test: function (o) { return o.solo && !o.problem; } },
+    { k: 'newborn', t: '新生儿', dot: 'var(--baby)', test: function (o) { return o.newborn && !o.problem; } },
     { k: 'family', t: '家人订单', fam: true, test: function (o) { return !!famOf(o); } },
     { k: 'attention', t: '要留意', dot: 'var(--warn)', test: function (o) { return o.flags.some(function (f) { return ATTENTION[f.kind] && f.level === 'high' || f.kind === 'zishi'; }); } },
     { k: 'ok', t: '没问题', dot: 'var(--ok)', test: function (o) { return !o.problem && !o.urgent && !o.newborn; } }
@@ -714,11 +745,8 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       '<div class="cover"><small>技术单审核台 · 更新日期 ' + esc(today) + '</small><h1>审核规则手册</h1><p>先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红。</p></div>' +
       rulesBody(true) + '</div></body></html>';
   }
-  function rulesCards() {
-    return '<section class="rules-box" aria-labelledby="rules-h"><div class="rules-head"><div><h2 id="rules-h" style="font-size:24px">审核规则手册</h2>' +
-      '<p class="small" style="font-size:14px;margin-top:2px">先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红。</p></div>' +
-      '<div class="acts"><button type="button" class="btn" data-rules-preview>' + ICON.eye + '预览 / 打印</button><button type="button" class="btn primary" data-rules-dl>' + ICON.dl + '下载规则</button></div></div>' +
-      rulesBody(false) + '</section>';
+  function viewRules() {
+    return '<div class="page"><section class="rules-box" aria-label="审核规则手册">' + rulesBody(false) + '</section></div>' + rulesPreview();
   }
   function rulesPreview() {
     if (!state.rulesPreview) return '';
@@ -731,21 +759,55 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   (function () { var st = document.createElement('style'); st.textContent = rulesCss('.rules-box'); document.head.appendChild(st); })();
   function render() {
     renderTop();
-    var v = state.results ? state.view : 'upload';
-    $('app').innerHTML = v === 'upload' ? viewUpload() : v === 'review' ? viewReview() : viewDownload();
+    var v = state.view === 'rules' ? 'rules' : state.results ? state.view : 'upload';
+    $('app').innerHTML = v === 'upload' ? viewUpload() : v === 'review' ? viewReview() : v === 'rules' ? viewRules() : viewDownload();
+  }
+  // which nav item is "here": 工作台 = review on 待你决定, 全部订单 = review on any other filter
+  function navKey() {
+    var v = state.view === 'rules' ? 'rules' : state.results ? state.view : 'upload';
+    return v === 'review' ? (state.filter === 'todo' ? 'home' : 'orders') : v;
+  }
+  function picked() {
+    var bk = buckets(allOutputs());
+    return (state.pick.good && bk.good.length ? 1 : 0) + (state.pick.urgent ? bk.urg.length : 0) + (state.pick.solo ? bk.solo.length : 0) + (state.pick.bad && bk.bad.length ? 1 : 0);
   }
   function renderTop() {
-    var has = !!state.results, v = has ? state.view : 'upload';
-    var order = ['upload', 'review', 'download'], names = ['上传', '处理待办', '下载'], vi = order.indexOf(v);
-    $('steps').innerHTML = order.map(function (k, i) {
-      var cur = k === v, done = has && i < vi;
-      return (i ? ICON.arrow : '') + '<button type="button" class="step' + (done ? ' done' : '') + '" data-view="' + k + '"' + (cur ? ' aria-current="step"' : '') + (!has && i ? ' disabled' : '') + '>' +
-        '<span class="num">' + (done ? ICON.check : i + 1) + '</span>' + names[i] + '</button>';
-    }).join('');
-    $('who').innerHTML = has
-      ? '<span>' + esc(state.date) + '</span><span aria-hidden="true">·</span><span>审核人 <b>' + esc(state.reviewer) + '</b></span><span aria-hidden="true">·</span><span>' + esc(regionOf(allOutputs()).replace(/（.*）/, '')) + '</span>' +
-        '<button type="button" class="btn small" data-view="upload" data-focus="f-reviewer">更改</button>'
-      : '<span>审核人 <b>' + esc(state.set.reviewer || 'martin') + '</b></span>';
+    var res = !!state.results, here = navKey();
+    var open = res ? todos().filter(function (t) { return !t.decided; }).length : 0;
+    var bk = buckets(allOutputs()), ready = orderTotal(bk.good) + orderTotal(bk.urg) + orderTotal(bk.solo);
+    var NAV = [
+      ['home', '今日工作台', ICON.home, 'data-view="review" data-filter="todo"', res ? '<span class="badge' + (open ? ' hot' : '') + '">' + open + '</span>' : '', !res],
+      ['upload', '上传文件', ICON.upl, 'data-view="upload"', '', false],
+      ['orders', '全部订单', ICON.rows, 'data-view="review" data-filter="all"', res ? '<span class="badge">' + items().length + '</span>' : '', !res],
+      ['download', '下载中心', ICON.down, 'data-view="download"', res ? '<span class="badge ok">' + ready + '</span>' : '', !res],
+      ['rules', '规则手册', ICON.book, 'data-view="rules"', '', false]
+    ];
+    var btn = function (cls, n, short) {
+      return '<button type="button" class="' + cls + '" ' + n[3] + (here === n[0] ? ' aria-current="page"' : '') + (n[5] ? ' disabled' : '') + '>' + n[2] + (short || n[1]) + n[4] + '</button>';
+    };
+    var date = state.date || state.set.date, rev = state.reviewer || state.set.reviewer || 'martin';
+    $('side').innerHTML = '<div class="brandrow"><span class="tlogo" aria-hidden="true">技</span><div><b>技术单审核台</b><a href="../" title="回到审核总部">← 审核总部</a></div></div>' +
+      NAV.map(function (n) { return btn('nav', n); }).join('') +
+      '<div class="today"><span>今日设置</span><b>' + esc(date) + ' · ' + esc(rev) + '</b><span>' + esc(res ? regionOf(allOutputs()) : (state.set.region === 'auto' ? '国内 / 海外：自动' : state.set.region === 'overseas' ? '海外（有 H）' : '国内（没有 H）')) + '</span>' +
+      '<button type="button" class="btn link" style="align-self:flex-start;padding:0;min-height:30px" data-view="upload" data-focus="f-reviewer">改设置</button></div>' +
+      '<a class="swap" href="../name/" title="切换到名字审核">切换：名字审核 →</a>';
+    $('tabbar').innerHTML = [NAV[0], NAV[1], NAV[2], NAV[3]].map(function (n, i) { return btn('', n, ['工作台', '上传', '订单', '下载'][i]); }).join('');
+    var T = {
+      upload: [res ? '加文件或改设置' : '上传技术单', '可以一次放多个 .xlsx 或整包 .zip；所有处理都在你的电脑里完成，不会上传到网上'],
+      home: ['今日工作台', res ? state.results.length + ' 个文件 · ' + items().length + ' 单 · ' + date + ' · ' + rev : ''],
+      orders: ['全部订单', res ? state.results.length + ' 个文件 · ' + items().length + ' 单' : ''],
+      download: ['下载中心', '下载前看一下这几项；改了以后文件马上更新'],
+      rules: ['审核规则手册', '先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红']
+    }[here];
+    $('toph').innerHTML = '<a class="home ph-only" href="../">← 审核总部</a><h1>' + esc(T[0]) + '</h1><p class="sub">' + esc(T[1]) + '</p>';
+    var n = res ? picked() : 0;
+    $('topacts').innerHTML = here === 'home' || here === 'orders'
+      ? '<button type="button" class="btn small desk-only" data-view="upload">' + ICON.upl + '上传新一批</button><button type="button" class="btn small primary" data-view="download">' + ICON.dl + '去下载</button>'
+      : here === 'download'
+        ? '<button type="button" class="btn small" data-godl' + (n ? '' : ' disabled') + '>分开下载（' + n + ' 个）</button><button type="button" class="btn small primary" data-goall' + (n ? '' : ' disabled') + '>' + ICON.dl + '全部打包成一个下载</button>'
+        : here === 'rules'
+          ? '<button type="button" class="btn small" data-rules-preview>' + ICON.eye + '预览 / 打印</button><button type="button" class="btn small primary" data-rules-dl>' + ICON.dl + '下载规则</button>'
+          : res ? '<button type="button" class="btn small primary" data-view="review" data-filter="todo">回工作台</button>' : '';
   }
 
   function settingsCard() {
@@ -768,12 +830,10 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   function viewUpload() {
     var hasRes = !!state.results;
     var h = '<div class="page"><div class="narrow">';
-    h += '<div class="hero" style="display:flex;flex-direction:column;gap:6px"><h1>' + (hasRes ? '加文件或改设置' : '把今天的技术单拖进来') + '</h1>' +
-      '<p class="lead">可以一次放多个 .xlsx，或者整包 .zip。所有处理都在你的电脑里完成，不会上传到网上。</p></div>';
     if (state.error) h += '<div class="error" role="alert">' + esc(state.error) + '</div>';
     if (state.busy) h += '<div class="status" role="status"><span class="spin" aria-hidden="true"></span>正在审核……</div>';
     if (hasRes) h += '<section class="card pad loaded"><div style="min-width:0"><b>已上传 ' + state.inputs.length + ' 个技术单</b><ul>' + state.inputs.map(function (f) { return '<li>' + esc(f.name) + '</li>'; }).join('') + '</ul></div>' +
-      '<div class="acts"><button type="button" class="btn" data-reset>清空重来</button><button type="button" class="btn primary" data-view="review">继续处理待办</button></div></section>';
+      '<div class="acts"><button type="button" class="btn" data-reset>清空重来</button><button type="button" class="btn primary" data-view="review" data-filter="todo">回工作台</button></div></section>';
     h += '<label class="drop" id="drop"><span class="ico">' + ICON.up + '</span><span class="big">' + (hasRes ? '再拖文件进来（会合在一起审核）' : '拖文件到这里') + '</span><span class="small">或者</span>' +
       '<span class="fake">选择文件</span><input id="pick" type="file" multiple accept=".xlsx,.zip"><span class="small">名册展示写了简体 / 繁体就是海外单；没有名册展示这一栏才看文件名有没有 H</span></label>';
     h += settingsCard();
@@ -782,8 +842,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       feat('var(--warn-bg)', '<path d="M12 4v10M12 18v.5" fill="none" stroke="var(--warn)" stroke-width="2.2" stroke-linecap="round"/>', '列出要你决定的事', '要问下单者、要先问能不能做、备注要不要标红，一件件处理') +
       feat('var(--accent-soft)', '<path d="M4 7h16M4 12h16M4 17h10" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>', '分好文件再下载', '没问题、特殊加急、有问题、新生儿分开，文件名和页脚自动写好') +
       '</section>';
-    h += rulesCards();
-    return h + '</div></div>' + rulesPreview();
+    return h + '</div></div>';
   }
   function feat(bg, path, t, d) {
     return '<div class="feat"><span class="ic" style="background:' + bg + '"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">' + path + '</svg></span><div><b>' + t + '</b><span class="small">' + d + '</span></div></div>';
@@ -791,77 +850,89 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
 
   function viewReview() {
     var all = items(), td = todos(), open = td.filter(function (t) { return !t.decided; });
-    var outs = allOutputs();
+    var outs = allOutputs(), bk = buckets(outs);
     var h = '<div class="page">';
     if (state.error) h += '<div class="error" role="alert">' + esc(state.error) + '</div>';
     if (state.busy) h += '<div class="status" role="status"><span class="spin" aria-hidden="true"></span>正在重新审核……</div>';
-    var doneN = all.length - open.length;
-    h += '<section class="card pad progress" aria-label="进度"><div style="display:flex;flex-direction:column;gap:4px;min-width:0">' +
-      (open.length ? '<div class="big">还有 <em>' + open.length + '</em> 件事要你决定</div>' : '<div class="big done"><em>都处理好了</em>，可以下载</div>') +
-      '<div class="small" style="font-size:14px">' + state.results.length + ' 个文件 · ' + all.length + ' 单已审核，红字已自动标好</div>' +
-      // 要问下单者的话术：一次复制全部，直接贴到群里
-      (function () {
-        var lines = [];
-        td.forEach(function (t) { (t.flags || []).forEach(function (f) { if (f.copy && lines.indexOf(f.copy) < 0) lines.push(f.copy); }); });
-        return lines.length ? '<div><button type="button" class="btn small" data-copytext="' + esc(lines.map(function (x, i) { return (i + 1) + '. ' + x; }).join('\n\n')) + '">复制全部要问的话术（' + lines.length + ' 条）</button></div>' : '';
-      })() + '</div>' +
-      '<div class="bar"><div class="small" style="display:flex;justify-content:space-between"><span>已处理 ' + doneN + ' / ' + all.length + '</span><span>' + (all.length ? Math.round(doneN * 100 / all.length) : 100) + '%</span></div>' +
-      '<div class="track"><span style="width:' + (all.length ? doneN * 100 / all.length : 100) + '%"></span></div></div></section>';
+    var cnt = function (k) { var f = FILTERS.filter(function (x) { return x.k === k; })[0]; return all.filter(function (it) { return f.test(it.o); }).length; };
+    var kpi = function (k, t, dot, n, cls, attr) {
+      return '<button type="button" class="kpi' + (cls || '') + '" ' + (attr || 'data-filter="' + k + '" aria-pressed="' + (state.filter === k) + '"') + '><span class="l"><span class="dot" style="background:' + dot + '"></span>' + t + '</span><span class="n">' + n + '<small>' + (k === 'todo' ? '件' : '单') + '</small></span></button>';
+    };
+    h += '<section class="kpis" aria-label="这批的数字">' +
+      kpi('todo', '待你决定', 'var(--crit)', open.length, open.length ? ' hot' : '') +
+      kpi('problem', '有问题', 'var(--crit)', cnt('problem')) +
+      kpi('ready', '可以发', 'var(--ok)', orderTotal(bk.good) + orderTotal(bk.urg) + orderTotal(bk.solo), ' ready', 'data-view="download" aria-label="可以发的单，去下载中心"') +
+      kpi('urgent', '特殊加急', 'var(--orange)', cnt('urgent')) +
+      kpi('solo', '单独发', 'var(--solo)', cnt('solo')) +
+      kpi('newborn', '新生儿', 'var(--baby)', cnt('newborn')) + '</section>';
 
-    // filters
-    var cnt = function (f) { return all.filter(function (it) { return f.test(it.o); }).length; };
     var fam = (state.results.families || []);
-    var subs = {};
-    open.forEach(function (t) { subs[t.label] = (subs[t.label] || 0) + 1; });
-    h += '<div class="cols"><nav class="card filters" aria-label="筛选">' +
-      fbtn('todo', '待你决定', open.length ? '<span class="n hot">' + open.length + '</span>' : '<span class="n">0</span>') +
-      Object.keys(subs).map(function (k) { return '<button type="button" class="flt sub" data-filter="todo">' + esc(k) + '<span class="n">' + subs[k] + '</span></button>'; }).join('') +
-      '<div class="sep"></div>' +
-      FILTERS.map(function (f) {
-        var n = cnt(f);
-        if (!n && f.k !== 'all' && f.k !== 'ok' && f.k !== 'problem') return '';
-        var lab = f.fam ? '<span class="lab"><span style="display:flex;gap:2px">' + fam.slice(0, 3).map(function (g) { return '<span class="sw" style="background:' + g.css + ';width:9px;height:9px"></span>'; }).join('') + '</span>' + f.t + '</span>'
-          : f.dot ? '<span class="lab"><span class="dot" style="background:' + f.dot + '"></span>' + f.t + '</span>' : f.t;
-        return fbtn(f.k, lab, '<span class="n">' + (f.fam ? fam.length + ' 组' : n) + '</span>');
-      }).join('') + '</nav>';
-
-    // middle column
-    h += '<section class="main" aria-label="订单">';
+    h += '<div class="dash"><section class="main" aria-label="订单">';
     if (state.filter === 'todo') {
       h += '<div class="main-h"><h2>待你决定 · ' + open.length + '</h2>' + searchBox() + '</div>';
+      // 要问下单者的话术：一次复制全部，直接贴到群里
+      var lines = [];
+      td.forEach(function (t) { (t.flags || []).forEach(function (f) { if (f.copy && lines.indexOf(f.copy) < 0) lines.push(f.copy); }); });
+      if (lines.length) h += '<div><button type="button" class="btn small" data-copytext="' + esc(lines.map(function (x, i) { return (i + 1) + '. ' + x; }).join('\n\n')) + '">复制全部要问的话术（' + lines.length + ' 条）</button></div>';
       var shown = open.filter(function (t) { return matchesQ(t.it); });
-      if (!open.length) h += '<div class="card alldone"><b style="font-size:18px">没有要你决定的事了</b><span class="small">可以按下面的「去下载」，或者在「按文件看」检查每一单。</span></div>';
+      if (!open.length) h += '<div class="card alldone"><b style="font-size:18px">没有要你决定的事了</b><span class="small">可以去下载，或者在下面按文件检查每一单。</span></div>';
       var pendOpen = shown.filter(function (x) { return x.type === 'pending'; });
       if (pendOpen.length > 1) h += '<div class="card bulk"><span><b>' + pendOpen.length + ' 个备注</b>只写祝福语，要一起决定吗？</span><span class="acts"><button type="button" class="btn small pick-on" data-redall="0">全部不标红</button><button type="button" class="btn small red-out" data-redall="1">全部标红</button></span></div>';
       h += shown.map(todoCard).join('');
       var dec = td.filter(function (t) { return t.decided && matchesQ(t.it); });
       if (dec.length) h += '<details class="card" style="padding:4px 18px"' + (state.decOpen ? ' open' : '') + ' data-dec><summary>已决定的 ' + dec.length + ' 件（可以改）</summary><div style="display:flex;flex-direction:column;gap:10px;padding:4px 0 14px">' + dec.map(todoCard).join('') + '</div></details>';
-      h += '<div class="main-h" style="margin-top:12px"><h2>按文件看</h2></div><div class="files">' + state.results.map(fileBlock).join('') + '</div>';
+      h += '<div class="main-h" style="margin-top:12px"><h2>全部订单 · 按文件</h2></div><div class="files">' + state.results.map(fileBlock).join('') + '</div>';
     } else {
       var f = FILTERS.filter(function (x) { return x.k === state.filter; })[0] || FILTERS[0];
       var rows = all.filter(function (it) { return f.test(it.o) && matchesQ(it); });
       if (f.fam) rows.sort(function (a, b) { return (famOf(a.o).group.n - famOf(b.o).group.n); });
       h += '<div class="main-h"><h2>' + f.t + ' · ' + rows.length + '</h2>' + searchBox() + '</div>';
+      h += '<nav class="ftags" aria-label="筛选">' + FILTERS.map(function (x) {
+        var n = x.fam ? fam.length : cnt(x.k);
+        if (!n && x.k !== 'all' && x.k !== state.filter) return '';
+        return '<button type="button" class="ftag" data-filter="' + x.k + '" aria-pressed="' + (state.filter === x.k) + '">' + (x.dot ? '<span class="dot" style="background:' + x.dot + '"></span>' : '') + x.t + '<span class="n">' + n + (x.fam ? ' 组' : '') + '</span></button>';
+      }).join('') + '</nav>';
       if (f.fam && fam.length) h += '<div class="card pad" style="display:flex;flex-direction:column;gap:8px"><span class="small">父母、兄弟姐妹、子女、备注等任何一栏写了别的单的订单号、姓名或它的父母兄弟姐妹名字，而那张单也在同一个文件里 → 同一家，整行涂同一个颜色。每个文件单独审核，不跟别的工具的单连起来。</span>' +
         fam.map(function (g) { return '<div style="display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center"><b style="display:flex;align-items:center;gap:8px"><span class="sw" style="background:' + g.css + '"></span>第' + g.n + '组 ' + esc(g.label) + '（' + g.colorName + '）</b><span class="small">' + (g.file ? esc(g.file) + '：' : '') + g.members.map(function (m) { return esc(m.person) + ' · ' + esc(m.tool); }).join('、') + '</span></div>'; }).join('') + '</div>';
       h += rows.length ? '<div class="card" style="overflow:hidden">' + orderTable(rows, true) + '</div>' : '<div class="card alldone"><span class="small">没有符合的订单</span></div>';
     }
-    h += '</section>';
-    h += detailPanel();
-    h += '</div></div>';
-
-    // dock
-    var bk = buckets(outs), good = bk.good, urg = bk.urg, solo = bk.solo, bad = bk.bad;
-    h += '<div class="dock"><div class="dock-in"><div class="sum">' +
-      '<span><b>' + good.length + '</b> 个没问题文件（' + orderTotal(good) + ' 单）</span>' +
-      (urg.length ? '<span><b>' + urg.length + '</b> 个特殊加急</span>' : '') +
-      (solo.length ? '<span><b>' + solo.length + '</b> 个单独发</span>' : '') +
-      (bad.length ? '<span><b>' + bad.length + '</b> 个有问题</span>' : '') +
-      (open.length ? '<span class="w">还有 ' + open.length + ' 件待决定，也可以先下载</span>' : '') +
-      '</div><button type="button" class="btn" data-view="download">' + ICON.dl + '去下载</button></div></div>';
-    return h;
+    h += '</section>' + summaryPanel(outs, open) + '</div></div>';
+    return h + detailPanel();
   }
-  function fbtn(k, label, n) { return '<button type="button" class="flt" data-filter="' + k + '" aria-pressed="' + (state.filter === k) + '">' + label + n + '</button>'; }
+  // right column: where every order is going + things to look at before downloading
+  function summaryPanel(outs, open) {
+    var bk = buckets(outs);
+    var parts = [
+      ['没问题 → 发给专家', 'var(--ok)', orderTotal(bk.good.filter(function (o) { return !o.newborn; }))],
+      ['新生儿', 'var(--baby)', orderTotal(bk.good.filter(function (o) { return o.newborn; }))],
+      ['特殊加急', 'var(--orange)', orderTotal(bk.urg)],
+      ['单独发', 'var(--solo)', orderTotal(bk.solo)],
+      ['有问题 → 先别发', 'var(--crit)', orderTotal(bk.bad)]
+    ];
+    var w = notes();
+    if (open.length) w.unshift('还有 ' + open.length + ' 件待决定：没选的备注不标红，要问的先放有问题。');
+    return '<aside class="summary" aria-label="摘要"><section class="card"><h2>文件去向 · ' + orderTotal(outs) + ' 单</h2>' +
+      '<div class="flow" role="img" aria-label="' + esc(parts.filter(function (p) { return p[2]; }).map(function (p) { return p[0] + ' ' + p[2] + ' 单'; }).join('、')) + '">' +
+      parts.map(function (p) { return p[2] ? '<span style="flex:' + p[2] + ';background:' + p[1] + '"></span>' : ''; }).join('') + '</div>' +
+      '<ul class="legend">' + parts.map(function (p) { return '<li><span class="dot" style="background:' + p[1] + '"></span>' + p[0] + '<span>' + p[2] + ' 单</span></li>'; }).join('') + '</ul>' +
+      '<button type="button" class="btn primary" data-view="download">' + ICON.dl + '去下载中心</button></section>' +
+      '<section class="card"><h2>要注意</h2>' + (w.length ? '<ul class="notes">' + w.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '<span class="small">没有要注意的事</span>') + '</section></aside>';
+  }
+  // easy to miss: unread files, settings changed but not re-run, 国内 / 海外 guesses, two files with one name
+  function notes() {
+    var w = [];
+    var setDate = normDate(state.set.date), setRev = state.set.reviewer.trim() || 'martin';
+    if (setDate && setDate !== state.date) w.push('设置里的日期已改成 ' + setDate + '，但文件还是 ' + state.date + '，请先按「按新设置重新审核」。');
+    if (setRev !== state.reviewer) w.push('设置里的审核人已改成 ' + setRev + '，但文件还是 ' + state.reviewer + '，请先按「按新设置重新审核」。');
+    (state.results || []).forEach(function (r) {
+      if (r.error) w.push(r.name + '：读不出来，不会下载 — ' + r.error);
+      if (r.regionNote) w.push(r.name + '：' + r.regionNote + '（不对就在下载中心改国内 / 海外）');
+    });
+    var seen = {}, dup = [];
+    allOutputs().forEach(function (o) { if (seen[o.name] && dup.indexOf(o.name) < 0) dup.push(o.name); seen[o.name] = true; });
+    if (dup.length) w.push('有 ' + dup.length + ' 个文件名一样：' + dup.join('、') + '。打包时会自动加 -2；分开下载时浏览器会自己改名。');
+    return w;
+  }
   function searchBox() { return '<label class="search">' + ICON.search + '<span class="vh">搜索姓名或订单号</span><input type="search" data-q placeholder="搜索姓名或订单号" value="' + esc(state.q) + '"></label>'; }
 
   function todoCard(t) {
@@ -920,11 +991,11 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
         var o = it.o, st = statusOf(o), fg = famOf(o);
         var tags = o.flags.filter(function (f) { return SHORT[f.kind]; }).map(function (f) { return '<span' + (f.level === 'high' ? ' class="hi"' : '') + '>' + SHORT[f.kind] + '</span>'; });
         var uniq = tags.filter(function (x, i) { return tags.indexOf(x) === i; });
-        return '<tr' + (state.sel === it.mk ? ' class="on"' : '') + '><td>' + esc(o.seq) + '</td>' +
-          '<td><span class="who-cell">' + (fg ? '<span class="sw" style="background:' + fg.group.css + '" title="家人第' + fg.group.n + '组"></span>' : '') + '<span>' + esc(o.person) + (showTool ? '<small>' + esc(it.r.tool) + '</small>' : '') + '</span></span></td>' +
-          '<td><span class="st-' + st.c + '">' + st.t + '</span>' + (fg ? '<span class="small"> · 家人第' + fg.group.n + '组</span>' : '') + '</td>' +
-          '<td>' + (uniq.length ? '<span class="mini">' + uniq.slice(0, 4).join('') + (uniq.length > 4 ? '<span>+' + (uniq.length - 4) + '</span>' : '') + '</span>' : '<span class="small">—</span>') + '</td>' +
-          '<td><span class="acts" style="gap:6px;flex-wrap:nowrap;justify-content:flex-end">' +
+        return '<tr' + (state.sel === it.mk ? ' class="on"' : '') + '><td class="c-seq">' + esc(o.seq) + '</td>' +
+          '<td class="c-who"><span class="who-cell">' + (fg ? '<span class="sw" style="background:' + fg.group.css + '" title="家人第' + fg.group.n + '组"></span>' : '') + '<span>' + esc(o.person) + (showTool ? '<small>' + esc(it.r.tool) + '</small>' : '') + '</span></span></td>' +
+          '<td class="c-st"><span class="st-' + st.c + '">' + st.t + '</span>' + (fg ? '<span class="small"> · 家人第' + fg.group.n + '组</span>' : '') + '</td>' +
+          '<td class="c-tags">' + (uniq.length ? '<span class="mini">' + uniq.slice(0, 4).join('') + (uniq.length > 4 ? '<span>+' + (uniq.length - 4) + '</span>' : '') + '</span>' : '<span class="small">—</span>') + '</td>' +
+          '<td class="c-act"><span class="acts" style="gap:6px;flex-wrap:nowrap;justify-content:flex-end">' +
           // 加急 / 不加急 right in the list, same switch as the detail panel (新生儿 always stay in the 新生儿 file)
           (o.newborn ? '' : '<button type="button" class="chip-tg urg" data-urg="' + esc(it.mk) + '" data-auto="' + (o.autoUrgent ? 1 : 0) + '" aria-pressed="' + !!o.urgent + '" aria-label="' + esc(o.person) + ' 加急" title="' + (o.urgent ? '现在是特殊加急，按一下放回普通文件' : '按一下设为特殊加急') + '">' + (o.urgent ? '✓ ' : '') + '加急</button>') +
           '<button type="button" class="chip-tg solo" data-solo="' + esc(it.mk) + '" aria-pressed="' + !!o.solo + '" aria-label="' + esc(o.person) + ' 单独发" title="' + (o.solo ? '现在自己一个文件，按一下放回' : '按一下让这一单自己一个文件') + '">' + (o.solo ? '✓ ' : '') + '单独发</button>' +
@@ -936,12 +1007,12 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   var LONG = /备注|兄弟姐妹|子女|禁忌字/;
   function detailPanel() {
     var it = state.sel && findItem(state.sel);
-    if (!it) return '<aside class="card detail" aria-label="订单详情"><div class="detail-empty">按任何一单的「打开」或「修改资料」，<br>资料会在这里显示，可以直接改、设红字。</div></aside>';
+    if (!it) return '';
     var o = it.o, mk = it.mk, st = statusOf(o), fg = famOf(o);
-    var h = '<aside class="card detail" id="detail" aria-label="订单详情"><div class="detail-h"><div class="row"><div class="nm">' + (fg ? '<span class="sw" style="background:' + fg.group.css + '"></span>' : '') + esc(o.person) + '</div>' +
+    var h = '<button type="button" class="scrim" data-close aria-label="关闭详情" tabindex="-1"></button><aside class="card detail" id="detail" role="dialog" aria-modal="true" aria-label="订单详情：' + esc(o.person) + '"><div class="detail-h"><div class="row"><div class="nm">' + (fg ? '<span class="sw" style="background:' + fg.group.css + '"></span>' : '') + esc(o.person) + '</div>' +
       '<button type="button" class="x" data-close aria-label="关闭详情">' + ICON.x + '</button></div>' +
       '<div class="small" style="font-size:14px">' + esc(o.title || it.r.tool) + ' · ' + esc(o.key) + ' · 序号 ' + esc(o.seq) + '</div>' +
-      '<div class="acts" style="gap:6px"><span class="tag ' + (st.c === 'orange' ? 'warn' : st.c) + '">' + st.t + '</span>' + (fg ? '<span class="tag blue">家人第' + fg.group.n + '组 ' + esc(fg.group.label) + '</span>' : '') + '</div></div>' +
+      '<div class="acts" style="gap:6px"><span class="tag ' + (st.c === 'orange' ? 'warn' : st.c) + '">' + st.t + '</span>' + (o.solo ? '<span class="tag solo">单独发</span>' : '') + (fg ? '<span class="tag blue">家人第' + fg.group.n + '组 ' + esc(fg.group.label) + '</span>' : '') + '</div></div>' +
       '<div class="tabs" role="tablist" aria-label="详情分页">' +
         '<button type="button" class="tab" role="tab" data-tab="fields" aria-selected="' + (state.tab === 'fields') + '">资料</button>' +
         '<button type="button" class="tab" role="tab" data-tab="log" aria-selected="' + (state.tab === 'log') + '">审核记录（' + o.flags.length + '）</button></div>' +
@@ -974,60 +1045,78 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   }
 
   function viewDownload() {
-    var outs = allOutputs(), td = todos(), open = td.filter(function (t) { return !t.decided; });
+    var outs = allOutputs(), open = todos().filter(function (t) { return !t.decided; });
     var bk = buckets(outs), good = bk.good, urg = bk.urg, solo = bk.solo, bad = bk.bad;
-    var warn = [];
-    var setDate = normDate(state.set.date), setRev = state.set.reviewer.trim() || 'martin';
-    if (setDate && setDate !== state.date) warn.push('设置里的日期已改成 ' + setDate + '，但文件还是 ' + state.date + '，请先按「按新设置重新审核」。');
-    if (setRev !== state.reviewer) warn.push('设置里的审核人已改成 ' + setRev + '，但文件还是 ' + state.reviewer + '，请先按「按新设置重新审核」。');
+    var warn = notes();
     var pend = open.filter(function (t) { return t.type === 'pending'; }).length, prob = open.length - pend;
-    if (pend) warn.push('还有 ' + pend + ' 个备注没选要不要标红，没选的不会标红。');
-    if (prob) warn.push('还有 ' + prob + ' 单要问人还没决定，现在会放在「有问题」文件。');
-    (state.results || []).forEach(function (r) { if (r.regionNote) warn.push(r.name + '：' + r.regionNote + '（不对就按下面的国内 / 海外改）'); });
-    var n = (state.pick.good && good.length ? 1 : 0) + (state.pick.urgent ? urg.length : 0) + (state.pick.solo ? solo.length : 0) + (state.pick.bad && bad.length ? 1 : 0);
-    var h = '<div class="page"><div class="narrow" style="max-width:880px;gap:20px">' +
-      '<div style="display:flex;flex-direction:column;gap:4px"><h1 style="font-size:28px">下载前确认一下</h1><p class="lead" style="font-size:15px">这三项会写进每个文件，审核人每天可能不同，请看清楚。</p></div>' +
-      '<section class="card facts" aria-label="页脚资料">' +
+    if (pend) warn.unshift('还有 ' + pend + ' 个备注没选要不要标红，没选的不会标红。');
+    if (prob) warn.unshift('还有 ' + prob + ' 单要问人还没决定，现在会放在「有问题」文件。');
+    var h = '<div class="page">';
+    if (state.error) h += '<div class="error" role="alert">' + esc(state.error) + '</div>';
+    h += '<section class="facts" aria-label="写进文件的资料">' +
         (state.editND
           ? '<div class="fact"><label class="k" for="dl-nd">文件名日期（日.月.年，改好按「确定」）</label><div class="acts" style="margin-top:4px"><input id="dl-nd" class="inline-in" data-set="nameDate" type="text" inputmode="numeric" value="' + esc(state.set.nameDate) + '" autocomplete="off">' +
             '<button type="button" class="btn small primary" data-savend>确定</button><button type="button" class="btn small" data-cancelnd>取消</button></div></div>'
           : '<div class="fact"><span class="k">文件名日期（' + (state.nameDate ? '你改的' : '跟上传的文件') + '）</span><span class="v">' + esc(nameDatesText(outs)) + '</span>' +
             '<div class="acts" style="gap:12px"><button type="button" class="btn link" style="padding:0" data-editnd>改日期</button>' +
             (state.nameDate ? '<button type="button" class="btn link" style="padding:0" data-resetnd>改回跟文件</button>' : '') + '</div></div>') +
-        '<div class="fact"><span class="k">制表日期（写在页脚）</span><span class="v">' + esc(state.date) + '</span></div>' +
+        '<div class="fact"><span class="k">制表日期（写在页脚）</span><span class="v">' + esc(state.date) + '</span><button type="button" class="btn link" style="align-self:flex-start;padding:0" data-view="upload" data-focus="f-date">改</button></div>' +
         (state.editRev
           ? '<div class="fact"><label class="k" for="dl-rev">审核人（改好按「确定」，文件会马上更新）</label><div class="acts" style="margin-top:4px"><input id="dl-rev" class="inline-in" data-set="reviewer" type="text" value="' + esc(state.set.reviewer) + '" autocomplete="off">' +
             '<button type="button" class="btn small primary" data-saverev>确定</button><button type="button" class="btn small" data-cancelrev>取消</button></div></div>'
           : '<div class="fact"><span class="k">审核人</span><span class="v">' + esc(state.reviewer) + '</span><button type="button" class="btn link" style="align-self:flex-start;padding:0" data-editrev>不是我？在这里改</button></div>') +
-        '<div class="fact wide"><span class="k">国内 / 海外' + (state.set.region === 'auto' ? '（看名册展示；没有这一栏才看 H）' : '（你选的）') + '</span><span class="v">' + esc(regionOf(outs)) + '</span>' + regionPick() + '</div></section>';
-    if (warn.length) h += '<section class="warnbox" aria-label="提醒"><div style="display:flex;gap:10px;align-items:flex-start">' + ICON.warn + '<ul>' + warn.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>' +
-      (open.length ? '<button type="button" class="btn small" data-view="review">回去处理</button>' : '') + '</section>';
-    h += pkg('good', 'var(--ok)', '没问题', good.length + ' 个文件 · ' + orderTotal(good) + ' 单 · 一个 zip', good, outZipName(false, orderTotal(good), good), true);
-    if (urg.length) h += pkg('urgent', 'var(--orange)', '特殊加急', urg.length + ' 个文件 · 不放进 zip，一个个下载', urg, null, false);
-    if (solo.length) h += pkg('solo', 'var(--blue)', '单独发', solo.length + ' 个文件 · 每单一个文件，单独发给专家', solo, null, false);
-    if (bad.length) h += pkg('bad', 'var(--crit)', '有问题', bad.length + ' 个文件 · ' + orderTotal(bad) + ' 单 · 另一个 zip，先别发给专家', bad, outZipName(true, orderTotal(bad), bad), true);
-    h += '<div class="go"><button type="button" class="btn" data-view="review">返回</button>' +
-      '<button type="button" class="btn primary" data-godl' + (n ? '' : ' disabled') + ' style="min-height:48px;font-size:16px">' + ICON.dl + '确认，下载 ' + n + ' 个' + '</button></div>';
-    return h + '</div></div>';
+        '<div class="fact"><span class="k">国内 / 海外' + (state.set.region === 'auto' ? '（看名册展示；没有这一栏才看 H）' : '（你选的）') + '</span><span class="v">' + esc(regionOf(outs)) + '</span>' + regionPick() + '</div></section>';
+
+    var probWho = items().filter(function (it) { return it.o.problem; }).map(function (it) { return it.o.person; });
+    h += '<div class="dlgrid"><section class="card" aria-label="要下载的文件" style="overflow:hidden"><div class="panel-h"><h2>要下载的文件</h2><span class="small">勾的才会下载</span></div>' +
+      '<div class="tbl"><table class="dl"><thead><tr><th scope="col"><span class="vh">要下载</span></th><th scope="col">文件名</th><th scope="col">单数</th><th scope="col">状态</th><th scope="col"><span class="vh">操作</span></th></tr></thead><tbody>' +
+      dlGroup('good', 'var(--ok)', '没问题 → 发给专家', '一个 zip', good, outZipName(false, orderTotal(good), good)) +
+      dlGroup('urgent', 'var(--orange)', '特殊加急', '不放进 zip，一个个发', urg) +
+      dlGroup('solo', 'var(--solo)', '单独发', '每单一个文件，单独发给专家', solo) +
+      dlGroup('bad', 'var(--crit)', '有问题 → 先别发专家', '另一个 zip' + (probWho.length ? '：' + probWho.join('、') : ''), bad, outZipName(true, orderTotal(bad), bad)) +
+      '</tbody></table></div></section>';
+    h += '<aside class="summary" aria-label="对账和提醒">' + reconCard(outs) +
+      (warn.length ? '<section class="warnbox" aria-label="下载前看一下"><b style="display:flex;gap:8px;align-items:center">' + ICON.warn + '下载前看一下（' + warn.length + ' 件）</b><ul>' + warn.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul>' +
+        (open.length ? '<button type="button" class="btn small" style="align-self:flex-start" data-view="review" data-filter="todo">回去处理</button>' : '') + '</section>' : '') +
+      '</aside></div>';
+    var n = picked();
+    h += '<div class="go ph-only"><button type="button" class="btn" data-godl' + (n ? '' : ' disabled') + '>分开下载（' + n + ' 个）</button>' +
+      '<button type="button" class="btn primary" data-goall' + (n ? '' : ' disabled') + '>' + ICON.dl + '全部打包成一个下载</button></div>';
+    return h + '</div>';
   }
-  function pkg(k, dot, title, sub, outs, zipName, zipped) {
-    if (!outs.length) return '<section class="card pkg off"><div class="pkg-h"><div class="t"><span class="dot" style="background:' + dot + '"></span><b>' + title + '</b><span class="small">没有文件</span></div></div></section>';
-    var on = state.pick[k];
-    var files = outs.map(function (o) {
+  // one category of the download table: a header row with its tick box, then the zip (or each file)
+  function dlGroup(k, dot, title, sub, outs, zipName) {
+    if (!outs.length) return '';
+    var on = state.pick[k], off = on ? '' : ' class="off"';
+    var st = function (name) { return state.dled[name] ? '<span class="st-done">✓ 已下载</span>' : '<span class="st-todo">还没下载</span>'; };
+    var h = '<tr class="grp"><td><input type="checkbox" data-pick="' + k + '"' + (on ? ' checked' : '') + ' aria-label="下载' + esc(title) + '"></td><td colspan="4"><span style="display:inline-flex;align-items:center;gap:8px"><span class="dot" style="background:' + dot + '"></span>' + esc(title) + '</span> <span class="small" style="font-weight:400">' + outs.length + ' 个文件 · ' + esc(sub) + '</span></td></tr>';
+    if (zipName) return h + '<tr' + off + '><td></td><td class="fn"><b>' + esc(zipName) + '</b></td><td>' + orderTotal(outs) + '</td><td>' + st(zipName) + '</td><td><button type="button" class="btn small link" data-dlzip="' + k + '">' + (state.dled[zipName] ? '再下载' : '单独下载') + '</button></td></tr>';
+    return h + outs.map(function (o) {
       var ri = -1, oi = -1;
       (state.results || []).forEach(function (r, i) { var j = r.outputs.indexOf(o); if (j >= 0) { ri = i; oi = j; } });
-      return '<div class="fname"><span>' + esc(o.name) + '</span><button type="button" class="btn small" data-dl-r="' + ri + '" data-dl-o="' + oi + '" aria-label="只下载 ' + esc(o.name) + '">' + ICON.dl + '单独下载</button></div>';
+      return '<tr' + off + '><td></td><td class="fn">' + esc(o.name) + '</td><td>' + o.orders + '</td><td>' + st(dkey(o)) + '</td><td><button type="button" class="btn small link" data-dl-r="' + ri + '" data-dl-o="' + oi + '" aria-label="只下载 ' + esc(o.name) + '">' + (state.dled[dkey(o)] ? '再下载' : '单独下载') + '</button></td></tr>';
     }).join('');
-    return '<section class="card pkg' + (on ? '' : ' off') + '"><div class="pkg-h"><div class="t"><span class="dot" style="background:' + dot + '"></span><b>' + title + '</b><span class="small">' + sub + '</span></div>' +
-      '<label class="chk"><input type="checkbox" data-pick="' + k + '"' + (on ? ' checked' : '') + '>要下载</label></div>' +
-      (zipped ? '<div class="fname zip"><span>' + esc(zipName) + '</span></div><details><summary>看里面的 ' + outs.length + ' 个文件</summary><div class="flist">' + files + '</div></details>' : '<div class="flist">' + files + '</div>') +
-      '</section>';
+  }
+  // 对账: every uploaded order came out exactly once, footers written, nothing unread, no two files with one name
+  function reconCard(outs) {
+    var res = state.results || [];
+    var up = res.reduce(function (n, r) { return n + (r.error ? 0 : r.orders.length); }, 0), out = orderTotal(outs);
+    var failed = res.filter(function (r) { return r.error; });
+    var noFoot = res.filter(function (r) { return r.footer && !(r.footer.stamped && r.footer.stamped.reviewer && r.footer.stamped.made && r.footer.stamped.back); });
+    var names = {}, dup = 0;
+    outs.forEach(function (o) { if (names[o.name]) dup++; names[o.name] = true; });
+    var same = up === out && !failed.length;
+    var line = function (ok, good, bad) { return '<li class="' + (ok ? 'good' : 'bad') + '">' + esc(ok ? '✓ ' + good : '✗ ' + bad) + '</li>'; };
+    return '<section class="card recon" aria-label="对账"><h2>对账</h2><div class="big ' + (same ? 'good' : 'bad') + '">' + up + (up === out ? ' = ' : ' ≠ ') + out + '</div>' +
+      '<span class="small">上传 ' + up + ' 单，输出 ' + out + ' 单' + (same ? '，没有漏、没有重复' : failed.length ? '；有文件读不出来，那些单没算进去' : '，对不上，先别发，请告诉审核部') + '</span><ul>' +
+      line(!noFoot.length, '页脚（制表、审核人、回传）全部写上', noFoot.length + ' 个文件找不到页脚的位置：' + noFoot.map(function (r) { return r.name; }).join('、')) +
+      line(!failed.length, '没有读不出来的文件', failed.length + ' 个文件读不出来：' + failed.map(function (r) { return r.name; }).join('、')) +
+      line(!dup, '文件名没有重复', dup + ' 个文件名重复（打包时会自动加 -2）') + '</ul></section>';
   }
 
   // ---------- actions ----------
-  async function buildZip(outs, name) {
-    var zip = new JSZip();
-    // two files with the same name (e.g. two 新生儿 单独发) must both stay in the zip
+  // two files with the same name (e.g. two 新生儿 单独发) must both stay in the zip
+  function fillZip(zip, outs) {
     var used = {};
     outs.forEach(function (o) {
       var n = o.name, i = 2;
@@ -1035,17 +1124,40 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       used[n] = true;
       zip.file(n, o.buffer);
     });
-    return save(name, await zip.generateAsync({ type: 'blob' }));
+    return zip;
+  }
+  function zipFail(e) { toast('打包失败，没有下载完：' + (e && e.message || e) + '。请再按一次，或者分开下载。'); }
+  function zipBlob(outs) { return fillZip(new JSZip(), outs).generateAsync({ type: 'blob' }); }
+  // save, then remember it as downloaded so the table shows ✓
+  // single files are keyed by position: two outputs can share one name
+  function dkey(o) { return 'f' + allOutputs().indexOf(o); }
+  async function saveMark(name, data, keys) {
+    var ok = await save(name, data);
+    if (ok) { (keys || [name]).forEach(function (n) { state.dled[n] = true; }); render(); }
+    return ok;
+  }
+  function zipOf(k) {
+    var outs = allOutputs(), bk = buckets(outs), list = k === 'bad' ? bk.bad : bk.good;
+    return { outs: list, name: outZipName(k === 'bad', orderTotal(list), list) };
   }
   async function downloadAll() {
-    var outs = allOutputs();
-    var bk = buckets(outs), good = bk.good, urg = bk.urg, solo = bk.solo, bad = bk.bad;
-    if (state.pick.good && good.length) await buildZip(good, outZipName(false, orderTotal(good), good));
-    if (state.pick.urgent) for (var i = 0; i < urg.length; i++) await save(urg[i].name, new Blob([urg[i].buffer]));
-    if (state.pick.solo) for (var j = 0; j < solo.length; j++) await save(solo[j].name, new Blob([solo[j].buffer]));
-    if (state.pick.bad && bad.length) await buildZip(bad, outZipName(true, orderTotal(bad), bad));
-    reportToHQ('downloaded');
-    downloadedOnce = true;
+    var bk = buckets(allOutputs()), any = false;
+    if (state.pick.good && bk.good.length) { var g = zipOf('good'); any = await saveMark(g.name, await zipBlob(g.outs)) || any; }
+    if (state.pick.urgent) for (var i = 0; i < bk.urg.length; i++) any = await saveMark(bk.urg[i].name, new Blob([bk.urg[i].buffer]), [dkey(bk.urg[i])]) || any;
+    if (state.pick.solo) for (var j = 0; j < bk.solo.length; j++) any = await saveMark(bk.solo[j].name, new Blob([bk.solo[j].buffer]), [dkey(bk.solo[j])]) || any;
+    if (state.pick.bad && bk.bad.length) { var b = zipOf('bad'); any = await saveMark(b.name, await zipBlob(b.outs)) || any; }
+    if (any) { reportToHQ('downloaded'); downloadedOnce = true; }
+  }
+  // one download for everything ticked: the usual zips as they are, 特殊加急 / 单独发 in their own folders
+  async function downloadPacked() {
+    var outs = allOutputs(), bk = buckets(outs), zip = new JSZip(), inside = [], n = 0, used = [];
+    if (state.pick.good && bk.good.length) { var g = zipOf('good'); zip.file(g.name, await zipBlob(g.outs)); inside.push(g.name); n += orderTotal(g.outs); used = used.concat(g.outs); }
+    if (state.pick.urgent && bk.urg.length) { fillZip(zip.folder('特殊加急'), bk.urg); inside = inside.concat(bk.urg.map(dkey)); n += orderTotal(bk.urg); used = used.concat(bk.urg); }
+    if (state.pick.solo && bk.solo.length) { fillZip(zip.folder('单独发'), bk.solo); inside = inside.concat(bk.solo.map(dkey)); n += orderTotal(bk.solo); used = used.concat(bk.solo); }
+    if (state.pick.bad && bk.bad.length) { var b = zipOf('bad'); zip.file(b.name, await zipBlob(b.outs)); inside.push(b.name); n += orderTotal(b.outs); used = used.concat(b.outs); }
+    if (!inside.length) { toast('没有勾要下载的文件'); return; }
+    var h = used.every(function (o) { return o.overseas; });
+    if (await saveMark('全部技术单 ' + nameDateOf(used) + '（' + n + '）' + (h ? 'H' : '') + '.zip', await zip.generateAsync({ type: 'blob' }), inside)) { reportToHQ('downloaded'); downloadedOnce = true; }
   }
   function setRed(mk, h, on) {
     var m = state.reds[mk] = state.reds[mk] || {};
@@ -1086,6 +1198,13 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     state.set.nameDate = v; state.nameDate = v; state.editND = false;
     run().then(function (ok) { if (ok) toast('文件名日期已改成 ' + v + '，所有文件已更新'); });
   }
+  // closing the drawer puts focus back on the 打开 button that opened it
+  function closeDetail() {
+    var dirty = Array.prototype.some.call(document.querySelectorAll('#detail [data-orig]'), function (el) { return !el.readOnly && el.value !== el.dataset.orig; });
+    if (dirty && !window.confirm('这单改了还没按「保存修改」，关掉就不会保存。确定关闭？')) return;
+    var mk = state.sel; state.sel = null; render();
+    var ob = mk && document.querySelector('[data-open="' + CSS.escape(mk) + '"]'); if (ob) ob.focus();
+  }
   function go(view, focusId) {
     state.view = view; render(); window.scrollTo(0, 0);
     if (focusId && $(focusId)) $(focusId).focus();
@@ -1095,14 +1214,14 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     var b = e.target.closest('button, [data-view]');
     if (!b || b.disabled || b.id === 'theme') return;
     var d = b.dataset;
-    if (d.view) { go(d.view, d.focus); return; }
+    if (d.view) { if (d.filter) state.filter = d.filter; state.sel = null; go(d.view, d.focus); return; }
     if (d.filter) { state.filter = d.filter; render(); return; }
     if (d.open) {
       state.sel = d.open; state.tab = 'fields'; state.allFields = false; render();
-      if (window.innerWidth <= 1100 && $('detail')) $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var xb = document.querySelector('#detail .x'); if (xb) xb.focus();
       return;
     }
-    if ('close' in d) { state.sel = null; render(); return; }
+    if ('close' in d) { closeDetail(); return; }
     if (d.tab) { state.tab = d.tab; render(); return; }
     if ('allfields' in d) { state.allFields = !state.allFields; render(); return; }
     if (d.prob) {
@@ -1168,8 +1287,10 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       return;
     }
     if (d.copytext) { copyText(d.copytext, b); return; }
-    if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; save(o.name, new Blob([o.buffer])); return; }
-    if ('godl' in d) { downloadAll(); return; }
+    if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; saveMark(o.name, new Blob([o.buffer]), [dkey(o)]); return; }
+    if (d.dlzip) { var z = zipOf(d.dlzip); zipBlob(z.outs).then(function (bl) { return saveMark(z.name, bl); }).catch(zipFail); return; }
+    if ('godl' in d) { downloadAll().catch(zipFail); return; }
+    if ('goall' in d) { downloadPacked().catch(zipFail); return; }
     if ('rulesPreview' in d) { state.rulesPreview = true; render(); var cb = document.querySelector('[data-rules-close]'); if (cb) cb.focus(); return; }
     if ('rulesClose' in d) { state.rulesPreview = false; render(); var pb = document.querySelector('[data-rules-preview]'); if (pb) pb.focus(); return; }
     if ('rulesDl' in d) { save('技术单审核规则 ' + E.todayStr() + '.html', new Blob([rulesDoc()], { type: 'text/html' })); return; }
@@ -1190,12 +1311,13 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     if ('resetnd' in d) { state.nameDate = ''; state.set.nameDate = ''; run().then(function (ok) { if (ok) toast('文件名日期改回跟上传的文件'); }); return; }
     if ('rerun' in d) { run().then(function (ok) { if (ok) go('review'); }); return; }
     if ('reset' in d) {
-      state.inputs = []; state.results = null; state.problems = {}; state.urgents = {}; state.solos = {}; state.set.region = 'auto'; state.nameDate = ''; state.set.nameDate = ''; state.editND = false; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {};
+      state.inputs = []; state.results = null; state.problems = {}; state.urgents = {}; state.solos = {}; state.set.region = 'auto'; state.nameDate = ''; state.set.nameDate = ''; state.editND = false; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {}; state.dled = {};
       go('upload'); return;
     }
   });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && state.rulesPreview) { state.rulesPreview = false; render(); return; }
+    if (e.key === 'Escape' && state.sel && !(e.target && /^dl-/.test(e.target.id))) { closeDetail(); return; }
     if (e.key === 'Enter' && e.target && e.target.dataset && e.target.dataset.engIn) { e.preventDefault(); fillEngrave(e.target.dataset.engIn); return; }
     if (e.key === 'Enter' && e.target && e.target.id === 'dl-rev') { e.preventDefault(); saveReviewer(); }
     if (e.key === 'Enter' && e.target && e.target.id === 'dl-nd') { e.preventDefault(); saveNameDate(); }
