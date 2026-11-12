@@ -389,7 +389,8 @@ const enterName = (g) => '进入' + g.name.replace(/(组|部)$/, '');
 const params = new URLSearchParams(location.search);
 // 从别的页面被带回来登入的，登入后回去那一页
 // 登入后：有 next 就回原本那页；不然老板进公司总览（command/），国内客服直接进名字审核。?classic 看原本的 3D 办公室
-function goNext(sess) { const nx = params.get('next'); if (nx && HQAuth.can(nx, sess)) { location.replace(HQAuth.root + nx); return true; } if (!params.has('classic')) { location.replace(HQAuth.root + (sess.role === 'cs' ? 'name/' : 'command/')); return true; } return false; }
+function goNext(sess) { const nx = params.get('next'); if (nx && HQAuth.can(nx, sess)) { location.replace(HQAuth.root + nx); return true; } if (sess.role === 'cs') { location.replace(HQAuth.root + 'name/'); return true; }   // 客服不看 3D 办公室（?classic 也一样）
+  if (!params.has('classic')) { location.replace(HQAuth.root + 'command/'); return true; } return false; }
 const SESSION = HQAuth.session() || await new Promise((resolve) => {
   const box = $('login'); box.hidden = false; $('skeleton').hidden = true;
   if (params.get('next')) { $('loginMsg').textContent = '请先登录，登录后会带你回刚才的页面。'; $('loginMsg').classList.remove('vh'); }
