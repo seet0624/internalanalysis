@@ -1689,6 +1689,12 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
     var top=ws.getCell(m[1]+r1), val=top.value, sty=top.style; ws.unMergeCells(rg); if(!kept.length)return;
     if(kept[0]!==r1){ var nc=ws.getCell(m[1]+kept[0]); nc.value=val; nc.style=sty; } // 主格在被删的那一行：值搬到留下的第一行，免得留下的学员这格变空
     var a=newRow(kept[0]), z=newRow(kept[kept.length-1]); if(a!==z||m[1]!==m[3])moved.push(m[1]+a+':'+m[3]+z); });
+  // 家人涂色：这个文件里还有同色家人才留颜色，只剩自己一位就拿掉；序号从 1 重新排（一位学员一个号）
+  var keptRs=au.results.filter(function(r){ return r.rows.some(function(rw){ return gone.indexOf(rw.row+1)<0; }); }), ckOf=[], ckCnt={};
+  keptRs.forEach(function(r,i){ var rr=ws.getRow(r.rows[0].row+1), a=fillKey(rr.getCell(1)), b=au.cols.user>=0?fillKey(rr.getCell(au.cols.user+1)):a; ckOf[i]=a&&a===b?a:''; if(ckOf[i])ckCnt[ckOf[i]]=(ckCnt[ckOf[i]]||0)+1; });
+  keptRs.forEach(function(r,i){ var k=ckOf[i];
+    if(k&&ckCnt[k]<2)r.rows.forEach(function(rw){ var row=ws.getRow(rw.row+1); for(var c=1;c<=lastCol;c++){ var cell=row.getCell(c); if(fillKey(cell)===k){ var st=Object.assign({},cell.style); delete st.fill; cell.style=st; } } });
+    if(au.cols.seq>=0)r.rows.forEach(function(rw){ var sc=ws.getRow(rw.row+1).getCell(au.cols.seq+1); sc.value=typeof sc.value==='number'?i+1:String(i+1); }); });
   delRows.sort(function(a,b){return b-a;}).forEach(function(rn){ ws.spliceRows(rn,1); });
   moved.forEach(function(rg){ ws.mergeCells(rg); });
   if(keepProblem===true){
@@ -1848,6 +1854,9 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-13', title:'下载的文件：序号从 1 开始、家人颜色只留同一个文件里的', items:[
+    '拆出来的文件（有问题、国内、海外）序号从 1 重新排，一位学员一个号',
+    '家人涂色：同一个文件里还有同色家人才留着；只剩一位的，颜色拿掉']},
   {date:'2026-11-11', title:'同音就算撞（声调不同也算）', items:[
     '新名跟家人名字同音，声调不同也判有问题、写进有问题文件；每周复查也一样',
     '一个新名的撞字、撞音合成一句：新下来的名字（钱明怡）和父亲的名字（钱大明）撞同一个字「明」，和弟弟的名字（钱小义）撞同音字「怡」「义」（yí / yì）',
