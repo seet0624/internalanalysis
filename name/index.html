@@ -438,8 +438,8 @@ body:not(.light) .qi.on{background:#3A2F1C;border-color:#B8873A}
 .g-rec>div{display:flex;flex-direction:column;gap:2px;padding:12px 18px;border-left:1px solid var(--line);min-width:0}
 .g-rec>div:first-child{border-left:0}
 .g-rec span{font-size:12px;color:var(--muted)}.g-rec b{font-size:16px;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.g-who-home{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px;color:var(--muted);vertical-align:middle}.g-who-home .g-who-in{font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:transparent;border:0;border-bottom:1px dashed var(--line);padding:2px 0;width:9em}.g-who-home .g-who-in:focus{outline:none;border-bottom-color:var(--gold)}
-.g-rec .g-who-in{font:inherit;font-size:16px;font-weight:700;color:inherit;background:transparent;border:0;border-bottom:1px dashed var(--line);padding:0;width:100%;min-width:0}.g-rec .g-who-in:focus{outline:none;border-bottom-color:var(--gold,#c8942e)}
+.g-who-home{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px;color:var(--muted);vertical-align:middle}.g-who-home .g-who-in{font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:transparent;border:0;border-bottom:1px dashed var(--line);padding:2px 0;min-width:8em;cursor:pointer}.g-who-home .g-who-in:focus{outline:none;border-bottom-color:var(--gold)}
+.g-rec .g-who-in{font:inherit;font-size:16px;font-weight:700;color:inherit;background:transparent;border:0;border-bottom:1px dashed var(--line);padding:0;width:100%;min-width:0;cursor:pointer}.g-rec .g-who-in:focus{outline:none;border-bottom-color:var(--gold,#c8942e)}
 .g-rec b.ok{color:var(--ok)}.g-rec b.bad{color:var(--bad)}
 @media (max-width:700px){.g-rec{grid-template-columns:1fr 1fr}.g-rec>div:nth-child(3){border-left:0}}
 .g-refs{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
@@ -572,7 +572,7 @@ body:not(.light) .qi.on{background:#3A2F1C;border-color:#B8873A}
       <h2 id="t_drop1">把名正言顺技术单拖到这里</h2>
       <p id="t_drop2">拖到页面任何地方都行 · 可一次拖多份，也可以拖 zip · 会自动建「订单号 → 新名」总库做跨文件比对</p>
       <button type="button" class="btn pri" id="pickBtn"><svg class="i"><use href="#i-upload"/></svg><span data-i18n="pick">选择文件</span></button>
-      <label class="g-who-home">审核人 <input id="homeWho" class="g-who-in" placeholder="输入审核人" aria-label="审核人（可以改成别人）" maxlength="20"></label>
+      <label class="g-who-home">审核人 <select id="homeWho" class="g-who-in" aria-label="审核人（可以改成别人）"></select></label>
       </div>
     </section>
     <section class="g-feats" aria-label="会做什么"><div class="g-feat" style="--c:#C0392B"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h3M16 12h3"/><circle cx="12" cy="12" r="3.5"/><path d="M12 4v2M12 18v2"/></svg></span><div><b>撞字撞音一次查完</b><span>新名跟家人、同单兄弟比对，同字、同音（声调不同也算）自动标红</span></div></div><div class="g-feat" style="--c:#D9822B"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c.6-3.4 2.6-5 5-5s4.4 1.6 5 5M13.5 19c.5-2.6 1.9-3.8 3.5-3.8s3 1.2 3.5 3.8"/></svg></span><div><b>家人要求自动对照</b><span>备注里的订单号、关联编号会去订单库找家人新名，跨文件也能比</span></div></div><div class="g-feat" style="--c:#2E8B57"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2"/></svg></span><div><b>结果分两份下载</b><span>「有问题」和「干净 · 可上传」分开下载，每位写一句原因</span></div></div></section>
@@ -976,7 +976,12 @@ var undoStack=[], redoStack=[], lang='cn';
 /*==== storage ====*/
 // 审核人：可以改成别人（首页和学员页同一个），记在这台电脑；没填就用登录的帐号
 function reviewerName(){ var w=load('mzys_reviewer',''); if(!w)try{ var s=window.HQAuth&&HQAuth.session(); w=s?s.id:''; }catch(e){} return w; }
-function setReviewer(v){ v=String(v||'').trim(); store('mzys_reviewer',v); toast(v?'审核人改成：'+v:'审核人已清空，改用登录的帐号'); }
+function setReviewer(v){ v=String(v||'').trim(); store('mzys_reviewer',v); toast(v?'审核人改成：'+v:'审核人已清空，改用登录的帐号'); document.querySelectorAll('select.g-who-in').forEach(fillReviewer); }
+// 审核人下拉：常用的几位可以直接选，「其他…」自己输入
+var REVIEWERS=['Anna','yulun','ning','martin'];
+function fillReviewer(sel){ var cur=reviewerName(), names=REVIEWERS.slice(); if(cur&&names.indexOf(cur)<0)names.unshift(cur);
+  sel.innerHTML=names.map(function(n){ return '<option'+(n===cur?' selected':'')+'>'+esc(n)+'</option>'; }).join('')+'<option value="__other">其他…</option>';
+  sel.onchange=function(){ if(sel.value!=='__other'){ setReviewer(sel.value); return; } var v=window.prompt('输入审核人名字',''); if(v&&v.trim())setReviewer(v); else fillReviewer(sel); }; }
 function store(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 function load(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function saveDB(){ store('mzys_db', importedDB); }
@@ -1337,7 +1342,7 @@ function centerHtml(r,x){ var sid=String(r.sid), det=r.rows[0].detail||{};
   h+='<div class="tools"><button type="button" class="btn sm" id="sbToggle">试改名字</button></div>';
   h+='<div class="sandbox" id="sandbox"><div class="sbf"><input id="sbName" placeholder="试一个新名，例：'+esc((r.rows[0]&&r.rows[0].surname)||'陳')+'星宇" aria-label="试改的新名"><input id="sbPy" placeholder="拼音（可不填）" aria-label="拼音"><button type="button" class="btn pri sm" id="sbGo">检查</button></div><div class="res" id="sbRes"></div></div>';
   h+='<div class="g-rec"><div><span>审核状态</span><b class="'+(bad?'bad':'ok')+'">'+(bad?'有问题':'通过')+'</b></div><div><span>复核时间</span><b>'+(r.reviewed&&tm?fmtTime(tm):(r.reviewed?'已复核':'还没复核'))+'</b></div>'+
-    '<div><span>审核人</span><input id="revWho" class="g-who-in" value="'+esc(who)+'" placeholder="输入审核人" aria-label="审核人（可以改成别人）" maxlength="20"></div><div><span>处理事项</span><b class="'+(main.length?'bad':'ok')+'">'+main.length+'</b></div></div>';
+    '<div><span>审核人</span><select id="revWho" class="g-who-in" aria-label="审核人（可以改成别人）"></select></div><div><span>处理事项</span><b class="'+(main.length?'bad':'ok')+'">'+main.length+'</b></div></div>';
   if(main.length)h+='<h2 class="sech">要处理的事（'+main.length+'）</h2><div class="issues">'+main.map(issueHtml).join('')+'</div>';
   if(info.length)h+='<section class="g-refs"><h2 class="g-refs-h">参考资料（'+info.length+'）</h2>'+info.map(function(it){ var c=refCat(it);
     return '<details class="g-ref '+c[0]+'"><summary><span class="g-rtag">'+c[1]+'</span><span class="g-rsum">'+(it.names.length?esc(it.names.join('、'))+'　':'')+it.html.replace(/<[^>]+>/g,'')+'</span></summary><div class="g-rbody">'+issueHtml(it)+'</div></details>'; }).join('')+'</section>';
@@ -1415,7 +1420,7 @@ function bindMain(main,r){
   if(!r)return;
   main.querySelectorAll('.vseg button').forEach(function(b){ b.onclick=function(){ var v=b.getAttribute('data-v'); if(v!==r.verdict)changeVerdict(r.sid,v); }; });
   var rc=main.querySelector('#revChk'); if(rc)rc.onchange=function(){ setReviewed(r, rc.checked, false); };
-  var rwi=main.querySelector('#revWho'); if(rwi)rwi.onchange=function(){ setReviewer(rwi.value); };
+  var rwi=main.querySelector('#revWho'); if(rwi)fillReviewer(rwi);
   main.querySelector('#prevBtn').onclick=function(){ move(-1); }; main.querySelector('#nextBtn').onclick=function(){ move(1); };
   var bl=main.querySelector('#backList'); if(bl)bl.onclick=function(){ var q=document.querySelector('#qlist .qi.on')||document.querySelector('#qlist .qi'); if(q)q.focus(); };
   main.querySelectorAll('button.han[data-ch]').forEach(function(el){ el.onclick=function(ev){ ev.stopPropagation(); showPop(el, el.getAttribute('data-ch')); }; });
@@ -1931,7 +1936,7 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
   {date:'2026-11-13', title:'审核人可以改成别人', items:[
-    '首页「选择文件」下面、学员页的「审核人」都可以直接打字改；两边同一个，记在这台电脑，没填就用登录的帐号']},
+    '首页「选择文件」下面、学员页的「审核人」可以选 Anna / yulun / ning / martin，或选「其他…」自己输入；两边同一个，记在这台电脑']},
   {date:'2026-11-13', title:'下载的文件：序号从 1 开始、家人颜色只留同一个文件里的', items:[
     '拆出来的文件（有问题、国内、海外）序号从 1 重新排，一位学员一个号',
     '家人涂色：同一个文件里还有同色家人才留着；只剩一位的，颜色拿掉']},
@@ -2158,8 +2163,8 @@ document.getElementById('pickBtn').onclick=function(){ fi.click(); };
 document.getElementById('addMore').onclick=function(){ fi.click(); };
 document.getElementById('hBtn').onclick=function(){ runAct('overseas'); };
 fi.onchange=async function(){ await loadWithBuffers(fi.files); fi.value=''; };
-document.getElementById('drop').onclick=function(ev){ if(ev.target.closest('button,label,input'))return; fi.click(); };
-(function(){ var hw=document.getElementById('homeWho'); hw.value=reviewerName(); hw.onchange=function(){ setReviewer(hw.value); }; })();
+document.getElementById('drop').onclick=function(ev){ if(ev.target.closest('button,label,select'))return; fi.click(); };
+fillReviewer(document.getElementById('homeWho'));
 function hasFiles(e){ try{ return Array.prototype.indexOf.call(e.dataTransfer.types||[],'Files')>=0; }catch(_){ return false; } }
 var _dragDepth=0, _dov=document.getElementById('dragOver');
 window.addEventListener('dragenter',function(e){ if(!hasFiles(e))return; e.preventDefault(); _dragDepth++; _dov.classList.add('on'); document.getElementById('drop').classList.add('over'); });

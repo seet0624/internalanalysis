@@ -33,8 +33,11 @@ const CASES = require('./naming-cases.json');
   if (process.argv.includes('--print')) console.log(JSON.stringify(got, null, 1));
 
   // 审核人可以改成别人：首页改了，学员页也跟着变
-  await p.fill('#homeWho', '测试员甲'); await p.dispatchEvent('#homeWho', 'change');
-  ok(await p.evaluate(() => reviewerName()) === '测试员甲', '首页改审核人要记住');
+  ok(JSON.stringify(await p.$$eval('#homeWho option', o => o.map(x => x.textContent).slice(-5))) === '["Anna","yulun","ning","martin","其他…"]', '首页审核人要有 Anna / yulun / ning / martin / 其他… 可以选');
+  await p.selectOption('#homeWho', 'ning');
+  ok(await p.evaluate(() => reviewerName()) === 'ning', '首页选审核人要记住');
+  await p.evaluate(() => { window._pr = window.prompt; window.prompt = () => '测试员甲'; }); await p.selectOption('#homeWho', '__other'); await p.evaluate(() => { window.prompt = window._pr; });
+  ok(await p.evaluate(() => reviewerName()) === '测试员甲' && await p.$eval('#homeWho', s => s.value) === '测试员甲', '选「其他…」输入的名字要记住并显示');
 
   // ---------- 2. 假资料技术单，从读到下载 ----------
   const e2e = await p.evaluate(async () => {
