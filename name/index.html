@@ -976,11 +976,11 @@ var undoStack=[], redoStack=[], lang='cn';
 /*==== storage ====*/
 // 审核人：可以改成别人（首页和学员页同一个），记在这台电脑；没填就用登录的帐号
 function reviewerName(){ var w=load('mzys_reviewer',''); if(!w)try{ var s=window.HQAuth&&HQAuth.session(); w=s?s.id:''; }catch(e){} return w; }
-function setReviewer(v){ v=String(v||'').trim(); store('mzys_reviewer',v); toast(v?'审核人改成：'+v:'审核人已清空，改用登录的帐号'); document.querySelectorAll('select.g-who-in').forEach(fillReviewer); }
+function setReviewer(v){ v=String(v||'').trim().slice(0,20); store('mzys_reviewer',v); toast(v?'审核人改成：'+v:'审核人已清空，改用登录的帐号'); document.querySelectorAll('select.g-who-in').forEach(fillReviewer); }
 // 审核人下拉：常用的几位可以直接选，「其他…」自己输入
 var REVIEWERS=['Anna','yulun','ning','martin'];
 function fillReviewer(sel){ var cur=reviewerName(), names=REVIEWERS.slice(); if(cur&&names.indexOf(cur)<0)names.unshift(cur);
-  sel.innerHTML=names.map(function(n){ return '<option'+(n===cur?' selected':'')+'>'+esc(n)+'</option>'; }).join('')+'<option value="__other">其他…</option>';
+  sel.innerHTML=(cur?'':'<option value="" selected>（未选）</option>')+names.map(function(n){ return '<option'+(n===cur?' selected':'')+'>'+esc(n)+'</option>'; }).join('')+'<option value="__other">其他…</option>';
   sel.onchange=function(){ if(sel.value!=='__other'){ setReviewer(sel.value); return; } var v=window.prompt('输入审核人名字',''); if(v&&v.trim())setReviewer(v); else fillReviewer(sel); }; }
 function store(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 function load(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
@@ -1324,7 +1324,7 @@ function centerHtml(r,x){ var sid=String(r.sid), det=r.rows[0].detail||{};
   var iss=issuesOf(r), main=iss.filter(function(i){return i.tier!=='info';}), info=iss.filter(function(i){return i.tier==='info';});
   var disp=String(r.disp||''), mm=disp.match(/^([^（(\s]+)\s*(.*)$/); var nm1=mm?mm[1]:disp, nm2=mm?mm[2]:'';
   var bad=r.verdict==='有问题';
-  var tm=load('mzys_revtime',{})[x.name+'#'+sid], who=reviewerName();
+  var tm=load('mzys_revtime',{})[x.name+'#'+sid];
   var musts=main.filter(function(i){return i.tier==='must';}), chks=main.filter(function(i){return i.tier==='check';});
   var concl=bad?(main.length?'有 '+main.length+' 件要处理：'+esc(main.slice(0,2).map(function(i){return i.short;}).join('；'))+(main.length>2?' 等':''):'已手动设为有问题。')
     :(musts.length?'已手动设为通过（原本检出 '+musts.length+' 个要改的地方）。':chks.length?'有 '+chks.length+' 件请确认，看过再决定。':(r.rows.length>1?'两个新名均未检测出问题，没有需要处理的事项。':'新名未检测出问题，没有需要处理的事项。'));
