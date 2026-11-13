@@ -32,6 +32,13 @@ const CASES = require('./naming-cases.json');
   CASES.forEach((c, i) => { ['orig', 'clean', 'bad', 'sup'].forEach(kd => ok(got[i][kd] === c.want[kd], `「${c.name}」${kd}：应该是「${c.want[kd]}」，实际「${got[i][kd]}」`)); });
   if (process.argv.includes('--print')) console.log(JSON.stringify(got, null, 1));
 
+  // 审核人可以改成别人：首页改了，学员页也跟着变
+  ok(JSON.stringify(await p.$$eval('#homeWho option', o => o.map(x => x.textContent).slice(-5))) === '["Anna","yulun","ning","martin","其他…"]', '首页审核人要有 Anna / yulun / ning / martin / 其他… 可以选');
+  await p.selectOption('#homeWho', 'ning');
+  ok(await p.evaluate(() => reviewerName()) === 'ning', '首页选审核人要记住');
+  await p.evaluate(() => { window._pr = window.prompt; window.prompt = () => '测试员甲'; }); await p.selectOption('#homeWho', '__other'); await p.evaluate(() => { window.prompt = window._pr; });
+  ok(await p.evaluate(() => reviewerName()) === '测试员甲' && await p.$eval('#homeWho', s => s.value) === '测试员甲', '选「其他…」输入的名字要记住并显示');
+
   // ---------- 2. 假资料技术单，从读到下载 ----------
   const e2e = await p.evaluate(async () => {
     const H = ['序号','订单时间','订单编号','会员编号','会员姓名','服务中心编号','商品标题','加工序号','产品配置编号','股东名称','新名字姓氏','使用人姓名','性别','公历生日','生肖',' 农历时辰 ','父亲名字','母亲名字','禁忌字','是否双胞胎','父亲生日','母亲生日','是否子时','兄弟姐妹','子女','新名','新名拼音','名册展示','配置人','审核人','订单状态备注','备注','总备注'];
@@ -45,7 +52,7 @@ const CASES = require('./naming-cases.json');
       set('序号', String(i + 1)); set('订单编号', s[0]); set('新名字姓氏', s[1]); set('使用人姓名', s[2]); set('性别', '男'); set('公历生日', '1990年01月0' + (i + 1) + '日'); set('生肖', '马');
       set('父亲名字', s[3]); set('母亲名字', '无'); set('禁忌字', '无'); set('是否双胞胎', '否'); set('兄弟姐妹', '无'); set('子女', '无'); set('新名', nm[0]); set('新名拼音', nm[1]); set('名册展示', s[8]); ws.addRow(r); }));
     [4, 5, 6, 7].forEach(rn => [1, 12].forEach(c => { ws.getRow(rn).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { theme: 5, tint: 0.8 } }; })); // 王小明、李丽涂同色（一家人）
-    ws.addRow([]); const f = ws.addRow(['审核人：测试', '', '制表时间：', 46296, '回传时间：', 46327]);
+    ws.addRow([]); const f = ws.addRow(['审核人：测试', '', '制表时间：', 46297, '回传时间：', 46327]); // 制表时间 10-02，跟文件名 10-01 不同：照文件原本的，不改
     const buf = await wb.xlsx.writeBuffer();
     parsedFiles.length = 0; await loadWithBuffers([{ name: '技术单 2026-10-01（名正言顺）.xlsx', arrayBuffer: async () => buf }]);
     const x = parsedFiles[0], R = {};
@@ -55,7 +62,7 @@ const CASES = require('./naming-cases.json');
     const read = async (u) => { const w = new ExcelJS.Workbook(); await w.xlsx.load(u.buffer ? u : new Uint8Array(u)); return w.worksheets[0]; };
     const ps = partsOf(x), dom = ps.find(q => !q.overseas);
     const orig = await read(await origBuffer(dom)); R.origRows = orig.rowCount; R.footer = [];
-    orig.eachRow(r => r.eachCell(c => { if (/^\d{4}-\d{2}-\d{2}$/.test(String(c.value))) R.footer.push(c.value); }));
+    orig.eachRow(r => r.eachCell(c => { if (/^\d{4}-\d{2}-\d{2}$/.test(String(c.value)) || /^审核人：/.test(String(c.value))) R.footer.push(c.value); }));
     const badWb = await buildSplitWorkbook(dom, true), badWs = badWb.worksheets[0], badBuf = await badWb.xlsx.writeBuffer();
     const ovW = await read(await origBuffer(ps.find(q => q.overseas))); R.ovSeq = [4, 5].map(r => ovW.getRow(r).getCell(1).value); R.badSeq = [4, 5].map(r => badWs.getRow(r).getCell(1).value); R.badFill = fillKey(badWs.getRow(4).getCell(1)) + '|' + fillKey(badWs.getRow(4).getCell(12)); R.origFill = fillKey(orig.getRow(4).getCell(1)); R.badHeader = badWs.getRow(3).getCell(34).value; R.badW = badWs.getColumn(34).width; R.badRows = []; for (let r = 4; r <= 5; r++) R.badRows.push([badWs.getRow(r).getCell(26).value, badWs.getRow(r).getCell(34).value]);
     const clean = await (await buildCleanWorkbook(dom)).xlsx.writeBuffer(); R.cleanRows = (await read(clean)).actualRowCount;
@@ -115,7 +122,7 @@ const CASES = require('./naming-cases.json');
   ok(e2e.n === 3, '假技术单应该读到 3 位学员，实际 ' + e2e.n);
   ok(JSON.stringify(e2e.bad) === '["王小明"]', '应该只有王小明有问题（王山林撞父亲王大山的山），实际 ' + JSON.stringify(e2e.bad));
   ok(e2e.mixed === true, '赵一名册展示有写，应该判成国内海外混合');
-  ok(e2e.footer.includes('2026-10-01') && e2e.footer.includes('2026-11-01'), '原装表尾应该改成日期 2026-10-01 / 2026-11-01，实际 ' + JSON.stringify(e2e.footer));
+  ok(JSON.stringify(e2e.footer) === '["审核人：测试","2026-10-02","2026-11-01"]', '表尾的审核人、制表时间、回传时间要照文件原本的（2026-10-02 / 2026-11-01），实际 ' + JSON.stringify(e2e.footer));
   ok(JSON.stringify(e2e.ovSeq) === '["1","1"]', '海外文件只有赵一（原序号 3），序号要从 1 开始，实际 ' + JSON.stringify(e2e.ovSeq));
   ok(JSON.stringify(e2e.badSeq) === '["1","1"]', '有问题文件的序号要从 1 重新排，实际 ' + JSON.stringify(e2e.badSeq));
   ok(e2e.badFill === '|', '有问题文件只剩王小明一位，家人颜色要拿掉，实际 ' + e2e.badFill);
