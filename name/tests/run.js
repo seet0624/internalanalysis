@@ -32,6 +32,10 @@ const CASES = require('./naming-cases.json');
   CASES.forEach((c, i) => { ['orig', 'clean', 'bad', 'sup'].forEach(kd => ok(got[i][kd] === c.want[kd], `「${c.name}」${kd}：应该是「${c.want[kd]}」，实际「${got[i][kd]}」`)); });
   if (process.argv.includes('--print')) console.log(JSON.stringify(got, null, 1));
 
+  // 审核人可以改成别人：首页改了，学员页也跟着变
+  await p.fill('#homeWho', '测试员甲'); await p.dispatchEvent('#homeWho', 'change');
+  ok(await p.evaluate(() => reviewerName()) === '测试员甲', '首页改审核人要记住');
+
   // ---------- 2. 假资料技术单，从读到下载 ----------
   const e2e = await p.evaluate(async () => {
     const H = ['序号','订单时间','订单编号','会员编号','会员姓名','服务中心编号','商品标题','加工序号','产品配置编号','股东名称','新名字姓氏','使用人姓名','性别','公历生日','生肖',' 农历时辰 ','父亲名字','母亲名字','禁忌字','是否双胞胎','父亲生日','母亲生日','是否子时','兄弟姐妹','子女','新名','新名拼音','名册展示','配置人','审核人','订单状态备注','备注','总备注'];
