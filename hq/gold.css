@@ -153,3 +153,13 @@ header .g-tile{width:46px;height:46px} header .g-tile svg{width:22px;height:22px
 .g-tt b,.top h1{font-size:22px;letter-spacing:2px}
 .g-user,header .g-logout,header .btn.small{min-height:40px}
 .g-topbg::after{opacity:.38}
+
+/* 左栏夜景：亭子的灯慢慢呼吸（光晕叠在图上，位置跟着图：图宽 = 左栏宽，亭子在图的 37.5% / 44%） */
+.g-side::after{content:"";position:absolute;left:0;right:0;bottom:0;aspect-ratio:400/498;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 30% 13% at 37.5% 44%,rgba(255,196,110,.55),rgba(255,170,70,.18) 55%,transparent 75%);mix-blend-mode:screen;animation:gLamp 3.2s ease-in-out infinite}
+.g-side>*{z-index:1}
+@keyframes gLamp{0%,100%{opacity:.55}45%{opacity:1}60%{opacity:.8}}
+@media (prefers-reduced-motion:reduce){.g-side::after{animation:none;opacity:.8}}
+/* 技术单左栏：「今日设置」跟在选单下面、精简一点；退出贴底；中间留给亮灯的亭子 */
+.g-side .today{display:none}   /* 老板的设计图左栏没有这张卡；日期、审核人、国内 / 海外、改设置都在工作台上面那一行 */
+.g-side .g-out{margin-top:auto}
