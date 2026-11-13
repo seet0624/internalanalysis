@@ -408,13 +408,12 @@ body.light .itabs button.on{background:var(--bg2)}
 @media print{ header.top,.queue,.tools,.keys{display:none} body{overflow:visible;height:auto;display:block} .app,.main{display:block;overflow:visible} }
 
 /* ---------- 名字审核结果页（老板给的设计）：结果大卡、新名焦点、审核记录、参考资料分类、右栏可收合 ---------- */
-.queue{width:280px}
 .g-qh{display:flex;align-items:center;gap:8px;margin:14px 14px 0;font-family:var(--g-kai);font-weight:700;font-size:16px;color:var(--ink)}
 .g-qh::before{content:"";width:6px;height:18px;border-radius:3px;background:linear-gradient(#E9C27A,#B8873A)}
 .qi.on{background:linear-gradient(135deg,#FBF1DC,#F2E0B8);border-color:#D9B66E;box-shadow:0 6px 14px -10px rgba(110,75,18,.55)}
 body:not(.light) .qi.on{background:#3A2F1C;border-color:#B8873A}
-.stu{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;padding:18px 22px 40px;align-items:start}
-@media (max-width:1180px){.stu{grid-template-columns:minmax(0,1fr)}}
+@media (min-width:901px){.queue{width:280px}.stu{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;padding:18px 22px 40px;align-items:start}}   /* 手机照原本的排法 */
+@media (min-width:901px) and (max-width:1180px){.stu{grid-template-columns:minmax(0,1fr)}}
 .rail{gap:12px;background:transparent;border:0;padding:0}
 .g-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:14px}
 .g-ord{margin-left:6px;font-size:14px;color:var(--ink2);font-variant-numeric:tabular-nums}.g-ord i{font-style:normal;margin:0 8px;color:var(--muted)}
@@ -2171,7 +2170,7 @@ document.addEventListener('keydown',function(e){ var tg=e.target, tn=tg.tagName;
   else if(k==='j'||k==='J'||(k==='ArrowDown'&&tg.closest('.queue'))){ e.preventDefault(); move(1); var on=document.querySelector('#qlist .qi.on'); if(on&&tg.closest('.queue'))on.focus(); }
   else if(k==='k'||k==='K'||(k==='ArrowUp'&&tg.closest('.queue'))){ e.preventDefault(); move(-1); var on2=document.querySelector('#qlist .qi.on'); if(on2&&tg.closest('.queue'))on2.focus(); }
   else if(k==='n'||k==='N'){ e.preventDefault(); nextMust(); }
-  else if(k===' '){ if(tn==='BUTTON'&&!tg.classList.contains('qi'))return; e.preventDefault(); var r=curResult(); if(r)setReviewed(r,!r.reviewed,true); }
+  else if(k===' '){ if((tn==='BUTTON'||tn==='SUMMARY')&&!tg.classList.contains('qi'))return;   /* 空格在按钮 / 展开标题上就照常按，不当成已复核 */ e.preventDefault(); var r=curResult(); if(r)setReviewed(r,!r.reviewed,true); }
 });
 
 /* init */
