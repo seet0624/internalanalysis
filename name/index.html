@@ -1581,7 +1581,7 @@ var UPLOAD_COLS=[['订单',['订单编号'],16.28],['服务中心编号',['服�
   ['出生日期',['公历生日','出生日期','生日'],16.72],['生肖',['生肖'],6.72],['新名字',['新名'],9.58],['新名字拼音',['新名拼音'],15.28]];
 function outNeuByRow(x){ var m={}; x.audit.results.forEach(function(r){ r.rows.forEach(function(rw){ if(rw.tradTo)m[rw.row]=rw.tradTo; }); }); return m; }
 function applyTrad(ws,x){ var m=outNeuByRow(x), c=x.audit.cols.neu; if(c<0)return 0; var n=0; for(var ri in m){ ws.getRow(+ri+1).getCell(c+1).value=m[ri]; n++; } return n; }
-// 表尾「制表时间 / 回传时间」系统导出的是 Excel 日期数字（46298），而且比文件名晚一天：下载时改写成日期；制表时间跟文件名，回传时间照同样差的天数挪
+// 表尾「制表时间 / 回传时间」是 Excel 日期数字（46296）时，下载改写成同一天的文字日期；其余（含审核人）照原文件
 function footerDates(x){ var data=x.parsed.data, out=[];
   var last=0; x.audit.results.forEach(function(rr){ rr.rows.forEach(function(rw){ if(rw.row>last)last=rw.row; }); });
   for(var r=last+1;r<data.length;r++){ var row=data[r]||[]; for(var c=0;c<row.length;c++){ var t=String(row[c]==null?'':row[c]).trim(), kind=t.indexOf('制表时间')===0?'make':t.indexOf('回传时间')===0?'back':''; if(!kind)continue;
