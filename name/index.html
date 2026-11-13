@@ -1582,13 +1582,13 @@ var UPLOAD_COLS=[['订单',['订单编号'],16.28],['服务中心编号',['服�
 function outNeuByRow(x){ var m={}; x.audit.results.forEach(function(r){ r.rows.forEach(function(rw){ if(rw.tradTo)m[rw.row]=rw.tradTo; }); }); return m; }
 function applyTrad(ws,x){ var m=outNeuByRow(x), c=x.audit.cols.neu; if(c<0)return 0; var n=0; for(var ri in m){ ws.getRow(+ri+1).getCell(c+1).value=m[ri]; n++; } return n; }
 // 表尾「制表时间 / 回传时间」系统导出的是 Excel 日期数字（46298），而且比文件名晚一天：下载时改写成日期；制表时间跟文件名，回传时间照同样差的天数挪
-function footerDates(x){ var data=x.parsed.data, out=[], shift=null, ser=function(d){ var m=String(d).split('-'); return Math.round((Date.UTC(+m[0],m[1]-1,+m[2])-Date.UTC(1899,11,30))/864e5); };
+function footerDates(x){ var data=x.parsed.data, out=[];
   var last=0; x.audit.results.forEach(function(rr){ rr.rows.forEach(function(rw){ if(rw.row>last)last=rw.row; }); });
   for(var r=last+1;r<data.length;r++){ var row=data[r]||[]; for(var c=0;c<row.length;c++){ var t=String(row[c]==null?'':row[c]).trim(), kind=t.indexOf('制表时间')===0?'make':t.indexOf('回传时间')===0?'back':''; if(!kind)continue;
     var k=c+1; while(k<row.length&&!String(row[k]==null?'':row[k]).trim())k++; var v=String(row[k]==null?'':row[k]).trim(); if(!/^\d{5}(\.\d+)?$/.test(v))continue;
     out.push({r:r,k:k,kind:kind,n:Math.floor(+v)}); } }
-  out.forEach(function(o){ if(o.kind==='make'&&x.tableDate){ var d=ser(x.tableDate)-o.n; shift=Math.abs(d)<=1?d:0; } });
-  return out.map(function(o){ return {r:o.r,k:o.k,v:o.kind==='make'&&x.tableDate?x.tableDate:asDate(String(o.n+(shift||0)))}; }); }
+  // 老板规则：表尾的审核人、制表时间、回传时间照文件原本的，不改；只把 Excel 显示成数字（46296）的日期写成看得懂的同一天
+  return out.map(function(o){ return {r:o.r,k:o.k,v:asDate(String(o.n))}; }); }
 function applyFooter(ws,x){ var f=footerDates(x); f.forEach(function(o){ ws.getRow(o.r+1).getCell(o.k+1).value=o.v; }); return f.length; }
 // 改好再拖回来的「有问题」文件：学员那几行表头右边还留着上次的红字原因，下载时清掉
 function lastColOf(x){ var n=0; x.audit.header.forEach(function(h,i){ var t=String(h).trim(); if(t&&t!=='审核原因')n=i+1; }); return n; } // 「审核原因」是我们加在有问题文件的，不算表格本身
@@ -1935,6 +1935,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-13', title:'表尾照文件原本的', items:[
+    '下载的文件表尾「审核人」「制表时间」「回传时间」照文件原本写的，不改；Excel 显示成数字的日期只换成看得懂的同一天']},
   {date:'2026-11-13', title:'审核人可以改成别人', items:[
     '首页「选择文件」下面、学员页的「审核人」可以选 Anna / yulun / ning / martin，或选「其他…」自己输入；两边同一个，记在这台电脑']},
   {date:'2026-11-13', title:'下载的文件：序号从 1 开始、家人颜色只留同一个文件里的', items:[
