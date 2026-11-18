@@ -103,4 +103,8 @@ t('群名跟另一位督导同名，也不会合成一份', () => {
 t('打包时文件名重复（换掉特殊字元后一样）：第二个加（2），不会盖掉', () => {
   assert.deepStrictEqual(B.uniqueNames(['a（甲、乙）.xlsx', 'a（甲、乙）.xlsx', 'b.xlsx']), ['a（甲、乙）.xlsx', 'a（甲、乙）（2）.xlsx', 'b.xlsx']);
 });
+t('自动加的（2）也不会撞到原本就叫（2）的文件', () => {
+  const r = B.uniqueNames(['a.xlsx', 'a.xlsx', 'a（2）.xlsx']);
+  assert.strictEqual(new Set(r).size, 3);
+});
 console.log(`全部通过（${n} 项）`);

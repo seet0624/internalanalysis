@@ -147,7 +147,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
       s.warnings.map(function (x) { return '<li>第 ' + x.row.line + ' 行 ' + esc(x.row.order || '') + ' ' + esc(x.row.name || '') + '：' + esc(x.why) + '</li>'; }).join('') + '</ul></section>';
     h += '<section class="card"><div class="tbl"><table><thead><tr><th scope="col">督导</th><th scope="col">群</th><th scope="col">店铺</th><th scope="col" style="text-align:right">单数</th><th scope="col" style="text-align:right">保健品数量</th><th scope="col">文件名</th><th scope="col"><span class="vh">下载</span></th></tr></thead><tbody>' +
       s.groups.map(function (g, i) {
-        return '<tr><td class="grp">' + esc(g.sups[0]) + '</td><td>' + esc(g.title === g.sups[0] ? '—' : g.title) + '</td><td class="num">' + g.shops.length + '</td><td class="num">' + g.rows.length + '</td><td class="num">' + g.qty + '</td>' +
+        return '<tr><td class="grp">' + esc(g.sups[0]) + '</td><td>' + esc(g.label === g.sups[0] ? '—' : g.title) + '</td><td class="num">' + g.shops.length + '</td><td class="num">' + g.rows.length + '</td><td class="num">' + g.qty + '</td>' +
           '<td class="fn">' + esc(BJP.fileName(monthNow(), g.label)) + '</td><td><button type="button" class="btn small" data-dl="' + i + '">下载</button></td></tr>';
       }).join('') + '</tbody></table></div></section>';
     h += '<div class="acts"><span class="small">每份照「8月份保健品发货明细」的格式：一个工作表、置中、细框线；一个督导一份；文件名后面写督导的群和督导名字（没有群就只写督导名字）。</span>' +

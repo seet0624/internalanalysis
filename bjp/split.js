@@ -84,10 +84,14 @@
   // 打包时文件名重复（换掉特殊字元后可能一样）：后面的加（2）（3），zip 才不会盖掉
   function uniqueNames(names) {
     var seen = {};
+    names.forEach(function (n) { seen[n] = true; });   // 原本的名字先占位，加出来的（2）才不会撞到
+    var used = {};
     return names.map(function (n) {
-      if (!seen[n]) { seen[n] = 1; return n; }
-      var i = n.lastIndexOf('.'), k = ++seen[n];
-      return (i > 0 ? n.slice(0, i) : n) + '（' + k + '）' + (i > 0 ? n.slice(i) : '');
+      if (!used[n]) { used[n] = true; return n; }
+      var i = n.lastIndexOf('.'), base = i > 0 ? n.slice(0, i) : n, ext = i > 0 ? n.slice(i) : '', k = 2, c;
+      while (seen[c = base + '（' + k + '）' + ext]) k++;
+      seen[c] = used[c] = true;
+      return c;
     });
   }
 
