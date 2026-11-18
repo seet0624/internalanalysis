@@ -34,7 +34,7 @@ declare global {
 
 const ROLE_EN: Record<string, string> = {
   核名专员: 'Name Checker', 繁体专员: 'Traditional Chinese Specialist', 订单库管理员: 'Order DB Keeper',
-  审单专员: 'Order Reviewer', 分拣员: 'File Sorter', 沟通专员: 'Customer Liaison',
+  审单专员: 'Order Reviewer', 分督导专员: 'Supervisor Splitter', 核对员: 'Checker', 发件员: 'Dispatcher', 分拣员: 'File Sorter', 沟通专员: 'Customer Liaison',
   回复撰写: 'Reply Writer', 工单分拣: 'Ticket Triage', 知识库编辑: 'Knowledge Base Editor', 升级处理: 'Escalations',
   内容写手: 'Content Writer', 活动策划: 'Campaign Planner', 邮件营销: 'Email Marketer', 品牌把关: 'Brand Reviewer',
   催款专员: 'Collections', 现金流: 'Cash Flow Analyst', 报税准备: 'Tax Prep',
@@ -42,7 +42,7 @@ const ROLE_EN: Record<string, string> = {
   合同审查: 'Contract Review', 合规检查: 'Compliance Check', 数据分析: 'Data Analyst', 看板制作: 'Dashboard Builder'
 };
 const NAME_EN: Record<string, string> = {
-  阿名: 'A-Ming', 小繁: 'Xiao Fan', 库管: 'Ku Guan', 阿技: 'A-Ji', 小急: 'Xiao Ji', 阿问: 'A-Wen',
+  阿名: 'A-Ming', 小繁: 'Xiao Fan', 库管: 'Ku Guan', 阿技: 'A-Ji', 阿分: 'A-Fen', 小核: 'Xiao He', 阿发: 'A-Fa', 小急: 'Xiao Ji', 阿问: 'A-Wen',
   小回: 'Xiao Hui', 分拣: 'Fen Jian', 小知: 'Xiao Zhi', 阿升: 'A-Sheng', 小文: 'Xiao Wen', 阿策: 'A-Ce',
   小邮: 'Xiao You', 把关: 'Ba Guan', 阿催: 'A-Cui', 小流: 'Xiao Liu', 阿税: 'A-Shui', 小招: 'Xiao Zhao',
   阿新: 'A-Xin', 小考: 'Xiao Kao', 阿约: 'A-Yue', 小规: 'Xiao Gui', 阿析: 'A-Xi', 小板: 'Xiao Ban'
@@ -55,8 +55,11 @@ function findTeam(ref: string): HQTeam | undefined {
   return teamId ? d.teams?.find((x) => x.id === teamId) : d;
 }
 
-// 审核工具对应的小组：名字审核 → cs.name，技术单 → cs.tech
-const TOOL_OF_TEAM: Record<string, string> = { 'cs.name': 'name', 'cs.tech': 'tech' };
+// 审核工具对应的小组：名字审核 → cs.name，技术单 → cs.tech，保健品分督导 → cs.bjp
+const TOOL_OF_TEAM: Record<string, string> = { 'cs.name': 'name', 'cs.tech': 'tech', 'cs.bjp': 'bjp' };
+// 事件交给哪个部门：名字审核 → 客服部，保健品 → 订单管理组，技术单 → 技术支持
+const DEPT_OF_TOOL: Record<string, string> = { name: 'cs', bjp: 'orders', tech: 'techsup' };
+const deptOf = (e: HQEvent) => DEPT_OF_TOOL[e.tool] || 'techsup';
 const n = (e: HQEvent, k: string) => Number(e[k] ?? 0);
 const minsAgo = (t: number) => Math.max(0, (Date.now() - t) / 60000);
 
@@ -65,6 +68,12 @@ export function describeEvent(e: HQEvent): L {
     return {
       zh: `名册审核：${n(e, 'files')} 份名册、${n(e, 'students')} 位学员，${n(e, 'must')} 位必须改、${n(e, 'check')} 位请确认`,
       en: `Roster review: ${n(e, 'files')} files, ${n(e, 'students')} students — ${n(e, 'must')} must change, ${n(e, 'check')} to confirm`
+    };
+  }
+  if (e.tool === 'bjp') {
+    return {
+      zh: `保健品分督导：${n(e, 'items')} 单分成 ${n(e, 'groups')} 份，${n(e, 'problem')} 单分不到督导`,
+      en: `Supplement shipments: ${n(e, 'items')} orders split into ${n(e, 'groups')} files, ${n(e, 'problem')} without a supervisor`
     };
   }
   if (e.kind === 'downloaded') return { zh: '技术单文件已下载，可以转给专家', en: 'Order files downloaded, ready for experts' };
@@ -85,7 +94,9 @@ function realStatus(team: string, idx: number, events: HQEvent[]): { status: Sta
   if (!last) {
     return {
       status: 'available',
-      task: tool === 'name' ? { zh: '等待新的名册', en: 'Waiting for the next roster' } : { zh: '等待新的技术单', en: 'Waiting for the next orders' },
+      task: tool === 'name' ? { zh: '等待新的名册', en: 'Waiting for the next roster' }
+        : tool === 'bjp' ? { zh: '等待新的发货明细', en: 'Waiting for the next shipment list' }
+        : { zh: '等待新的技术单', en: 'Waiting for the next orders' },
       history
     };
   }
@@ -121,7 +132,7 @@ function realPeople(events: HQEvent[]): Person[] {
 function realTasks(events: HQEvent[]): Task[] {
   return events.filter((e) => e.kind !== 'downloaded').slice(-10).map((e): Task => ({
     id: `ev-${e.id}`, title: describeEvent(e),
-    dept: e.tool === 'name' ? 'cs' : 'techsup', owner: e.tool === 'name' ? 'cs-r0' : 'techsup-r0',
+    dept: deptOf(e), owner: `${deptOf(e)}-r0`,
     status: 'completed', priority: n(e, 'urgent') > 0 ? 'high' : 'medium', progress: 100,
     due: new Date(e.t).toISOString().slice(0, 10), real: true
   })).concat(
@@ -136,8 +147,8 @@ function realTasks(events: HQEvent[]): Task[] {
 
 function realMessages(events: HQEvent[]): Message[] {
   return events.slice(-12).map((e) => ({
-    id: `msg-${e.id}`, ch: 'task', from: e.tool === 'name' ? 'cs-r0' : 'techsup-r0',
-    dept: e.tool === 'name' ? 'cs' : 'techsup', text: describeEvent(e), ago: minsAgo(e.t), real: true
+    id: `msg-${e.id}`, ch: 'task', from: `${deptOf(e)}-r0`,
+    dept: deptOf(e), text: describeEvent(e), ago: minsAgo(e.t), real: true
   }));
 }
 

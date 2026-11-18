@@ -7,7 +7,7 @@ import { describeEvent } from './company';
 export type FeatureGroup = 'review' | 'docs' | 'claude' | 'dept';
 export type Feature = {
   id: string; group: FeatureGroup; name: L; desc: L;
-  href?: string; skill?: string; tool?: 'name' | 'tech';
+  href?: string; skill?: string; tool?: 'name' | 'tech' | 'bjp';
   steps?: L[]; owner?: L;
 };
 
@@ -27,6 +27,12 @@ const REVIEW: Record<string, Pick<Feature, 'name' | 'desc' | 'steps' | 'tool'>> 
     name: { zh: '技术单审核', en: 'Order Review' },
     desc: { zh: '技术单按规则自动标红、分文件、改页脚，要问下单者的单整理好话术。', en: 'Flag orders by rule, split files, fix footers, prepare customer follow-ups.' },
     steps: [{ zh: '上传技术单 Excel', en: 'Upload the order Excel' }, { zh: '看标红和待办', en: 'Check flags and to-dos' }, { zh: '下载给专家', en: 'Download for experts' }]
+  },
+  bjp: {
+    tool: 'bjp',
+    name: { zh: '保健品分督导', en: 'Supplement Shipments' },
+    desc: { zh: '保健品发货明细只看第一个工作表，用店铺编号查督导，按督导的群分成一份份 Excel。', en: 'Split the supplement shipment list into one Excel per supervisor group, by shop code.' },
+    steps: [{ zh: '上传发货明细', en: 'Upload the shipment list' }, { zh: '看分好的群和问题单', en: 'Check groups and problem rows' }, { zh: '下载或打包', en: 'Download one or all' }]
   }
 };
 
@@ -63,7 +69,7 @@ export function buildFeatures(role: 'boss' | 'cs' | 'guest'): Feature[] {
 }
 
 // 审核工具上次用的情形（这台电脑的浏览器纪录）
-export function lastRun(tool: 'name' | 'tech' | undefined, events: HQEvent[]) {
+export function lastRun(tool: 'name' | 'tech' | 'bjp' | undefined, events: HQEvent[]) {
   if (!tool) return null;
   const e = [...events].reverse().find((x) => x.tool === tool && x.kind !== 'downloaded');
   return e ? { ago: (Date.now() - e.t) / 60000, text: describeEvent(e), today: events.filter((x) => x.tool === tool && x.kind !== 'downloaded' && new Date(x.t).toDateString() === new Date().toDateString()).length } : null;
