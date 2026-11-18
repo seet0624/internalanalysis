@@ -50,7 +50,7 @@ const CASES = require('./naming-cases.json');
     const stu = [ // [订单, 姓, 姓名, 父亲, 新名1, 拼音1, 新名2, 拼音2, 名册展示]
       ['T0000000000001', '王', '王小明', '王大山', '王山林', 'shān lín', '王晓云', 'xiǎo yún', ''],   // 王山林 和父亲王大山撞「山」→ 有问题
       ['T0000000000002', '李', '李丽', '李大海', '李沐阳', 'mǔ yáng', '李若溪', 'lǐ ruò nǐ', ''],   // 沐 声调不同不算错；溪 写成 nǐ 要提醒
-      ['T0000000000003', '赵', '赵一', '赵大川', '赵景行', 'zhào jǐng xíng', '赵知远', 'zǎo zhī yuǎn', '简体']]; // 海外；赵 写成 zǎo 要提醒
+      ['T0000000000003', '赵', '赵一', '赵大川', '赵明轩', 'zhào míng xuān', '赵知远', 'zǎo zhī yuǎn', '简体']]; // 海外；赵 写成 zǎo 要提醒
     const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('命名');
     ws.addRow(['命名配制信息表']); ws.addRow(['订单基本信息']); ws.addRow(H);
     stu.forEach((s, i) => [[s[4], s[5]], [s[6], s[7]]].forEach(nm => { const r = H.map(() => ''); const set = (h, v) => r[H.indexOf(h)] = v;
@@ -122,6 +122,22 @@ const CASES = require('./naming-cases.json');
   ok(inv.once[0] === inv.once[1] && (String(inv.once[0]).match(/撞同/g) || []).length === 1, '同一单兄弟互撞只写一次，实际 ' + JSON.stringify(inv.once));
   ok(inv.req === '兄弟姐妹', '备注「客户要求：」不是称呼，应该写兄弟姐妹，实际 ' + inv.req);
   ok(!/人工|人手/.test(inv.manual), '有问题文件的原因不能写「人工」，实际 ' + inv.manual);
+  // 老板规则：大生肖（鼠龙马虎）不能有小字根，小生肖（牛兔蛇羊猴鸡狗猪）不能有大字根；姓不查
+  const zg = await p.evaluate(async () => {
+    const H = ['序号','订单编号','新名字姓氏','使用人姓名','生肖','父亲名字','母亲名字','兄弟姐妹','子女','禁忌字','新名','新名拼音','名册展示'];
+    const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('命名'); ws.addRow(H);
+    ws.addRow(['1', 'T0000000000071', '佘', '佘甲', '牛', '无', '无', '无', '无', '无', '佘珮帆', 'pèi fān', '']); // 珮 王字旁 → 小生肖不能用
+    ws.addRow(['2', 'T0000000000072', '周', '周甲', '马', '无', '无', '无', '无', '无', '周功宇', 'gōng yǔ', '']); // 功 有工、力 → 大生肖不能用
+    ws.addRow(['3', 'T0000000000073', '王', '王甲', '牛', '无', '无', '无', '无', '无', '王明宇', 'míng yǔ', '']); // 姓王不查
+    ws.addRow(['4', 'T0000000000074', '周', '周乙', '虎', '无', '无', '无', '无', '无', '周玲宇', 'líng yǔ', '']); // 大生肖用大字根没关系
+    ws.addRow(['5', 'T0000000000075', '周', '周丙', '龙', '无', '无', '无', '无', '无', '周冠宇', 'guàn yǔ', '']); // 冠 是大字根，里面的寸不算小字根
+    const buf = await wb.xlsx.writeBuffer(); parsedFiles.length = 0;
+    await loadWithBuffers([{ name: '生肖字根 2026-10-01.xlsx', arrayBuffer: async () => buf }]);
+    const rs = parsedFiles[0].audit.results;
+    return rs.map(r => baseName(r.disp) + ':' + (r.problem ? '有问题' : '通过')).join(' ') + ' | ' + outReason(rs[0]);
+  });
+  ok(zg === '佘甲:有问题 周甲:有问题 王甲:通过 周乙:通过 周丙:通过 | 新下来的名字（佘珮帆）的「珮」有大字根「王」，属牛（小生肖）不能用', '大小生肖字根，实际 ' + zg);
+
   // 老板规则：同辈兄弟姐妹同字同音不算问题（客户写了「家人不同音不同字」才照查）；「訂單編號」不是名字；申请加急不卡；同一个订单号是自己
   const gen = await p.evaluate(async () => {
     const H = ['序号','订单编号','新名字姓氏','使用人姓名','父亲名字','母亲名字','兄弟姐妹','子女','禁忌字','新名','新名拼音','名册展示','备注','订单状态备注','会员编号'];
@@ -147,7 +163,7 @@ const CASES = require('./naming-cases.json');
     return rs.map(r => baseName(r.disp) + ':' + (r.problem ? '有问题' : '通过')).join(' ') + ' | ' + outReason(rs[12]) + ' | ' + sameGen('姐妹孩子');
   });
   ok(gen === '周甲:通过 周乙:有问题 李甲:通过 吴甲:通过 蒋甲:通过 张乙:有问题 赵甲:有问题 孙甲:有问题 钱丙:有问题 周丙:通过 周丁:通过 孙乙:通过 冯甲:有问题 | 订单状态要先确认 | false', '同辈兄弟、訂單編號、申请加急、同一个订单号，实际 ' + gen);
-  ok(JSON.stringify(e2e.py) === JSON.stringify({ 王山林: 0, 王晓云: 0, 李沐阳: 0, 李若溪: 1, 赵景行: 0, 赵知远: 1 }), '拼音提醒：字母不对（溪 nǐ、姓赵 zǎo）才提醒，声调不同不提醒，实际 ' + JSON.stringify(e2e.py));
+  ok(JSON.stringify(e2e.py) === JSON.stringify({ 王山林: 0, 王晓云: 0, 李沐阳: 0, 李若溪: 1, 赵明轩: 0, 赵知远: 1 }), '拼音提醒：字母不对（溪 nǐ、姓赵 zǎo）才提醒，声调不同不提醒，实际 ' + JSON.stringify(e2e.py));
   ok(e2e.lv === 'lv', 'lǚ 应该当成 lv（字库用 v），实际 ' + e2e.lv);
   ok(/拼音写错：「我」写 ni/.test(e2e.sb), '试改名字：我 写 nǐ 应该提醒，实际 ' + e2e.sb);
   ok(e2e.n === 3, '假技术单应该读到 3 位学员，实际 ' + e2e.n);
