@@ -65,6 +65,7 @@ const CASES = require('./naming-cases.json');
     orig.eachRow(r => r.eachCell(c => { if (/^\d{4}-\d{2}-\d{2}$/.test(String(c.value)) || /^审核人：/.test(String(c.value))) R.footer.push(c.value); }));
     const badWb = await buildSplitWorkbook(dom, true), badWs = badWb.worksheets[0], badBuf = await badWb.xlsx.writeBuffer();
     const ovW = await read(await origBuffer(ps.find(q => q.overseas))); R.ovSeq = [4, 5].map(r => ovW.getRow(r).getCell(1).value); R.badSeq = [4, 5].map(r => badWs.getRow(r).getCell(1).value); R.badFill = fillKey(badWs.getRow(4).getCell(1)) + '|' + fillKey(badWs.getRow(4).getCell(12)); R.origFill = fillKey(orig.getRow(4).getCell(1)); R.badHeader = badWs.getRow(3).getCell(34).value; R.badW = badWs.getColumn(34).width; R.badRows = []; for (let r = 4; r <= 5; r++) R.badRows.push([badWs.getRow(r).getCell(26).value, badWs.getRow(r).getCell(34).value]);
+    const li = x.audit.results.find(r => /李丽/.test(r.disp)), one = oneOf(x, li); R.oneName = outName(one, 'clean'); R.oneRows = (await read(await (await buildCleanWorkbook(one)).xlsx.writeBuffer())).actualRowCount;
     const clean = await (await buildCleanWorkbook(dom)).xlsx.writeBuffer(); R.cleanRows = (await read(clean)).actualRowCount;
     parsedFiles.length = 0; await loadWithBuffers([{ name: '（有问题）王小明 名正言顺技术单2026-10-01（1）.xlsx', arrayBuffer: async () => badBuf }]);
     const y = parsedFiles[0]; R.reName = outName(y, 'orig'); const o2 = await read(await origBuffer(y)); R.reAH = [3, 4, 5].map(r => o2.getRow(r).getCell(34).value);
@@ -156,6 +157,7 @@ const CASES = require('./naming-cases.json');
   ok(e2e.badW >= 14, '原因栏要拉宽（每栏至少 14），实际 ' + e2e.badW);
   { const a = e2e.badRows.find(r => r[0] === '王山林')?.[1], z = e2e.badRows.find(r => r[0] === '王晓云')?.[1];
     ok(/山/.test(String(a)) && a === z, '同一个订单两行要写一样的原因（没问题的王晓云也一样），实际 ' + JSON.stringify(e2e.badRows)); }
+  ok(/^李丽 /.test(e2e.oneName) && e2e.oneRows === 3, '单独下载李丽：文件名前面写李丽、只放她两个新名（表头 + 2 行），实际 ' + e2e.oneName + ' / ' + e2e.oneRows + ' 行');
   ok(e2e.cleanRows === 3, '国内干净文件应该是表头 + 李丽 2 行，实际 ' + e2e.cleanRows + ' 行');
   ok(e2e.reName === '王小明 名正言顺技术单2026-10-01（1）.xlsx', '改好拖回来，原装名应该照原名拿掉（有问题），实际 ' + e2e.reName);
   ok(e2e.reAH.every(v => v == null), '改好拖回来，原装里的旧原因和表头应该清掉，实际 ' + JSON.stringify(e2e.reAH));

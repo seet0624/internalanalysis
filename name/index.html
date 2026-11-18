@@ -1347,7 +1347,7 @@ function centerHtml(r,x){ var sid=String(r.sid), det=r.rows[0].detail||{};
     '<label class="revchk'+(r.reviewed?' on':'')+'"><input type="checkbox" id="revChk"'+(r.reviewed?' checked':'')+'> 已复核</label></div></section>';
   var trad=String(det.disp||'').indexOf('繁')>=0;
   h+='<div class="names'+(trad?'':' sc')+'">'+r.rows.map(function(rw,i){ return nameCard(rw,i,iss); }).join('')+'</div>';
-  h+='<div class="tools"><button type="button" class="btn sm" id="sbToggle">试改名字</button></div>';
+  h+='<div class="tools"><button type="button" class="btn sm" id="sbToggle">试改名字</button> <button type="button" class="btn sm" id="oneDl"'+(bad?' disabled title="有问题的学员不能单独下载干净文件"':' title="只下载这位学员的干净文件"')+'>单独下载'+(keepBase(x)?'（干净）':'（上传）')+'</button></div>';
   h+='<div class="sandbox" id="sandbox"><div class="sbf"><input id="sbName" placeholder="试一个新名，例：'+esc((r.rows[0]&&r.rows[0].surname)||'陳')+'星宇" aria-label="试改的新名"><input id="sbPy" placeholder="拼音（可不填）" aria-label="拼音"><button type="button" class="btn pri sm" id="sbGo">检查</button></div><div class="res" id="sbRes"></div></div>';
   h+='<div class="g-rec"><div><span>审核状态</span><b class="'+(bad?'bad':'ok')+'">'+(bad?'有问题':'通过')+'</b></div><div><span>复核时间</span><b>'+(r.reviewed&&tm?fmtTime(tm):(r.reviewed?'已复核':'还没复核'))+'</b></div>'+
     '<div><span>审核人</span><select id="revWho" class="g-who-in" aria-label="审核人（可以改成别人）"></select></div><div><span>处理事项</span><b class="'+(main.length?'bad':'ok')+'">'+main.length+'</b></div></div>';
@@ -1427,6 +1427,7 @@ function bindMain(main,r){
   var ob=main.querySelector('#openRefs'); if(ob)ob.onclick=openRefs;
   if(!r)return;
   main.querySelectorAll('.vseg button').forEach(function(b){ b.onclick=function(){ var v=b.getAttribute('data-v'); if(v!==r.verdict)changeVerdict(r.sid,v); }; });
+  var od=main.querySelector('#oneDl'); if(od)od.onclick=function(){ dlCatch(downloadOne(r)); };
   var rc=main.querySelector('#revChk'); if(rc)rc.onchange=function(){ setReviewed(r, rc.checked, false); };
   var rwi=main.querySelector('#revWho'); if(rwi)fillReviewer(rwi);
   main.querySelector('#prevBtn').onclick=function(){ move(-1); }; main.querySelector('#nextBtn').onclick=function(){ move(1); };
@@ -1839,6 +1840,10 @@ async function downloadSplit(keepProblem){ if(!parsedFiles.length)return; var x=
   if(!keepProblem&&!passCount(x)){ toast('这份没有通过的学员，不用下载'+(keepBase(x)?'（干净）':'（上传）')+'文件'); return; }
   var ps=partsOf(x).filter(function(p){ return keepProblem?problemCount(p):passCount(p); });
   var r=await runSave(ps.map(function(p){ return outName(p,keepProblem?'bad':'clean'); }), ps.map(function(p){ return async function(){ var wb=keepProblem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p); return new Blob([await wb.xlsx.writeBuffer()]); }; })); twoDone(r.names,r.tg); }
+// 单独下载一位学员的干净文件：只放这位，文件名前面写他的名字
+function oneOf(x,r){ var drop=[]; x.audit.results.forEach(function(q){ if(q!==r)q.rows.forEach(function(rw){ drop.push(rw.row); }); }); return Object.assign({},x,{overseas:!!r.ov,mixed:false,_part:true,_drop:drop,audit:Object.assign({},x.audit,{results:[r]})}); }
+async function downloadOne(r){ var x=parsedFiles[activeFile]; if(!x||!r)return; if(r.problem){ toast('这位是「有问题」，不能单独下载干净文件'); return; }
+  var p=oneOf(x,r); await runSave([outName(p,'clean')],[async function(){ return new Blob([await (await buildCleanWorkbook(p)).xlsx.writeBuffer()]); }]); }
 async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x);
   var r=await runSave(ps.map(function(p){ return outName(p,'orig'); }), ps.map(function(p){ return async function(){ return new Blob([await origBuffer(p)]); }; })); twoDone(r.names,r.tg); }
 function dlCatch(p){ return Promise.resolve(p).catch(function(e){ if(e&&e.name==='AbortError'){ toast('已取消，没有下载'); return; } console.error(e); alert(HQTool.friendly('下载的时候出错，这次没有下载完整（如果已经下载了一份，另一份没有）。',e)); }); } // 下载出错一定要让客服知道
@@ -1958,7 +1963,8 @@ var CHANGELOG=[
     '子女栏的「訂單編號 / 订单编号 / 选择中」不再当成人名',
     '订单状态备注写「申请加急」不卡上传；有问题文件不写订单状态备注',
     '历史库里同一个订单号、或新名就是自己的，不拿来比（不会说自己撞自己）',
-    '下载的文件里只有一位学员时，文件名前面写他的名字（新生儿除外）']},
+    '下载的文件里只有一位学员时，文件名前面写他的名字（新生儿除外）',
+    '学员页加「单独下载（干净）」：只下载这位学员的干净文件（有问题的不能下载）']},
   {date:'2026-11-13', title:'表尾照文件原本的', items:[
     '下载的文件表尾「审核人」「制表时间」「回传时间」照文件原本写的，不改；Excel 显示成数字的日期只换成看得懂的同一天']},
   {date:'2026-11-13', title:'审核人可以改成别人', items:[
