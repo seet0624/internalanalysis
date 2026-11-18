@@ -867,7 +867,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
     var needEyes=noteNeedsEyes(notesAll);
 
     // 老板规则：同辈兄弟姐妹（哥姐弟妹、堂表、双胞胎）同字同音不算问题；客户在禁忌栏/备注写了同音、同字的要求才照查
-    var custAsk=/重字|不能跟|不可跟|不要跟/.test(cols.taboo>=0?String(r0[cols.taboo]==null?'':r0[cols.taboo]):'')||INSTRUCT_RE.test(cols.taboo>=0?String(r0[cols.taboo]==null?'':r0[cols.taboo]):'')||/同音|同字|谐音|諧音|重字|不重复|不重複|相同的字|一样的字/.test(grp._notesAll||'');
+    var custAsk=/同音|同字|相同|一样|一樣|重字|重复|重複|不撞|别撞|別撞|谐音|諧音/.test(cols.taboo>=0?String(r0[cols.taboo]==null?'':r0[cols.taboo]):'')||/同音|同字|谐音|諧音|重字|不重复|不重複|相同的字|一样的字/.test(grp._notesAll||''); // 客户说「不要一样」才照查；「避开火字」「家人健康」不算
     if(!custAsk){ var d0={father:cols.father>=0?String(r0[cols.father]||''):'',mother:cols.mother>=0?String(r0[cols.mother]||''):'',sib:cols.sib>=0?String(r0[cols.sib]||''):'',kids:cols.kids>=0?String(r0[cols.kids]||''):'',note1:cols.note1>=0?String(r0[cols.note1]||''):'',note2:cols.note2>=0?String(r0[cols.note2]||''):''};
       fam=fam.filter(function(p){ return !sibExempt(p,d0); }); }
     var grpSur=String(cols.surname>=0&&r0[cols.surname]!=null?r0[cols.surname]:'').trim();
@@ -1564,9 +1564,11 @@ function isNewName(d,nm){ var re=new RegExp('(?:名正言[顺順]|新名|改名|
 function sameGen(w){ return /^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|双胞胎|雙胞胎|龙凤胎|龍鳳胎)$/.test(w||'')||/^[大小二三四五六七八九十老]*[堂表]?[哥姐弟妹兄]+$/.test(w||''); }
 // 免查要有根据：文字里真的写了同辈称呼（哥哥：、兄弟姐妹：），名字前面又没紧贴别的称呼（爱人李四、外婆李小红、姐夫王强）
 function famTextName(p){ var m=p[0], o; if((o=m.match(/^(?:同色家人|双胞胎)「([^」]*)」$/)))return shortName(o[1]); if((o=m.match(/^关联学员「([^」]*)」/)))return o[1]; if((o=m.match(/^.+?「([^」]*)」(?:同一批的|以前的)订单/)))return o[1]; return p[1]; }
-function sibExempt(p,d){ if(/^双胞胎「/.test(p[0]))return true; var nm=famTextName(p); if(!nm)return false; var who=relWord(d,nm); if(!sameGen(who))return false;
-  var t=[d.sib,d.kids,d.note1,d.note2].join('\n'), at=t.indexOf(nm), pre=at>0?(t.slice(0,at).match(/([\u4e00-\u9fff]{1,4})$/)||['',''])[1]:'';
-  for(var k=2;k<=3&&k<nm.length;k++){ var hd=nm.slice(0,k); if(!sameGen(hd)&&(REL_WORDS[hd]||isRelLabel(hd)))return false; } // 「爱人钱小玉」整串当成一个名字时，称呼在名字里面
+function sibExempt(p,d){ if(/^双胞胎「/.test(p[0]))return true; var nm=famTextName(p); if(!nm)return false; var who=relWord(d,nm);
+  var t=[d.sib,d.kids,d.note1,d.note2].join('\n'), at=t.indexOf(nm), pre=at>0?(t.slice(0,at).match(/([\u4e00-\u9fff]{1,4})$/)||['',''])[1]:'', post=at>=0?(t.slice(at+nm.length).match(/^[（(]([\u4e00-\u9fff]{1,4})[）)]/)||['',''])[1]:'';
+  if(who&&!sameGen(who))return false; // 冒号前写的是别的称呼（外婆：、子女：）
+  if(!who&&!(sameGen(pre)||sameGen(post)||(at>=0&&String(d.sib||'').indexOf(nm)>=0&&!pre)))return false; // 没冒号：「弟弟张三」「张三（哥哥）」或兄弟姐妹栏只写名字才算
+  for(var k=2;k<=3&&k<nm.length;k++){ if(REL_WORDS[nm.slice(0,k)])return false; } // 「爱人钱小玉」整串当成一个名字时，称呼在名字里面
   return !(pre&&!sameGen(pre)&&(REL_WORDS[pre]||new RegExp('['+REL_ROOT+'嫂媳婿]').test(pre))); }
 function whoOf(h,d){ var m=h.member, o;
   if(m==='父亲'||m==='母亲')return {who:m,isNew:isNewName(d,h.full)};
