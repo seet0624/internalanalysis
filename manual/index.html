@@ -271,10 +271,13 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     return hl(s).replace(/RMB\s?\d[\d,.]*/g, function (m) { return '<span class="money">' + m + '</span>'; });
   }
   // 这台电脑上的「最近看过」「常看」「收藏」（只存章号，不存内容）
-  var favs = function () { return store.get('man-fav', []); };
+  var nums = function (a) { return Array.isArray(a) ? a.filter(Number.isInteger) : []; };
+  var favs = function () { return nums(store.get('man-fav', [])); };
+  var recents = function () { var r = store.get('man-recent', []); return Array.isArray(r) ? r.filter(function (x) { return x && Number.isInteger(x.no) && typeof x.t === 'number'; }) : []; };
+  var viewsOf = function () { var v = store.get('man-views', {}); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; };
   function visit(no) {
-    var r = store.get('man-recent', []).filter(function (x) { return x.no !== no; }); r.unshift({ no: no, t: Date.now() }); store.set('man-recent', r.slice(0, 8));
-    var v = store.get('man-views', {}); v[no] = (v[no] || 0) + 1; store.set('man-views', v);
+    var r = recents().filter(function (x) { return x.no !== no; }); r.unshift({ no: no, t: Date.now() }); store.set('man-recent', r.slice(0, 8));
+    var v = viewsOf(); v[no] = (Number(v[no]) || 0) + 1; store.set('man-views', v);
   }
   function ago(t) { var m = Math.round((Date.now() - t) / 60000); return m < 1 ? '刚刚' : m < 60 ? m + ' 分钟前' : m < 1440 ? Math.round(m / 60) + ' 小时前' : Math.round(m / 1440) + ' 天前'; }
   function chapLinks(list, right) {
@@ -291,7 +294,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
         '<span class="d">' + esc(g.chapters.map(function (c) { return c.title; }).join('、')) + '</span>' +
         '<span class="n">共 ' + g.chapters.length + ' 章 ›</span><span class="wm">' + ICON_OF(g) + '</span></a>';
     }).join('');
-    var recent = store.get('man-recent', []), views = store.get('man-views', {});
+    var recent = recents(), views = viewsOf();
     var often = Object.keys(views).map(Number).filter(function (n) { return chap(n); }).sort(function (a, b) { return views[b] - views[a]; }).slice(0, 5).map(function (n) { return { no: n, v: views[n] }; });
     var links = [], c18 = chap(18), t18 = c18 && c18.blocks.filter(function (b) { return b.type === 'table'; })[0];
     if (t18) MANUAL.rowsOf(t18).rows.forEach(function (r) { var u = MANUAL.urlOf(r.join(' ')); if (u) links.push({ name: r[0], url: u }); });
@@ -332,7 +335,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
       k++;
       if (x.kind === 'decision') { afterDec = true; return '<div class="fn fn-dec"><span class="arr"></span><div class="dec"><div class="dia"><span>' + esc(x.text) + '</span></div><div class="yes">是<span class="node">' + esc(x.yes) + '</span></div></div></div>'; }
       var no = afterDec ? ' fn-no' : ''; afterDec = false;
-      return '<div class="fn' + no + '"><span class="arr"></span><span class="node" title=""' + esc(x.text) + '"><span class="no">' + k + '</span><span class="tx">' + esc(x.text) + '</span></span></div>';
+      return '<div class="fn' + no + '"><span class="arr"></span><span class="node" title="' + esc(x.text) + '"><span class="no">' + k + '</span><span class="tx">' + esc(x.text) + '</span></span></div>';
     }).join('') + '<div class="fn' + (afterDec ? ' fn-no' : '') + '"><span class="arr"></span><span class="node end">完成</span></div>';
     return '<div class="flow" role="img" aria-label="流程图，' + k + ' 个步骤，步骤内容在下面">' + nodes + '</div>';
   }
@@ -365,7 +368,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
       if (b.type !== 'table') return;
       var t = MANUAL.rowsOf(b), head = t.head.join('|');
       if (/回传时限/.test(head) && !/dlP/.test(h)) {
-        var pi = Math.max(0, t.head.indexOf('产品类型')), di = t.head.length - 1;
+        var pi = t.head.indexOf('产品类型') >= 0 ? t.head.indexOf('产品类型') : 1, di = t.head.length - 1;
         h += '<div class="helper"><b>' + ICON.tool + ' 回传期限计算</b><div class="row3"><label class="field">产品<select id="dlP">' + t.rows.map(function (r) { return '<option value="' + esc(MANUAL.days(r[di])) + '">' + esc(r[pi]) + '（' + esc(r[di]) + '）</option>'; }).join('') +
           '</select></label><label class="field">从哪天算<input id="dlD" type="date" value="' + today + '"></label><p class="field">结果<span class="answer" id="dlA"></span></p></div></div>';
       }
@@ -375,7 +378,6 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
           '</select></label><label class="field">日期（三天一次写成 2026-10-03&amp;05&amp;06）<input id="tnD" value="' + today + '"></label><p class="field">文件名<span class="answer" id="tnA"></span></p></div><button type="button" class="btn small" data-copy="tnA" style="align-self:flex-start">复制文件名</button></div>';
       }
       if (/话术/.test(head) && !/scO/.test(h)) {
-        helper.scripts = t.rows.map(function (r) { return r[Math.max(1, t.head.findIndex(function (x) { return /话术/.test(x); }))]; });
         h += '<div class="helper"><b>' + ICON.tool + ' 话术填空：填好再按表里的「复制」</b><div class="row3"><label class="field">订单号<input id="scO" autocomplete="off"></label><label class="field">姓名<input id="scN" autocomplete="off"></label><label class="field">日期<input id="scD" type="date" value="' + today + '"></label></div></div>';
       }
     });
@@ -410,8 +412,9 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
 
   // ---------- 切换页面 ----------
   function route() {
+    if (!HB) return;
     var m = location.hash.match(/^#ch(\d+)$/), no = m ? Number(m[1]) : null;
-    if (no && chap(no)) { Q = ''; $('out').innerHTML = article(no); visit(no); updateHelpers(); window.scrollTo(0, 0); var h = $('artH'); h.tabIndex = -1; h.focus({ preventScroll: true }); document.title = chap(no).title + ' · 客服手册'; }
+    if (no && chap(no)) { $('out').innerHTML = article(no); visit(no); updateHelpers(); window.scrollTo(0, 0); var h = $('artH'); h.tabIndex = -1; h.focus({ preventScroll: true }); document.title = chap(no).title + ' · 客服手册'; }
     else { $('out').innerHTML = home(); results(); document.title = '客服手册'; }
   }
   window.addEventListener('hashchange', route);
@@ -429,7 +432,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     if (hot) { e.preventDefault(); $('q').value = Q = hot.getAttribute('data-hot'); results(); $('res').scrollIntoView({ block: 'nearest' }); return; }
     var b = e.target.closest('[data-text],[data-copy],#favBtn,#wideBtn'); if (!b) return;
     if (b.id === 'favBtn') {
-      var no = Number(location.hash.slice(3)), f = favs(), i = f.indexOf(no);
+      var no = Number(location.hash.slice(3)), f = favs(), i = f.indexOf(no); if (!Number.isInteger(no)) return;
       if (i >= 0) f.splice(i, 1); else f.unshift(no); store.set('man-fav', f);
       b.setAttribute('aria-pressed', i < 0); b.innerHTML = ICON.star + (i < 0 ? '已收藏' : '收藏'); return;
     }
@@ -452,8 +455,9 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
       $('out').innerHTML = '<div class="card pad lock" role="alert"><h2>客服手册要登入后才能看</h2><p class="small">手册内容只放在云端，不放在网站文件里。登入时网络不稳，就会拿不到。请退出再登入一次；还是不行就找组长。</p><button type="button" class="btn g-btn3d" onclick="HQAuth.confirmLogout()">退出，重新登入</button></div>';
       return;
     }
+    d.chapters = d.chapters.filter(function (c) { return c && Number.isInteger(c.no) && Array.isArray(c.blocks); });
     HB = d; route();
-  }).catch(function () { clearTimeout(timer); $('out').innerHTML = errorBox('手册的资料格式读不出来。请重新整理；还是不行就找组长。'); });
+  }).catch(function (err) { clearTimeout(timer); console.error(err); $('out').innerHTML = errorBox('手册的资料格式读不出来。请重新整理；还是不行就找组长。'); });
 })();
 </script>
 </body>

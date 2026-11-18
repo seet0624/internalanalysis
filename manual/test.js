@@ -49,10 +49,12 @@ t('回传期限：几天后、星期几（跨月）', () => {
 t('话术填空：填了才换，没填的照原样', () => {
   const s = '订单号 姓名 甲产品，在YYYY-MM-DD已发货';
   assert.strictEqual(M.fillScript(s, { order: 'T1', name: '测试', date: '2026-01-02' }), 'T1 测试 甲产品，在2026-01-02已发货');
+  assert.strictEqual(M.fillScript(s, { order: 'T1' }), 'T1 姓名 甲产品，在YYYY-MM-DD已发货');
   assert.strictEqual(M.fillScript(s, {}), s);
 });
 t('技术单命名：换掉日期（连 &05&06 一起）', () => {
   assert.strictEqual(M.techName('技术单 2026-10-03&05&06 H', '2026-01-02&04&05'), '技术单 2026-01-02&04&05 H');
+  assert.strictEqual(M.techName('技术单 2026-10-15（名正言顺）', '2026-01-02'), '技术单 2026-01-02（名正言顺）');
   assert.strictEqual(M.techName('技术单 2026-10-15', ''), '技术单 2026-10-15');
 });
 t('网址：括号前就停', () => assert.strictEqual(M.urlOf('网址 https://example.com/login （找组长拿）'), 'https://example.com/login'));
