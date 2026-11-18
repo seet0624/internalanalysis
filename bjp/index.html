@@ -148,14 +148,14 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     h += '<section class="card"><div class="tbl"><table><thead><tr><th scope="col">督导（群）</th><th scope="col">督导</th><th scope="col">店铺</th><th scope="col" style="text-align:right">单数</th><th scope="col" style="text-align:right">保健品数量</th><th scope="col">文件名</th><th scope="col"><span class="vh">下载</span></th></tr></thead><tbody>' +
       s.groups.map(function (g, i) {
         return '<tr><td class="grp">' + esc(g.title) + '</td><td>' + esc(g.sups.join('、')) + '</td><td class="num">' + g.shops.length + '</td><td class="num">' + g.rows.length + '</td><td class="num">' + g.qty + '</td>' +
-          '<td class="fn">' + esc(BJP.fileName(monthNow(), g.title)) + '</td><td><button type="button" class="btn small" data-dl="' + i + '">下载</button></td></tr>';
+          '<td class="fn">' + esc(BJP.fileName(monthNow(), g.label)) + '</td><td><button type="button" class="btn small" data-dl="' + i + '">下载</button></td></tr>';
       }).join('') + '</tbody></table></div></section>';
-    h += '<div class="acts"><span class="small">每份照「8月份保健品发货明细」的格式：一个工作表、置中、细框线；文件名后面是督导的群（没有群就写督导名字）。</span>' +
+    h += '<div class="acts"><span class="small">每份照「8月份保健品发货明细」的格式：一个工作表、置中、细框线；文件名后面是督导的群和督导名字（没有群就只写督导名字）。</span>' +
       '<button type="button" class="btn g-btn3d" data-zip' + (s.groups.length ? '' : ' disabled') + '>全部打包下载（' + s.groups.length + ' 份）</button></div>';
     $('out').innerHTML = h;
     $('month').addEventListener('input', function () { var v = this.value.replace(/\D/g, '').slice(0, 2), n = parseInt(v, 10); this.value = v; state.month = n >= 1 && n <= 12 ? String(n) : '';
       this.setAttribute('aria-invalid', v && !state.month ? 'true' : 'false');
-      document.querySelectorAll('#out td.fn').forEach(function (td, i) { td.textContent = BJP.fileName(monthNow(), state.groups[i].title); }); });
+      document.querySelectorAll('#out td.fn').forEach(function (td, i) { td.textContent = BJP.fileName(monthNow(), state.groups[i].label); }); });
   }
   function monthNow() { return state && state.month ? state.month : ''; }
 
@@ -167,10 +167,10 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     var b = e.target.closest('[data-dl],[data-zip]'); if (!b || !state) return;
     b.disabled = true;
     try {
-      if (b.hasAttribute('data-dl')) { var g = state.groups[+b.getAttribute('data-dl')]; save(new Blob([await bufOf(g)], { type: XLSX_TYPE }), BJP.fileName(monthNow(), g.title)); }
+      if (b.hasAttribute('data-dl')) { var g = state.groups[+b.getAttribute('data-dl')]; save(new Blob([await bufOf(g)], { type: XLSX_TYPE }), BJP.fileName(monthNow(), g.label)); }
       else {
         var zip = new JSZip();
-        for (var i = 0; i < state.groups.length; i++) zip.file(BJP.fileName(monthNow(), state.groups[i].title), await bufOf(state.groups[i]));
+        for (var i = 0; i < state.groups.length; i++) zip.file(BJP.fileName(monthNow(), state.groups[i].label), await bufOf(state.groups[i]));
         save(await zip.generateAsync({ type: 'blob' }), (monthNow() ? monthNow() + '月份' : '') + '保健品发货明细（按督导分）.zip');
       }
     } catch (err) { alert('下载失败：' + (err.message || err)); }
