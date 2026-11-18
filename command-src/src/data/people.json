@@ -1429,7 +1429,7 @@
       "en": "Yu Qin"
     },
     "type": "human",
-    "dept": "orders",
+    "dept": "ops",
     "title": {
       "zh": "订单专员",
       "en": "Order Specialist"
@@ -1472,7 +1472,7 @@
       "en": "Bo Yuan"
     },
     "type": "human",
-    "dept": "orders",
+    "dept": "ops",
     "title": {
       "zh": "订单专员",
       "en": "Order Specialist"
@@ -1515,7 +1515,7 @@
       "en": "Tracker"
     },
     "type": "ai",
-    "dept": "orders",
+    "dept": "ops",
     "title": {
       "zh": "AI 订单追踪员",
       "en": "AI Order Tracker"
@@ -1537,7 +1537,7 @@
       "en": "Ting Pan"
     },
     "type": "human",
-    "dept": "orders",
+    "dept": "ops",
     "title": {
       "zh": "服务中心协调员",
       "en": "Service Center Coordinator"
@@ -1580,7 +1580,7 @@
       "en": "Bridge"
     },
     "type": "ai",
-    "dept": "orders",
+    "dept": "ops",
     "title": {
       "zh": "AI 服务中心助理",
       "en": "AI Center Assistant"

@@ -2,7 +2,7 @@
 // 下面左边是这个部门的 3D 办公室，右边是正在做的任务（6 步走到哪、计时、谁在做、停止）。
 // 其他功能（功能、任务管理、知识库……）收进左上角的选单。
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { ClipboardCheck, FileSpreadsheet, Menu, Square } from 'lucide-react';
+import { ClipboardCheck, FileSpreadsheet, Package, Menu, Square } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { useAgo, useLang } from '../lib/i18n';
 import { live, useLive, MISSION_STEPS, type Mission, type MissionEventKind } from '../lib/live';
@@ -49,6 +49,7 @@ export function HomeHeader({ onMenu }: { onMenu: () => void }) {
       <div className="ml-auto flex items-center gap-1">
         <a href="../name/" className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-[#C8D0DC] hover:bg-white/10"><ClipboardCheck className="size-4" />名字审核</a>
         <a href="../tech/" className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-[#C8D0DC] hover:bg-white/10"><FileSpreadsheet className="size-4" />技术单审核</a>
+        <a href="../bjp/" className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-[#C8D0DC] hover:bg-white/10"><Package className="size-4" />保健品分督导</a>
       </div>
     </header>
   );

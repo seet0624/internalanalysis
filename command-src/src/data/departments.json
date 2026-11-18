@@ -150,8 +150,8 @@
       "en": "Operations"
     },
     "summary": {
-      "zh": "排班、流程、每日营运数字。",
-      "en": "Scheduling, processes and daily ops metrics."
+      "zh": "排班、流程、每日营运数字；订单进度、改单、服务中心协调。",
+      "en": "Scheduling, processes, daily ops metrics; order status, changes and service centers."
     },
     "color": "#34A853"
   },

@@ -34,6 +34,7 @@ p{margin:0}
 .top-r{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .home{font-size:13px;color:var(--muted);text-decoration:none}
 @media (min-width:1000px){.ph-only{display:none!important}}
+@media (max-width:999px){.desk-only{display:none!important}}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid var(--field);border-radius:10px;background:var(--surface);color:var(--ink);font-weight:500;text-decoration:none;white-space:nowrap}
 .btn:hover{border-color:var(--faint)}
 .btn.small{min-height:36px;padding:0 12px;font-size:14px;border-radius:8px}
@@ -82,7 +83,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     <header class="top g-topbg"><div class="top-in">
       <div class="g-titlerow"><a class="home ph-only" href="../name/">← 名字审核</a><span class="g-tile" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg></span>
         <div><h1>保健品分督导</h1><p class="sub">把发货明细按督导分开，一个督导（群）一份</p></div></div>
-      <div class="top-r"><span class="g-user" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.confirmLogout()">退出</button></div>
+      <div class="top-r"><nav class="g-sysnav desk-only" aria-label="切换审核系统"><a class="g-btn3d" href="../name/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>名字审核</a><a class="g-btn3d" href="../tech/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>技术单审核</a><a class="g-btn3d" href="./" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>保健品分督导</a></nav><span class="g-user" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.confirmLogout()">退出</button></div>
     </div></header>
     <main class="page">
       <section class="g-hero"><h2>保健品分督导</h2><p>把每月的保健品发货明细拖进来：只看第一个工作表，用店铺编号找督导，按督导的群分好文件再下载</p></section>

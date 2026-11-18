@@ -2,7 +2,7 @@
 // 3D 办公室跟老板仪表板是同一份楼层资料（floors.json 的 2F），员工、AI 位置一模一样。
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  Bell, BookOpen, Bot, CheckCircle2, ClipboardCheck, Copy, FileSpreadsheet, GraduationCap, Headphones, HelpCircle,
+  Bell, BookOpen, Bot, CheckCircle2, ClipboardCheck, Copy, FileSpreadsheet, Package, GraduationCap, Headphones, HelpCircle,
   Home, ListTodo, Map, Maximize2, Megaphone, MessageSquare, Paperclip, Play, Plus, Search, Send, Settings, Smile, Ticket as TicketIcon, Users, ChevronDown, ChevronUp, ArrowLeft, Trash2
 } from 'lucide-react';
 import { useStore } from '../lib/store';
@@ -118,6 +118,7 @@ function CSSidebar({ view, setView }: { view: View; setView: (v: View) => void }
         <div className="px-4 pb-1 text-[11px] font-medium text-faint">审核工具</div>
         <a href="../name/" className="mb-0.5 flex items-center gap-3 rounded-full px-4 py-2 text-sm text-fg hover:bg-elevated"><ClipboardCheck className="size-[18px] text-brand" />名字审核</a>
         <a href="../tech/" className="flex items-center gap-3 rounded-full px-4 py-2 text-sm text-fg hover:bg-elevated"><FileSpreadsheet className="size-[18px] text-ok" />技术单审核</a>
+        <a href="../bjp/" className="flex items-center gap-3 rounded-full px-4 py-2 text-sm text-fg hover:bg-elevated"><Package className="size-[18px] text-ok" />保健品分督导</a>
       </nav>
       <div className="flex items-center gap-2 border-t border-[#2A303C] p-3">
         <button type="button" onClick={() => setView('settings')} className={cn('flex flex-1 items-center gap-2 rounded-full px-3 py-2 text-sm hover:bg-elevated', view === 'settings' && 'bg-[#1A73E8]/20 text-[#8AB4F8]')}><Settings className="size-4" />系统设置</button>
@@ -143,6 +144,7 @@ function CSTopBar({ onSearch }: { onSearch: (q: string) => void }) {
       <div className="ml-auto flex items-center gap-2">
         <a href="../name/" className="hidden h-9 items-center gap-1.5 rounded-full bg-brand px-4 text-sm font-medium text-white hover:bg-[#1765CC] lg:flex"><ClipboardCheck className="size-4" />名字审核</a>
         <a href="../tech/" className="hidden h-9 items-center gap-1.5 rounded-full border border-[#2A303C] px-4 text-sm font-medium text-brand hover:bg-brand/5 lg:flex"><FileSpreadsheet className="size-4" />技术单审核</a>
+        <a href="../bjp/" className="hidden h-9 items-center gap-1.5 rounded-full border border-[#2A303C] px-4 text-sm font-medium text-brand hover:bg-brand/5 lg:flex"><Package className="size-4" />保健品分督导</a>
         <button type="button" className="grid size-10 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="通知"><Bell className="size-5" /></button>
         <a href="../handbook/" className="grid size-10 place-items-center rounded-full text-muted hover:bg-elevated" aria-label="帮助"><HelpCircle className="size-5" /></a>
         {me && <Avatar p={me} size={36} ring={false} />}

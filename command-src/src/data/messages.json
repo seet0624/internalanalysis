@@ -73,8 +73,8 @@
   "ch": "ai",
   "from": "orders-44",
   "text": {
-   "zh": "有 5 张订单超过 48 小时没更新，已通知订单组。",
-   "en": "5 orders idle for 48h+; notified Order Management."
+   "zh": "有 5 张订单超过 48 小时没更新，已通知营运部。",
+   "en": "5 orders idle for 48h+; notified Operations."
   },
   "ago": 9,
   "demo": true
