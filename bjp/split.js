@@ -59,7 +59,7 @@
       var sup = text(s[2]);
       if (!sup) { problems.push({ row: o, why: '店铺 ' + o.code + ' 没有督导' }); return; }
       var title = text(groups[sup]) || sup;
-      if (!out[title]) { out[title] = { title: title, sups: [], shops: [], rows: [], qty: 0 }; order.push(title); }
+      if (!out[title]) { out[title] = { title: title, named: !!text(groups[sup]), sups: [], shops: [], rows: [], qty: 0 }; order.push(title); }
       var g = out[title];
       if (g.sups.indexOf(sup) < 0) g.sups.push(sup);
       if (g.shops.indexOf(o.code) < 0) g.shops.push(o.code);
@@ -70,6 +70,8 @@
       if (o.unsafe) warnings.push({ row: o, why: '订单编号或快递单号超过 15 位，Excel 可能已经改掉尾数，请核对' });
       g.rows.push(row); g.qty += Number.isInteger(q) && q > 0 ? q : 0;
     });
+    // 文件名标签：有群名的在后面加督导（贵州 张宸语、415 胡纯语、杨椬棋）；没有群的本来就是督导名
+    order.forEach(function (t) { var g = out[t]; g.label = g.named ? t + ' ' + g.sups.join('、') : t; });
     return { groups: order.map(function (t) { return out[t]; }), problems: problems, warnings: warnings };
   }
 

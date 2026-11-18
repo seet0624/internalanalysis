@@ -341,7 +341,7 @@
    "zh": "改单申请处理",
    "en": "Order change requests"
   },
-  "dept": "orders",
+  "dept": "ops",
   "owner": "orders-43",
   "status": "active",
   "priority": "high",
@@ -355,7 +355,7 @@
    "zh": "华南服务中心问题",
    "en": "South China center issues"
   },
-  "dept": "orders",
+  "dept": "ops",
   "owner": "svc-45",
   "status": "active",
   "priority": "medium",

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ClipboardCheck, FileSpreadsheet, LayoutGrid, Bell, Bot, Box, ChevronRight, Filter, Languages, Map, Maximize2, Menu, Minimize2, PanelRight, RotateCcw, Search, ZoomIn, ZoomOut } from 'lucide-react';
+import { ClipboardCheck, FileSpreadsheet, Package, LayoutGrid, Bell, Bot, Box, ChevronRight, Filter, Languages, Map, Maximize2, Menu, Minimize2, PanelRight, RotateCcw, Search, ZoomIn, ZoomOut } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { useLang } from '../lib/i18n';
 import { deptById, floorById } from '../lib/company';
@@ -176,6 +176,7 @@ export function TopBar({ onMenu, onIntel, intelOpen }: { onMenu: () => void; onI
       <div className="hidden items-center gap-1.5 lg:flex">
         <a href="../name/" className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg bg-brand px-3 text-sm font-bold text-white transition-colors hover:bg-accent"><ClipboardCheck className="size-4" />{lang === 'zh' ? '名字审核' : 'Name review'}</a>
         <a href="../tech/" className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-brand/60 px-3 text-sm font-bold text-accent transition-colors hover:bg-brand/15"><FileSpreadsheet className="size-4" />{lang === 'zh' ? '技术单审核' : 'Order review'}</a>
+        <a href="../bjp/" className="flex h-9 items-center gap-1.5 whitespace-nowrap rounded-lg border border-brand/60 px-3 text-sm font-bold text-accent transition-colors hover:bg-brand/15"><Package className="size-4" />{lang === 'zh' ? '保健品分督导' : 'Supplements'}</a>
       </div>
       <IconButton label={t('nav_features')} onClick={() => s.setSection('features')} active={s.section === 'features'} className="lg:hidden"><LayoutGrid className="size-4" /></IconButton>
       <div className="ml-auto flex items-center gap-0.5 md:gap-1">

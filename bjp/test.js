@@ -90,4 +90,10 @@ t('最后的合计行（只有数量、等于加总）跳过；对不上的要�
   assert.strictEqual(B.parse([AOA[0], AOA[1], AOA[2], ['', '', '', '', '', 3, '', '', '']]).rows.length, 2);
   assert.strictEqual(B.parse([AOA[0], AOA[1], AOA[2], ['', '', '', '', '', 5, '', '', '']]).rows.length, 3);
 });
+t('有群名的文件名：群名后面加督导（多位用「、」）；没有群的照旧只写督导', () => {
+  const g = B.group(B.parse(AOA).rows, DATA).groups;
+  assert.strictEqual(g[0].label, '999 督导甲、督导乙');
+  assert.strictEqual(g[1].label, '督导丙');
+  assert.strictEqual(B.fileName('10', g[0].label), '10月份保健品发货明细（999 督导甲、督导乙）.xlsx');
+});
 console.log(`全部通过（${n} 项）`);
