@@ -125,6 +125,7 @@ window.COMPANY = {
   // 资料库：合进来的手册、教程（放在档案室，员工遇到问题会去查）
   library: [
     { href: 'handbook/', title: '数易 · 客服业务门户', desc: '客服手册：标准流程、话术库、布告栏速查、改线判定器、服务中心判定器、售后服务培训。' },
+    { href: 'manual/', title: '业务流程手册', desc: '国内客服的流程、话术、费用、发货时间、每月统计；登入后从云端载入，回传期限、技术单命名、话术可以直接算好复制。' },
     { href: 'guide/', title: '工具启动教程', desc: '工具怎么启动、怎么用。' },
     { href: 'docs/dongfang/', title: '东方药林健康商城 · 手机端教程', desc: '登录、下单、订单管理、提现，31 页图文。' },
     { href: 'numera/', title: 'SHUYI · NUMERA', desc: '数易品牌网站。' }

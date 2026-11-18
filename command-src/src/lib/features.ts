@@ -38,6 +38,7 @@ const REVIEW: Record<string, Pick<Feature, 'name' | 'desc' | 'steps' | 'tool'>> 
 
 const DOC_EN: Record<string, L> = {
   'handbook/': { zh: '数易 · 客服业务门户', en: 'Shuyi CS Handbook' },
+  'manual/': { zh: '业务流程手册', en: 'CS Ops Handbook' },
   'guide/': { zh: '工具启动教程', en: 'Tool Setup Guide' },
   'docs/dongfang/': { zh: '东方药林健康商城 · 手机端教程', en: 'Dongfang Health Mall · Mobile Guide' },
   'numera/': { zh: 'SHUYI · NUMERA', en: 'SHUYI · NUMERA' }
