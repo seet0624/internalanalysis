@@ -399,7 +399,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   applyTheme(savedTheme);
   $('theme').addEventListener('click', function () {
     var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
+    window.gSwap(function () { applyTheme(next); });
     try { localStorage.setItem('tsr-theme3', next); } catch (e) {}
   });
   var state = {

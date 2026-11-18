@@ -2172,7 +2172,7 @@ function runAct(a){ var x=parsedFiles[activeFile];
     case 'rules': openHelp('rules'); break;
     case 'save': exportSession(); break;
     case 'load': importSession(); break;
-    case 'theme': document.body.classList.toggle('light'); store('mzys_theme3', document.body.classList.contains('light')?'light':'dark'); break;
+    case 'theme': gSwap(function(){ document.body.classList.toggle('light'); store('mzys_theme3', document.body.classList.contains('light')?'light':'dark'); }); break;
     case 'lang': lang=lang==='cn'?'en':'cn'; store('mzys_lang',lang); applyLang(); break;
     case 'help': openHelp('guide'); break;
     case 'changelog': openHelp('log'); break;

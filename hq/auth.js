@@ -158,6 +158,13 @@
     d.addEventListener('close', function () { var yes = d.returnValue === 'yes'; d.remove(); if (yes) { logout(); location.href = ROOT; } });
     d.showModal();
   }
+  // 换深浅色：浏览器支援就慢慢淡过去（像天黑 / 天亮），不支援或设了减少动态就直接换
+  window.gSwap = function (fn) {
+    var de = document.documentElement;
+    if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) { fn(); return; }
+    de.classList.add('g-theme-swap');
+    document.startViewTransition(fn).finished.finally(function () { de.classList.remove('g-theme-swap'); });
+  };
   window.HQAuth = { session: session, login: login, logout: logout, confirmLogout: confirmLogout, cloudLogin: cloudLogin, cloudGet: cloudGet, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
 
   if (isHQ) return;
