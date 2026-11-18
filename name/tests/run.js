@@ -167,6 +167,10 @@ const CASES = require('./naming-cases.json');
   ok(e2e.reName === '王小明 名正言顺技术单2026-10-01（1）.xlsx', '改好拖回来，原装名应该照原名拿掉（有问题），实际 ' + e2e.reName);
   ok(e2e.reAH.every(v => v == null), '改好拖回来，原装里的旧原因和表头应该清掉，实际 ' + JSON.stringify(e2e.reAH));
 
+  // ---------- 备注里的吉祥话不是人名（例：家和万事兴 → 不能抓出「万事兴」去比对撞音） ----------
+  { const nn = await p.evaluate(() => [extractNoteNames('家和万事兴，祝万事如意，心想事成，谢谢', '叶', {}), extractNoteNames('爷爷万大山，家和万事兴', '叶', {})]);
+    ok(!nn[0].length, '备注只有吉祥话，不应该抓出人名，实际 ' + JSON.stringify(nn[0]));
+    ok(nn[1].indexOf('万大山') >= 0 && nn[1].indexOf('万事兴') < 0, '备注写了爷爷万大山要抓到、万事兴不要，实际 ' + JSON.stringify(nn[1])); }
   ok(!errs.length, '网页有 JS 错误：' + errs.join(' / '));
   console.log(`${fail ? '✗ 有 ' + fail + ' 项失败' : '✓ 全部通过'}（${pass} 项通过）`);
   await b.close(); process.exit(fail ? 1 : 0);

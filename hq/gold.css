@@ -32,7 +32,7 @@
 .g-hero{position:relative;overflow:hidden;border-radius:18px;min-height:150px;padding:28px 32px;display:flex;flex-direction:column;justify-content:center;gap:6px;
   background:#F3ECDF url(brand/ink-hero.webp) right center/cover no-repeat;border:1px solid #E8DFCC;color:#2B2620;text-align:left}
 .g-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(246,241,231,.95) 30%,rgba(246,241,231,0) 75%);pointer-events:none}
-.g-hero>*{position:relative;margin:0}
+.g-hero>*{position:relative;z-index:1;margin:0}
 .g-hero h1,.g-hero h2{font-family:'Noto Serif SC','Songti SC','SimSun',serif;font-size:30px;font-weight:700;letter-spacing:2px;color:#2B2620}
 .g-hero p{max-width:30em;font-size:14px;color:#5E5546}
 @media (max-width:600px){.g-hero{padding:22px 20px;min-height:120px}.g-hero::before{background:linear-gradient(90deg,rgba(246,241,231,.95) 55%,rgba(246,241,231,.55))}.g-hero h1,.g-hero h2{font-size:24px}}
@@ -80,7 +80,8 @@
 .g-feat span{font-size:13px;color:var(--muted,#6F6553);line-height:1.6}
 
 /* 背景淡淡的祥云纹 */
-.g-pat{background-image:url(brand/cloud-pattern.svg);background-size:220px auto;background-repeat:repeat}
+.g-pat{background-image:url(brand/paper-bg.webp);background-size:100% auto;background-position:center bottom;background-repeat:no-repeat;background-attachment:fixed}   /* 宣纸 + 远山，跟山水主题一致 */
+:root[data-theme="dark"] .g-pat,body:not(.light) .welcome.g-pat{background-image:url(brand/paper-bg-night.webp)}
 .g-out{margin-top:8px;color:#C9BFA9}
 body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto}
 @media (max-width:600px){.g-hero h1,.g-hero h2{font-size:26px}}   /* 手机：放在上面那条大小之后才生效 */
@@ -163,3 +164,24 @@ header .g-tile{width:46px;height:46px} header .g-tile svg{width:22px;height:22px
 /* 技术单左栏：「今日设置」跟在选单下面、精简一点；退出贴底；中间留给亮灯的亭子 */
 .g-side .today{display:none}   /* 老板的设计图左栏没有这张卡；日期、审核人、国内 / 海外、改设置都在工作台上面那一行 */
 .g-side .g-out{margin-top:auto}
+
+/* 深色模式：山水横幅变夜晚（同一张画压成夜色、加月亮），亭子的灯会闪 */
+:root[data-theme="dark"] .g-hero,body:not(.light):not(.g-pat) .g-hero{background-color:#0E1626;background-image:url(brand/ink-hero-night.webp);border-color:#2A3446;color:#E9E1CF}
+:root[data-theme="dark"] .g-hero::before,body:not(.light):not(.g-pat) .g-hero::before{background:linear-gradient(90deg,rgba(14,22,38,.92) 28%,rgba(14,22,38,0) 72%)}
+:root[data-theme="dark"] .g-hero h1,:root[data-theme="dark"] .g-hero h2,body:not(.light):not(.g-pat) .g-hero h1,body:not(.light):not(.g-pat) .g-hero h2{background:linear-gradient(180deg,#FFF1C9,#E2BE7A);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+:root[data-theme="dark"] .g-hero p,body:not(.light):not(.g-pat) .g-hero p{color:#C9BFA9}
+:root[data-theme="dark"] .g-hero::after,body:not(.light):not(.g-pat) .g-hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:url(brand/ink-hero-lamp.png) right center/cover no-repeat;mix-blend-mode:screen;animation:gFlicker 2.6s ease-in-out infinite}
+@keyframes gFlicker{0%,100%{opacity:.75}18%{opacity:1}22%{opacity:.82}48%{opacity:.95}62%{opacity:.7}80%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.g-hero::after{animation:none!important}}
+@media (max-width:600px){:root[data-theme="dark"] .g-hero::before,body:not(.light):not(.g-pat) .g-hero::before{background:linear-gradient(90deg,rgba(14,22,38,.92) 55%,rgba(14,22,38,.6))}}
+
+/* 转页面的过场：换页时旧画面淡出、新画面淡入上移（Chrome / Edge 支援；不支援的浏览器照常换页） */
+@view-transition{navigation:auto}
+::view-transition-old(root){animation:gVtOut .28s ease both}
+::view-transition-new(root){animation:gVtIn .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes gVtOut{to{opacity:0;transform:scale(.985)}}
+@keyframes gVtIn{from{opacity:0;transform:translateY(10px)}}
+@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}
+html.g-theme-swap::view-transition-old(root){animation:gVtFade .9s ease both}
+html.g-theme-swap::view-transition-new(root){animation:gVtFade .9s ease reverse both}
+@keyframes gVtFade{to{opacity:0}}

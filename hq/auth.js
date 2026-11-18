@@ -17,7 +17,7 @@
   // 每个身份能进的页面（网站根目录下的路径开头）
   var ACCESS = {
     boss: ['*'],
-    cs: ['', 'index.html', 'name/', 'tech/', 'handbook/', 'guide/', 'numera/', 'docs/']   // 客服不进 3D 办公室（command/），登入直接到名字审核
+    cs: ['', 'index.html', 'name/', 'tech/', 'bjp/', 'handbook/', 'guide/', 'numera/', 'docs/']   // 客服不进 3D 办公室（command/），登入直接到名字审核
   };
 
   // ---------- SHA-256（不靠 crypto.subtle，http 网址也能用） ----------
@@ -158,6 +158,14 @@
     d.addEventListener('close', function () { var yes = d.returnValue === 'yes'; d.remove(); if (yes) { logout(); location.href = ROOT; } });
     d.showModal();
   }
+  // 换深浅色：浏览器支援就慢慢淡过去（像天黑 / 天亮），不支援或设了减少动态就直接换
+  window.gSwap = function (fn) {
+    var de = document.documentElement;
+    if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) { fn(); return; }
+    de.classList.add('g-theme-swap');
+    try { document.startViewTransition(fn).finished.finally(function () { de.classList.remove('g-theme-swap'); }); }
+    catch (e) { de.classList.remove('g-theme-swap'); fn(); }   // 浏览器不让做过场就直接换
+  };
   window.HQAuth = { session: session, login: login, logout: logout, confirmLogout: confirmLogout, cloudLogin: cloudLogin, cloudGet: cloudGet, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
 
   if (isHQ) return;

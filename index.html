@@ -214,7 +214,14 @@ button{cursor:pointer}
 .lg-go:disabled{opacity:.7;letter-spacing:.1em;text-indent:0}
 .lg-go svg{width:22px;height:22px;flex:none}
 #loginMsg{margin:-8px 0 0;color:#D9D0BD;font-size:14px}
+@view-transition{navigation:auto}
+::view-transition-old(root){animation:gVtOut .28s ease both}
+::view-transition-new(root){animation:gVtIn .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes gVtOut{to{opacity:0;transform:scale(.985)}}
+@keyframes gVtIn{from{opacity:0;transform:translateY(10px)}}
 /* 已登入转页中：只显示会呼吸的金色 logo */
+.hq-anon body{background:#0B1424 url("hq/brand/login-night.webp") left center/cover no-repeat!important}
+.hq-anon body>*:not(#login){visibility:hidden!important}
 .hq-go body{background:#0E1626!important}
 .hq-go body>*{visibility:hidden!important}
 .hq-go body::after{content:"";position:fixed;inset:0;margin:auto;width:110px;height:105px;background:url(hq/brand/shuyi-logo-gold.png) center/contain no-repeat;visibility:visible;animation:hqPulse 1.2s ease-in-out infinite}
@@ -302,7 +309,9 @@ button{cursor:pointer}
 <script src="hq/auth.js" data-page="hq"></script>
 <script>
 // 已经登入、会被转到别页的：先盖住旧办公室，只留金色 logo，免得闪一下
-try { var _s = HQAuth.session(); if (_s && (_s.role === 'cs' || !/[?&]classic/.test(location.search))) document.documentElement.classList.add('hq-go'); } catch (e) {}
+try { var _s = HQAuth.session(); if (_s && (_s.role === 'cs' || !/[?&]classic/.test(location.search))) document.documentElement.classList.add('hq-go');
+  else if (!_s) document.documentElement.classList.add('hq-anon');   // 没登入（例如刚退出）：只显示登入页，不先露出办公室
+} catch (e) {}
 </script>
 <script src="hq/bus.js"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
@@ -450,7 +459,7 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
       const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
       box.classList.add('lg-leave'); setTimeout(() => goNext(sess), still ? 0 : 700); return;
     }
-    box.hidden = true; $('skeleton').hidden = false; resolve(sess);
+    box.hidden = true; $('skeleton').hidden = false; document.documentElement.classList.remove('hq-anon'); resolve(sess);
   });
 });
 if (goNext(SESSION)) await new Promise(() => {});
