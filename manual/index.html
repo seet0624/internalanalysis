@@ -66,7 +66,8 @@ p{margin:0}
 .sec-h .count{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--accent-ink);background:var(--accent-soft);border-radius:999px;padding:2px 10px}
 .cats{display:grid;gap:20px}
 @media (min-width:720px){.cats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (min-width:1200px){.cats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1200px){.cats{grid-template-columns:repeat(6,minmax(0,1fr))}.cat{grid-column:span 2}.cat:nth-child(3n+1):nth-last-child(2),.cat:nth-child(3n+1):nth-last-child(2)~.cat{grid-column:span 3}}
+.cat::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,var(--accent),transparent 70%)}
 .cat{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:8px;padding:18px 22px;text-decoration:none;color:inherit;background:linear-gradient(135deg,var(--surface) 55%,var(--accent-soft));transition:transform .15s,box-shadow .15s}
 .cat:hover{transform:translateY(-2px);box-shadow:0 16px 30px -18px rgba(110,75,18,.55)}
 .cat .t{display:flex;align-items:center;gap:12px;font-family:var(--g-brush);font-weight:700;font-size:18px}
@@ -123,6 +124,7 @@ p{margin:0}
 .ahead{display:flex;flex-direction:column;gap:12px;padding:20px 22px}
 .ahead .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
 .ahead h2{font-family:var(--sans);font-weight:700;font-size:26px;color:var(--ink);display:flex;align-items:center;gap:12px}
+.ahead h2:focus{outline:none}
 .ahead h2 .num{display:inline-grid;place-items:center;min-width:40px;height:40px;padding:0 6px;border-radius:12px;background:var(--accent-soft);color:var(--accent-ink);font:700 18px/1 var(--sans)}
 .pill{display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid var(--line);color:var(--accent-ink);background:var(--surface)}
 .pill.solid{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
@@ -140,21 +142,23 @@ p{margin:0}
 .fn{display:flex;align-items:center}
 .fn+.fn::before{content:"";width:22px;height:2px;background:var(--accent);margin:0 2px 0 4px}
 .fn+.fn::after{content:"";order:-1}
-.node{position:relative;max-width:180px;min-height:52px;padding:10px 12px;border:1.5px solid var(--accent);border-radius:10px;background:var(--surface);font-size:13px;line-height:1.45;display:flex;align-items:center;gap:8px}
+.node{position:relative;max-width:200px;min-height:52px;padding:10px 12px;border:1.5px solid var(--accent);border-radius:10px;background:var(--surface);font-size:13px;line-height:1.45;display:flex;align-items:center;gap:8px}
 .node .no{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:12px;font-weight:700;flex:none}
 .node .tx{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .node.start,.node.end{border-radius:999px;min-height:40px;padding:0 18px;font-weight:700}
 .node.start{background:var(--accent-soft);color:var(--accent-ink)}
 .node.end{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
 .arr{display:inline-block;width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid var(--accent);margin-right:4px}
-.dec{display:flex;flex-direction:column;align-items:center;gap:6px}
+.dec{position:relative;display:flex;flex-direction:column;align-items:center}
+.dec .yes{position:absolute;top:100%;left:50%;transform:translateX(-50%);width:max-content}
+.fn-dec{margin-bottom:86px}
+.fn-no::before{content:"否"!important;width:auto!important;height:auto!important;background:none!important;border-bottom:2px solid var(--accent);padding:0 6px;font-size:12px;color:var(--muted)}
 .dia{width:118px;height:118px;display:grid;place-items:center;position:relative}
 .dia::before{content:"";position:absolute;inset:16px;transform:rotate(45deg);border:1.5px solid var(--accent);background:var(--accent-soft);border-radius:6px}
 .dia span{position:relative;font-size:12.5px;line-height:1.35;text-align:center;max-width:84px}
 .dec .yes{display:flex;flex-direction:column;align-items:center;font-size:12px;color:var(--warn)}
 .dec .yes::before{content:"";width:2px;height:14px;background:var(--warn)}
 .dec .yes .node{border-color:var(--warn);background:var(--warn-bg);color:var(--warn)}
-.flow-note{display:flex;gap:8px;align-items:flex-start;background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:8px 12px;font-size:13px}
 .steps{list-style:none;margin:0;padding:0;counter-reset:s;display:flex;flex-direction:column;gap:10px}
 .steps li{counter-increment:s;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start}
 .steps li::before{content:counter(s,decimal-leading-zero);display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:12px;font-weight:700}
@@ -193,6 +197,8 @@ td.act{width:1%;white-space:nowrap}
 mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
 .copied{color:var(--ok)}
 @media (max-width:999px){.top{position:static}.read .hbnav{order:2}}
+.home{white-space:nowrap}
+@media (max-width:599px){.flow,.fn{flex-direction:column;align-items:flex-start}.fn+.fn::before{width:2px;height:12px;margin:0 0 0 26px}.arr{border:5px solid transparent;border-top:7px solid var(--accent);border-bottom:0;margin:0 0 4px 22px}.node{max-width:none}.fn-no::before{border-bottom:0;border-left:2px solid var(--accent);margin-left:26px}.fn-dec{margin-bottom:96px}}
 @media (max-width:480px){.bigsearch input{padding-right:16px}.bigsearch button{display:none}.ahead h2{font-size:23px}}
 </style>
 <link rel="stylesheet" href="../hq/gold.css">
@@ -215,7 +221,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
         <div><h1>客服手册</h1><p class="sub" id="upd">业务流程 · 操作指引 · 规范说明 · 常见问题</p></div></div>
       <div class="top-r"><nav class="g-sysnav desk-only" aria-label="切换审核系统"><a class="g-btn3d" href="../name/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>名字审核</a><a class="g-btn3d" href="../tech/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>技术单审核</a><a class="g-btn3d" href="../bjp/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>保健品分督导</a></nav><span class="g-user" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.confirmLogout()">退出</button></div>
     </div></header>
-    <main class="page" id="out" aria-live="polite"><div class="status" role="status">正在从云端载入客服手册……</div></main>
+    <main class="page" id="out"><div class="status" role="status">正在从云端载入客服手册……</div></main>
   </div>
 </div>
 <script src="manual.js"></script>
@@ -306,7 +312,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   function results() {
     var nos = MANUAL.search(HB, Q), box = $('res'); if (!box) return;
     if (!nos) { box.innerHTML = ''; return; }
-    box.innerHTML = '<section class="card" aria-label="搜索结果"><h2 class="sec-h pad" style="padding-bottom:0">' + ICON.search + '找到 ' + nos.length + ' 章</h2>' +
+    box.innerHTML = '<section class="card" aria-label="搜索结果"><h2 class="sec-h pad" style="padding-bottom:0" role="status">' + ICON.search + '找到 ' + nos.length + ' 章</h2>' +
       (nos.length ? '<div class="results">' + nos.map(function (n) { var c = chap(n), g = MANUAL.groupOf(HB, n); return '<a href="#ch' + n + '"><span class="rt"><span>' + esc(g ? g.name : '') + '</span>' + hl(c.title) + '</span><span class="rs">' + hl(MANUAL.snippet(c, Q)) + '</span></a>'; }).join('') + '</div>'
         : '<p class="pad small">找不到「' + esc(Q) + '」。换个字再搜，例如「戒指」「二次命名」「费用」。</p>') + '</section>';
   }
@@ -321,15 +327,14 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
       }).join('') + '</nav>';
   }
   function flowchart(items) {
-    var f = MANUAL.flow(items), k = 0;
-    var notes = f.filter(function (x) { return x.kind === 'note'; });
+    var f = MANUAL.flow(items), k = 0, afterDec = false;
     var nodes = '<div class="fn"><span class="node start">开始</span></div>' + f.filter(function (x) { return x.kind !== 'note'; }).map(function (x) {
       k++;
-      if (x.kind === 'decision') return '<div class="fn"><span class="arr"></span><div class="dec"><div class="dia"><span>' + esc(x.text) + '</span></div><div class="yes">是<span class="node">' + esc(x.yes) + '</span></div></div></div>';
-      return '<div class="fn"><span class="arr"></span><span class="node" title="' + esc(x.text) + '"><span class="no">' + k + '</span><span class="tx">' + esc(x.text) + '</span></span></div>';
-    }).join('') + '<div class="fn"><span class="arr"></span><span class="node end">完成</span></div>';
-    return '<div class="flow" role="img" aria-label="流程图，' + k + ' 个步骤">' + nodes + '</div>' +
-      notes.map(function (x) { return '<p class="flow-note">' + ICON.warn + esc(x.text) + '</p>'; }).join('');
+      if (x.kind === 'decision') { afterDec = true; return '<div class="fn fn-dec"><span class="arr"></span><div class="dec"><div class="dia"><span>' + esc(x.text) + '</span></div><div class="yes">是<span class="node">' + esc(x.yes) + '</span></div></div></div>'; }
+      var no = afterDec ? ' fn-no' : ''; afterDec = false;
+      return '<div class="fn' + no + '"><span class="arr"></span><span class="node" title=""' + esc(x.text) + '"><span class="no">' + k + '</span><span class="tx">' + esc(x.text) + '</span></span></div>';
+    }).join('') + '<div class="fn' + (afterDec ? ' fn-no' : '') + '"><span class="arr"></span><span class="node end">完成</span></div>';
+    return '<div class="flow" role="img" aria-label="流程图，' + k + ' 个步骤，步骤内容在下面">' + nodes + '</div>';
   }
   function blockHtml(b) {
     if (b.type === 'h') return '<h4>' + hl(b.text) + '</h4>';
@@ -395,7 +400,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     return '<div class="read' + (wide ? ' wide' : '') + '" id="read">' + nav(no) + '<article class="art" aria-labelledby="artH">' +
       '<nav class="crumb" aria-label="位置"><a href="#">客服手册</a><span aria-hidden="true">›</span>' + (g ? '<a href="#ch' + g.chapters[0].no + '">' + esc(g.name) + '</a><span aria-hidden="true">›</span>' : '') + '<span aria-current="page">' + esc(c.title) + '</span></nav>' +
       '<header class="card ahead"><div class="row"><h2 id="artH"><span class="num">' + c.no + '</span>' + esc(c.title) + '</h2>' +
-      '<span class="tools-r"><button type="button" class="btn small" id="wideBtn" aria-pressed="' + wide + '">' + ICON.side + (wide ? '显示目录' : '收起目录') + '</button>' +
+      '<span class="tools-r"><button type="button" class="btn small desk-only" id="wideBtn" aria-pressed="' + wide + '">' + ICON.side + (wide ? '显示目录' : '收起目录') + '</button>' +
       '<button type="button" class="btn small star" id="favBtn" aria-pressed="' + fav + '">' + ICON.star + (fav ? '已收藏' : '收藏') + '</button></span></div>' +
       '<div class="row"><span class="pill solid">' + esc(k) + '</span>' + (g ? '<span class="pill">' + esc(g.name) + '</span>' : '') + '<span class="meta">手册整理日期 ' + esc(HB.updated || '') + '</span></div></header>' +
       main + notice + related +
@@ -406,7 +411,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   // ---------- 切换页面 ----------
   function route() {
     var m = location.hash.match(/^#ch(\d+)$/), no = m ? Number(m[1]) : null;
-    if (no && chap(no)) { Q = ''; $('out').innerHTML = article(no); visit(no); updateHelpers(); window.scrollTo(0, 0); document.title = chap(no).title + ' · 客服手册'; }
+    if (no && chap(no)) { Q = ''; $('out').innerHTML = article(no); visit(no); updateHelpers(); window.scrollTo(0, 0); var h = $('artH'); h.tabIndex = -1; h.focus({ preventScroll: true }); document.title = chap(no).title + ' · 客服手册'; }
     else { $('out').innerHTML = home(); results(); document.title = '客服手册'; }
   }
   window.addEventListener('hashchange', route);
