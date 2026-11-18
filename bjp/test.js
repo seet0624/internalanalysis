@@ -35,12 +35,12 @@ t('长数字照整数写回文字（订单号、快递单号、电话不会变 1
   assert.strictEqual(r[1].phone, '13800000001');
   assert.strictEqual(r[1].code, 'D000002');   // 小写也认得
 });
-t('同一个群的督导合成一份，没有群的用督导名', () => {
+t('一个督导一个文件：同群的督导也分开，群名留在 title', () => {
   const g = B.group(B.parse(AOA).rows, DATA);
-  assert.deepStrictEqual(g.groups.map(x => x.title), ['999', '督导丙']);
-  assert.deepStrictEqual(g.groups[0].sups, ['督导甲', '督导乙']);
-  assert.strictEqual(g.groups[0].rows.length, 2);
-  assert.strictEqual(g.groups[0].qty, 3);
+  assert.deepStrictEqual(g.groups.map(x => x.title), ['999', '999', '督导丙']);
+  assert.deepStrictEqual(g.groups.map(x => x.sups), [['督导甲'], ['督导乙'], ['督导丙']]);
+  assert.deepStrictEqual(g.groups.map(x => x.rows.length), [1, 1, 1]);
+  assert.deepStrictEqual(g.groups.map(x => x.qty), [2, 1, 3]);
 });
 t('合并栏照格式：订单编号 +（店主）店铺 + 编号 + ,保健品数量N, + 快递公司 + 单号', () => {
   const r = B.group(B.parse(AOA).rows, DATA).groups[0].rows[0];
@@ -90,10 +90,21 @@ t('最后的合计行（只有数量、等于加总）跳过；对不上的要�
   assert.strictEqual(B.parse([AOA[0], AOA[1], AOA[2], ['', '', '', '', '', 3, '', '', '']]).rows.length, 2);
   assert.strictEqual(B.parse([AOA[0], AOA[1], AOA[2], ['', '', '', '', '', 5, '', '', '']]).rows.length, 3);
 });
-t('有群名的文件名：群名后面加督导（多位用「、」）；没有群的照旧只写督导', () => {
+t('文件名：有群的写「群 督导」，没有群的只写督导', () => {
   const g = B.group(B.parse(AOA).rows, DATA).groups;
-  assert.strictEqual(g[0].label, '999 督导甲、督导乙');
-  assert.strictEqual(g[1].label, '督导丙');
-  assert.strictEqual(B.fileName('10', g[0].label), '10月份保健品发货明细（999 督导甲、督导乙）.xlsx');
+  assert.deepStrictEqual(g.map(x => x.label), ['999 督导甲', '999 督导乙', '督导丙']);
+  assert.strictEqual(B.fileName('10', g[0].label), '10月份保健品发货明细（999 督导甲）.xlsx');
+});
+t('群名跟另一位督导同名，也不会合成一份', () => {
+  const d = { shops: DATA.shops, groups: { 督导甲: '督导丙' } };
+  const g = B.group(B.parse(AOA).rows, d).groups;
+  assert.deepStrictEqual(g.map(x => x.sups[0]), ['督导甲', '督导乙', '督导丙']);
+});
+t('打包时文件名重复（换掉特殊字元后一样）：第二个加（2），不会盖掉', () => {
+  assert.deepStrictEqual(B.uniqueNames(['a（甲、乙）.xlsx', 'a（甲、乙）.xlsx', 'b.xlsx']), ['a（甲、乙）.xlsx', 'a（甲、乙）（2）.xlsx', 'b.xlsx']);
+});
+t('自动加的（2）也不会撞到原本就叫（2）的文件', () => {
+  const r = B.uniqueNames(['a.xlsx', 'a.xlsx', 'a（2）.xlsx']);
+  assert.strictEqual(new Set(r).size, 3);
 });
 console.log(`全部通过（${n} 项）`);

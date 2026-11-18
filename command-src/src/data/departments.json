@@ -310,8 +310,8 @@
       "en": "Order Management · Supplement Shipments"
     },
     "summary": {
-      "zh": "保健品发货明细按督导的群分开，一个群一份 Excel。",
-      "en": "Splits supplement shipment lists into one Excel per supervisor group."
+      "zh": "保健品发货明细按督导分开，一个督导一份 Excel。",
+      "en": "Splits supplement shipment lists into one Excel per supervisor."
     },
     "color": "#F29900",
     "team": "cs.bjp"
