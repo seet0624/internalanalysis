@@ -49,28 +49,32 @@ p{margin:0}
 .error{background:var(--crit-bg);color:#8C1D18;border-radius:12px;padding:12px 16px}
 .lock{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 /* 常用工具：三张卡 */
-.tools{display:grid;gap:16px}
-@media (min-width:900px){.tools{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr)}.tools .wide{grid-column:2;grid-row:1 / span 2}}
+.tools{display:grid;gap:20px;align-items:start}
+@media (min-width:1200px){.tools{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.tools .wide{grid-column:1 / -1}.tools .wide .scripts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:24px}.tools .wide .scripts li:nth-child(2){border-top:0}}
 .tool{display:flex;flex-direction:column;gap:12px}
 .tool h3{font-family:var(--g-brush);font-weight:700;font-size:17px;color:var(--accent-ink);display:flex;align-items:center;gap:8px}
 .tool h3 svg{width:20px;height:20px;flex:none}
 .field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
 .field input,.field select{min-height:40px;padding:0 10px;border:1px solid var(--field);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:15px}
 .row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+@media (max-width:480px){.row2{grid-template-columns:1fr}}
 .field input,.field select{width:100%;min-width:0}
 .tool .act-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
 .answer{background:var(--accent-soft);border-radius:10px;padding:10px 12px;color:var(--accent-ink);font-weight:600;overflow-wrap:anywhere}
 .answer .small{font-weight:400}
-.scripts{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto;margin:0;padding:0;list-style:none}
+.scripts{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
 .scripts li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line-soft)}
 .scripts li:first-child{border-top:0}
 /* 手册：左边章节，右边内容 */
 .book{display:grid;gap:20px;align-items:start}
 @media (min-width:900px){.book{grid-template-columns:240px minmax(0,1fr)}}
-.toc{display:flex;flex-direction:column;gap:12px;padding:16px}
+.toc{display:flex;flex-direction:column;gap:12px;padding:18px 22px}
+.toc-d>summary{cursor:pointer;font-weight:600;color:var(--accent-ink);min-height:36px;display:flex;align-items:center}
+@media (min-width:900px){.toc-d>summary{display:none}}
+.toc-d #tocList{display:flex;flex-direction:column;gap:2px}
 @media (min-width:900px){.toc{position:sticky;top:96px;max-height:calc(100vh - 116px);overflow-y:auto}}
 .search{position:relative}
-.search input{width:100%;min-height:40px;padding:0 12px 0 36px;border:1px solid var(--field);border-radius:10px;background:var(--surface);font:inherit;font-size:15px}
+.search input{width:100%;min-height:40px;padding:0 12px 0 36px;border:1px solid var(--field);border-radius:8px;background:var(--surface);font:inherit;font-size:15px}
 .search svg{position:absolute;left:11px;top:11px;width:18px;height:18px;color:var(--faint)}
 .toc .grp{font-size:12px;font-weight:700;letter-spacing:1px;color:var(--faint);margin:6px 0 2px}
 .toc a{display:flex;gap:8px;align-items:baseline;padding:6px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:14px;line-height:1.4}
@@ -80,7 +84,7 @@ p{margin:0}
 .toc .miss{font-size:13px;color:var(--muted);padding:6px 10px}
 .chapters{display:flex;flex-direction:column;gap:20px;min-width:0}
 .ch{scroll-margin-top:96px}
-.ch>header{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--line-soft)}
+.ch>header{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line-soft)}
 .ch>header .num{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:var(--accent-soft);color:var(--accent-ink);font-weight:700;font-variant-numeric:tabular-nums;flex:none}
 .ch>header h2{font-size:19px}
 .ch .body{padding:16px 22px 20px;display:flex;flex-direction:column;gap:14px}
@@ -98,6 +102,9 @@ th,td{padding:10px 14px;text-align:left;border-top:1px solid var(--line-soft);ve
 thead th{background:var(--sunk);font-size:13px;color:var(--muted);font-weight:700;border-top:0;white-space:nowrap}
 td .money{font-weight:700;color:var(--accent-ink);white-space:nowrap}
 td.act{width:1%;white-space:nowrap}
+.tbl td:first-child{min-width:7em}
+@media (max-width:999px){.top{position:static}}
+.lock h2{font-size:17px}
 .url{overflow-wrap:anywhere;color:var(--muted);font-size:13px}
 mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
 .copied{color:var(--ok)}
@@ -123,7 +130,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
       <div class="top-r"><nav class="g-sysnav desk-only" aria-label="切换审核系统"><a class="g-btn3d" href="../name/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>名字审核</a><a class="g-btn3d" href="../tech/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>技术单审核</a><a class="g-btn3d" href="../bjp/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>保健品分督导</a></nav><span class="g-user" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.confirmLogout()">退出</button></div>
     </div></header>
     <main class="page">
-      <section class="g-hero"><h2>业务流程手册</h2><p>技术单、新名字、工厂单、维修、统计、系统操作都在这里。左边点章节，上面搜索，常用的期限、命名、话术直接算好复制</p></section>
+      <section class="g-hero"><h2>业务流程手册</h2><p>技术单、新名字、工厂单、维修、统计、系统操作都在这里。点章节或搜索；常用的期限、命名、话术可以直接算好复制</p></section>
       <div id="out" aria-live="polite"><div class="status" role="status">正在从云端载入手册……</div></div>
     </main>
   </div>
@@ -151,9 +158,10 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   }
   // 搜索的字标出来（先转义再标，不会插进 HTML）
   function hl(s) {
-    var t = esc(s); if (!Q) return t;
-    Q.split(/\s+/).filter(Boolean).forEach(function (w) { var e = esc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); t = t.replace(new RegExp(e, 'gi'), function (m) { return '<mark>' + m + '</mark>'; }); });
-    return t;
+    s = String(s == null ? '' : s);
+    var ws = Q ? Q.split(/\s+/).filter(Boolean).map(function (w) { return w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }) : [];
+    if (!ws.length) return esc(s);
+    return s.split(new RegExp('(' + ws.join('|') + ')', 'gi')).map(function (p, i) { return i % 2 ? '<mark>' + esc(p) + '</mark>' : esc(p); }).join('');
   }
   function cell(s) {
     var u = MANUAL.urlOf(s);
@@ -164,7 +172,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   // ---------- 三个常用工具 ----------
   function tools() {
     var t1 = firstTable(chapterNo(1)), t9 = tableByHead('命名示例'), t2 = tableByHead('话术');
-    var today = MANUAL.iso(new Date()), h = '<section class="tools" aria-label="常用工具">';
+    var today = MANUAL.iso(new Date()), h = '<section class="tools" aria-labelledby="toolsH"><h2 class="vh" id="toolsH">常用工具</h2>';
     if (t1) {
       var r1 = MANUAL.rowsOf(t1), pi = r1.head.indexOf('产品类型') >= 0 ? r1.head.indexOf('产品类型') : 1, di = r1.head.length - 1;
       h += '<div class="card pad tool"><h3>' + ICON.clock + '回传期限</h3><div class="row2"><label class="field">产品<select id="dlP">' +
@@ -190,7 +198,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   function updateTools() {
     if ($('dlP')) {
       var n = $('dlP').value === '' ? null : Number($('dlP').value), r = MANUAL.deadline($('dlD').value, n);
-      $('dlA').innerHTML = r ? '最晚 ' + esc(r.date) + '（星期' + esc(r.week) + '）回传' : '<span class="small">先选日期</span>';
+      $('dlA').innerHTML = r ? '最晚 ' + esc(r.date) + '（星期' + esc(r.week) + '）回传' : ($('dlD').value ? '<span class="small">这项没有固定的回传天数</span>' : '<span class="small">先选日期</span>');
     }
     if ($('tnT')) $('tnA').textContent = MANUAL.techName($('tnT').value, $('tnD').value);
   }
@@ -216,7 +224,8 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     return '';
   }
   function chapters(nos) {
-    return HB.chapters.filter(function (c) { return !nos || nos.indexOf(c.no) >= 0; }).map(function (c) {
+    var ordered = [].concat.apply([], MANUAL.groups(HB).map(function (g) { return g.chapters; }));
+    return ordered.filter(function (c) { return !nos || nos.indexOf(c.no) >= 0; }).map(function (c) {
       return '<article class="card ch" id="ch' + c.no + '"><header><span class="num">' + c.no + '</span><h2>' + hl(c.title) + '</h2></header><div class="body">' + c.blocks.map(block).join('') + '</div></article>';
     }).join('') || '<div class="card pad small">找不到「' + esc(Q) + '」。换个字再搜，例如「戒指」「二次命名」「费用」。</div>';
   }
@@ -250,13 +259,13 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   }
 
   function render() {
-    $('upd').textContent = '整理日期 ' + (HB.updated || '') + ' · 共 ' + HB.chapters.length + ' 章 · 只在登入后从云端载入';
-    $('out').innerHTML = tools() +
-      '<div class="book"><nav class="card toc" aria-label="手册章节"><label class="search"><span class="vh">搜索手册</span>' + ICON.search + '<input id="q" type="search" placeholder="搜索手册，例如 戒指 尺寸" autocomplete="off"></label><span class="small" id="hits"></span><div id="tocList"></div></nav>' +
-      '<div class="chapters" id="chs"></div></div>';
+    $('upd').textContent = '整理日期 ' + (HB.updated || '') + ' · 共 ' + HB.chapters.length + ' 章';
+    $('out').innerHTML = '<div class="book"><nav class="card toc" aria-label="手册章节"><label class="search"><span class="vh">搜索手册</span>' + ICON.search + '<input id="q" type="search" placeholder="搜索手册，例如 戒指 尺寸" autocomplete="off"></label><span class="small" id="hits" aria-live="polite"></span>' +
+      '<details class="toc-d"' + (matchMedia('(min-width:900px)').matches ? ' open' : '') + '><summary>章节目录（' + HB.chapters.length + ' 章）</summary><div id="tocList"></div></details></nav>' +
+      '<div class="chapters">' + tools() + '<div class="chapters" id="chs"></div></div></div>';
     renderBook(); updateTools();
-    var last = location.hash || (store.get('man-last') ? '#ch' + store.get('man-last') : '');
-    if (last && document.querySelector(last)) document.querySelector(last).scrollIntoView();
+    var last = location.hash ? location.hash.slice(1) : (store.get('man-last') ? 'ch' + store.get('man-last') : '');
+    try { var el = last && document.getElementById(decodeURIComponent(last)); if (el) el.scrollIntoView(); } catch (e) {}
     $('q').addEventListener('input', function () { Q = this.value.trim(); renderBook(); });
     ['dlP', 'dlD', 'tnT', 'tnD'].forEach(function (id) { if ($(id)) $(id).addEventListener('input', updateTools); });
   }
@@ -275,15 +284,16 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   });
 
   // 内容只在云端（要登入），拿不到就说清楚怎么办
-  var timer = setTimeout(function () { if (!HB) $('out').innerHTML = '<div class="error" role="alert">云端一直没回应，可能是网络不稳。请稍后重新整理页面。</div>'; }, 15000);
+  function errorBox(msg) { return '<div class="card pad error lock" role="alert"><p>' + esc(msg) + '</p><button type="button" class="btn" onclick="location.reload()">重新整理</button></div>'; }
+  var timer = setTimeout(function () { if (!HB) $('out').innerHTML = errorBox('云端一直没回应，可能是网络不稳。'); }, 15000);
   (window.HQAuth && HQAuth.cloudGet ? HQAuth.cloudGet('handbook') : Promise.resolve(null)).then(function (d) {
     clearTimeout(timer);
     if (!d || !d.chapters || !d.chapters.length) {
-      $('out').innerHTML = '<div class="card pad lock" role="alert"><b>手册要登入后才能看</b><p class="small">手册内容只放在云端，不放在网站文件里。登入时网络不稳，就会拿不到。请退出再登入一次；还是不行就找组长。</p><button type="button" class="btn g-btn3d" onclick="HQAuth.confirmLogout()">退出，重新登入</button></div>';
+      $('out').innerHTML = '<div class="card pad lock" role="alert"><h2>手册要登入后才能看</h2><p class="small">手册内容只放在云端，不放在网站文件里。登入时网络不稳，就会拿不到。请退出再登入一次；还是不行就找组长。</p><button type="button" class="btn g-btn3d" onclick="HQAuth.confirmLogout()">退出，重新登入</button></div>';
       return;
     }
     HB = d; render();
-  });
+  }).catch(function () { clearTimeout(timer); $('out').innerHTML = errorBox('手册的资料格式读不出来。请重新整理；还是不行就找组长。'); });
 })();
 </script>
 </body>
