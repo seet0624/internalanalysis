@@ -726,7 +726,9 @@ function familyMembers(row, cols){ var out=[];
 var PREFIX={}; '妈爸父母哥弟姐妹儿女子夫妻公婆爷奶孙伯叔姑舅姨侄甥媳婿亲老先太爱家孩我和的与跟及同本'.split('').forEach(function(c){PREFIX[c]=1;});
 var SURN_WEAK='连麦党卜桂巫桑郎巩麻郁储燕楚劳楼帅井祖索浦伏鹿薄杭况宿茹茅檀植衡尧寸年但利柏宗费景宫冷席卫米边';
 var NAME_STOP={'谢谢':1,'你好':1,'大家':1,'人人':1,'天天':1,'年年':1,'岁岁':1,'平安':1,'健康':1,'快乐':1,'顺利':1,'幸福':1,'吉祥':1,'如意':1,'美满':1,'安康':1,'曾用名':1,'名字':1,'姓名':1,'高血压':1,'高血脂':1,'高血糖':1,'糖尿病':1,'心脏病':1,'阳光':1,'开朗':1,'年轻':1,'年纪':1,'年龄':1,'但是':1,'但愿':1,'利益':1,'连续':1,'连连':1,'党员':1,'冷静':1,'卫生':1,'费用':1,'景色':1,'边上':1};
-function extractNoteNames(text, own, exclude){ var s=String(text||''); var t=s.indexOf('禁忌')>=0?s.split('禁忌')[0]:s; var toks=t.split(/[^\u4e00-\u9fff]+/),out=[],seen={};
+// 备注常写的吉祥话：先整句拿掉，免得「家和万事兴」被拆成人名「万事兴」（万是姓）
+var BLESS_RE=/家和万事兴|万事兴|万事如意|万事顺[意利遂心]?|心想事成|事事如意|事业有成|学业有成|身体健康|健康长寿|平平安安|健健康康|快快乐乐|顺顺利利|步步高升|前程似锦|大吉大利|财源广进|金玉满堂|吉祥如意|福寿安康|福如东海|寿比南山|年年有余|阖家幸福|合家欢乐|恭喜发财|一帆风顺|鹏程万里|万事大吉|喜气洋洋/g;
+function extractNoteNames(text, own, exclude){ var s=String(text||'').replace(BLESS_RE,'，'); var t=s.indexOf('禁忌')>=0?s.split('禁忌')[0]:s; var toks=t.split(/[^\u4e00-\u9fff]+/),out=[],seen={};
   for(var i=0;i<toks.length;i++){ var tok=toks[i],k=0; while(k<tok.length&&PREFIX[tok[k]])k++; var name=tok.slice(k);
     // 「麻烦了」「费心了」：这些姓也是常用字，前面要有称谓才算人名
     if(name.length<2||name.length>3)continue; if(!isSurname(name[0])&&name[0]!==own)continue; if(k===0&&SURN_WEAK.indexOf(name[0])>=0&&name[0]!==own)continue; if(name.length===2&&name[0]===name[1])continue;
