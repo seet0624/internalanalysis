@@ -39,6 +39,11 @@ const CASES = require('./naming-cases.json');
   await p.evaluate(() => { window._pr = window.prompt; window.prompt = () => '测试员甲'; }); await p.selectOption('#homeWho', '__other'); await p.evaluate(() => { window.prompt = window._pr; });
   ok(await p.evaluate(() => reviewerName()) === '测试员甲' && await p.$eval('#homeWho', s => s.value) === '测试员甲', '选「其他…」输入的名字要记住并显示');
 
+  // 单独下载：整份是海外（文件名带 H、表里没有名册展示）的，单独下载也要带 H
+  const oneH = await p.evaluate(() => { const nm = '名正言顺技术单 2026-10-17（2）H.xlsx', res = [{ problem: false, ov: false, disp: '黄丙丁', order: 'A1', sid: 1, rows: [{ row: 3, msgs: [], warns: [] }] }, { problem: false, ov: false, disp: '黄戊己', order: 'A2', sid: 2, rows: [{ row: 4, msgs: [], warns: [] }] }];
+    const x = { name: nm, tableDate: tableDateOf([], nm), tags: nameTags(nm), audit: { results: res }, mixed: false, overseas: true }; return outName(oneOf(x, res[1]), 'clean'); });
+  ok(oneH === '黄戊己 名正言顺技术单 2026-10-17（1）H（干净）.xlsx', '海外文件单独下载要带 H，实际 ' + oneH);
+
   // ---------- 2. 假资料技术单，从读到下载 ----------
   const e2e = await p.evaluate(async () => {
     const H = ['序号','订单时间','订单编号','会员编号','会员姓名','服务中心编号','商品标题','加工序号','产品配置编号','股东名称','新名字姓氏','使用人姓名','性别','公历生日','生肖',' 农历时辰 ','父亲名字','母亲名字','禁忌字','是否双胞胎','父亲生日','母亲生日','是否子时','兄弟姐妹','子女','新名','新名拼音','名册展示','配置人','审核人','订单状态备注','备注','总备注'];

@@ -1841,7 +1841,7 @@ async function downloadSplit(keepProblem){ if(!parsedFiles.length)return; var x=
   var ps=partsOf(x).filter(function(p){ return keepProblem?problemCount(p):passCount(p); });
   var r=await runSave(ps.map(function(p){ return outName(p,keepProblem?'bad':'clean'); }), ps.map(function(p){ return async function(){ var wb=keepProblem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p); return new Blob([await wb.xlsx.writeBuffer()]); }; })); twoDone(r.names,r.tg); }
 // 单独下载一位学员的干净文件：只放这位，文件名前面写他的名字
-function oneOf(x,r){ var drop=[]; x.audit.results.forEach(function(q){ if(q!==r)q.rows.forEach(function(rw){ drop.push(rw.row); }); }); return Object.assign({},x,{overseas:!!r.ov,mixed:false,_part:true,_drop:drop,audit:Object.assign({},x.audit,{results:[r]})}); }
+function oneOf(x,r){ var drop=[]; x.audit.results.forEach(function(q){ if(q!==r)q.rows.forEach(function(rw){ drop.push(rw.row); }); }); return Object.assign({},x,{overseas:x.mixed?!!r.ov:x.overseas,mixed:false,_part:true,_drop:drop,audit:Object.assign({},x.audit,{results:[r]})}); }
 async function downloadOne(r){ var x=parsedFiles[activeFile]; if(!x||!r)return; if(r.problem){ toast('这位是「有问题」，不能单独下载干净文件'); return; }
   var p=oneOf(x,r); await runSave([outName(p,'clean')],[async function(){ return new Blob([await (await buildCleanWorkbook(p)).xlsx.writeBuffer()]); }]); }
 async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x);
