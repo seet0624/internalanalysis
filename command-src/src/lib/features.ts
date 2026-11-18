@@ -31,7 +31,7 @@ const REVIEW: Record<string, Pick<Feature, 'name' | 'desc' | 'steps' | 'tool'>> 
   bjp: {
     tool: 'bjp',
     name: { zh: '保健品分督导', en: 'Supplement Shipments' },
-    desc: { zh: '保健品发货明细只看第一个工作表，用店铺编号查督导，按督导的群分成一份份 Excel。', en: 'Split the supplement shipment list into one Excel per supervisor group, by shop code.' },
+    desc: { zh: '保健品发货明细只看第一个工作表，用店铺编号查督导，一个督导一份 Excel。', en: 'Split the supplement shipment list into one Excel per supervisor, by shop code.' },
     steps: [{ zh: '上传发货明细', en: 'Upload the shipment list' }, { zh: '看分好的群和问题单', en: 'Check groups and problem rows' }, { zh: '下载或打包', en: 'Download one or all' }]
   }
 };
