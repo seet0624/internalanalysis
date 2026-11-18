@@ -61,4 +61,33 @@ t('月份：看工作表名，再看文件名', () => {
 t('文件名后面是督导的群', () => assert.strictEqual(B.fileName('8', '415'), '8月份保健品发货明细（415）.xlsx'));
 t('表头缺栏位会说缺什么', () => assert.deepStrictEqual(B.parse([['订单编号', '店铺编号'], ['1', 'D000001']]).missing, ['使用人姓名', '收货地址', '保健品数量']));
 
+t('督导名有「/」：文件名换掉，不会在 zip 里变成资料夹', () => assert.strictEqual(B.fileName('10', '甲/乙'), '10月份保健品发货明细（甲、乙）.xlsx'));
+t('有数量或单号、但没有订单号和编号的行：不会默默不见，要列出来', () => {
+  const p = B.parse([AOA[0], AOA[1], ['', '', '', '', '续行地址', 3, '', '7734', '']]);
+  assert.strictEqual(p.rows.length, 2);
+  assert.ok(B.group(p.rows, DATA).problems.some(x => x.row.line === 3));
+});
+t('数量不是正整数要提醒，但订单照样放进文件', () => {
+  const g = B.group(B.parse([AOA[0], [1, '26100000000009', '测试己', '1', '地址', '两盒', '申通快递', '1', 'D000001']]).rows, DATA);
+  assert.strictEqual(g.groups[0].rows.length, 1);
+  assert.ok(g.warnings.some(w => /数量/.test(w.why)));
+});
+t('店名后面有（关闭）、半形括号也认得', () => {
+  assert.strictEqual(B.shopShort('江苏省南通市崇川区（高何）服务中心（关闭）'), '（高何）服务中心');
+  assert.strictEqual(B.shopShort('假省假市(明艳雯)服务中心'), '（明艳雯）服务中心');
+});
+t('电话、单号用别的栏名也认得；真的找不到要提醒', () => {
+  const p = B.parse([['订单编号', '使用人姓名', '手机号', '收货地址', '保健品数量', '快递公司', '运单号', '店铺编号'], ['1', '甲', '138', '址', 1, '申通快递', '77', 'D000001']]);
+  assert.strictEqual(p.rows[0].phone, '138'); assert.strictEqual(p.rows[0].track, '77');
+  assert.deepStrictEqual(B.parse([['订单编号', '使用人姓名', '收货地址', '保健品数量', '店铺编号']]).optional, ['收货电话号码', '快递公司', '快递单号']);
+});
+t('超过 15 位的数字（Excel 已经改掉尾数）要提醒', () => {
+  const p = B.parse([AOA[0], [1, 1234567890123456789, '测试', '1', '址', 1, '申通快递', '1', 'D000001']]);
+  assert.ok(B.group(p.rows, DATA).warnings.some(w => /15 位/.test(w.why)));
+});
+
+t('最后的合计行（只有数量、等于加总）跳过；对不上的要列出来', () => {
+  assert.strictEqual(B.parse([AOA[0], AOA[1], AOA[2], ['', '', '', '', '', 3, '', '', '']]).rows.length, 2);
+  assert.strictEqual(B.parse([AOA[0], AOA[1], AOA[2], ['', '', '', '', '', 5, '', '', '']]).rows.length, 3);
+});
 console.log(`全部通过（${n} 项）`);
