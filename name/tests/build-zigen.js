@@ -13,6 +13,8 @@ for (const line of fs.readFileSync(process.argv[2], 'utf8').split('\n')) {
 }
 // 手动补正：壴 上面是士（喜、嘉、鼓、彭…）；寺 上面是土不是士
 ids['壴'] = ['⿱士豆']; ids['寺'] = ['⿱土寸'];
+// 金字旁不算王字根（老板确认：姓名学把金算鸡的字根，不拆出王）；鈺 这类右边有玉的照样算
+ids['金'] = [];
 const memo = {};
 function parts(ch, seen) {
   if (memo[ch]) return memo[ch]; const out = new Set([ch]); seen = seen || new Set(); if (seen.has(ch)) return out; seen.add(ch);
