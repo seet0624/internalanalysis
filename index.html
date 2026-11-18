@@ -488,9 +488,9 @@ function paintLaunch() {
   // 今天的进度（这台电脑的审核纪录）
   const today = new Date().toDateString();
   const ev = events.filter((e) => new Date(e.t).toDateString() === today);
-  const nName = ev.filter((e) => e.tool === 'name').length, nTech = ev.filter((e) => e.tool === 'tech').length;
+  const nName = ev.filter((e) => e.tool === 'name').length, nTech = ev.filter((e) => e.tool === 'tech').length, nBjp = ev.filter((e) => e.tool === 'bjp').length;
   const nAsk = ev.filter((e) => e.tool === 'tech').reduce((n, e) => n + (Number(e.ask) || 0), 0);
-  const todayLine = ev.length ? `今天：名册 <b>${nName}</b> 次 · 技术单 <b>${nTech}</b> 次 · 要问下单者 <b>${nAsk}</b> 单` : '今天还没有审核纪录，从下面两个按钮开始';
+  const todayLine = ev.length ? `今天：名册 <b>${nName}</b> 次 · 技术单 <b>${nTech}</b> 次 · 保健品 <b>${nBjp}</b> 次 · 要问下单者 <b>${nAsk}</b> 单` : '今天还没有审核纪录，从下面的按钮开始';
   $('launch').innerHTML = `<div class="launch-h"><span>我们有<b>${total}</b>个功能，点一下就能用</span><a href="command/">全部功能 →</a></div>
     <div class="launch-today">${todayLine}</div>
     <div class="launch-main">${tools.map((t, i) => `<a class="lbtn${i ? ' alt' : ''}" href="${esc(t.href)}">${LICON[t.id] || LICON.tech}<span>${esc(t.name.replace(/组$/, ''))}<small>${esc(last(t.id))}</small></span></a>`).join('')}</div>
@@ -550,9 +550,10 @@ const hhmm = (t) => { const d = new Date(t); return String(d.getHours()).padStar
 function eventLine(e) {
   if (e.tool === 'tech') return e.kind === 'downloaded' ? `技术单下载：${e.orders} 张` : `技术单 ${e.files} 个文件、${e.orders} 张：有问题 ${e.problem}、加急 ${e.urgent}、新生儿 ${e.newborn}、要问下单者 ${e.ask}`;
   if (e.tool === 'name') return `名册 ${e.files} 份、${e.students} 位学员：必须改 ${e.must}、请确认 ${e.check}、转繁体 ${e.trad}`;
+  if (e.tool === 'bjp') return `保健品发货明细 ${e.items} 单分成 ${e.groups} 份，${e.problem} 单分不到督导`;
   return e.tool + ' ' + e.kind;
 }
-const TOOL_OF = { tech: 'tech', name: 'name' };
+const TOOL_OF = { tech: 'tech', name: 'name', bjp: 'bjp' };
 function bossBoard() {
   const today = events().filter((e) => sameDay(e.t));
   const tp = today.filter((e) => e.tool === 'tech' && e.kind === 'processed'), np = today.filter((e) => e.tool === 'name' && e.kind === 'loaded');
@@ -753,7 +754,7 @@ renderFeed();
 
 // ---------- 审核事件 → 员工交接 ----------
 // 国内客服只看客服部用的工具；老板看全部
-const relevant = (e) => ROLE === 'boss' || e.tool === 'tech' || e.tool === 'name';
+const relevant = (e) => ROLE === 'boss' || e.tool === 'tech' || e.tool === 'name' || e.tool === 'bjp';
 const seenKey = 'hq-seen-' + SESSION.id;
 if (office) {
   const lastSeen = +ls.get(seenKey) || 0;

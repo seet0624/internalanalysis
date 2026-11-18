@@ -59,7 +59,7 @@ function findTeam(ref: string): HQTeam | undefined {
 const TOOL_OF_TEAM: Record<string, string> = { 'cs.name': 'name', 'cs.tech': 'tech', 'cs.bjp': 'bjp' };
 // 事件交给哪个部门：名字审核 → 客服部，保健品 → 订单管理组，技术单 → 技术支持
 const DEPT_OF_TOOL: Record<string, string> = { name: 'cs', bjp: 'orders', tech: 'techsup' };
-const deptOf = (e: HQEvent) => DEPT_OF_TOOL[e.tool] || 'techsup';
+export const deptOf = (e: HQEvent) => DEPT_OF_TOOL[e.tool] || 'techsup';
 const n = (e: HQEvent, k: string) => Number(e[k] ?? 0);
 const minsAgo = (t: number) => Math.max(0, (Date.now() - t) / 60000);
 
