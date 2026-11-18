@@ -831,7 +831,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
     var rowsText=rows.map(function(ri){ return (data[ri]||[]).join(' '); }).join(' ').toUpperCase(), linked={}; colorFam.forEach(function(g2){ if(g2._order)linked[g2._order.toUpperCase()]=1; });
     var myName=baseName(grp._disp), myOrder=String(grp._order||'').toUpperCase(), myKey=personKey(grp._order,grp._member,myName), hdr=pf.header.map(function(h){return String(h).trim();}), ciC=hdr.indexOf('服务中心编号'), myCenter=ciC>=0?String(r0[ciC]==null?'':r0[ciC]).trim():'', seenP={};
     grp._fam.concat(grp._noteNames.map(function(nm){return ['备注提到',nm];})).forEach(function(fm){ var nm=fm[1]; if(!nm||nm===myName)return;
-      (peopleIdx()[normName(nm)]||[]).forEach(function(h){ var o=h.o.split('|')[0], pp=h.p; if(h.o===myKey||linked[o]||seenP[h.o]||(isOrderNo(o)&&o!==myOrder&&rowsText.indexOf(o)>=0))return; if(o===myOrder||(pp.g||[]).some(function(f){ return (grp._fullnames||[]).indexOf(f)>=0; }))return; // 同一个订单号、或新名就是自己的：是自己，不比 seenP[h.o]=1; if(pp.n===myName&&pp.m&&pp.m===grp._member)return;
+      (peopleIdx()[normName(nm)]||[]).forEach(function(h){ var o=h.o.split('|')[0], pp=h.p; if(h.o===myKey||linked[o]||seenP[h.o]||(isOrderNo(o)&&o!==myOrder&&rowsText.indexOf(o)>=0))return; if((pp.g||[]).some(function(f){ return (grp._fullnames||[]).indexOf(f)>=0; }))return; // 新名就是自己的：是自己（历史库挂错的记录），不比 seenP[h.o]=1; if(pp.n===myName&&pp.m&&pp.m===grp._member)return;
         var strong=!!((pp.m&&pp.m===grp._member)||(pp.c&&pp.c===myCenter)), inNow=!!orderIndex[o], lab=fm[0]+'「'+nm+'」'+(inNow?'同一批的订单 ':'以前的订单 ')+o, sk;
         (pp.g||[]).forEach(function(full){ sk=surLen(full,pp.s); var gn=Array.from(full).slice(sk).join(''); if(gn&&gn!==Array.from(nm).slice(sk).join(''))fam.push([lab,gn,!strong,true,full]); });
         if(strong&&(pp.g||[]).length)colorNotes.push('✓ 家人「'+nm+'」'+(inNow?'在同一批里':'以前审过')+'（订单 '+o+(inNow?'':(pp.d?'，'+pp.d:''))+'，新名：'+pp.g.join('／')+'）——已自动比对撞字撞音'); }); });
@@ -867,9 +867,9 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
     var needEyes=noteNeedsEyes(notesAll);
 
     // 老板规则：同辈兄弟姐妹（哥姐弟妹、堂表、双胞胎）同字同音不算问题；客户在禁忌栏/备注写了同音、同字的要求才照查
-    var custAsk=/同音|同字|谐音|諧音|音同|字同|不重复|不重複/.test((cols.taboo>=0?String(r0[cols.taboo]==null?'':r0[cols.taboo]):'')+' '+(grp._notesAll||''));
+    var custAsk=/重字|不能跟|不可跟|不要跟/.test(cols.taboo>=0?String(r0[cols.taboo]==null?'':r0[cols.taboo]):'')||INSTRUCT_RE.test(cols.taboo>=0?String(r0[cols.taboo]==null?'':r0[cols.taboo]):'')||/同音|同字|谐音|諧音|重字|不重复|不重複|相同的字|一样的字/.test(grp._notesAll||'');
     if(!custAsk){ var d0={father:cols.father>=0?String(r0[cols.father]||''):'',mother:cols.mother>=0?String(r0[cols.mother]||''):'',sib:cols.sib>=0?String(r0[cols.sib]||''):'',kids:cols.kids>=0?String(r0[cols.kids]||''):'',note1:cols.note1>=0?String(r0[cols.note1]||''):'',note2:cols.note2>=0?String(r0[cols.note2]||''):''};
-      fam=fam.filter(function(p){ return !sameGen(whoOf({member:p[0],full:p[4]||p[1]},d0).who); }); }
+      fam=fam.filter(function(p){ return !sibExempt(p,d0); }); }
     var grpSur=String(cols.surname>=0&&r0[cols.surname]!=null?r0[cols.surname]:'').trim();
     function fg(p){ var n=p[1]; if(p[3])return n; if(grpSur&&n.indexOf(grpSur)===0&&n.length>grpSur.length)return n.slice(grpSur.length); if(n.length>=3&&COMPOUND[n.slice(0,2)])return n.slice(2); if(n.length>=2&&isSurname(n[0]))return n.slice(1); return n; }
     var rowData=rows.map(function(ri){ var neu=String(data[ri][cols.neu]==null?'':data[ri][cols.neu]).trim(); var aa=String(data[ri][cols.py]==null?'':data[ri][cols.py]);
@@ -1561,7 +1561,13 @@ function relWord(d,key){ if(!key)return ''; var SKIP=/名正言[顺順]|新名|�
   return fb==='姐妹'||fb==='兄弟'?'兄弟姐妹':fb; }
 function isNewName(d,nm){ var re=new RegExp('(?:名正言[顺順]|新名|改名|更名)\\s*[\\uff1a:]?\\s*'+nm); return [d.father,d.mother,d.sib,d.kids].some(function(t){ return re.test(String(t||'')); }); }
 // 同辈：兄弟姐妹、哥姐弟妹（大哥、二姐、堂哥、表妹…）、双胞胎
-function sameGen(w){ return /^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|双胞胎|雙胞胎|龙凤胎|龍鳳胎)/.test(w||'')||/^[大小二三四五六七八九十老]*[堂表]?[哥姐弟妹兄]+$/.test(w||''); }
+function sameGen(w){ return /^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|双胞胎|雙胞胎|龙凤胎|龍鳳胎)$/.test(w||'')||/^[大小二三四五六七八九十老]*[堂表]?[哥姐弟妹兄]+$/.test(w||''); }
+// 免查要有根据：文字里真的写了同辈称呼（哥哥：、兄弟姐妹：），名字前面又没紧贴别的称呼（爱人李四、外婆李小红、姐夫王强）
+function famTextName(p){ var m=p[0], o; if((o=m.match(/^(?:同色家人|双胞胎)「([^」]*)」$/)))return shortName(o[1]); if((o=m.match(/^关联学员「([^」]*)」/)))return o[1]; if((o=m.match(/^.+?「([^」]*)」(?:同一批的|以前的)订单/)))return o[1]; return p[1]; }
+function sibExempt(p,d){ if(/^双胞胎「/.test(p[0]))return true; var nm=famTextName(p); if(!nm)return false; var who=relWord(d,nm); if(!sameGen(who))return false;
+  var t=[d.sib,d.kids,d.note1,d.note2].join('\n'), at=t.indexOf(nm), pre=at>0?(t.slice(0,at).match(/([\u4e00-\u9fff]{1,4})$/)||['',''])[1]:'';
+  for(var k=2;k<=3&&k<nm.length;k++){ var hd=nm.slice(0,k); if(!sameGen(hd)&&(REL_WORDS[hd]||isRelLabel(hd)))return false; } // 「爱人钱小玉」整串当成一个名字时，称呼在名字里面
+  return !(pre&&!sameGen(pre)&&(REL_WORDS[pre]||new RegExp('['+REL_ROOT+'嫂媳婿]').test(pre))); }
 function whoOf(h,d){ var m=h.member, o;
   if(m==='父亲'||m==='母亲')return {who:m,isNew:isNewName(d,h.full)};
   if((o=m.match(/^关联订单\s*(\S+)\s*的新名$/)))return {who:relWord(d,o[1]),isNew:true};
@@ -1584,7 +1590,7 @@ function outReason(r){ var out=[];
     if(clauses.length)out.push('新下来的名字（'+rw.neu+'）'+clauses.map(function(k){ return '和'+famsOf[k].join('、')+k; }).join('，'));
     rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m)&&!/订单状态备注/.test(m))out.push(cleanMsg(m)); }); }); // 订单状态备注不是名字的问题，不写进给出去的文件
   var seen={}; out=out.filter(function(t){ if(seen[t])return false; seen[t]=1; return true; });
-  return out.length?out.join('；'):'名字需要重新调整'; } // 只写撞到的、真正的问题；提醒类（请确认、请人工看）不写进给出去的文件
+  return out.length?out.join('；'):(r.rows.some(function(rw){ return rw.msgs.some(function(m){ return /订单状态备注/.test(m); }); })?'订单状态要先确认':'名字需要重新调整'); } // 只写撞到的、真正的问题；提醒类（请确认、请人工看）不写进给出去的文件
 
 // 「干净·可上传」那份：上传系统要的精简表（一个新名一行，9 栏）
 var UPLOAD_COLS=[['订单',['订单编号'],16.28],['服务中心编号',['服务中心编号'],18.14],['新名字姓氏',['新名字姓氏'],15.28],['姓名',['使用人姓名'],32.5],['性别',['性别'],6.72],
