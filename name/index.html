@@ -179,6 +179,7 @@ body.light .qtabs button.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.
 .han.clash{background:var(--clash-bg);box-shadow:inset 0 0 0 1px var(--bad-line)}
 .han.clash .hz{color:var(--clash-ink)} .han.clash .tn{color:var(--clash-sub)}
 .han.soft{background:var(--soft-bg)} .han.soft .hz{color:var(--warn)}
+.nnote{margin-top:10px;padding:6px 10px;border-radius:8px;background:var(--clash-bg);color:var(--clash-ink);font-size:13px;font-weight:700}
 .spk{margin:0 0 20px 6px;width:36px;height:36px;border-radius:99px;border:1px solid var(--line2);background:var(--panel2);color:var(--muted);display:inline-flex;align-items:center;justify-content:center}
 .spk:hover{color:var(--gold);border-color:var(--gold)}
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 22px}
@@ -559,6 +560,8 @@ body:not(.light) .qi.on{background:#3A2F1C;border-color:#B8873A}
       <button type="button" data-act="dlbad">只下载「有问题」 <span class="k" id="kBad"></span></button>
       <button type="button" data-act="dlclean">只下载「干净·可上传」 <span class="k" id="kClean"></span></button>
       <button type="button" data-act="dlsup" id="dlSupBtn">督导文件（国内） <span class="k" id="kSup"></span></button>
+      <hr id="dlOneSep" style="display:none">
+      <button type="button" data-act="dlone" id="dlOneBtn" style="display:none">只下载这位学员 <span class="k" id="kOne"></span></button>
     </div>
   </div>
 </header>
@@ -943,7 +946,9 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
           if(bad.length)warns.push('⚠ 生肖'+zt+'：「'+ch+'」含忌用部首「'+bad.join('、')+'」，请命名师确认');
           else if(good.length)warns.push('✓ 生肖'+zt+'：「'+ch+'」含喜用部首「'+good.join('、')+'」'); });
         var bigZ='鼠龙马虎'.indexOf(zt)>=0, smallZ='牛兔蛇羊猴鸡狗猪'.indexOf(zt)>=0;
-        if(bigZ||smallZ)given.forEach(function(ch){ var rr=zigenOf(ch,bigZ?SMALL_ROOTS:BIG_ROOTS,bigZ?BIG_ROOTS:SMALL_ROOTS); if(rr.length)msgs.push('新下来的名字（'+neu+'）的「'+ch+'」有'+(bigZ?'小':'大')+'字根「'+rr.join('、')+'」，属'+zt+'（'+(bigZ?'大':'小')+'生肖）不能用'); }); } }
+        if(bigZ||smallZ)given.forEach(function(ch,gi){ var rr=zigenOf(ch,bigZ?SMALL_ROOTS:BIG_ROOTS,bigZ?BIG_ROOTS:SMALL_ROOTS); if(!rr.length)return;
+          msgs.push('新下来的名字（'+neu+'）的「'+ch+'」有'+(bigZ?'小':'大')+'字根「'+rr.join('、')+'」，属'+zt+'（'+(bigZ?'大':'小')+'生肖）不能用');
+          addHit('字根',gi+1,ch); hits[hits.length-1].note='「'+ch+'」有'+(bigZ?'小':'大')+'字根「'+rr.join('、')+'」，属'+zt+'不能用'; }); } }
             if(RULES.checkYue){ var yueSeq=given.map(function(ch){return yueSylOf(ch);}); var yueStr=yueSeq.filter(Boolean).join(' ');
         for(var yb in RULES.YUE_BAD){ if(!yb)continue; var hitYue=false;
           if(yb.indexOf(' ')>=0){ if((' '+yueStr+' ').indexOf(' '+yb+' ')>=0)hitYue=true; } else { if(yueSeq.indexOf(yb)>=0)hitYue=true; }
@@ -1284,7 +1289,7 @@ function renderQueue(){ var x=parsedFiles[activeFile]; if(!x)return; var all=x.a
   document.querySelectorAll('#qlist .qi').forEach(function(b){ b.onclick=function(){ selectSid(b.getAttribute('data-sid')); }; });
   var cs=document.getElementById('clearSearch'); if(cs)cs.onclick=function(){ doSearch(''); };
   var on=document.querySelector('#qlist .qi.on'); if(on&&on.scrollIntoView){ try{ on.scrollIntoView({block:'nearest'}); }catch(e){} } }
-function selectSid(sid){ curSid=sid; renderQueue(); renderStudent(); var m=document.getElementById('main'); if(m)m.scrollTop=0; }
+function selectSid(sid){ closeMenus(); curSid=sid; renderQueue(); renderStudent(); var m=document.getElementById('main'); if(m)m.scrollTop=0; }
 function move(d){ var vis=visibleList(); if(!vis.length)return; var i=-1; vis.forEach(function(r,k){ if(String(r.sid)===String(curSid))i=k; });
   var n=i+d; if(n<0||n>=vis.length){ toast(d>0?'已经是最后一位':'已经是第一位'); return; } selectSid(String(vis[n].sid)); }
 function nextMust(){ var vis=visibleList(); if(!vis.length)return; var i=-1; vis.forEach(function(r,k){ if(String(r.sid)===String(curSid))i=k; });
@@ -1328,11 +1333,12 @@ function nameCard(rw,idx,iss){ var mine=iss.filter(function(i){ return i.raw&&i.
   var sk=Array.from(rw.surname||'').length||1;
   var hs=Array.from(rw.neu).map(function(ch,p){
     if(!/[㐀-鿿豈-﫿]/.test(ch))return '<span class="han" style="cursor:default"><span class="hz">'+esc(ch)+'</span><span class="tn"></span></span>';
-    var hit=rw.hits.filter(function(h){return h.pos===p;})[0]; var cls='han'+(hit?((hit.soft||hit.kind==='禁音')?' soft':' clash'):'');
+    var at=rw.hits.filter(function(h){return h.pos===p;}), hit=at.filter(function(h){return !(h.soft||h.kind==='禁音');})[0]||at[0]; var cls='han'+(hit?((hit.soft||hit.kind==='禁音')?' soft':' clash'):'');
     var tone=p>=sk?((rw.tones[p-sk]&&rw.tones[p-sk].toned)||''):surnamePy(ch);
     return '<button type="button" class="'+cls+'" data-ch="'+esc(ch)+'" aria-label="「'+esc(ch)+'」的读音与简繁"><span class="hz">'+esc(ch)+'</span><span class="tn">'+esc(tone)+'</span></button>'; }).join('');
   return '<section class="ncard '+st+'"><div class="nh"><span>新名 '+(idx+1)+(rw.surname?'<span class="lbl">　·　姓「'+esc(rw.surname)+'」</span>':'')+'</span><span class="st '+st+'">'+stText+'</span></div><div class="nrow">'+hs+
-    '<button type="button" class="spk" data-say="'+esc(rw.neu)+'" aria-label="朗读 '+esc(rw.neu)+'"><svg class="i"><use href="#i-spk"/></svg></button></div></section>'; }
+    '<button type="button" class="spk" data-say="'+esc(rw.neu)+'" aria-label="朗读 '+esc(rw.neu)+'"><svg class="i"><use href="#i-spk"/></svg></button></div>'+
+    rw.hits.map(function(h){return h.note;}).filter(function(n,i,a){return n&&a.indexOf(n)===i;}).map(function(n){ return '<div class="nnote">✕ '+esc(n)+'</div>'; }).join('')+'</section>'; }
 // 参考资料分类（只看文字分组显示，不影响判定）
 function refCat(it){ var t=String(it.html||'').replace(/<[^>]+>/g,''); if(/生肖/.test(t))return ['zod','生肖参考']; if(/(家人|父|母|兄|弟|姐|妹|子女|订单|编号|关联)/.test(t))return ['fam','家人比对']; if(/(以前|之前|历史|曾经|上次|重复|已审|旧名)/.test(t))return ['his','历史比对']; return ['oth','其他参考']; }
 function fmtTime(t){ var d=new Date(t), p=function(n){return (n<10?'0':'')+n;}; return p(d.getDate())+'.'+p(d.getMonth()+1)+'.'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()); }
@@ -1360,7 +1366,7 @@ function centerHtml(r,x){ var sid=String(r.sid), det=r.rows[0].detail||{};
     '<label class="revchk'+(r.reviewed?' on':'')+'"><input type="checkbox" id="revChk"'+(r.reviewed?' checked':'')+'> 已复核</label></div></section>';
   var trad=String(det.disp||'').indexOf('繁')>=0;
   h+='<div class="names'+(trad?'':' sc')+'">'+r.rows.map(function(rw,i){ return nameCard(rw,i,iss); }).join('')+'</div>';
-  h+='<div class="tools"><button type="button" class="btn sm" id="sbToggle">试改名字</button> <button type="button" class="btn sm" id="oneDl"'+(bad?' disabled title="有问题的学员不能单独下载干净文件"':' title="只下载这位学员的干净文件"')+'>单独下载'+(keepBase(x)?'（干净）':'（上传）')+'</button></div>';
+  h+='<div class="tools"><button type="button" class="btn sm" id="sbToggle">试改名字</button> <button type="button" class="btn sm pri" id="oneDl" title="只下载这位学员的'+(bad?'有问题':'干净')+'文件"><svg class="i"><use href="#i-dl"/></svg>下载这位（'+(bad?'有问题':'干净')+'）</button></div>';
   h+='<div class="sandbox" id="sandbox"><div class="sbf"><input id="sbName" placeholder="试一个新名，例：'+esc((r.rows[0]&&r.rows[0].surname)||'陳')+'星宇" aria-label="试改的新名"><input id="sbPy" placeholder="拼音（可不填）" aria-label="拼音"><button type="button" class="btn pri sm" id="sbGo">检查</button></div><div class="res" id="sbRes"></div></div>';
   h+='<div class="g-rec"><div><span>审核状态</span><b class="'+(bad?'bad':'ok')+'">'+(bad?'有问题':'通过')+'</b></div><div><span>复核时间</span><b>'+(r.reviewed&&tm?fmtTime(tm):(r.reviewed?'已复核':'还没复核'))+'</b></div>'+
     '<div><span>审核人</span><select id="revWho" class="g-who-in" aria-label="审核人（可以改成别人）"></select></div><div><span>处理事项</span><b class="'+(main.length?'bad':'ok')+'">'+main.length+'</b></div></div>';
@@ -1855,8 +1861,12 @@ async function downloadSplit(keepProblem){ if(!parsedFiles.length)return; var x=
   var r=await runSave(ps.map(function(p){ return outName(p,keepProblem?'bad':'clean'); }), ps.map(function(p){ return async function(){ var wb=keepProblem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p); return new Blob([await wb.xlsx.writeBuffer()]); }; })); twoDone(r.names,r.tg); }
 // 单独下载一位学员的干净文件：只放这位，文件名前面写他的名字
 function oneOf(x,r){ var drop=[]; x.audit.results.forEach(function(q){ if(q!==r)q.rows.forEach(function(rw){ drop.push(rw.row); }); }); return Object.assign({},x,{overseas:x.mixed?!!r.ov:x.overseas,mixed:false,_part:true,_drop:drop,audit:Object.assign({},x.audit,{results:[r]})}); }
-async function downloadOne(r){ var x=parsedFiles[activeFile]; if(!x||!r)return; if(r.problem){ toast('这位是「有问题」，不能单独下载干净文件'); return; }
-  var p=oneOf(x,r); await runSave([outName(p,'clean')],[async function(){ return new Blob([await (await buildCleanWorkbook(p)).xlsx.writeBuffer()]); }]); }
+async function downloadOne(r){ var x=parsedFiles[activeFile]; if(!x||!r){ toast('先在左边点一位学员'); return; }
+  var p=oneOf(x,r), k=r.problem?'bad':'clean'; await runSave([outName(p,k)],[async function(){ return new Blob([await (r.problem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p)).xlsx.writeBuffer()]); }]); }
+// 「下载结果」菜单：开着学员页时多一项「只下载这位学员」
+function syncOneDl(){ var r=curResult(), on=!!(r&&document.getElementById('main').querySelector('#oneDl'));
+  document.getElementById('dlOneSep').style.display=document.getElementById('dlOneBtn').style.display=on?'':'none';
+  if(on)document.getElementById('kOne').textContent=baseName(r.disp)+'（'+(r.problem?'有问题':'干净')+'）'; }
 async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x);
   var r=await runSave(ps.map(function(p){ return outName(p,'orig'); }), ps.map(function(p){ return async function(){ return new Blob([await origBuffer(p)]); }; })); twoDone(r.names,r.tg); }
 function dlCatch(p){ return Promise.resolve(p).catch(function(e){ if(e&&e.name==='AbortError'){ toast('已取消，没有下载'); return; } console.error(e); alert(HQTool.friendly('下载的时候出错，这次没有下载完整（如果已经下载了一份，另一份没有）。',e)); }); } // 下载出错一定要让客服知道
@@ -1971,6 +1981,11 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-19', title:'单独下载更明显、字根不能用的字标红', items:[
+    '大小生肖字根不能用的字，在名字卡上标红，下面写「属牛不能用」这类说明',
+    '学员页的按钮改成金色「下载这位（干净）」／「下载这位（有问题）」',
+    '右上角「下载结果」菜单：开着学员页时，最下面多一项「只下载这位学员」',
+    '有问题的学员也能单独下载他的有问题文件，文件名前面写他的名字']},
   {date:'2026-11-19', title:'大小生肖字根', items:[
     '大生肖（鼠龙马虎）的新名不能有小字根：小、次、亚、丞、臣、士、工、力、少、寸',
     '小生肖（牛兔蛇羊猴鸡狗猪）的新名不能有大字根：君、大、王、冠、首、令、长、至、尊',
@@ -2199,6 +2214,7 @@ function runAct(a){ var x=parsedFiles[activeFile];
     case 'overseas': if(x&&x.mixed){ toast('这份有国内也有海外（看名册展示），下载会自动分开'); break; } if(x){ x.overseas=!x.overseas; var om=load('mzys_overseas',{}); om[x.name]=x.overseas; store('mzys_overseas',om); renderToolState(); toast(x.overseas?'这份算海外，文件名会加（H）':'这份算国内，文件名不加（H）'); } break;
     case 'dlbad': dlCatch(downloadSplit(true)); break;
     case 'dlclean': dlCatch(downloadSplit(false)); break;
+    case 'dlone': dlCatch(downloadOne(curResult())); break;
     case 'dlsup': dlCatch(downloadSup()); break;
     case 'suptable': openSupTable(); break;
     case 'supimport': importSupData(); break;
@@ -2225,7 +2241,7 @@ document.getElementById('fileSel').onchange=function(e){ activeFile=+e.target.va
 document.getElementById('searchBox').oninput=function(e){ searchTerm=e.target.value; queueFilter='all'; renderAll(); };
 document.getElementById('searchBox').onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); e.target.blur(); } };
 document.getElementById('moreBtn').onclick=function(e){ e.stopPropagation(); toggleMenu('moreBtn','moreMenu'); };
-document.getElementById('dlBtn').onclick=function(e){ e.stopPropagation(); toggleMenu('dlBtn','dlMenu'); };
+document.getElementById('dlBtn').onclick=function(e){ e.stopPropagation(); syncOneDl(); toggleMenu('dlBtn','dlMenu'); };
 document.querySelectorAll('header [data-act], .g-side [data-act]').forEach(function(b){ b.onclick=function(e){ e.stopPropagation(); closeMenus(); runAct(b.getAttribute('data-act')); }; });
 document.getElementById('setClose').onclick=function(){ document.getElementById('setModal').style.display='none'; };
 document.getElementById('reRun').onclick=function(){ applySettings(); document.getElementById('setModal').style.display='none'; if(!parsedFiles.length)renderHome(); toast('已按新规则重新检查'); };
