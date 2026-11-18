@@ -126,6 +126,12 @@ const CASES = require('./naming-cases.json');
   ok(inv.once[0] === inv.once[1] && (String(inv.once[0]).match(/撞同/g) || []).length === 1, '同一单兄弟互撞只写一次，实际 ' + JSON.stringify(inv.once));
   ok(inv.req === '兄弟姐妹', '备注「客户要求：」不是称呼，应该写兄弟姐妹，实际 ' + inv.req);
   ok(!/人工|人手/.test(inv.manual), '有问题文件的原因不能写「人工」，实际 ' + inv.manual);
+  // 备注写「老婆已提交名正言顺，订单编号：A…」：关系是老婆，不是「订单编号」
+  const ordRel = await p.evaluate(() => {
+    const one = note => outReason({ rows: [{ neu: '方甲乙', given: '甲乙', hits: [{ kind: '撞字', ni: 1, fc: '甲', full: '林甲丙', member: '关联学员「林甲丙」(A26000000000001)' }], msgs: [], warns: [], tones: [], detail: { note2: note } }] });
+    return [one('老婆已提交名正言顺，订单编号：A26000000000001'), one('订单编号：A26000000000001'), one('弟弟：A26000000000001')].join(' | ');
+  });
+  ok(ordRel === '新下来的名字（方甲乙）和老婆新下来的名字（林甲丙）撞同一个字「甲」 | 新下来的名字（方甲乙）和兄弟姐妹新下来的名字（林甲丙）撞同一个字「甲」 | 新下来的名字（方甲乙）和弟弟新下来的名字（林甲丙）撞同一个字「甲」', '备注「老婆…订单编号：」关系要写老婆，不能写「订单编号」，实际 ' + ordRel);
   // 老板规则：大生肖（鼠龙马虎）不能有小字根，小生肖（牛兔蛇羊猴鸡狗猪）不能有大字根；姓不查
   const zg = await p.evaluate(async () => {
     const H = ['序号','订单编号','新名字姓氏','使用人姓名','生肖','父亲名字','母亲名字','兄弟姐妹','子女','禁忌字','新名','新名拼音','名册展示'];

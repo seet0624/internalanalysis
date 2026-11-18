@@ -1576,9 +1576,15 @@ function relWord(d,key){ if(!key)return ''; var SKIP=/名正言[顺順]|新名|�
   var fields=[d.sib,d.kids,d.note1,d.note2], fb='';
   for(var i=0;i<fields.length;i++){ var t=String(fields[i]||''), at=t.indexOf(key); if(at<0)continue;
     var ms=t.slice(0,at).match(/[一-鿿]{1,4}(?=[：:])/g)||[];
-    for(var j=ms.length-1;j>=0;j--){ if(SKIP.test(ms[j]))continue; var l=ms[j].replace(/(的)?名字$/,'')||ms[j];
-      if(/^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|子女|家人|家属)$/.test(l)){ fb=fb||l; break; } if(fb&&!isRelLabel(l))break; return l; } } // 往后找时只认真正的称呼（「客户要求：」不算） // 「兄弟姐妹名字：」太笼统，先看备注有没有写「弟弟：」
+    for(var j=ms.length-1;j>=0;j--){ if(SKIP.test(ms[j])||ORD_LBL.test(ms[j]))continue; var l=ms[j].replace(/(的)?名字$/,'')||ms[j];
+      if(/^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|子女|家人|家属)$/.test(l)){ fb=fb||l; break; } if(fb&&!isRelLabel(l))break; return l; }
+    if(!fb){ var nr=nearRel(t.slice(0,at)); if(nr)return nr; } } // 往后找时只认真正的称呼（「客户要求：」不算） // 「兄弟姐妹名字：」太笼统，先看备注有没有写「弟弟：」
   return fb==='姐妹'||fb==='兄弟'?'兄弟姐妹':fb; }
+// 「订单编号：A…」的「订单编号」只是标签，不是关系
+var ORD_LBL=/^(订单|訂單|会员|會員)?(编号|編號|号码|號碼|号|號)?$|单号|單號/;
+// 冒号前没有称呼时，在同一句里往前找最后一个称呼：「老婆已提交名正言顺，订单编号：A…」→ 老婆
+function nearRel(s){ var c=String(s).split(/[。；;\n]/).pop(), re=new RegExp('['+REL_MOD+']*['+REL_ROOT+']+|'+Object.keys(REL_WORDS).join('|'),'g'), m, last='';
+  while((m=re.exec(c)))if(m[0].length>=2&&isRelLabel(m[0]))last=m[0]; return last; }
 function isNewName(d,nm){ var re=new RegExp('(?:名正言[顺順]|新名|改名|更名)\\s*[\\uff1a:]?\\s*'+nm); return [d.father,d.mother,d.sib,d.kids].some(function(t){ return re.test(String(t||'')); }); }
 // 同辈：兄弟姐妹、哥姐弟妹（大哥、二姐、堂哥、表妹…）、双胞胎
 function sameGen(w){ return /^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|双胞胎|雙胞胎|龙凤胎|龍鳳胎)$/.test(w||'')||/^[大小二三四五六七八九十老]*[堂表]?[哥姐弟妹兄]+$/.test(w||''); }
@@ -1981,6 +1987,9 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-20', title:'备注写「老婆…订单编号：」认得出是老婆', items:[
+    '备注写「老婆已提交名正言顺，订单编号：A…」，撞字原因写「和老婆新下来的名字」，不再写「和订单编号新下来的名字」',
+    '「订单编号：」「编号：」「单号：」只是标签，不当成关系；同一句前面有称呼（老婆、弟弟、爱人…）就用那个称呼，找不到才写兄弟姐妹']},
   {date:'2026-11-19', title:'单独下载更明显、字根不能用的字标红', items:[
     '大小生肖字根不能用的字，在名字卡上标红，下面写「属牛不能用」这类说明',
     '学员页的按钮改成金色「下载这位（干净）」／「下载这位（有问题）」',
