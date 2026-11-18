@@ -71,6 +71,10 @@ const CASES = require('./naming-cases.json');
     const badWb = await buildSplitWorkbook(dom, true), badWs = badWb.worksheets[0], badBuf = await badWb.xlsx.writeBuffer();
     const ovW = await read(await origBuffer(ps.find(q => q.overseas))); R.ovSeq = [4, 5].map(r => ovW.getRow(r).getCell(1).value); R.badSeq = [4, 5].map(r => badWs.getRow(r).getCell(1).value); R.badFill = fillKey(badWs.getRow(4).getCell(1)) + '|' + fillKey(badWs.getRow(4).getCell(12)); R.origFill = fillKey(orig.getRow(4).getCell(1)); R.badHeader = badWs.getRow(3).getCell(34).value; R.badW = badWs.getColumn(34).width; R.badRows = []; for (let r = 4; r <= 5; r++) R.badRows.push([badWs.getRow(r).getCell(26).value, badWs.getRow(r).getCell(34).value]);
     const li = x.audit.results.find(r => /李丽/.test(r.disp)), one = oneOf(x, li); R.oneName = outName(one, 'clean'); R.oneRows = (await read(await (await buildCleanWorkbook(one)).xlsx.writeBuffer())).actualRowCount;
+    // 有问题的学员也能单独下载（下载他的有问题文件），学员页按钮可以按，「下载结果」菜单也有这一项
+    const wm = x.audit.results.find(r => /王小明/.test(r.disp)), oneB = oneOf(x, wm); R.oneBadName = outName(oneB, 'bad');
+    selectSid(wm.sid); const ob = document.getElementById('oneDl'); R.oneBtn = (ob && !ob.disabled ? '' : '按不了 ') + (ob ? ob.textContent : '没有按钮');
+    syncOneDl(); const mb = document.getElementById('dlOneBtn'); R.oneMenu = mb.style.display === 'none' ? '看不到' : mb.textContent;
     const clean = await (await buildCleanWorkbook(dom)).xlsx.writeBuffer(); R.cleanRows = (await read(clean)).actualRowCount;
     parsedFiles.length = 0; await loadWithBuffers([{ name: '（有问题）王小明 名正言顺技术单2026-10-01（1）.xlsx', arrayBuffer: async () => badBuf }]);
     const y = parsedFiles[0]; R.reName = outName(y, 'orig'); const o2 = await read(await origBuffer(y)); R.reAH = [3, 4, 5].map(r => o2.getRow(r).getCell(34).value);
@@ -139,9 +143,10 @@ const CASES = require('./naming-cases.json');
     const buf = await wb.xlsx.writeBuffer(); parsedFiles.length = 0;
     await loadWithBuffers([{ name: '生肖字根 2026-10-01.xlsx', arrayBuffer: async () => buf }]);
     const rs = parsedFiles[0].audit.results;
-    return rs.map(r => baseName(r.disp) + ':' + (r.problem ? '有问题' : '通过')).join(' ') + ' | ' + outReason(rs[0]);
+    selectSid(rs[0].sid); const red = Array.from(document.querySelectorAll('#main .han.clash .hz')).map(e => e.textContent).join('');
+    return rs.map(r => baseName(r.disp) + ':' + (r.problem ? '有问题' : '通过')).join(' ') + ' | ' + outReason(rs[0]) + ' | 红字:' + red;
   });
-  ok(zg === '佘甲:有问题 周甲:有问题 王甲:通过 周乙:通过 周丙:通过 周丁:有问题 吴甲:通过 吴乙:通过 吴丙:有问题 吴丁:通过 | 新下来的名字（佘珮帆）的「珮」有大字根「王」，属牛（小生肖）不能用', '大小生肖字根，实际 ' + zg);
+  ok(zg === '佘甲:有问题 周甲:有问题 王甲:通过 周乙:通过 周丙:通过 周丁:有问题 吴甲:通过 吴乙:通过 吴丙:有问题 吴丁:通过 | 新下来的名字（佘珮帆）的「珮」有大字根「王」，属牛（小生肖）不能用 | 红字:珮', '大小生肖字根（名字卡上不能用的字要标红），实际 ' + zg);
 
   // 老板规则：同辈兄弟姐妹同字同音不算问题（客户写了「家人不同音不同字」才照查）；「訂單編號」不是名字；申请加急不卡；同一个订单号是自己
   const gen = await p.evaluate(async () => {
@@ -183,6 +188,9 @@ const CASES = require('./naming-cases.json');
   ok(e2e.badW >= 14, '原因栏要拉宽（每栏至少 14），实际 ' + e2e.badW);
   { const a = e2e.badRows.find(r => r[0] === '王山林')?.[1], z = e2e.badRows.find(r => r[0] === '王晓云')?.[1];
     ok(/山/.test(String(a)) && a === z, '同一个订单两行要写一样的原因（没问题的王晓云也一样），实际 ' + JSON.stringify(e2e.badRows)); }
+  ok(/^（有问题）王小明 /.test(e2e.oneBadName), '单独下载有问题的王小明：文件名前面写王小明、是有问题文件，实际 ' + e2e.oneBadName);
+  ok(e2e.oneBtn === '下载这位（有问题）', '有问题的学员，学员页按钮也要可以按、写清楚下载什么，实际 ' + e2e.oneBtn);
+  ok(/只下载这位学员.*王小明.*有问题/.test(e2e.oneMenu), '「下载结果」菜单要有「只下载这位学员」，实际 ' + e2e.oneMenu);
   ok(/^李丽 /.test(e2e.oneName) && e2e.oneRows === 3, '单独下载李丽：文件名前面写李丽、只放她两个新名（表头 + 2 行），实际 ' + e2e.oneName + ' / ' + e2e.oneRows + ' 行');
   ok(e2e.cleanRows === 3, '国内干净文件应该是表头 + 李丽 2 行，实际 ' + e2e.cleanRows + ' 行');
   ok(e2e.reName === '王小明 名正言顺技术单2026-10-01（1）.xlsx', '改好拖回来，原装名应该照原名拿掉（有问题），实际 ' + e2e.reName);
