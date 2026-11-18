@@ -136,6 +136,7 @@ body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto
 .g-sysnav a[aria-current="page"]{outline:2px solid rgba(233,194,122,.55);outline-offset:2px}
 @media (max-width:1760px){.g-sysnav{gap:8px}.g-sysnav a{min-height:40px;padding:0 14px;font-size:15px;letter-spacing:0}}
 @media (min-width:1000px) and (max-width:1279px){body.g-pat .g-sysnav{display:none!important}}   /* 技术单、保健品窄桌面：左栏已经有同样的入口 */
+@media (min-width:1000px) and (max-width:1299px){.g-sysnav.g-nofile{gap:6px}.g-sysnav.g-nofile a{padding:0 10px}.g-sysnav.g-nofile a svg{display:none}}   /* 名字审核没有左栏：窄桌面拿掉图标，顶栏保持一行 */
 .g-sysnav svg{width:20px;height:20px;flex:none}
 .g-user{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-weight:600}
 .g-user:empty{display:none}

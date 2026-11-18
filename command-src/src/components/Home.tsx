@@ -47,9 +47,10 @@ export function HomeHeader({ onMenu }: { onMenu: () => void }) {
         )}
       </nav>
       <div className="ml-auto flex items-center gap-1">
-        <a href="../name/" className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-[#C8D0DC] hover:bg-white/10"><ClipboardCheck className="size-4" />名字审核</a>
-        <a href="../tech/" className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-[#C8D0DC] hover:bg-white/10"><FileSpreadsheet className="size-4" />技术单审核</a>
-        <a href="../bjp/" className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-[#C8D0DC] hover:bg-white/10"><Package className="size-4" />保健品分督导</a>
+        {/* 窄屏只放图标（文字给读屏），标题列才不会被挤成好几行 */}
+        <a href="../name/" aria-label="名字审核" title="名字审核" className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-[#C8D0DC] hover:bg-white/10"><ClipboardCheck className="size-4" /><span className="hidden min-[1400px]:inline">名字审核</span></a>
+        <a href="../tech/" aria-label="技术单审核" title="技术单审核" className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-[#C8D0DC] hover:bg-white/10"><FileSpreadsheet className="size-4" /><span className="hidden min-[1400px]:inline">技术单审核</span></a>
+        <a href="../bjp/" aria-label="保健品分督导" title="保健品分督导" className="flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-[#C8D0DC] hover:bg-white/10"><Package className="size-4" /><span className="hidden min-[1400px]:inline">保健品分督导</span></a>
       </div>
     </header>
   );
