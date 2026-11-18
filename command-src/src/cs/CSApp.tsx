@@ -12,7 +12,7 @@ import { OfficeHUD } from '../components/OfficeHUD';
 import { STATUS_COLOR } from '../scene/status';
 import { avatarUrl } from '../lib/look';
 import { DEMO_SCRIPT, live, useLive, type ChatChannel, type Ticket, type TicketStatus } from '../lib/live';
-import { describeEvent } from '../lib/company';
+import { deptOf, describeEvent } from '../lib/company';
 import type { Person } from '../types';
 import { cn } from '../lib/cn';
 import { HandbookView } from './Handbook';
@@ -166,7 +166,7 @@ function TeamChat({ compact = false, initial = 'team' }: { compact?: boolean; in
   const person = (id: string) => s.model.people.find((p) => p.id === id);
   // 系统通知 = 工单 / 任务更新 + 真实审核纪录
   const notices = useMemo(() => {
-    const ev = s.model.events.slice(-20).map((e) => ({ id: 'ev' + e.id, ch: 'notice' as const, from: e.tool === 'name' ? 'cs-r0' : 'techsup-r0', text: tr(describeEvent(e)), t: e.t, demo: false }));
+    const ev = s.model.events.slice(-20).map((e) => ({ id: 'ev' + e.id, ch: 'notice' as const, from: `${deptOf(e)}-r0`, text: tr(describeEvent(e)), t: e.t, demo: false }));
     return [...chat.filter((m) => m.ch === 'notice'), ...ev].sort((a, b) => a.t - b.t);
   }, [chat, s.model.events, tr]);
   const msgs = tab === 'notice' ? notices : chat.filter((m) => m.ch === tab || (tab === 'team' && m.ch === 'mission' && m.scope !== 'company'));

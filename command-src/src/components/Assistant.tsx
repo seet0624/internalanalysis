@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Bot, Send, X } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { useLang } from '../lib/i18n';
-import { deptById, peopleOfFloor } from '../lib/company';
+import { deptById, describeEvent, peopleOfFloor } from '../lib/company';
 import type { CompanyModel } from '../lib/company';
 import type { Lang, Status } from '../types';
 import { cn } from '../lib/cn';
@@ -27,7 +27,7 @@ function answer(q: string, m: CompanyModel, lang: Lang): string {
   }
   if (/审核|review|名册|技术单|roster|order/i.test(q)) {
     const ev = m.events.slice(-3).reverse();
-    return ev.length ? (zh ? `最近的真实审核纪录：\n` : 'Latest live review events:\n') + ev.map((e) => `• ${e.tool === 'name' ? (zh ? '名字审核' : 'Name review') : (zh ? '技术单' : 'Order review')} · ${new Date(e.t).toLocaleTimeString()}`).join('\n')
+    return ev.length ? (zh ? `最近的真实审核纪录：\n` : 'Latest live review events:\n') + ev.map((e) => `• ${tr(describeEvent(e))} · ${new Date(e.t).toLocaleTimeString()}`).join('\n')
       : (zh ? '这台电脑的浏览器还没有审核纪录。打开名字审核或技术单审核处理一次，客服部的员工会马上更新。' : 'No review events in this browser yet. Process a file in Name or Order review and 2F updates instantly.');
   }
   const st = STATUS_WORDS.find(([, re]) => re.test(q));

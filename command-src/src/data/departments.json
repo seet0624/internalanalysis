@@ -306,14 +306,15 @@
     "floor": "2F",
     "room": "2f-orders",
     "name": {
-      "zh": "订单管理组",
-      "en": "Order Management"
+      "zh": "订单管理组 · 保健品分督导",
+      "en": "Order Management · Supplement Shipments"
     },
     "summary": {
-      "zh": "订单进度、改单、退款申请。",
-      "en": "Order status, changes and refund requests."
+      "zh": "保健品发货明细按督导的群分开，一个群一份 Excel。",
+      "en": "Splits supplement shipment lists into one Excel per supervisor group."
     },
-    "color": "#F29900"
+    "color": "#F29900",
+    "team": "cs.bjp"
   },
   {
     "id": "reception",

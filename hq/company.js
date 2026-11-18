@@ -48,7 +48,15 @@ window.COMPANY = {
             { name: '阿升', trait: '外向', role: '升级处理', skill: 'anthropic-skills:internal-comms', duty: '处理棘手的客诉，整理要往上报的内容。' }
           ]
         },
-        { id: 'next', name: '新功能工位', kind: 'planned', color: '#9A8F80', summary: '空着的工位，以后加的功能坐这里。', agents: [] }
+        {
+          id: 'bjp', name: '保健品分督导组', kind: 'site', href: 'bjp/', color: '#A0783A',
+          summary: '保健品发货明细按督导的群分开，一个群一份 Excel，发给各督导。',
+          agents: [
+            { name: '阿分', trait: '利落', role: '分督导专员', duty: '只看第一个工作表，用店铺编号查督导，按督导的群分成一份份文件。' },
+            { name: '小核', trait: '仔细', role: '核对员', duty: '查不到店铺、没有督导、数量不对的单列出来，一单都不漏。' },
+            { name: '阿发', trait: '热心', role: '发件员', duty: '文件照 8 月的格式下载好，发到各督导的群。' }
+          ]
+        }
       ]
     },
     {
@@ -136,6 +144,13 @@ window.COMPANY = {
     ],
     'tech.downloaded': [
       { from: 'tech/1', to: 'tech/0', say: '文件都下载好了，可以转给专家', reply: '好，我发出去' }
+    ],
+    'bjp.processed': [
+      { from: 'bjp/0', say: '收到 {files} 份发货明细、{items} 单，开始分督导' },
+      { from: 'bjp/0', to: 'bjp/1', when: 'problem>0', say: '{problem} 单分不到督导，帮我查一下', reply: '好，我去查店铺表' },
+      { from: 'bjp/1', to: 'place:files', when: 'problem>0', say: '查店铺表里这几个编号' },
+      { from: 'bjp/0', to: 'bjp/2', say: '分好了：{groups} 份，可以发给各督导的群', reply: '收到，我来发' },
+      { from: 'bjp/2', to: 'boss', say: '保健品发货明细分好：{items} 单、{groups} 份，{problem} 单分不到督导', reply: '辛苦了' }
     ],
     'name.loaded': [
       { from: 'name/0', say: '收到 {files} 份名册、{students} 位学员，开始核名' },

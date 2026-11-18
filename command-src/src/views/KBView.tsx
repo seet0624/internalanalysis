@@ -9,7 +9,8 @@ export function KBView() {
   const lib = ((window.COMPANY as unknown as { library?: Lib[] } | undefined)?.library) ?? [];
   const tools: Lib[] = [
     { href: 'name/', title: '名字审核', desc: '名正言顺名册：核对新名、转繁体、下载结果。' },
-    { href: 'tech/', title: '技术单审核', desc: '按规则标红、分文件、改页脚，下载给专家。' }
+    { href: 'tech/', title: '技术单审核', desc: '按规则标红、分文件、改页脚，下载给专家。' },
+    { href: 'bjp/', title: '保健品分督导', desc: '发货明细按督导的群分开，一个群一份 Excel。' }
   ];
   return (
     <ViewShell title={t('kbTitle')} icon={<BookOpen className="size-5" />}>
