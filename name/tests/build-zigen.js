@@ -11,6 +11,8 @@ for (const line of fs.readFileSync(process.argv[2], 'utf8').split('\n')) {
   const f = line.split('\t'); if (f.length < 3) continue;
   ids[f[1]] = f.slice(2).map(x => x.replace(/\[[^\]]*\]/g, ''));
 }
+// 手动补正：壴 上面是士（喜、嘉、鼓、彭…）；寺 上面是土不是士
+ids['壴'] = ['⿱士豆']; ids['寺'] = ['⿱土寸'];
 const memo = {};
 function parts(ch, seen) {
   if (memo[ch]) return memo[ch]; const out = new Set([ch]); seen = seen || new Set(); if (seen.has(ch)) return out; seen.add(ch);
