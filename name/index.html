@@ -677,7 +677,7 @@ function readingsOf(ch){ var prim=charSyllables(ch); var poly=RULES.POLY[ch]||RU
 function tradOf(ch){ return S2T[ch]||ch; }
 function simpOf(ch){ return T2S[ch]||ch; }
 
-var NOISE=['兄弟姐妹','子女','伴侣','姐姐','弟弟','妹妹','哥哥','大姐','大哥','二哥','三哥','三姐','大嫂','已故','已名正言顺','还没名正言顺','原名','现用名','曾用名','现用','曾用','改名为','改名','已改名','离婚','離婚','已离婚','已離婚','再婚','过继的','过继','過繼的','過繼','领养的','领养','領養的','領養','抱养的','抱养','收养的','收养','继子','继女','现在用','现用此名','儿子','女儿','现在用','爱人的名字','子女的名字','的名字','名字','姓名','调整名','数易名','第一任','第二任','第三任','未婚','健在','原配','长孙女','次孙女','小孙女','大孙女','长孙子','次孙子','小孙子','姥姥','姥爷','孩子','自己的','这边的','那边的','这边','那边','亲生'];
+var NOISE=['兄弟姐妹','子女','订单编号','訂單編號','订单号','訂單號','订单','訂單','编号','編號','选择中','選擇中','伴侣','姐姐','弟弟','妹妹','哥哥','大姐','大哥','二哥','三哥','三姐','大嫂','已故','已名正言顺','还没名正言顺','原名','现用名','曾用名','现用','曾用','改名为','改名','已改名','离婚','離婚','已离婚','已離婚','再婚','过继的','过继','過繼的','過繼','领养的','领养','領養的','領養','抱养的','抱养','收养的','收养','继子','继女','现在用','现用此名','儿子','女儿','现在用','爱人的名字','子女的名字','的名字','名字','姓名','调整名','数易名','第一任','第二任','第三任','未婚','健在','原配','长孙女','次孙女','小孙女','大孙女','长孙子','次孙子','小孙子','姥姥','姥爷','孩子','自己的','这边的','那边的','这边','那边','亲生'];
 var NULLS={'无':1,'無':1,'-':1,'NA':1,'na':1,'None':1,'':1};
 var REL_MOD='大小二三四五六七八九十老長长幼次親亲堂表繼继養养前現现阿細细家干契外';
 var REL_ROOT='哥弟姐妹兄姊爸媽妈父母爹娘夫妻公婆爺爷奶兒儿嫂嬸婶佬孫孙伯叔姑舅姨侄甥媳婿';
@@ -831,7 +831,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
     var rowsText=rows.map(function(ri){ return (data[ri]||[]).join(' '); }).join(' ').toUpperCase(), linked={}; colorFam.forEach(function(g2){ if(g2._order)linked[g2._order.toUpperCase()]=1; });
     var myName=baseName(grp._disp), myOrder=String(grp._order||'').toUpperCase(), myKey=personKey(grp._order,grp._member,myName), hdr=pf.header.map(function(h){return String(h).trim();}), ciC=hdr.indexOf('服务中心编号'), myCenter=ciC>=0?String(r0[ciC]==null?'':r0[ciC]).trim():'', seenP={};
     grp._fam.concat(grp._noteNames.map(function(nm){return ['备注提到',nm];})).forEach(function(fm){ var nm=fm[1]; if(!nm||nm===myName)return;
-      (peopleIdx()[normName(nm)]||[]).forEach(function(h){ var o=h.o.split('|')[0], pp=h.p; if(h.o===myKey||linked[o]||seenP[h.o]||(isOrderNo(o)&&o!==myOrder&&rowsText.indexOf(o)>=0))return; seenP[h.o]=1; if(pp.n===myName&&pp.m&&pp.m===grp._member)return;
+      (peopleIdx()[normName(nm)]||[]).forEach(function(h){ var o=h.o.split('|')[0], pp=h.p; if(h.o===myKey||linked[o]||seenP[h.o]||(isOrderNo(o)&&o!==myOrder&&rowsText.indexOf(o)>=0))return; if((pp.g||[]).some(function(f){ return (grp._fullnames||[]).indexOf(f)>=0; }))return; // 新名就是自己的：是自己（历史库挂错的记录），不比 seenP[h.o]=1; if(pp.n===myName&&pp.m&&pp.m===grp._member)return;
         var strong=!!((pp.m&&pp.m===grp._member)||(pp.c&&pp.c===myCenter)), inNow=!!orderIndex[o], lab=fm[0]+'「'+nm+'」'+(inNow?'同一批的订单 ':'以前的订单 ')+o, sk;
         (pp.g||[]).forEach(function(full){ sk=surLen(full,pp.s); var gn=Array.from(full).slice(sk).join(''); if(gn&&gn!==Array.from(nm).slice(sk).join(''))fam.push([lab,gn,!strong,true,full]); });
         if(strong&&(pp.g||[]).length)colorNotes.push('✓ 家人「'+nm+'」'+(inNow?'在同一批里':'以前审过')+'（订单 '+o+(inNow?'':(pp.d?'，'+pp.d:''))+'，新名：'+pp.g.join('／')+'）——已自动比对撞字撞音'); }); });
@@ -866,6 +866,10 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
         } }
     var needEyes=noteNeedsEyes(notesAll);
 
+    // 老板规则：同辈兄弟姐妹（哥姐弟妹、堂表、双胞胎）同字同音不算问题；客户在禁忌栏/备注写了同音、同字的要求才照查
+    var custAsk=/同音|同字|相同|一样|一樣|重字|重复|重複|不撞|别撞|別撞|谐音|諧音/.test(cols.taboo>=0?String(r0[cols.taboo]==null?'':r0[cols.taboo]):'')||/同音|同字|谐音|諧音|重字|不重复|不重複|相同的字|一样的字/.test(grp._notesAll||''); // 客户说「不要一样」才照查；「避开火字」「家人健康」不算
+    if(!custAsk){ var d0={father:cols.father>=0?String(r0[cols.father]||''):'',mother:cols.mother>=0?String(r0[cols.mother]||''):'',sib:cols.sib>=0?String(r0[cols.sib]||''):'',kids:cols.kids>=0?String(r0[cols.kids]||''):'',note1:cols.note1>=0?String(r0[cols.note1]||''):'',note2:cols.note2>=0?String(r0[cols.note2]||''):''};
+      fam=fam.filter(function(p){ return !sibExempt(p,d0); }); }
     var grpSur=String(cols.surname>=0&&r0[cols.surname]!=null?r0[cols.surname]:'').trim();
     function fg(p){ var n=p[1]; if(p[3])return n; if(grpSur&&n.indexOf(grpSur)===0&&n.length>grpSur.length)return n.slice(grpSur.length); if(n.length>=3&&COMPOUND[n.slice(0,2)])return n.slice(2); if(n.length>=2&&isSurname(n[0]))return n.slice(1); return n; }
     var rowData=rows.map(function(ri){ var neu=String(data[ri][cols.neu]==null?'':data[ri][cols.neu]).trim(); var aa=String(data[ri][cols.py]==null?'':data[ri][cols.py]);
@@ -947,7 +951,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
     if(orderProblems.length)rowData.forEach(function(rd){orderProblems.forEach(function(m){if(rd.warns.indexOf(m)<0)rd.warns.push(m);});});
     colorNotes.forEach(function(m){ rowData.forEach(function(rd){ if(rd.warns.indexOf(m)<0)rd.warns.push(m); }); });
     // 状态备注：只写二次命名（和原因）是参考、不卡；同时写了暂缓、退款这类就照旧卡住
-    if(cols.status>=0){ var st=String(r0[cols.status]==null?'':r0[cols.status]).trim(); if(st&&!NULLS[st]){ if(/二次命名|重新命名|再次命名|二次起名|重新起名/.test(st)&&!/暂缓|退款|退单|退费|取消|未付|欠款|补款|停|作废|不做|无需|不用|不要|等待|待定|延后|改期|换购|冻结|投诉/.test(st)){ var si='✓ 二次命名：状态备注「'+st+'」只是记上次为什么重取，新名已照规则重新检查，不卡上传'; rowData.forEach(function(rd){ if(rd.warns.indexOf(si)<0)rd.warns.push(si); }); }
+    if(cols.status>=0){ var st=String(r0[cols.status]==null?'':r0[cols.status]).trim(); if(st&&!NULLS[st]){ if(/二次命名|重新命名|再次命名|二次起名|重新起名|加急|急件|加快/.test(st)&&!/暂缓|退款|退单|退费|取消|未付|欠款|补款|停|作废|不做|无需|不用|不要|等待|待定|延后|改期|换购|冻结|投诉/.test(st)){ var si=/加急|急件|加快/.test(st)&&!/二次命名|重新命名|再次命名|二次起名|重新起名/.test(st)?'✓ 申请加急：状态备注「'+st+'」只是加急，新名照规则检查，不卡上传':'✓ 二次命名：状态备注「'+st+'」只是记上次为什么重取，新名已照规则重新检查，不卡上传'; rowData.forEach(function(rd){ if(rd.warns.indexOf(si)<0)rd.warns.push(si); }); }
       else { var sm='⚠ 有订单状态备注「'+st+'」，请人工检查这单状态再决定'; rowData.forEach(function(rd){ if(rd.msgs.indexOf(sm)<0)rd.msgs.push(sm); }); } } }
     var problem=rowData.some(function(rd){return rd.msgs.length>0;});
     if(needEyes)rowData.forEach(function(rd){rd.warns.push('【备注提到 朋友/避免/同名，可能有别姓的人要避开，请人工看】');});
@@ -1058,7 +1062,11 @@ function kbOf(x){ var kb=keepBase(x); if(!kb)return ''; var n=uniq(x.audit.resul
   if(/（有问题）/.test(x.name)&&!x._part)kb=kb.replace(/（\d+）(\s*H?)$/i,'（'+x.audit.results.length+'）$1'); // 有问题文件的数目是当时有问题的人数，拖回来照现在的学员数
   if(x._part)return kb.replace(/（\d+）\s*H?$/i,'（'+n+'）'+(x.overseas?'H':''));
   return x.overseas?kb.replace(/（(\d+)）\s*$/,'（$1）H'):kb.replace(/(（\d+）)\s*H$/i,'$1'); }
-function outName(x,kind){ var lead=leadOf(x.name), b=lead+techBase(x), kb=kbOf(x);
+// 文件里只有一位学员：文件名前面写他的名字（新生儿只有「姓＋新生儿」，不写）
+// 干净、督导只放没问题的学员，按文件里实际的人数
+function soloName(x,kind){ var rs=x.audit.results.filter(function(r){ return kind==='orig'||!r.problem; }); if(rs.length!==1)return ''; var w=baseName(rs[0].disp); return w&&!/新生儿$/.test(w)?w:''; }
+function outName(x,kind){ var lead=leadOf(x.name), solo=kind==='bad'?'':soloName(x,kind), b=lead+(solo?solo+' ':'')+techBase(x), kb=kbOf(x);
+  if(kb&&solo&&kb.indexOf(solo)<0)kb=kb.replace(/^((?:[（(][^）)]*[）)])*)\s*/,'$1'+solo+' ');
   if(kb&&kind==='orig')return kb+((x.name.match(/\.(xlsx|xls)$/i)||['.xlsx'])[0].toLowerCase());
   if(kb&&kind==='sup')return kb+'（督导）.xlsx';
   if(kb&&kind!=='bad')return kb+'（干净）.xlsx';
@@ -1339,7 +1347,7 @@ function centerHtml(r,x){ var sid=String(r.sid), det=r.rows[0].detail||{};
     '<label class="revchk'+(r.reviewed?' on':'')+'"><input type="checkbox" id="revChk"'+(r.reviewed?' checked':'')+'> 已复核</label></div></section>';
   var trad=String(det.disp||'').indexOf('繁')>=0;
   h+='<div class="names'+(trad?'':' sc')+'">'+r.rows.map(function(rw,i){ return nameCard(rw,i,iss); }).join('')+'</div>';
-  h+='<div class="tools"><button type="button" class="btn sm" id="sbToggle">试改名字</button></div>';
+  h+='<div class="tools"><button type="button" class="btn sm" id="sbToggle">试改名字</button> <button type="button" class="btn sm" id="oneDl"'+(bad?' disabled title="有问题的学员不能单独下载干净文件"':' title="只下载这位学员的干净文件"')+'>单独下载'+(keepBase(x)?'（干净）':'（上传）')+'</button></div>';
   h+='<div class="sandbox" id="sandbox"><div class="sbf"><input id="sbName" placeholder="试一个新名，例：'+esc((r.rows[0]&&r.rows[0].surname)||'陳')+'星宇" aria-label="试改的新名"><input id="sbPy" placeholder="拼音（可不填）" aria-label="拼音"><button type="button" class="btn pri sm" id="sbGo">检查</button></div><div class="res" id="sbRes"></div></div>';
   h+='<div class="g-rec"><div><span>审核状态</span><b class="'+(bad?'bad':'ok')+'">'+(bad?'有问题':'通过')+'</b></div><div><span>复核时间</span><b>'+(r.reviewed&&tm?fmtTime(tm):(r.reviewed?'已复核':'还没复核'))+'</b></div>'+
     '<div><span>审核人</span><select id="revWho" class="g-who-in" aria-label="审核人（可以改成别人）"></select></div><div><span>处理事项</span><b class="'+(main.length?'bad':'ok')+'">'+main.length+'</b></div></div>';
@@ -1419,6 +1427,7 @@ function bindMain(main,r){
   var ob=main.querySelector('#openRefs'); if(ob)ob.onclick=openRefs;
   if(!r)return;
   main.querySelectorAll('.vseg button').forEach(function(b){ b.onclick=function(){ var v=b.getAttribute('data-v'); if(v!==r.verdict)changeVerdict(r.sid,v); }; });
+  var od=main.querySelector('#oneDl'); if(od)od.onclick=function(){ dlCatch(downloadOne(r)); };
   var rc=main.querySelector('#revChk'); if(rc)rc.onchange=function(){ setReviewed(r, rc.checked, false); };
   var rwi=main.querySelector('#revWho'); if(rwi)fillReviewer(rwi);
   main.querySelector('#prevBtn').onclick=function(){ move(-1); }; main.querySelector('#nextBtn').onclick=function(){ move(1); };
@@ -1552,6 +1561,16 @@ function relWord(d,key){ if(!key)return ''; var SKIP=/名正言[顺順]|新名|�
       if(/^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|子女|家人|家属)$/.test(l)){ fb=fb||l; break; } if(fb&&!isRelLabel(l))break; return l; } } // 往后找时只认真正的称呼（「客户要求：」不算） // 「兄弟姐妹名字：」太笼统，先看备注有没有写「弟弟：」
   return fb==='姐妹'||fb==='兄弟'?'兄弟姐妹':fb; }
 function isNewName(d,nm){ var re=new RegExp('(?:名正言[顺順]|新名|改名|更名)\\s*[\\uff1a:]?\\s*'+nm); return [d.father,d.mother,d.sib,d.kids].some(function(t){ return re.test(String(t||'')); }); }
+// 同辈：兄弟姐妹、哥姐弟妹（大哥、二姐、堂哥、表妹…）、双胞胎
+function sameGen(w){ return /^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|双胞胎|雙胞胎|龙凤胎|龍鳳胎)$/.test(w||'')||/^[大小二三四五六七八九十老]*[堂表]?[哥姐弟妹兄]+$/.test(w||''); }
+// 免查要有根据：文字里真的写了同辈称呼（哥哥：、兄弟姐妹：），名字前面又没紧贴别的称呼（爱人李四、外婆李小红、姐夫王强）
+function famTextName(p){ var m=p[0], o; if((o=m.match(/^(?:同色家人|双胞胎)「([^」]*)」$/)))return shortName(o[1]); if((o=m.match(/^关联学员「([^」]*)」/)))return o[1]; if((o=m.match(/^.+?「([^」]*)」(?:同一批的|以前的)订单/)))return o[1]; return p[1]; }
+function sibExempt(p,d){ if(/^双胞胎「/.test(p[0]))return true; var nm=famTextName(p); if(!nm)return false; var who=relWord(d,nm);
+  var t=[d.sib,d.kids,d.note1,d.note2].join('\n'), at=t.indexOf(nm), pre=at>0?(t.slice(0,at).match(/([\u4e00-\u9fff]{1,4})$/)||['',''])[1]:'', post=at>=0?(t.slice(at+nm.length).match(/^[（(]([\u4e00-\u9fff]{1,4})[）)]/)||['',''])[1]:'';
+  if(who&&!sameGen(who))return false; // 冒号前写的是别的称呼（外婆：、子女：）
+  if(!who&&!(sameGen(pre)||sameGen(post)||(at>=0&&String(d.sib||'').indexOf(nm)>=0&&!pre)))return false; // 没冒号：「弟弟张三」「张三（哥哥）」或兄弟姐妹栏只写名字才算
+  for(var k=2;k<=3&&k<nm.length;k++){ if(REL_WORDS[nm.slice(0,k)])return false; } // 「爱人钱小玉」整串当成一个名字时，称呼在名字里面
+  return !(pre&&!sameGen(pre)&&(REL_WORDS[pre]||new RegExp('['+REL_ROOT+'嫂媳婿]').test(pre))); }
 function whoOf(h,d){ var m=h.member, o;
   if(m==='父亲'||m==='母亲')return {who:m,isNew:isNewName(d,h.full)};
   if((o=m.match(/^关联订单\s*(\S+)\s*的新名$/)))return {who:relWord(d,o[1]),isNew:true};
@@ -1572,9 +1591,9 @@ function outReason(r){ var out=[];
     // 同一位家人又撞字又撞音写一次：和弟弟的名字（钱明义）撞同一个字「明」、撞同音字「怡」「义」；撞法一样的家人用「、」并在一起
     var clauses=[], famsOf={}; famOrder.forEach(function(f){ var k=byFam[f].join('、'); if(!famsOf[k]){ famsOf[k]=[]; clauses.push(k); } famsOf[k].push(f); });
     if(clauses.length)out.push('新下来的名字（'+rw.neu+'）'+clauses.map(function(k){ return '和'+famsOf[k].join('、')+k; }).join('，'));
-    rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m))out.push(cleanMsg(m).replace(/[，,]?\s*请人工检查这单状态再决定$/,'')); }); });
+    rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m)&&!/订单状态备注/.test(m))out.push(cleanMsg(m)); }); }); // 订单状态备注不是名字的问题，不写进给出去的文件
   var seen={}; out=out.filter(function(t){ if(seen[t])return false; seen[t]=1; return true; });
-  return out.length?out.join('；'):'名字需要重新调整'; } // 只写撞到的、真正的问题；提醒类（请确认、请人工看）不写进给出去的文件
+  return out.length?out.join('；'):(r.rows.some(function(rw){ return rw.msgs.some(function(m){ return /订单状态备注/.test(m); }); })?'订单状态要先确认':'名字需要重新调整'); } // 只写撞到的、真正的问题；提醒类（请确认、请人工看）不写进给出去的文件
 
 // 「干净·可上传」那份：上传系统要的精简表（一个新名一行，9 栏）
 var UPLOAD_COLS=[['订单',['订单编号'],16.28],['服务中心编号',['服务中心编号'],18.14],['新名字姓氏',['新名字姓氏'],15.28],['姓名',['使用人姓名'],32.5],['性别',['性别'],6.72],
@@ -1821,6 +1840,10 @@ async function downloadSplit(keepProblem){ if(!parsedFiles.length)return; var x=
   if(!keepProblem&&!passCount(x)){ toast('这份没有通过的学员，不用下载'+(keepBase(x)?'（干净）':'（上传）')+'文件'); return; }
   var ps=partsOf(x).filter(function(p){ return keepProblem?problemCount(p):passCount(p); });
   var r=await runSave(ps.map(function(p){ return outName(p,keepProblem?'bad':'clean'); }), ps.map(function(p){ return async function(){ var wb=keepProblem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p); return new Blob([await wb.xlsx.writeBuffer()]); }; })); twoDone(r.names,r.tg); }
+// 单独下载一位学员的干净文件：只放这位，文件名前面写他的名字
+function oneOf(x,r){ var drop=[]; x.audit.results.forEach(function(q){ if(q!==r)q.rows.forEach(function(rw){ drop.push(rw.row); }); }); return Object.assign({},x,{overseas:x.mixed?!!r.ov:x.overseas,mixed:false,_part:true,_drop:drop,audit:Object.assign({},x.audit,{results:[r]})}); }
+async function downloadOne(r){ var x=parsedFiles[activeFile]; if(!x||!r)return; if(r.problem){ toast('这位是「有问题」，不能单独下载干净文件'); return; }
+  var p=oneOf(x,r); await runSave([outName(p,'clean')],[async function(){ return new Blob([await (await buildCleanWorkbook(p)).xlsx.writeBuffer()]); }]); }
 async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x);
   var r=await runSave(ps.map(function(p){ return outName(p,'orig'); }), ps.map(function(p){ return async function(){ return new Blob([await origBuffer(p)]); }; })); twoDone(r.names,r.tg); }
 function dlCatch(p){ return Promise.resolve(p).catch(function(e){ if(e&&e.name==='AbortError'){ toast('已取消，没有下载'); return; } console.error(e); alert(HQTool.friendly('下载的时候出错，这次没有下载完整（如果已经下载了一份，另一份没有）。',e)); }); } // 下载出错一定要让客服知道
@@ -1935,6 +1958,13 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-18', title:'同辈兄弟姐妹不算撞、文件只有一位写名字', items:[
+    '同辈兄弟姐妹（哥姐弟妹、堂表、双胞胎）同字同音不算问题；客户在禁忌栏或备注写了「家人不同音不同字」「不要同音字」这类要求才照查',
+    '子女栏的「訂單編號 / 订单编号 / 选择中」不再当成人名',
+    '订单状态备注写「申请加急」不卡上传；有问题文件不写订单状态备注',
+    '历史库里同一个订单号、或新名就是自己的，不拿来比（不会说自己撞自己）',
+    '下载的文件里只有一位学员时，文件名前面写他的名字（新生儿除外）',
+    '学员页加「单独下载（干净）」：只下载这位学员的干净文件（有问题的不能下载）']},
   {date:'2026-11-13', title:'表尾照文件原本的', items:[
     '下载的文件表尾「审核人」「制表时间」「回传时间」照文件原本写的，不改；Excel 显示成数字的日期只换成看得懂的同一天']},
   {date:'2026-11-13', title:'审核人可以改成别人', items:[
@@ -2093,8 +2123,8 @@ function infoHtml(tab){
     function col(cls,label,sub,items){ return '<div class="tcol '+cls+'"><div class="th"><span class="tier '+cls+'">'+label+'</span><span>'+sub+'</span></div><ul>'+items.map(function(it){ return '<li><b>'+it[0]+'</b>'+(it[1]?'：'+it[1]:'')+'</li>'; }).join('')+'</ul></div>'; }
     h+='<div class="rtop"><span>每一项检查都会归到三级之一。两个新名只要有一个是「必须改」，整个学员就不能上传。</span><span class="grow"></span><button type="button" class="linkbtn" data-act="settings" style="margin:0;font-size:13px">规则设定（开关 / 加禁忌字）→</button></div>';
     h+='<div class="tiers">'+
-      col('must','必须改','不能上传',[['撞字','和父母、兄弟姐妹、伴侣、子女同一个字（括号里写的「名正言顺：XXX」、「新名（旧名）」都算；文件里涂同一颜色的学员算一家人；家人以前审过、会员编号或店铺编号一样的，拿他下来的新名比）'],['撞音','和家人同音（声调不同也算）'],['禁忌字 / 不要的音','禁忌栏或备注写的字，或写成拼音（如 cheng）'],['两个名太像','同样的字调换顺序，或拼音完全一样']])+
-      col('check','请确认','人工看过再决定',[['订单状态备注','有写就先卡住，看过再放行（「申请二次命名」的不卡）'],['禁忌字同音','不是同一个字，但读音一样'],['繁体有几种写法','例如 云 / 雲、后 / 後，已先转，请确认'],['粤语谐音','用粤语念近不吉的音（也记进「发音清单」）'],['生肖忌用部首',''],['同批重名 / 历史重名',''],['要查的订单 / 会员编号','家人的名字还没下来']])+
+      col('must','必须改','不能上传',[['撞字','和父母、兄弟姐妹、伴侣、子女同一个字（括号里写的「名正言顺：XXX」、「新名（旧名）」都算；文件里涂同一颜色的学员算一家人；家人以前审过、会员编号或店铺编号一样的，拿他下来的新名比）'],['撞音','和家人同音（声调不同也算）'],['同辈兄弟姐妹','哥姐弟妹、堂表、双胞胎之间同字同音不算问题；客户写了「家人不同音不同字」这类要求才照查'],['禁忌字 / 不要的音','禁忌栏或备注写的字，或写成拼音（如 cheng）'],['两个名太像','同样的字调换顺序，或拼音完全一样']])+
+      col('check','请确认','人工看过再决定',[['订单状态备注','有写就先卡住，看过再放行（「申请二次命名」「申请加急」的不卡）'],['禁忌字同音','不是同一个字，但读音一样'],['繁体有几种写法','例如 云 / 雲、后 / 後，已先转，请确认'],['粤语谐音','用粤语念近不吉的音（也记进「发音清单」）'],['生肖忌用部首',''],['同批重名 / 历史重名',''],['要查的订单 / 会员编号','家人的名字还没下来']])+
       col('info','参考','不影响上传',[['名册要繁体','新名自动改成繁体（姓不动），下载的三份文件都用繁体'],['不雅谐音','连姓一起念像不好的词——先放行，记进顶栏「发音清单」给客服'],['技术单拼音写错','会用正确读音再查一遍，记得通知改单'],['多音字','提醒确认读法'],['生肖喜用部首',''],['已自动关联的编号','家人在同一批文件里，已比对过']])+'</div>';
     h+='<div class="rchips"><span>现在开着：</span>'+RULE_DEFS.map(function(d){ var on=!!RULES[d[0]]; return '<button type="button" class="rchip'+(on?'':' off')+'" data-act="settings" title="'+(on?'开着':'关着')+'，点一下去规则设定">'+d[1]+'</button>'; }).join('')+'</div>';
   } else {
