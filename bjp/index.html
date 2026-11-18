@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>保健品分督导</title>
+<script src="../hq/auth.js" data-nobadge></script>
+<script src="../hq/bus.js"></script>
+<style>
+/* 保健品分督导：跟名字审核、技术单审核同一套（米色底、金色重点、水墨左栏） */
+:root{--bg:#F6F1E7;--surface:#FFFDF8;--sunk:#F3ECDF;--ink:#2B2620;--muted:#6F6553;--faint:#7A6F5C;--line:#E8DFCC;--line-soft:#F0E9DB;--field:#DCCFB4;
+  --accent:#9A6B22;--accent-hover:#7E5718;--accent-soft:#F6ECD9;--accent-ink:#6E4B12;--on-accent:#FFFFFF;--crit:#B3261E;--crit-bg:#FBE9E7;--ok:#137333;--ok-bg:#E6F4EA;--warn:#7A4300;--warn-bg:#FFF1DC;
+  --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background-color:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+[hidden]{display:none!important}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h1,h2,h3{margin:0;line-height:1.3}
+p{margin:0}
+.shell{min-height:100vh}
+.side{display:none}
+@media (min-width:1000px){
+  .shell{display:grid;grid-template-columns:240px minmax(0,1fr)}
+  .side{display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow-y:auto;padding:16px 12px}
+}
+.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
+@media (min-width:720px){.top-in{padding:14px 28px}}
+.top .sub{font-size:13px;color:var(--muted)}
+.top-r{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.home{font-size:13px;color:var(--muted);text-decoration:none}
+@media (min-width:1000px){.ph-only{display:none!important}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid var(--field);border-radius:10px;background:var(--surface);color:var(--ink);font-weight:500;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn.small{min-height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.btn[disabled]{opacity:.5;cursor:default}
+.page{max-width:1120px;margin:0 auto;padding:24px 16px 80px;display:flex;flex-direction:column;gap:20px}
+@media (min-width:720px){.page{padding:28px 28px 60px}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 24px -18px rgba(110,75,18,.4)}
+.pad{padding:18px 22px}
+.small{font-size:13px;color:var(--muted)}
+.drop{position:relative;border-radius:20px;background:var(--surface);cursor:pointer}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.drop .fake{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 28px;border-radius:12px;font-size:16px}
+.error{background:var(--crit-bg);color:#8C1D18;border-radius:12px;padding:12px 16px}
+.status{display:flex;align-items:center;gap:10px;color:var(--accent-ink)}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;align-items:center}
+.facts b{font-size:18px}
+.facts label{display:inline-flex;align-items:center;gap:8px}
+.facts input{width:64px;min-height:38px;padding:0 10px;border:1px solid var(--field);border-radius:8px;background:var(--surface);text-align:center}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:14px;padding:14px 18px}
+.warn ul{margin:6px 0 0;padding-left:20px}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:12px 14px;text-align:left;border-top:1px solid var(--line-soft);vertical-align:middle}
+thead th{background:var(--sunk);font-size:13px;color:var(--muted);font-weight:700;border-top:0}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.grp{font-family:"ShuyiSerif","Songti SC","SimSun",serif;font-weight:700;font-size:17px}
+.fn{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.acts{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+</style>
+<link rel="stylesheet" href="../hq/gold.css">
+</head>
+<body class="g-pat">
+<div class="shell">
+  <aside class="side g-side" aria-label="审核总部导航">
+    <a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-gold.png" alt="">国内客服系统</a>
+    <a class="g-sys" href="../name/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v15l-3.5-2-3.5 2-3.5-2z"/><path d="M8.5 9h7M8.5 12.5h4.5"/></svg></span>名字审核</a>
+    <a class="g-sys" href="../tech/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="3.5" rx="1"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 13l2 2 4-4"/></svg></span>技术单审核</a>
+    <a class="g-sys" href="./" aria-current="page"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg></span>保健品分督导</a>
+    <div class="g-label">资料</div>
+    <a class="g-sys" href="https://shuyitoolguidance.netlify.app/" target="_blank" rel="noopener"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.8v6.4l5-3.2z"/></svg></span>工具启动教程</a>
+    <button type="button" class="g-sys g-out" onclick="HQAuth.confirmLogout()"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>退出</button>
+  </aside>
+  <div style="min-width:0">
+    <header class="top g-topbg"><div class="top-in">
+      <div class="g-titlerow"><a class="home ph-only" href="../name/">← 名字审核</a><span class="g-tile" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg></span>
+        <div><h1>保健品分督导</h1><p class="sub">把发货明细按督导分开，一个督导（群）一份</p></div></div>
+      <div class="top-r"><span class="g-user" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.confirmLogout()">退出</button></div>
+    </div></header>
+    <main class="page">
+      <section class="g-hero"><h2>保健品分督导</h2><p>把每月的保健品发货明细拖进来：只看第一个工作表，用店铺编号找督导，按督导的群分好文件再下载</p></section>
+      <label class="drop g-drop" id="drop">
+        <img class="g-drop-art" src="../hq/brand/upload-art.svg" alt="" width="250" height="183">
+        <span class="g-drop-txt">
+          <span class="big">把保健品发货明细拖进来</span>
+          <span class="small">.xls 或 .xlsx 都可以；只看第一个工作表（不管它叫什么名字）。所有处理都在你的电脑里完成，不会上传到网上。</span>
+          <span class="fake g-btn3d">选择文件</span>
+          <span class="small g-tip">第一个工作表要有「订单编号」「使用人姓名」「收货地址」「保健品数量」「店铺编号」这几栏</span>
+        </span>
+        <input id="pick" type="file" accept=".xls,.xlsx">
+      </label>
+      <div id="out" aria-live="polite"></div>
+    </main>
+  </div>
+</div>
+<script src="../name/shops.js"></script>
+<script src="../vendor/xlsx.full.min.js"></script>
+<script src="../vendor/exceljs.min.js"></script>
+<script src="../vendor/jszip.min.js"></script>
+<script src="split.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var state = null;
+  try { var _s = HQAuth.session(); if (_s) $('gUser').textContent = _s.id; } catch (e) {}
+
+  async function load(file) {
+    $('out').innerHTML = '<div class="status" role="status">正在读「' + esc(file.name) + '」……</div>';
+    try {
+      if (!window.XLSX || !window.ExcelJS || !window.SHOP_DATA) throw new Error('组件或店铺表没载入，请重新整理页面');
+      var wb = XLSX.read(new Uint8Array(await file.arrayBuffer()), { type: 'array' });
+      var sheet = wb.SheetNames[0];
+      var aoa = XLSX.utils.sheet_to_json(wb.Sheets[sheet], { header: 1, raw: true, defval: '' });
+      var p = BJP.parse(aoa);
+      if (p.missing.length) throw new Error('第一个工作表「' + sheet + '」找不到这几栏：' + p.missing.join('、'));
+      if (!p.rows.length) throw new Error('第一个工作表「' + sheet + '」没有资料');
+      var g = BJP.group(p.rows, window.SHOP_DATA);
+      state = { file: file.name, sheet: sheet, month: BJP.monthOf(sheet, file.name), rows: p.rows, groups: g.groups, problems: g.problems };
+      render();
+      window.HQBus && HQBus.emit({ tool: 'bjp', kind: 'processed', files: 1, items: p.rows.length, groups: g.groups.length, problem: g.problems.length });
+    } catch (e) {
+      state = null;
+      $('out').innerHTML = '<div class="error" role="alert">读不出来：' + esc(e.message || e) + '</div>';
+    }
+  }
+
+  function render() {
+    var s = state, qty = s.groups.reduce(function (a, g) { return a + g.qty; }, 0);
+    var h = '<section class="card pad facts"><span>文件 <b>' + esc(s.file) + '</b></span><span>工作表 <b>' + esc(s.sheet) + '</b>（第一个）</span>' +
+      '<span>共 <b>' + s.rows.length + '</b> 单 · 保健品 <b>' + qty + '</b> 盒 · 分成 <b>' + s.groups.length + '</b> 份</span>' +
+      '<label>月份 <input id="month" inputmode="numeric" value="' + esc(s.month) + '" aria-label="文件名的月份"> 月</label>' +
+      '<span class="small">店铺表 ' + esc((window.SHOP_DATA && SHOP_DATA.updated) || '') + ' 版</span></section>';
+    if (s.problems.length) h += '<section class="warn" role="alert"><b>有 ' + s.problems.length + ' 单分不到督导，没有放进任何文件：</b><ul>' +
+      s.problems.map(function (x) { return '<li>第 ' + x.row.line + ' 行 ' + esc(x.row.order || '') + ' ' + esc(x.row.name || '') + '：' + esc(x.why) + '</li>'; }).join('') + '</ul></section>';
+    h += '<section class="card"><div class="tbl"><table><thead><tr><th scope="col">督导（群）</th><th scope="col">督导</th><th scope="col">店铺</th><th scope="col" style="text-align:right">单数</th><th scope="col" style="text-align:right">保健品数量</th><th scope="col">文件名</th><th scope="col"><span class="vh">下载</span></th></tr></thead><tbody>' +
+      s.groups.map(function (g, i) {
+        return '<tr><td class="grp">' + esc(g.title) + '</td><td>' + esc(g.sups.join('、')) + '</td><td class="num">' + g.shops.length + '</td><td class="num">' + g.rows.length + '</td><td class="num">' + g.qty + '</td>' +
+          '<td class="fn">' + esc(BJP.fileName(monthNow(), g.title)) + '</td><td><button type="button" class="btn small" data-dl="' + i + '">下载</button></td></tr>';
+      }).join('') + '</tbody></table></div></section>';
+    h += '<div class="acts"><span class="small">每份照「8月份保健品发货明细」的格式：一个工作表、置中、细框线；文件名后面是督导的群（没有群就写督导名字）。</span>' +
+      '<button type="button" class="btn g-btn3d" data-zip>全部打包下载（' + s.groups.length + ' 份）</button></div>';
+    $('out').innerHTML = h;
+    $('month').addEventListener('input', function () { var v = this.value.replace(/\D/g, '').slice(0, 2); this.value = v; state.month = v;
+      document.querySelectorAll('#out td.fn').forEach(function (td, i) { td.textContent = BJP.fileName(monthNow(), state.groups[i].title); }); });
+  }
+  function monthNow() { return state && state.month ? state.month : ''; }
+
+  function save(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+  async function bufOf(g) { return BJP.build(ExcelJS, g, monthNow()).xlsx.writeBuffer(); }
+  var XLSX_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+  document.addEventListener('click', async function (e) {
+    var b = e.target.closest('[data-dl],[data-zip]'); if (!b || !state) return;
+    b.disabled = true;
+    try {
+      if (b.hasAttribute('data-dl')) { var g = state.groups[+b.getAttribute('data-dl')]; save(new Blob([await bufOf(g)], { type: XLSX_TYPE }), BJP.fileName(monthNow(), g.title)); }
+      else {
+        var zip = new JSZip();
+        for (var i = 0; i < state.groups.length; i++) zip.file(BJP.fileName(monthNow(), state.groups[i].title), await bufOf(state.groups[i]));
+        save(await zip.generateAsync({ type: 'blob' }), (monthNow() ? monthNow() + '月份' : '') + '保健品发货明细（按督导分）.zip');
+      }
+    } catch (err) { alert('下载失败：' + (err.message || err)); }
+    b.disabled = false;
+  });
+
+  $('pick').addEventListener('change', function () { if (this.files[0]) load(this.files[0]); this.value = ''; });
+  var drop = $('drop');
+  ['dragenter', 'dragover'].forEach(function (t) { window.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (t) { window.addEventListener(t, function (e) { e.preventDefault(); if (t === 'drop' || !e.relatedTarget) drop.classList.remove('over'); }); });
+  window.addEventListener('drop', function (e) { var f = e.dataTransfer && e.dataTransfer.files[0]; if (f) load(f); });
+})();
+</script>
+</body>
+</html>

@@ -32,7 +32,7 @@
 .g-hero{position:relative;overflow:hidden;border-radius:18px;min-height:150px;padding:28px 32px;display:flex;flex-direction:column;justify-content:center;gap:6px;
   background:#F3ECDF url(brand/ink-hero.webp) right center/cover no-repeat;border:1px solid #E8DFCC;color:#2B2620;text-align:left}
 .g-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(246,241,231,.95) 30%,rgba(246,241,231,0) 75%);pointer-events:none}
-.g-hero>*{position:relative;margin:0}
+.g-hero>*{position:relative;z-index:1;margin:0}
 .g-hero h1,.g-hero h2{font-family:'Noto Serif SC','Songti SC','SimSun',serif;font-size:30px;font-weight:700;letter-spacing:2px;color:#2B2620}
 .g-hero p{max-width:30em;font-size:14px;color:#5E5546}
 @media (max-width:600px){.g-hero{padding:22px 20px;min-height:120px}.g-hero::before{background:linear-gradient(90deg,rgba(246,241,231,.95) 55%,rgba(246,241,231,.55))}.g-hero h1,.g-hero h2{font-size:24px}}
@@ -173,6 +173,7 @@ header .g-tile{width:46px;height:46px} header .g-tile svg{width:22px;height:22px
 :root[data-theme="dark"] .g-hero::after,body:not(.light):not(.g-pat) .g-hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:url(brand/ink-hero-lamp.png) right center/cover no-repeat;mix-blend-mode:screen;animation:gFlicker 2.6s ease-in-out infinite}
 @keyframes gFlicker{0%,100%{opacity:.75}18%{opacity:1}22%{opacity:.82}48%{opacity:.95}62%{opacity:.7}80%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.g-hero::after{animation:none!important}}
+@media (max-width:600px){:root[data-theme="dark"] .g-hero::before,body:not(.light):not(.g-pat) .g-hero::before{background:linear-gradient(90deg,rgba(14,22,38,.92) 55%,rgba(14,22,38,.6))}}
 
 /* 转页面的过场：换页时旧画面淡出、新画面淡入上移（Chrome / Edge 支援；不支援的浏览器照常换页） */
 @view-transition{navigation:auto}
