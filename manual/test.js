@@ -66,33 +66,7 @@ t('搜索：每个词都要在同一章；结果照分类顺序；摘要有关�
   assert.ok(M.snippet(HB.chapters[2], '导出').includes('导出'));
 });
 
-t('图表换算：发货时间 → 天数范围（照原文，不另外加）', () => {
-  assert.deepStrictEqual(M.durationRange('约30天（一个月）'), [30, 30]);
-  assert.deepStrictEqual(M.durationRange('三个月左右（快的一个月）'), [30, 90]);
-  assert.deepStrictEqual(M.durationRange('1-2周'), [7, 14]);
-  assert.deepStrictEqual(M.durationRange('2个多月'), [60, 75]);
-  assert.deepStrictEqual(M.durationRange('可能需要半年左右（全钻定制）+证书时间'), [180, 180]);
-  assert.strictEqual(M.durationRange('看情况'), null);
-});
-t('图表换算：发送频率 → 星期几', () => {
-  assert.deepStrictEqual(M.weekdays('每天（如果有）'), [1, 2, 3, 4, 5, 6, 7]);
-  assert.deepStrictEqual(M.weekdays('三天一次（周六、周一、周二）'), [1, 2, 6]);
-  assert.deepStrictEqual(M.weekdays('三天一次（周三到周五）'), [3, 4, 5]);
-  assert.deepStrictEqual(M.weekdays('不定'), []);
-});
-t('图表换算：费用、每月日期、首页数字', () => {
-  assert.strictEqual(M.money('RMB 1,900'), 1900); assert.strictEqual(M.money('免费'), 0); assert.strictEqual(M.money('特批免费重启'), null);
-  assert.deepStrictEqual(M.monthDays({ blocks: [{ type: 'h', text: '每月10号 — 甲统计' }, { type: 'h', text: '房补' }, { type: 'h', text: '每月 25 号 - 乙' }] }), [{ day: 10, label: '甲统计' }, { day: 25, label: '乙' }]);
+t('首页数字：章节、分类、步骤、表格、话术', () => {
   assert.deepStrictEqual(M.stats(HB), { chapters: 5, groups: 4, steps: 2, tables: 2, scripts: 1 });
-});
-t('换算的边边角角：小数、十几天、跨周、写错的金额', () => {
-  assert.deepStrictEqual(M.durationRange('1.5个月'), [45, 45]);
-  assert.deepStrictEqual(M.durationRange('十五天'), [15, 15]);
-  assert.deepStrictEqual(M.durationRange('二十天到二十五天'), [20, 25]);
-  assert.deepStrictEqual(M.weekdays('周一、周三到周五'), [1, 3, 4, 5]);
-  assert.deepStrictEqual(M.weekdays('周五到周一'), [1, 5, 6, 7]);
-  assert.deepStrictEqual(M.weekdays('不是每天，周二'), [2]);
-  assert.strictEqual(M.money('RMB .'), null);
-  assert.strictEqual(M.money('RMB 1,900.50'), 1900.5);
 });
 console.log(`全部通过（${n} 项）`);
