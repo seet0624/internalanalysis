@@ -11,15 +11,17 @@
   var KEY = 'hq-session';
   var TTL = 12 * 60 * 60 * 1000;   // 登入 12 小时后要重新登入
 
-  // role：boss 看全公司；cs 只看国内客服部
+  // role：boss 看全公司；cs 只看国内客服部；os 只看海外客服（两边互相看不到）
   var ACCOUNTS = {
     dongfangcs: { hash: '2d7371e458032390529c11a923d1f89054c2fdd4ccf4deac1793d0fc5df951d2', role: 'cs', name: '国内客服部' },
+    shuyics: { hash: '16194c0d1d5ca5c257b1f76c8e5b6f498a726f63d5f70aaba929162ec60f23a6', role: 'os', name: '海外客服部' },
     martin: { hash: '2b605dbf1dc114eb72c6d72127d1dd708abcd0bb547d064b55460562f459b789', role: 'boss', name: '老板 Martin' }
   };
   // 每个身份能进的页面（网站根目录下的路径开头）
   var ACCESS = {
     boss: ['*'],
-    cs: ['', 'index.html', 'name/', 'tech/', 'bjp/', 'manual/', 'handbook/', 'guide/', 'numera/', 'docs/']   // 客服不进 3D 办公室（command/），登入直接到名字审核
+    cs: ['', 'index.html', 'name/', 'tech/', 'bjp/', 'manual/', 'guide/', 'numera/', 'docs/'],   // 国内客服不进 3D 办公室（command/），登入直接到名字审核
+    os: ['', 'index.html', 'handbook/']   // 海外客服：只有海外客服门户
   };
 
   // ---------- SHA-256（不靠 crypto.subtle，http 网址也能用） ----------

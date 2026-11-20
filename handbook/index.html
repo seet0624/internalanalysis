@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html><head>
-<script src="../hq/auth.js?v=20261120"></script>
+<script src="../hq/auth.js?v=20261120b" data-nobadge></script>
+<script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
 
 <meta name="robots" content="noindex, nofollow">
-<title>数易 · 客服业务门户</title>
-<!-- 改了判定器（*.dc.html）或 content/ 文件后，把下面的 v= 版本号改新，浏览器就不会用旧缓存 -->
+<title>数易 · 海外客服门户</title>
 <script>window.__resources = {
  "flag_us": "assets/img/flags/us.png",
  "screws": "assets/img/screws.jpg",
@@ -37,48 +37,52 @@
  "flag_il": "assets/img/flags/il.png",
  "flag_ch": "assets/img/flags/ch.png",
  "flag_sa": "assets/img/flags/sa.png",
- "./%E6%94%B9%E7%BA%BF%E5%88%A4%E5%AE%9A%E5%99%A8.dc.html": "改线判定器.dc.html?v=20261021a",
- "./%E6%9C%8D%E5%8A%A1%E4%B8%AD%E5%BF%83%E5%88%A4%E5%AE%9A%E5%99%A8.dc.html": "服务中心判定器.dc.html?v=20261021a",
  "https://unpkg.com/react@18.3.1/umd/react.production.min.js": "assets/vendor/react.production.min.js",
  "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js": "assets/vendor/react-dom.production.min.js"
 };</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- 内容数据：章节、公告、汇率等，编辑说明见 README 与各文件开头 -->
+<!-- 海外手册的内容（章节、公告、汇率、两个判定器）锁在云端 cs_docs.os_handbook：只有海外账号和老板读得到，网站档案里没有。
+     拿到内容才启动页面。改内容：老板账号登入后照 README「海外客服门户」一节更新云端。 -->
 <script>
 window.CS = {};
-window.__csErrors = [];
-window.addEventListener('error', function (e) {
-  var src = e.filename || (e.target && e.target.src) || '';
-  if (src.indexOf('/content/') < 0) return;
-  var file = 'content/' + decodeURIComponent(src.split('/content/')[1].split('?')[0]);
-  window.__csErrors.push(e.lineno ? file + ' 第 ' + e.lineno + ' 行：' + e.message : file + ' 没有加载成功');
-}, true);
-</script>
-<script src="content/首页.js?v=20261021a"></script>
-<script src="content/章节.js?v=20261021a"></script>
-<script src="content/汇率与工期.js?v=20261021a"></script>
-<script>
 (function () {
-  var need = { announcements: '首页', quicklinks: '首页', tasks: '首页', week: '首页',
-               modules: '章节', fx: '汇率与工期', leadRegions: '汇率与工期', leadTools: '汇率与工期' };
-  var errs = window.__csErrors;
-  for (var k in need) {
-    if (!Array.isArray(window.CS[k])) errs.push('content/' + need[k] + '.js 缺少 CS.' + k);
+  function bar(msg) {
+    var show = function () {
+      var d = document.createElement('div'); d.setAttribute('role', 'alert'); d.className = 'os-alert'; d.textContent = msg;
+      document.body.appendChild(d);
+    };
+    if (document.body) show(); else document.addEventListener('DOMContentLoaded', show);
   }
-  if (!errs.length) return;
-  document.addEventListener('DOMContentLoaded', function () {
-    var bar = document.createElement('div');
-    bar.setAttribute('role', 'alert');
-    bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;padding:12px 16px;background:#b3261e;color:#fff;font:14px/1.6 -apple-system,BlinkMacSystemFont,sans-serif;white-space:pre-wrap;';
-    bar.textContent = '内容文件有错误，部分内容无法显示。请检查最近的修改：\n' + errs.join('\n');
-    document.body.appendChild(bar);
+  // 云端存的是 gzip 后的 base64（内容比较大），用浏览器内建的解压
+  function gunzip(b64) {
+    var bin = atob(b64), u8 = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  }
+  HQAuth.cloudGet('os_handbook').then(function (d) {
+    if (!d || typeof d.gz !== 'string') throw new Error('no-data');
+    return gunzip(d.gz);
+  }).then(function (txt) {
+    var o = JSON.parse(txt);
+    window.CS = o.CS || {};
+    window.__resourceBlobs = window.__resourceBlobs || {};
+    Object.keys(o.tools || {}).forEach(function (n) {
+      var id = 'cloud:' + n;   // 判定器从云端来：runtime 照 __resources 找到 id，再从 __resourceBlobs 拿内容
+      window.__resources['./' + encodeURIComponent(n) + '.dc.html'] = id;
+      window.__resourceBlobs[id] = new Blob([String(o.tools[n])], { type: 'text/html' });
+    });
+    var need = ['announcements', 'quicklinks', 'tasks', 'week', 'modules', 'fx', 'leadRegions', 'leadTools'];
+    var miss = need.filter(function (k) { return !Array.isArray(window.CS[k]); });
+    if (miss.length) bar('云端的海外手册少了：' + miss.join('、') + '。请老板检查最近一次更新。');
+    var sc = document.createElement('script'); sc.src = 'assets/vendor/dc-runtime.js'; document.head.appendChild(sc);
+  }).catch(function () {
+    bar('海外手册要用海外客服账号登入才看得到。已经登入的话，可能是网络连不上云端，请稍后重新整理；还是不行就退出再登入一次。');
   });
 })();
 </script>
 <!-- 数易助手后端地址（Netlify 部署后填入，例如 https://xxx.netlify.app/api/ask）；留空则只用本地关键词回答 -->
 <script>window.ASSISTANT_ENDPOINT = 'https://shuyi-assistant.netlify.app/api/ask';</script>
-<script src="assets/vendor/dc-runtime.js"></script>
 </head>
 <body>
 <x-dc>
@@ -86,15 +90,43 @@ window.addEventListener('error', function (e) {
 <link rel="stylesheet" href="assets/fonts.css">
 <style>
 :root{
-  --gold:#c99a3b; --gold-mid:#d9b46a; --gold-lt:#efe2c4; --gold-deep:#8a6420;
+  --gold:#B8873A; --gold-mid:#C99A3B; --gold-lt:#F6ECD9; --gold-deep:#8A5E1A;
+  --ink:#2B2620; --ink-soft:#5E5446; --ink-faint:#7A6F5C;
+  --paper:#F6F1E7; --paper-2:#FBF7EF; --card:#FFFDF8; --card-2:#F3ECDF;
+  --line:#E8DFCC; --line-soft:#F0E9DB;
+  --rule:#DCCFB4;
+  --ok:#137333; --ok-bg:#E6F4EA; --warn:#7A4300; --warn-bg:#FFF1DC; --bad:#B3261E; --bad-bg:#FBE9E7;
+  --topbar:rgba(251,247,239,.88);
+  --r:14px; --shadow:0 1px 2px rgba(60,40,10,.06),0 8px 24px rgba(60,40,10,.08); color-scheme:light;
+  --serif:"Noto Serif SC",serif; --sans:"Noto Sans SC",sans-serif; --latin:"Cormorant Garamond",serif;
+}
+:root[data-theme="dark"]{
+  --gold:#c99a3b; --gold-mid:#d9b46a; --gold-lt:#efe2c4; --gold-deep:#E2BE7A;
   --ink:#E8EAED; --ink-soft:#C8D0DC; --ink-faint:#9AA7BD;
   --paper:#0F1217; --paper-2:#12151B; --card:#161A21; --card-2:#1E232C;
   --line:#2A303C; --line-soft:#1E232C;
   --rule:#343B49;
   --ok:#81C995; --ok-bg:#183020; --warn:#FDD663; --warn-bg:#33270F; --bad:#F28B82; --bad-bg:#3A1C1A;
-  --r:14px; --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
-  --serif:"Noto Serif SC",serif; --sans:"Noto Sans SC",sans-serif; --latin:"Cormorant Garamond",serif;
+  --topbar:rgba(15,18,23,.86);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
 }
+/* 左栏跟其他工具一样：深蓝夜景，深浅色都一样 */
+.os-side{--paper-2:#0E1626;--card:rgba(217,182,110,.16);--card-2:rgba(217,182,110,.16);--ink:#F4EBD8;--ink-soft:#D9D0BD;--ink-faint:#A79E8A;--line:rgba(233,225,207,.12);--gold-deep:#E9C98A;--gold:#D9B66E;
+  background-image:linear-gradient(to top,rgba(14,22,38,.55) 0,rgba(14,22,38,.6) 180px,#0E1626 330px),url(../hq/brand/side-night.webp)!important;background-position:center bottom!important;background-size:100% auto!important;background-repeat:no-repeat!important;border-right:0!important;color:#E9E1CF}
+.os-brand{display:flex;align-items:center;gap:12px;cursor:pointer;text-decoration:none}
+.os-brand img{height:44px;width:auto;display:block}
+.os-brand b{font-family:var(--serif);font-weight:900;font-size:21px;letter-spacing:.12em;background:linear-gradient(180deg,#FFF1C9,#E2BE7A);-webkit-background-clip:text;background-clip:text;color:transparent}
+.os-acts{position:fixed;top:17px;right:clamp(16px,2.4vw,24px);z-index:45;display:flex;align-items:center;gap:8px}
+/* 顶栏右边留位置给上面这排按钮（按钮放在页面外面，页面重画不会弄丢） */
+header{padding-right:clamp(16px,2.4vw,24px)!important}
+@media (min-width:701px){header>div:nth-of-type(1),header>*:has(>input){margin-right:340px}}
+.os-acts button,.os-acts .os-user{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:500 14px var(--sans);cursor:pointer;white-space:nowrap}
+.os-acts .os-user{cursor:default;font-weight:600}
+.os-acts .os-out{color:var(--bad);border-radius:8px}
+.os-acts svg{flex:none}
+@media (max-width:700px){.os-acts{top:13px}.os-acts .os-user{display:none}.os-acts button{padding:0 10px;font-size:0;gap:0}.os-acts button svg{width:18px;height:18px}header>*:has(>input){margin-right:96px}}
+header img[alt="数易"]{display:none!important}
+.os-alert{position:fixed;top:0;left:0;right:0;z-index:99999;padding:12px 16px;background:var(--bad-bg);color:var(--bad);font:14px/1.6 var(--sans);white-space:pre-wrap;border-bottom:1px solid var(--bad)}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
 body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;text-wrap:pretty;}
@@ -203,13 +235,13 @@ input::placeholder{color:var(--ink-faint);}
 
 <div style="display:flex;min-height:100vh;background:var(--paper);position:relative;">
 
-  <aside style="{{ sidebarStyle }}">
+  <aside class="os-side" style="{{ sidebarStyle }}">
     <div style="padding:26px 22px 16px;">
-      <a sc-camel-on-click="{{ home }}" style="display:flex;align-items:center;gap:12px;cursor:pointer;">
-        <img src="assets/img/logo.png" alt="数易" style="height:38px;width:auto;display:block;">
-        <span style="font-family:var(--latin);font-weight:700;font-size:23px;letter-spacing:.2em;color:var(--ink);">SHUYI</span>
+      <a class="os-brand" sc-camel-on-click="{{ home }}">
+        <img src="../hq/brand/shuyi-logo-gold.png" alt="数易">
+        <b>海外客服系统</b>
       </a>
-      <div style="margin-top:8px;font-family:var(--serif);font-size:12.5px;letter-spacing:.3em;color:var(--ink-soft);">客服业务门户</div>
+      <div style="margin-top:8px;font-family:var(--serif);font-size:12.5px;letter-spacing:.3em;color:var(--ink-soft);">数易 · 知行堂 · 海外客服门户</div>
     </div>
     <div style="height:1px;background:var(--line);margin:0 22px 6px;"></div>
     <nav style="padding:8px 12px 30px;overflow-y:auto;flex:1;">
@@ -354,7 +386,7 @@ input::placeholder{color:var(--ink-faint);}
                   <button class="hov" sc-camel-on-click="{{ r.onGo }}" style="min-height:34px;padding:0 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--ink);cursor:pointer;">{{ r.t }}</button>
                 </sc-for>
               </div>
-              <button class="aibar" sc-camel-on-click="{{ openChat }}" style="position:relative;display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:18px;border:1.5px solid transparent;background:linear-gradient(#161A21,#161A21) padding-box,linear-gradient(120deg,#f3dc9f,#c99a3b 45%,#8a6420) border-box;cursor:pointer;text-align:left;box-shadow:0 10px 30px rgba(138,100,32,.12);">
+              <button class="aibar" sc-camel-on-click="{{ openChat }}" style="position:relative;display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:18px;border:1.5px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(120deg,#f3dc9f,#c99a3b 45%,#8a6420) border-box;cursor:pointer;text-align:left;box-shadow:0 10px 30px rgba(138,100,32,.12);">
                 <span style="flex:0 0 auto;width:56px;height:56px;border-radius:17px;background:#232833;display:flex;align-items:center;justify-content:center;">{{ brandIconHero }}</span>
                 <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;">
                   <span style="display:flex;align-items:center;gap:8px;"><span style="font-family:var(--serif);font-weight:700;font-size:19px;color:var(--ink);">问数易助手</span><span style="padding:1px 8px;border-radius:999px;background:#232833;color:#e2b35a;font-size:11.5px;font-weight:700;">AI</span></span>
@@ -1145,7 +1177,7 @@ input::placeholder{color:var(--ink-faint);}
 class Component extends DCLogic {
   state = { route:{type:'home'}, query:'', open:[], nav:false, isMobile:false, copied:'', fxAmt:'100', fxFrom:'MYR', fxTo:'CNY', checks:{}, wide:true, ldRegion:'my', ldTool:'mzys', week:{}, chatOpen:false, chatMsgs:[], chatInput:'', chatBusy:false, chatCopied:-1, chatHint:true, fxqAmt:'1000', fxqCur:'MYR', now:Date.now() };
 
-  // 章节、公告、汇率等内容数据在 content/ 目录（由 index.html 先加载到 window.CS），见 README
+  // 章节、公告、汇率等内容数据在云端 cs_docs.os_handbook（由 index.html 开头先载入到 window.CS）
   cs(key){
     const C = (typeof window!=='undefined' && window.CS) || {};
     return Array.isArray(C[key]) ? C[key] : [];
@@ -1812,7 +1844,7 @@ class Component extends DCLogic {
       recent, catalogueNote:this.DATA.length+' 个模块 · '+sectionCount+' 节',
       weekRing:this.weekRing(weekDone, weekTotal),
       sidebarStyle:this.sidebarStyle(isMobile,navOpen),
-      topbarStyle:"position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px clamp(16px,4vw,24px);background:rgba(15,18,23,.86);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line);",
+      topbarStyle:"position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px clamp(16px,4vw,24px);background:var(--topbar);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line);",
       isMobile, showScrim:isMobile&&navOpen, showTopBrand:!isMobile,
       homeIcon:ic('home',18,1.8), bookIcon:ic('book-open',18,1.8), menuIcon:ic('menu',22,1.8), searchIcon:ic('search',18,1.8), xIcon:ic('x',18,2),
       homeBtnStyle:this.navHomeStyle(isHome),
@@ -1864,4 +1896,25 @@ class Component extends DCLogic {
 </script>
 
 
+<script>
+// 顶栏右边：深色 / 浅色、登入的人、退出（跟名字审核、技术单一样）。页面画好、重画后都补上
+(function () {
+  var sess = HQAuth.session();
+  function build() {
+    var d = document.createElement('div'); d.className = 'os-acts';
+    var th = document.createElement('button'); th.type = 'button'; th.className = 'theme';
+    var u = document.createElement('span'); u.className = 'os-user';
+    u.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>';
+    u.appendChild(document.createTextNode(sess ? sess.id : ''));
+    var o = document.createElement('button'); o.type = 'button'; o.className = 'os-out';
+    o.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg>退出';
+    o.addEventListener('click', function () { HQAuth.confirmLogout(); });
+    d.appendChild(th); d.appendChild(u); d.appendChild(o);
+    HQAuth.themeButton(th);
+    return d;
+  }
+  function place() { if (!document.body || document.querySelector('.os-acts')) return; document.body.appendChild(build()); }
+  if (document.body) place(); else document.addEventListener('DOMContentLoaded', place);
+})();
+</script>
 </body></html>

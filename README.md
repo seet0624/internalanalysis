@@ -24,7 +24,7 @@
 
 | 网址 | 来源 |
 |---|---|
-| `handbook/` | `seet0624/cshandbook`：数易 · 客服业务门户（含售后服务培训内容） |
+| `handbook/` | 海外客服门户（原 `seet0624/cshandbook`）：页面在这里，内容（章节、公告、汇率、两个判定器）锁在云端 `cs_docs.os_handbook`，只有海外客服账号和老板读得到 |
 | `guide/` | `seet0624/tools`：工具启动教程 |
 | `numera/` | `seet0624/shuyitoolguidance`：SHUYI · NUMERA（原本是私人仓库，搬进来后公开） |
 | `docs/dongfang/` | claude.ai 简报 artifact「东方药林健康商城 · 手机端教程」，转成网页 |
@@ -278,3 +278,19 @@ deploy/             上传到阿里云 OSS 的程序和上线步骤（不会放�
 
 - 名字审核原本在 `seet0624/nameanalysis` 仓库，2026-10-30 搬进来，以后在这里改
 - 技术单审核台原本就在这个仓库的根目录，搬到 `tech/`
+
+## 国内 / 海外分开（数易 · 知行堂）
+
+登入页叫「数易 · 知行堂」（客服知行 · 内外同心），右上角可以换白天 / 夜晚（记在这台电脑，预设夜晚）。
+
+| 账号 | 身份 | 登入后 | 看得到 |
+|---|---|---|---|
+| `dongfangcs` | 国内客服（`cs`） | 名字审核 | 名字审核、技术单、保健品分督导、客服手册、教程；云端只读 `audience = 'cs'` |
+| `shuyics` | 海外客服（`os`） | 海外客服门户（`handbook/`） | 只有海外门户；云端只读 `audience = 'os'` |
+| `martin` | 老板（`boss`） | 指挥中心 | 全部 |
+
+- 网页这边：`hq/auth.js` 的 `ACCOUNTS`、`ACCESS`。走错页会被带回自己的首页。
+- 云端这边：`cs_docs.audience`（`cs` / `os`）+ 读取权限 `cs_docs_read`；`hq_accounts` 加了 `os` 身份。
+- 海外门户的内容存在 `cs_docs.os_handbook`：`{ v: 1, gz: base64(gzip(JSON)) }`，JSON 是 `{ CS: {announcements, quicklinks, tasks, week, modules, fx, leadRegions, leadTools}, tools: { 改线判定器: html, 服务中心判定器: html } }`。页面用浏览器内建的 `DecompressionStream` 解开。
+- 改海外内容：请 Claude 照上面的格式重新上传（只有老板身份写得进去）。「数易助手」的参考资料还是 Netlify 从 `seet0624/cshandbook` 的 `content/` 生成，两边要一起改。
+- 网页的登入检查写在公开的程式里，挡得住一般人；真正锁住资料的是云端权限。密码太短（例如 `123`）的话，懂技术的人可以试出来，建议换长一点的密码。
