@@ -1259,7 +1259,7 @@ function famHtml(fname,fc){ var s=String(fname), i=s.indexOf(fc); if(i<0)return 
 function hitSub(h,d){ var m=h.member||'', o=m.match(/^关联订单\s*(\S+)\s*的新名$/)||m.match(/^关联学员「[^」]*」\(([^)]*)\)$/); if(m==='父亲'||m==='母亲')return '';
   var w=whoOf(h,d).who; w=/^(家人|家属)$/.test(w||'')?'':w; if(!o&&w)return '关系：'+w;
   var key=o?o[1]:(h.full||''), snip=''; [d.note1,d.note2,d.sib,d.kids].some(function(t){ t=String(t||''); var i=key?t.indexOf(key):-1; if(i<0)return false;
-    snip=(i>30?'…':'')+t.slice(Math.max(0,i-30),i+key.length)+(i+key.length<t.length?'…':''); return true; });
+    var e=i+key.length; snip=(i>30?'…':'')+t.slice(Math.max(0,i-30),e+30)+(e+30<t.length?'…':''); return true; }); // 前后各截 30 字：关系有时写在后面（A…（她老公））
   return '关系：'+(w||'备注没写清楚')+(snip?'　备注原文：「'+snip+'」':''); }
 function issuesOf(r){ var list=[], seen={};
   function add(tier,key,html,sub,neu,short){ var it=seen[key]; if(it){ if(neu&&it.names.indexOf(neu)<0)it.names.push(neu); return; } it={tier:tier,key:key,html:html,sub:sub||'',names:neu?[neu]:[],raw:null,short:short||''}; seen[key]=it; list.push(it); }
