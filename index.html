@@ -214,11 +214,6 @@ button{cursor:pointer}
 .lg-go:disabled{opacity:.7;letter-spacing:.1em;text-indent:0}
 .lg-go svg{width:22px;height:22px;flex:none}
 #loginMsg{margin:-8px 0 0;color:#D9D0BD;font-size:14px}
-@view-transition{navigation:auto}
-::view-transition-old(root){animation:gVtOut .28s ease both}
-::view-transition-new(root){animation:gVtIn .42s cubic-bezier(.2,.8,.2,1) both}
-@keyframes gVtOut{to{opacity:0;transform:scale(.985)}}
-@keyframes gVtIn{from{opacity:0;transform:translateY(10px)}}
 /* 已登入转页中：只显示会呼吸的金色 logo */
 .hq-anon body{background:#0B1424 url("hq/brand/login-night.webp") left center/cover no-repeat!important}
 .hq-anon body>*:not(#login){visibility:hidden!important}
@@ -227,9 +222,10 @@ button{cursor:pointer}
 .hq-go body::after{content:"";position:fixed;inset:0;margin:auto;width:110px;height:105px;background:url(hq/brand/shuyi-logo-gold.png) center/contain no-repeat;visibility:visible;animation:hqPulse 1.2s ease-in-out infinite}
 @keyframes hqPulse{0%,100%{opacity:.55;transform:scale(.96)}50%{opacity:1;transform:scale(1.04)}}
 /* 登入成功：卡片淡出、标题发金光、整页渐暗，再转页 */
-.login.lg-leave form{animation:lgOut .5s ease forwards}
-.login.lg-leave .lg-brand{animation:lgBrand .7s ease forwards}
-.login.lg-leave::before{content:"";position:fixed;inset:0;z-index:3;background:#0E1626;animation:lgFade .7s ease forwards;pointer-events:none}
+.login.lg-leave form{animation:lgOut .3s ease forwards}
+.login.lg-leave .lg-brand{animation:lgBrand .35s ease forwards}
+.login.lg-leave::before{content:"";position:fixed;inset:0;z-index:3;background:#0E1626;animation:lgFade .35s ease forwards;pointer-events:none}
+.login.lg-leave::after{content:"";position:fixed;inset:0;margin:auto;z-index:4;width:110px;height:105px;background:url(hq/brand/shuyi-logo-gold.png) center/contain no-repeat;opacity:0;animation:lgFade .35s .2s ease forwards,hqPulse 1.2s .55s ease-in-out infinite}   /* 云端慢的时候看到会呼吸的 logo，知道还在进行 */
 @keyframes lgOut{to{opacity:0;transform:translateY(18px) scale(.96)}}
 @keyframes lgBrand{45%{transform:scale(1.05);filter:drop-shadow(0 0 28px rgba(233,194,122,.85))}to{opacity:0;transform:scale(1.08)}}
 @keyframes lgFade{from{opacity:0}to{opacity:1}}
@@ -347,7 +343,7 @@ html.lg-day.hq-anon body{background:#EAF0F2 url("hq/brand/login-day.webp") left 
   .hq-room-boss small,.hq-room-main small{display:inline}
 }
 </style>
-<script src="hq/auth.js?v=20261120c" data-page="hq"></script>
+<script src="hq/auth.js?v=20261120d" data-page="hq"></script>
 <script>
 // 已经登入、会被转到别页的：先盖住旧办公室，只留金色 logo，免得闪一下
 document.documentElement.classList.add('lg-day');   // 登入页每次打开都是白天
@@ -355,7 +351,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
   else if (!_s) document.documentElement.classList.add('hq-anon');   // 没登入（例如刚退出）：只显示登入页，不先露出办公室
 } catch (e) {}
 </script>
-<script src="hq/bus.js?v=20261120c"></script>
+<script src="hq/bus.js?v=20261120d"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
 </head>
 <body>
@@ -450,7 +446,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
 <nav class="hud card drawer" id="drawer" aria-label="组织架构" aria-hidden="true" inert></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="hq/company.js?v=20261120c"></script>
+<script src="hq/company.js?v=20261120d"></script>
 <script type="module">
 const C = window.COMPANY;
 const KIND = { site: '网站', claude: 'Claude', planned: '筹备中' };
@@ -498,7 +494,7 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
       vid.classList.remove('on'); vid.setAttribute('src', src);
       const p = vid.play(); if (p && p.catch) p.catch(() => {});   // 浏览器不让自动播就留在静态图
     };
-    lgVideo();
+    if (document.readyState === 'complete') setTimeout(lgVideo, 400); else addEventListener('load', () => setTimeout(lgVideo, 400), { once: true });   // 页面载完才下载视频，不跟登入页抢网速
   })();
   let savedId = ''; try { savedId = localStorage.getItem('hq-remember-id') || ''; } catch (e) {}
   if (savedId) { $('loginId').value = savedId; $('loginPass').focus(); } else $('loginId').focus();
@@ -527,11 +523,14 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
     busy = true;
     const btn = $('loginForm').querySelector('button[type=submit]');
     if (btn) { btn.disabled = true; btn.textContent = '连接公司云端…'; }
-    await HQAuth.cloudLogin($('loginId').value, $('loginPass').value);   // 连不上也照样进去（本机模式）
-    if (nextUrl(sess)) {   // 要转页：不显示办公室，播完进入动画就走
+    const cloud = HQAuth.cloudLogin($('loginId').value, $('loginPass').value);   // 连不上也照样进去（本机模式）
+    if (nextUrl(sess)) {   // 要转页：离开动画和连云端同时进行，两样都好了就走（不再先等云端、再等动画）
       const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      box.classList.add('lg-leave'); setTimeout(() => goNext(sess), still ? 0 : 700); return;
+      box.classList.add('lg-leave');
+      await Promise.all([cloud, new Promise((r) => setTimeout(r, still ? 0 : 350))]);
+      goNext(sess); return;
     }
+    await cloud;
     box.hidden = true; $('skeleton').hidden = false; document.documentElement.classList.remove('hq-anon'); resolve(sess);
   });
 });

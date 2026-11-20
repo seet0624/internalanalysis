@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>技术单审核台</title>
-<script src="../hq/auth.js?v=20261120c" data-nobadge></script>
+<script src="../hq/auth.js?v=20261120d" data-nobadge></script>
 <script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
-<script src="../hq/tool-kit.js?v=20261120c"></script>
-<script src="../hq/bus.js?v=20261120c"></script>
+<script src="../hq/tool-kit.js?v=20261120d"></script>
+<script src="../hq/bus.js?v=20261120d"></script>
 
 <style>
 /* Dashboard 版：水墨左栏、上面标题、数字卡、工作区 + 右边摘要；米色底、金色重点（深色模式墨黑底）。
@@ -356,7 +356,7 @@ table.dl .fn{overflow-wrap:anywhere}
 .g-note h2,.summary h2{display:flex;align-items:center;gap:8px}
 .g-note h2 svg{width:20px;height:20px;color:var(--accent)}
 </style>
-<link rel="stylesheet" href="../hq/gold.css?v=20261120c">
+<link rel="stylesheet" href="../hq/gold.css?v=20261120d">
 </head>
 <body class="g-pat">
 
@@ -372,13 +372,9 @@ table.dl .fn{overflow-wrap:anywhere}
 <nav class="tabbar" id="tabbar" aria-label="主要导航"></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="../vendor/exceljs.min.js"></script>
-<script src="../vendor/jszip.min.js"></script>
-<script>
-// local copy missing → load the same versions from jsdelivr instead
-if (!window.ExcelJS) document.write('<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"><\/script>');
-if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"><\/script>');
-</script>
+<!-- 读 Excel / zip 的组件很大，上传时才用到：defer 不挡住画面先出来（review-engine 是用到时才去拿） -->
+<script src="../vendor/exceljs.min.js" defer></script>
+<script src="../vendor/jszip.min.js" defer></script>
 <script src="review-engine.js?v=354ece7ac7"></script>
 <script>
 (function () {
@@ -492,6 +488,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
     return !state.error;
   }
   async function addFiles(fl) {
+    if(document.readyState!=='complete') await new Promise(function(r){ addEventListener('load',r,{once:true}); });   // 读 Excel 的组件是 defer：太早拖文件进来就先等它们载完（load 才保证 defer 都跑完）
     if (!window.ExcelJS || !window.JSZip) {
       state.error = '读 Excel 的组件还没载入（网络慢或被挡）。请按 Ctrl+F5（Mac 按 Cmd+Shift+R）重新整理页面，再上传一次。';
       state.view = 'upload'; render(); return;

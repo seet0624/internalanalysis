@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>保健品分督导</title>
-<script src="../hq/auth.js?v=20261120c" data-nobadge></script>
+<script src="../hq/auth.js?v=20261120d" data-nobadge></script>
 <script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
-<script src="../hq/bus.js?v=20261120c"></script>
+<script src="../hq/bus.js?v=20261120d"></script>
 <style>
 /* 保健品分督导：跟名字审核、技术单审核同一套（米色底、金色重点、水墨左栏） */
 :root{--bg:#F6F1E7;--surface:#FFFDF8;--sunk:#F3ECDF;--ink:#2B2620;--muted:#6F6553;--faint:#7A6F5C;--line:#E8DFCC;--line-soft:#F0E9DB;--field:#DCCFB4;
@@ -70,7 +70,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .fn{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
 .acts{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 </style>
-<link rel="stylesheet" href="../hq/gold.css?v=20261120c">
+<link rel="stylesheet" href="../hq/gold.css?v=20261120d">
 </head>
 <body class="g-pat">
 <div class="shell">
@@ -107,10 +107,11 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     </main>
   </div>
 </div>
-<script src="../name/shops.js"></script>
-<script src="../vendor/xlsx.full.min.js"></script>
-<script src="../vendor/exceljs.min.js"></script>
-<script src="../vendor/jszip.min.js"></script>
+<!-- 店铺资料和读写 Excel 的组件很大，选了文件才用到：defer 不挡住画面先出来 -->
+<script src="../name/shops.js" defer></script>
+<script src="../vendor/xlsx.full.min.js" defer></script>
+<script src="../vendor/exceljs.min.js" defer></script>
+<script src="../vendor/jszip.min.js" defer></script>
 <script src="split.js"></script>
 <script>
 (function () {
@@ -121,6 +122,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   HQAuth.themeButton($('theme'));
 
   async function load(file) {
+    if(document.readyState!=='complete') await new Promise(function(r){ addEventListener('load',r,{once:true}); });   // 读 Excel 的组件是 defer：太早拖文件进来就先等它们载完（load 才保证 defer 都跑完）
     $('out').innerHTML = '<div class="status" role="status">正在读「' + esc(file.name) + '」……</div>';
     try {
       if (!window.XLSX || !window.ExcelJS || !window.SHOP_DATA) throw new Error('组件或店铺表没载入，请重新整理页面');
