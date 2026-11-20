@@ -313,7 +313,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role === 'cs' || !/[?&]classic/.t
   else if (!_s) document.documentElement.classList.add('hq-anon');   // 没登入（例如刚退出）：只显示登入页，不先露出办公室
 } catch (e) {}
 </script>
-<script src="hq/bus.js"></script>
+<script src="hq/bus.js?v=20261120"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
 </head>
 <body>
@@ -401,7 +401,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role === 'cs' || !/[?&]classic/.t
 <nav class="hud card drawer" id="drawer" aria-label="组织架构" aria-hidden="true" inert></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="hq/company.js"></script>
+<script src="hq/company.js?v=20261120"></script>
 <script type="module">
 const C = window.COMPANY;
 const KIND = { site: '网站', claude: 'Claude', planned: '筹备中' };
