@@ -1202,7 +1202,8 @@ async function importPastSheets(){ var inp=document.createElement('input'); inp.
   rebuild(); alert('已记住 '+tot+' 位学员（现在一共 '+Object.keys(PEOPLE).length+' 位）。以后技术单的家人栏出现同名的人，会拿他以前下来的新名来比。'+(bad.length?'\n读不了：'+bad.join('、'):'')); }; inp.click(); }
 
 // 拖进 zip：把里面的每份 Excel 拿出来一起审（Windows 压的 zip 中文名是 GBK，要另外解码，不然文件名会乱码）
-async function expandZips(list){ var out=[];
+async function expandZips(list){ if(document.readyState!=='complete') await new Promise(function(r){ addEventListener('load',r,{once:true}); });   // 读 Excel 的组件是 defer：太早拖文件进来就先等它们载完（load 才保证 defer 都跑完）
+ var out=[];
   for(var i=0;i<list.length;i++){ var f=list[i]; if(!/\.zip$/i.test(f.name)){ out.push(f); continue; }
     if(typeof JSZip==='undefined'){ alert('读 zip 需要 JSZip，请确认网络，或先解压再拖 Excel 进来。'); continue; }
     try{ var z=await JSZip.loadAsync(await f.arrayBuffer(),{decodeFileName:function(b){ var u=new Uint8Array(b); try{ return new TextDecoder('utf-8',{fatal:true}).decode(u); }catch(e){ return new TextDecoder('gbk').decode(u); } }});

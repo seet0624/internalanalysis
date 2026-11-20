@@ -122,6 +122,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   HQAuth.themeButton($('theme'));
 
   async function load(file) {
+    if(document.readyState!=='complete') await new Promise(function(r){ addEventListener('load',r,{once:true}); });   // 读 Excel 的组件是 defer：太早拖文件进来就先等它们载完（load 才保证 defer 都跑完）
     $('out').innerHTML = '<div class="status" role="status">正在读「' + esc(file.name) + '」……</div>';
     try {
       if (!window.XLSX || !window.ExcelJS || !window.SHOP_DATA) throw new Error('组件或店铺表没载入，请重新整理页面');

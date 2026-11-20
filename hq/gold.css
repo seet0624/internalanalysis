@@ -116,8 +116,6 @@ body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto
   .g-enter .g-hero,.g-enter .g-hello,.g-enter .g-drop,.g-enter .kpis{animation:gUp .28s cubic-bezier(.2,.8,.2,1) both}
   .g-enter .g-feats,.g-enter .g-pillbar,.g-enter .page>.narrow>.card,.g-enter .dash,.g-enter .feats,.g-enter #homeInfo{animation:gUp .28s .06s cubic-bezier(.2,.8,.2,1) both}
 }
-@keyframes gSlide{from{opacity:0;transform:translateX(-28px)}}
-@keyframes gDown{from{opacity:0;transform:translateY(-12px)}}
 @keyframes gUp{from{opacity:0;transform:translateY(20px)}}
 
 /* 顶栏（两页共用）：山水装饰、圆形图示、金色系统按钮、登入的人 */

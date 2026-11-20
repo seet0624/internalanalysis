@@ -488,6 +488,7 @@ table.dl .fn{overflow-wrap:anywhere}
     return !state.error;
   }
   async function addFiles(fl) {
+    if(document.readyState!=='complete') await new Promise(function(r){ addEventListener('load',r,{once:true}); });   // 读 Excel 的组件是 defer：太早拖文件进来就先等它们载完（load 才保证 defer 都跑完）
     if (!window.ExcelJS || !window.JSZip) {
       state.error = '读 Excel 的组件还没载入（网络慢或被挡）。请按 Ctrl+F5（Mac 按 Cmd+Shift+R）重新整理页面，再上传一次。';
       state.view = 'upload'; render(); return;
