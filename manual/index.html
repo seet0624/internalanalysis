@@ -6,6 +6,7 @@
 <title>客服手册</title>
 <meta name="robots" content="noindex, nofollow">
 <script src="../hq/auth.js" data-nobadge></script>
+<script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
 <script src="../hq/bus.js"></script>
 <style>
 /* 客服手册：跟名字审核、技术单审核、保健品分督导同一套（米色底、金色重点、水墨左栏）。内容只在登入后从云端载入 */
@@ -49,7 +50,7 @@ p{margin:0}
 .pad{padding:18px 22px}
 .small{font-size:13px;color:var(--muted)}
 .status{display:flex;align-items:center;gap:10px;color:var(--accent-ink)}
-.error{background:var(--crit-bg);color:#8C1D18}
+.error{background:var(--crit-bg);color:var(--crit)}
 .lock{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
 .lock h2{font-size:17px}
 .ic{width:22px;height:22px;flex:none}
@@ -156,7 +157,7 @@ p{margin:0}
 .steps li b{font-weight:700;color:var(--ink)}
 .steps li.n{counter-increment:none}
 .steps li.n::before{content:"!";color:var(--warn);border-color:var(--warn);background:var(--warn-bg)}
-.steps li.n{color:#5C3A00}
+.steps li.n{color:var(--warn)}
 .branch{display:flex;width:fit-content;align-items:center;gap:6px;margin-top:6px;padding:4px 10px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:13px;font-weight:600}
 /* 表格、标签 */
 .tbl{overflow-x:auto;margin:12px 0;border:1px solid var(--line);border-radius:12px}
@@ -188,7 +189,7 @@ td.act{width:1%;white-space:nowrap}
 .alias em{font-style:normal;padding:0 8px;border-radius:6px;background:var(--sunk)}
 .alias i{font-style:normal;color:var(--faint)}
 /* 提示框 */
-.callout{display:flex;gap:10px;align-items:flex-start;margin:14px 0;padding:12px 16px;border-radius:12px;background:var(--warn-bg);border:1px solid #F2D7A6;color:#5C3A00;line-height:1.7}
+.callout{display:flex;gap:10px;align-items:flex-start;margin:14px 0;padding:12px 16px;border-radius:12px;background:var(--warn-bg);border:1px solid #F2D7A6;color:var(--warn);line-height:1.7}
 .callout .ic{color:var(--warn);margin-top:2px}
 .callout ul{margin:0;padding-left:18px}
 .helper{display:flex;flex-direction:column;gap:12px;margin:14px 0;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--sunk)}
@@ -256,6 +257,12 @@ td.act{width:1%;white-space:nowrap}
 .donut li i{width:12px;height:12px;border-radius:3px;flex:none}
 .donut li b{margin-left:auto;padding-left:12px;font-variant-numeric:tabular-nums}
 mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
+/* 深色：写死的浅色配色换掉；分类颜色调亮一点才看得清 */
+:root[data-theme="dark"] .callout{border-color:#5A4520}
+:root[data-theme="dark"] mark{background:#5A4520;color:#FFE9B8}
+:root[data-theme="dark"] .hot a{background:var(--surface)}
+:root[data-theme="dark"] .cat .cimg{filter:brightness(.5) saturate(.85)}
+:root[data-theme="dark"] .ahead .eyebrow,:root[data-theme="dark"] .hbnav details a[aria-current],:root[data-theme="dark"] .rel a:hover,:root[data-theme="dark"] .hbnav summary .ic,:root[data-theme="dark"] .helper b .ic{color:#E9C98A;color:color-mix(in srgb,var(--cat) 45%,#fff)}
 .copied{color:var(--ok)}
 @media (max-width:999px){.top{position:static}.read .hbnav{order:2}}
 .home{white-space:nowrap}
@@ -415,7 +422,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     var tiles = [['book', st.chapters, '章节', '#A87224'], ['tech', st.groups, '业务分类', '#2F7D6D'], ['flow', st.steps, '操作步骤', '#A3492F'], ['table', st.tables, '规则表格', '#2F5E86'], ['list', st.scripts, '常用话术', '#6D4E8C']];
     var arcs = gs.map(function (g) { var len = g.chapters.length / tot * C, a = '<circle cx="50" cy="50" r="38" fill="none" stroke="' + colorOf(g) + '" stroke-width="16" stroke-dasharray="' + len + ' ' + (C - len) + '" stroke-dashoffset="' + (-off) + '" transform="rotate(-90 50 50)"/>'; off += len; return a; }).join('');
     var donut = '<section class="card cat donut-card" aria-labelledby="dnH"><h3 class="t" id="dnH">' + ICON.flow + '章节分布</h3><div class="donut"><svg viewBox="0 0 100 100" role="img" aria-label="各分类章节数">' + arcs +
-      '<text x="50" y="48" text-anchor="middle" font-size="16" font-weight="700" fill="#2B2620">' + tot + '</text><text x="50" y="62" text-anchor="middle" font-size="8" fill="#6F6553">章</text></svg><ul>' +
+      '<text x="50" y="48" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">' + tot + '</text><text x="50" y="62" text-anchor="middle" font-size="8" fill="currentColor" opacity=".65">章</text></svg><ul>' +
       gs.map(function (g) { return '<li><i style="background:' + colorOf(g) + '"></i>' + esc(g.name) + '<b>' + g.chapters.length + ' 章</b></li>'; }).join('') + '</ul></div></section>';
     return { tiles: '<section class="kpis overview" aria-label="手册概览">' + tiles.map(function (x) { return '<div class="kpi" style="--cat:' + x[3] + '">' + ICON[x[0]] + '<b>' + x[1] + '</b><span>' + x[2] + '</span></div>'; }).join('') + '</section>', donut: donut };
   }

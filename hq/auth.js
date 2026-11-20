@@ -188,7 +188,8 @@
       btn.setAttribute('aria-label', m === 'dark' ? '切换到浅色' : '切换到深色');
     };
     apply(theme());
-    btn.addEventListener('click', function () { var n = theme() === 'dark' ? 'light' : 'dark'; theme(n); window.gSwap(function () { apply(n); }); });
+    // 照画面上的来翻，存不进去也能来回切
+    btn.addEventListener('click', function () { var n = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; theme(n); window.gSwap(function () { apply(n); }); });
   }
   window.HQAuth = { theme: theme, themeButton: themeButton, session: session, login: login, logout: logout, confirmLogout: confirmLogout, cloudLogin: cloudLogin, cloudGet: cloudGet, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
 
