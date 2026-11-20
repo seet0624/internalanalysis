@@ -196,6 +196,14 @@ td.act{width:1%;white-space:nowrap}
 .rel li:first-child a{border-top:0}
 
 
+/* 旧浏览器（不认得 color-mix）的备用颜色：写在前面，新浏览器会被后面的覆盖 */
+.cat .n{color:var(--cat);background:var(--surface);border-color:var(--line)}
+.kpi::after{background:var(--sunk)}
+.ahead h2 .num{background:var(--accent-soft)}
+.viz{background:var(--surface)}
+.bar-row .bf,.range .bf{background:var(--cat)}
+.tip h5{background:var(--cat)}
+.alias em{background:var(--sunk);border:1px solid var(--line)}
 /* ---------- 版面：靠近系统左栏、文章区更宽 ---------- */
 .page{max-width:1560px;margin:0}
 /* ---------- 颜色：每个业务分类一个颜色 ---------- */
@@ -261,7 +269,10 @@ td.act{width:1%;white-space:nowrap}
 .week .d.on{background:var(--cat);box-shadow:inset 0 -2px 0 rgba(0,0,0,.12)}
 .month{position:relative;height:74px;margin:6px 10px 0}
 .month .line{position:absolute;left:0;right:0;top:30px;height:4px;border-radius:2px;background:var(--sunk)}
-.month .mk{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;text-align:center;width:140px}
+.month .mk{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;text-align:center;width:min(140px,30vw)}
+.month .mk.dn span{margin-top:22px}
+.month{overflow:hidden}
+@media (max-width:599px){.month{height:96px}.month .mk span{font-size:11.5px}.month .edge{display:none}}
 .month .mk b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--cat);color:#fff;font-size:12px;box-shadow:0 0 0 4px var(--surface)}
 .month .mk span{color:var(--ink);font-weight:600}
 .month .edge{position:absolute;top:40px;font-size:11px;color:var(--faint)}
@@ -386,7 +397,8 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     var si = t.head.indexOf('发货时间');
     if (si >= 0) {
       var rg = t.rows.map(function (r) { return { label: r[0], r: MANUAL.durationRange(r[si]), text: r[si] }; }), mx = Math.max.apply(null, rg.map(function (x) { return x.r ? x.r[1] : 0; }).concat([30]));
-      var tk = [[7, '1周'], [30, '1个月'], [90, '3个月'], [180, '半年']].filter(function (x) { return x[0] <= mx; });
+      var tk = [[7, '1周'], [30, '1个月'], [90, '3个月'], [180, '半年'], [365, '一年']].filter(function (x) { return x[0] <= mx; }), last = -100;
+      tk = tk.filter(function (x) { var at = x[0] / mx * 100; if (at - last < 12) return false; last = at; return true; });
       out += '<figure class="viz"><figcaption>发货时间范围<small>约，照原文换算</small></figcaption><div class="bars range" role="img" aria-label="发货时间范围">' +
         rg.map(function (x) { var a = x.r ? x.r[0] / mx * 100 : 0, b = x.r ? x.r[1] / mx * 100 : 0, w = Math.max(2, b - a); a = Math.min(a, 100 - w); return '<div class="bar-row"><span class="bl">' + esc(x.label) + '</span><span class="bt">' + (x.r ? '<span class="bf" style="left:' + a + '%;width:' + w + '%"></span>' : '') + '</span><span class="bv">' + esc(x.text) + '</span></div>'; }).join('') +
         '<div class="ticks"><span></span><span class="tk">' + tk.map(function (x) { return '<span style="left:' + (x[0] / mx * 100) + '%">' + x[1] + '</span>'; }).join('') + '</span><span></span></div></div></figure>';
@@ -398,7 +410,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     return '<dl class="kv">' + t.rows.map(function (r) { var u = MANUAL.urlOf(r[1]); return '<div><dt>' + hl(r[0]) + '</dt><dd>' + cell(r[1]) + (u ? ' <a class="btn small" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">打开</a>' : '') + '</dd></div>'; }).join('') + '</dl>';
   }
   // 「甲 = 乙」写成两个对照标签
-  function itemHtml(x) { var m = String(x).match(/^(.+?)\s*=\s*(.+)$/); return m ? '<span class="alias"><em>' + hl(m[1]) + '</em><i>⇄</i><em>' + hl(m[2]) + '</em></span>' : hl(x); }
+  function itemHtml(x) { var m = !/:\/\//.test(x) && String(x).match(/^(.+?)\s*=\s*(.+)$/); return m ? '<span class="alias"><em>' + hl(m[1]) + '</em><i>⇄</i><em>' + hl(m[2]) + '</em></span>' : hl(x); }
   // 正文：连着三组以上「小标题 + 清单」→ 卡片格；其他照原样
   function bodyHtml(blocks) {
     var out = '', i = 0;
@@ -412,7 +424,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   function monthHtml(c) {
     var ds = MANUAL.monthDays(c); if (!ds.length) return '';
     return '<figure class="viz"><figcaption>每月工作时间轴</figcaption><div class="month" role="img" aria-label="' + esc(ds.map(function (d) { return d.day + '号 ' + d.label; }).join('，')) + '"><span class="line"></span><span class="edge" style="left:0">1号</span><span class="edge" style="right:0">月底</span>' +
-      ds.map(function (d) { return '<span class="mk" style="left:' + ((d.day - 1) / 30 * 100) + '%"><b>' + d.day + '</b><span>' + d.day + '号 · ' + esc(d.label) + '</span></span>'; }).join('') + '</div></figure>';
+      ds.map(function (d, i) { var x = Math.min(88, Math.max(12, (d.day - 1) / 30 * 100)); return '<span class="mk' + (i % 2 ? ' dn' : '') + '" style="left:' + x + '%"><b>' + d.day + '</b><span>' + d.day + '号 · ' + esc(d.label) + '</span></span>'; }).join('') + '</div></figure>';
   }
 
   // 搜索的字标出来：在原文切开再各自转义，不会标到 HTML 里面
@@ -444,7 +456,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   // ---------- 首页 ----------
   var HOT = [10, 15, 8, 12, 14];   // 热门搜索用章节名，不另外编字
   function home() {
-    var gs = MANUAL.groups(HB);
+    var gs = MANUAL.groups(HB), ov = overview(gs);
     var cats = gs.map(function (g) {
       return '<a class="card cat" style="--cat:' + colorOf(g) + '" href="#ch' + g.chapters[0].no + '">' + (IMG[g.id] ? '<img class="cimg" src="../hq/brand/manual/cat-' + g.id + '.webp" alt="" loading="lazy">' : '') + '<span class="t">' + ICON_OF(g) + esc(g.name) + '</span>' +
         '<span class="d">' + esc(g.chapters.map(function (c) { return c.title; }).join('、')) + '</span>' +
@@ -459,9 +471,9 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
       '<input id="q" type="search" placeholder="搜索业务名称、流程、操作步骤、规则……" autocomplete="off" value="' + esc(Q) + '"><button type="submit" class="btn g-btn3d">搜索</button></form>' +
       '<p class="hot">热门搜索：' + HOT.map(function (n) { var c = chap(n); return c ? '<a href="#" data-hot="' + esc(c.title.replace(/（.*$/, '')) + '">' + esc(c.title.replace(/（.*$/, '')) + '</a>' : ''; }).join('') + '</p></section>' +
       '<div id="res"></div>' +
-      overview(gs) +
+      ov.tiles +
       '<section aria-labelledby="catH" id="catS"><h2 class="sec-h" id="catH">' + ICON.tech + '业务分类<span class="count">共 ' + HB.chapters.length + ' 章</span></h2></section>' +
-      '<div class="cats">' + cats + overview.donut + '</div>' +
+      '<div class="cats">' + cats + ov.donut + '</div>' +
       '<div class="trio">' +
       '<section class="card pad mini"><h3>' + ICON.clock + '最近看过</h3>' + (chapLinks(recent.slice(0, 5), function (x) { return ago(x.t); }) || '<p class="empty">打开过的章节会出现在这里。</p>') +
       (often.length ? '<h3>' + ICON.bolt + '常看的章节</h3>' + chapLinks(often, function (x) { return x.v + ' 次'; }) : '') + '</section>' +
@@ -473,10 +485,10 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     var st = MANUAL.stats(HB), tot = gs.reduce(function (a, g) { return a + g.chapters.length; }, 0) || 1, off = 0, C = 2 * Math.PI * 38;
     var tiles = [['book', st.chapters, '章节', '#A87224'], ['tech', st.groups, '业务分类', '#2F7D6D'], ['flow', st.steps, '操作步骤', '#A3492F'], ['table', st.tables, '规则表格', '#2F5E86'], ['list', st.scripts, '常用话术', '#6D4E8C']];
     var arcs = gs.map(function (g) { var len = g.chapters.length / tot * C, a = '<circle cx="50" cy="50" r="38" fill="none" stroke="' + colorOf(g) + '" stroke-width="16" stroke-dasharray="' + len + ' ' + (C - len) + '" stroke-dashoffset="' + (-off) + '" transform="rotate(-90 50 50)"/>'; off += len; return a; }).join('');
-    overview.donut = '<section class="card cat donut-card" aria-labelledby="dnH"><h3 class="t" id="dnH">' + ICON.flow + '章节分布</h3><div class="donut"><svg viewBox="0 0 100 100" role="img" aria-label="各分类章节数">' + arcs +
+    var donut = '<section class="card cat donut-card" aria-labelledby="dnH"><h3 class="t" id="dnH">' + ICON.flow + '章节分布</h3><div class="donut"><svg viewBox="0 0 100 100" role="img" aria-label="各分类章节数">' + arcs +
       '<text x="50" y="48" text-anchor="middle" font-size="16" font-weight="700" fill="#2B2620">' + tot + '</text><text x="50" y="62" text-anchor="middle" font-size="8" fill="#6F6553">章</text></svg><ul>' +
       gs.map(function (g) { return '<li><i style="background:' + colorOf(g) + '"></i>' + esc(g.name) + '<b>' + g.chapters.length + ' 章</b></li>'; }).join('') + '</ul></div></section>';
-    return '<section class="kpis overview" aria-label="手册概览">' + tiles.map(function (x) { return '<div class="kpi" style="--cat:' + x[3] + '">' + ICON[x[0]] + '<b>' + x[1] + '</b><span>' + x[2] + '</span></div>'; }).join('') + '</section>';
+    return { tiles: '<section class="kpis overview" aria-label="手册概览">' + tiles.map(function (x) { return '<div class="kpi" style="--cat:' + x[3] + '">' + ICON[x[0]] + '<b>' + x[1] + '</b><span>' + x[2] + '</span></div>'; }).join('') + '</section>', donut: donut };
   }
   function results() {
     var nos = MANUAL.search(HB, Q), box = $('res'); if (!box) return;

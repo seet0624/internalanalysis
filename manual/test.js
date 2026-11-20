@@ -85,4 +85,14 @@ t('图表换算：费用、每月日期、首页数字', () => {
   assert.deepStrictEqual(M.monthDays({ blocks: [{ type: 'h', text: '每月10号 — 甲统计' }, { type: 'h', text: '房补' }, { type: 'h', text: '每月 25 号 - 乙' }] }), [{ day: 10, label: '甲统计' }, { day: 25, label: '乙' }]);
   assert.deepStrictEqual(M.stats(HB), { chapters: 5, groups: 4, steps: 2, tables: 2, scripts: 1 });
 });
+t('换算的边边角角：小数、十几天、跨周、写错的金额', () => {
+  assert.deepStrictEqual(M.durationRange('1.5个月'), [45, 45]);
+  assert.deepStrictEqual(M.durationRange('十五天'), [15, 15]);
+  assert.deepStrictEqual(M.durationRange('二十天到二十五天'), [20, 25]);
+  assert.deepStrictEqual(M.weekdays('周一、周三到周五'), [1, 3, 4, 5]);
+  assert.deepStrictEqual(M.weekdays('周五到周一'), [1, 5, 6, 7]);
+  assert.deepStrictEqual(M.weekdays('不是每天，周二'), [2]);
+  assert.strictEqual(M.money('RMB .'), null);
+  assert.strictEqual(M.money('RMB 1,900.50'), 1900.5);
+});
 console.log(`全部通过（${n} 项）`);
