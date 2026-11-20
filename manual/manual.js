@@ -104,6 +104,46 @@
     return lines[0] ? lines[0].slice(0, n * 3) : '';
   }
 
-  var api = { rowsOf: rowsOf, groups: groups, ordered: ordered, groupOf: groupOf, prevNext: prevNext, kind: kind, flow: flow, days: days, deadline: deadline, fillScript: fillScript, techName: techName, urlOf: urlOf, search: search, snippet: snippet, iso: iso };
+  // ---------- 图表用：只把手册原文换算成数字，标签照原文 ----------
+  var CN = { '一': 1, '两': 2, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
+  var num = function (x) { return /^\d+$/.test(x) ? Number(x) : CN[x] || 0; };
+  // 「约30天」「三个月左右（快的一个月）」「1-2周」「2个多月」「半年左右」→ [最少天数, 最多天数]；没有时间就 null
+  function durationRange(text) {
+    var s = String(text || ''), out = [], m;
+    var re = /(\d+|[一两二三四五六七八九十])(?:\s*[-~到至]\s*(\d+|[一两二三四五六七八九十]))?\s*(个多月|多个月|个月|月|周|天|年)/g;
+    while ((m = re.exec(s))) {
+      var u = /月/.test(m[3]) ? 30 : m[3] === '周' ? 7 : m[3] === '年' ? 365 : 1, a = num(m[1]) * u, b = (m[2] ? num(m[2]) : num(m[1])) * u;
+      if (/多/.test(m[3])) b += 15;
+      out.push(a, b);
+    }
+    if (/半年/.test(s)) out.push(180);
+    return out.length ? [Math.min.apply(null, out), Math.max.apply(null, out)] : null;
+  }
+  // 「每天」「三天一次（周六、周一、周二）」「（周三到周五）」→ 星期几（1=一 … 7=日）
+  var WD = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '日': 7, '天': 7 };
+  function weekdays(text) {
+    var s = String(text || ''), m;
+    if (/每天/.test(s)) return [1, 2, 3, 4, 5, 6, 7];
+    if ((m = s.match(/周([一二三四五六日天])\s*[到至~-]\s*周?([一二三四五六日天])/))) { var r = []; for (var d = WD[m[1]]; d <= WD[m[2]]; d++) r.push(d); return r; }
+    var out = []; s.replace(/周([一二三四五六日天])/g, function (_, c) { if (out.indexOf(WD[c]) < 0) out.push(WD[c]); });
+    return out.sort();
+  }
+  // 「RMB 1900」→ 1900，「免费」→ 0，其他（特批、—）→ null
+  function money(text) { var s = String(text || ''), m = s.match(/RMB\s*([\d,.]+)/); return m ? Number(m[1].replace(/,/g, '')) : /^免费/.test(s) ? 0 : null; }
+  // 章节里「每月10号 — 督导统计」这种小标题 → [{ day: 10, label: '督导统计' }]
+  function monthDays(c) {
+    return c.blocks.filter(function (b) { return b.type === 'h'; }).map(function (b) { var m = b.text.match(/每月\s*(\d+)\s*号\s*[—\-–]*\s*(.*)$/); return m ? { day: Number(m[1]), label: m[2].trim() } : null; }).filter(Boolean);
+  }
+  // 首页的数字：章节、分类、步骤、表格、话术
+  function stats(hb) {
+    var s = { chapters: hb.chapters.length, groups: groups(hb).length, steps: 0, tables: 0, scripts: 0 };
+    hb.chapters.forEach(function (c) { c.blocks.forEach(function (b) {
+      if (b.type === 'ol') s.steps += b.items.length;
+      if (b.type === 'table') { s.tables++; if (/话术/.test(rowsOf(b).head.join(''))) s.scripts += rowsOf(b).rows.length; }
+    }); });
+    return s;
+  }
+
+  var api = { rowsOf: rowsOf, groups: groups, ordered: ordered, groupOf: groupOf, prevNext: prevNext, kind: kind, flow: flow, days: days, deadline: deadline, fillScript: fillScript, techName: techName, urlOf: urlOf, search: search, snippet: snippet, iso: iso, durationRange: durationRange, weekdays: weekdays, money: money, monthDays: monthDays, stats: stats };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.MANUAL = api;
 })(this);
