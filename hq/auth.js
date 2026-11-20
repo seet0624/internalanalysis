@@ -1,5 +1,7 @@
 // 网页登入。挡得住一般人；但检查写在网页里、仓库也是公开的，懂技术的人可以绕过，所以敏感资料不要放进网站。
-// 每一页都要载入：<script src="（到网站根目录）/hq/auth.js"></script>
+// 每一页都要载入：<script src="（到网站根目录）/hq/auth.js?v=日期"></script>
+// 改了 hq/ 里共用的档案（auth.js、gold.css、bus.js、tool-kit.js、company.js），就把各页的 ?v= 换新（日期；同一天第二次加 b、c），
+// 不然浏览器拿旧的档案配新的网页，页面会坏掉。
 // 首页自己处理登入画面（<script ... data-page="hq">）；其他页没登入就跳回首页登入。
 //
 // 加账号：在 ACCOUNTS 加一项。hash = sha256(SALT + 账号 + ':' + 密码)，用下面的 HQAuth.hash('账号', '密码') 在主控台算。
