@@ -705,8 +705,8 @@ var REL_WORDS={}; '爱人 配偶 伴侣 前任 现任 前夫 前妻 丈夫 妻�
 // 「不详 / 不清楚 / 不知道」这类是说不知道名字，不是人名
 var NO_NAME_RE=/不详|不祥|不清楚|不知道|不晓得|未知|不记得|记不得|忘记|忘了|暂无|没有|保密|待定|未定|未取|没取|不明|路上|没下来|未下来|还没|唐氏/;
 // 括号里的名字：「名正言顺：蒋小朋，蒋小苇」后面写几个都认；「李小花（李小冬）」「张小雪（曾用名：张小雨，张小月）」这种另一个名字也拿来比
-var BR_KEY=/(名正言[顺順]|新名字?|改名为?|更名为?|曾用名|原名|现用名|现在用|现任|前任|原)\s*[\uff1a:\u4e2d为]?/g;
-function bracketNames(inner){ var out=[], s=String(inner||''), after=s.search(/名正言[顺順]|新名|改名|更名/);
+var BR_KEY=/(名正言[顺順]|新名字?|改名[为為]?|更名[为為]?|改[为為成]|换成|曾用名|原名|现用名|现在用|现任|前任|原)\s*[\uff1a:\u4e2d为]?/g;
+function bracketNames(inner){ var out=[], s=String(inner||''), after=s.search(/名正言[顺順]|新名|改名|更名|改[为為成]|换成/);
   s.replace(BR_KEY,'，').split(/[\uff0c,\u3001\uff1b;\/\s\uff1a:和及]+/).forEach(function(tok,i){ var c=cjkOnly(tok); var n=Array.from(c).length;
     if(n<2||n>4||NULLS[c]||REL_WORDS[c]||NO_NAME_RE.test(c)||/^[属屬已与與跟同继繼前现現大小二三老]/.test(c))return;
     if(isSurname(c[0])||(after>=0&&s.indexOf(tok)>after)){ if(out.indexOf(c)<0)out.push(c); } });
@@ -717,10 +717,16 @@ function splitNames(text){ var t=String(text==null?'':text); if(NULLS[t.trim()])
   var NM=/[\uff08(]([^\uff09)]*)[\uff09)]/g, mm;
   while((mm=NM.exec(t))){ var inner=mm[1];
     bracketNames(inner).forEach(function(nm){ if(extra.indexOf(nm)<0)extra.push(nm); }); }
-  t=t.replace(/[\uff08(][^\uff09)]*[\uff09)]/g,'，'); // 括号拿掉要留分隔，不然「罗小红（…）配偶」会黏成「罗小红配偶」
+  t=t.replace(/[\uff08(][^\uff09)]*[\uff09)]/g,'，'); t=cutSimp(cutSimp(t,BLESS_RE),FAM_JUNK_RE);
+  // 「张三和李四」「张三改张四」两边都像全名才拆（「王和平」不拆）
+  t=t.replace(/([\u4e00-\u9fff]{2,3})[和与與及跟改]([\u4e00-\u9fff]{2,3})/g,function(m,x,y){ return isSurname(x[0])&&isSurname(y[0])?x+'，'+y:m; }); // 括号拿掉要留分隔，不然「罗小红（…）配偶」会黏成「罗小红配偶」
   for(var i=0;i<NOISE.length;i++)t=t.split(NOISE[i]).join('，'); // 留分隔，「张三孩子李四」不会黏成一个名字
-  var parts=t.split(/[@\uff0c,\u3001\uff1b;\uff1a:\u3000\s\/]+/).concat(extra),out=[];
-  for(var j=0;j<parts.length;j++){var c=cjkOnly(parts[j]);if(!c||NULLS[c])continue; c=stripRel(c); if(c&&!NULLS[c]&&!REL_WORDS[c]&&!NO_NAME_RE.test(c)&&Array.from(c).length>=2&&out.indexOf(c)<0)out.push(c);} return out; }
+  var parts=t.split(/[@\uff0c,\u3001\uff1b;\uff1a:\u3000\s\/&\uff06+\uff0b\u2192\u21d2>\-]+/).concat(extra),out=[];
+  for(var j=0;j<parts.length;j++){var c=cjkOnly(parts[j]);if(!c||NULLS[c])continue; c=stripRel(c); if(c&&!NULLS[c]&&!REL_WORDS[c]&&!NO_NAME_RE.test(c)&&Array.from(c).length>=2&&!junk4(c)&&out.indexOf(c)<0)out.push(c);} return out; }
+// 刚好四个字、开头不是姓也不是称呼（「爱人钱玉」要留）、又有吉祥词：是吉祥话，不当人名
+// 只丢含吉祥词的（扎西多吉、阿依古丽这类没有常见姓的真名要留）
+var BLESS2_RE=/健康|平安|顺利|顺畅|顺遂|幸福|快乐|如意|吉祥|富贵|发财|兴旺|兴隆|进步|长寿|安康|美满|喜乐|好运|大吉|有成|有余|满满|滚滚|临门|越好|精神|聪明|伶俐|万事|事业|财源|财运|学业|身体|常在|常乐/;
+function junk4(c){ var h=c.slice(0,2); return Array.from(c).length===4&&!isSurname(c[0])&&!isSurname(h)&&!REL_WORDS[h]&&!REL_FULL[h]&&!REL_RE.test(c)&&BLESS2_RE.test(Array.from(c).map(simpOf).join('')); }
 // 「爱人：罗小红」「配偶：第一任：王小明」→ 名字前面最近的称谓（爱人 / 配偶）；找不到就空
 function isRelLabel(l){ if(/^(曾用名|原名|现用名|调整名|数易名|健在|未婚|孩子|原配|第[一二三]任)$/.test(l))return false; return !!(REL_WORDS[l]||REL_FULL[l]||/^(外公|外婆|姥姥|姥爷|爷爷|奶奶|兄弟姐妹)$/.test(l)||new RegExp('^['+REL_MOD+']*['+REL_ROOT+']{1,4}$').test(l)); }
 function relLabelOf(raw,n){ var mm=new RegExp('(^|[^\\u4e00-\\u9fff])'+n+'(?![\\u4e00-\\u9fff])').exec(String(raw)); if(!mm)return ''; var i=mm.index+mm[1].length; var seg=String(raw).slice(0,i).split(/[；;]/).pop(), m, last='', re=/([一-鿿]{1,8})\s*[：:]/g;
@@ -737,10 +743,15 @@ function familyMembers(row, cols){ var out=[];
 
 var PREFIX={}; '妈爸父母哥弟姐妹儿女子夫妻公婆爷奶孙伯叔姑舅姨侄甥媳婿亲老先太爱家孩我和的与跟及同本'.split('').forEach(function(c){PREFIX[c]=1;});
 var SURN_WEAK='连麦党卜桂巫桑郎巩麻郁储燕楚劳楼帅井祖索浦伏鹿薄杭况宿茹茅檀植衡尧寸年但利柏宗费景宫冷席卫米边';
-var NAME_STOP={'谢谢':1,'你好':1,'大家':1,'人人':1,'天天':1,'年年':1,'岁岁':1,'平安':1,'健康':1,'快乐':1,'顺利':1,'幸福':1,'吉祥':1,'如意':1,'美满':1,'安康':1,'曾用名':1,'名字':1,'姓名':1,'高血压':1,'高血脂':1,'高血糖':1,'糖尿病':1,'心脏病':1,'阳光':1,'开朗':1,'年轻':1,'年纪':1,'年龄':1,'但是':1,'但愿':1,'利益':1,'连续':1,'连连':1,'党员':1,'冷静':1,'卫生':1,'费用':1,'景色':1,'边上':1};
+var NAME_STOP={'辛苦':1,'辛苦了':1,'辛苦啦':1,'谢谢':1,'你好':1,'大家':1,'人人':1,'天天':1,'年年':1,'岁岁':1,'平安':1,'健康':1,'快乐':1,'顺利':1,'幸福':1,'吉祥':1,'如意':1,'美满':1,'安康':1,'曾用名':1,'名字':1,'姓名':1,'高血压':1,'高血脂':1,'高血糖':1,'糖尿病':1,'心脏病':1,'阳光':1,'开朗':1,'年轻':1,'年纪':1,'年龄':1,'但是':1,'但愿':1,'利益':1,'连续':1,'连连':1,'党员':1,'冷静':1,'卫生':1,'费用':1,'景色':1,'边上':1};
 // 备注常写的吉祥话：先整句拿掉，免得「家和万事兴」被拆成人名「万事兴」（万是姓）
-var BLESS_RE=/家和万事兴|万事兴|万事如意|万事顺[意利遂心]?|心想事成|事事如意|事业有成|学业有成|身体健康|健康长寿|平平安安|健健康康|快快乐乐|顺顺利利|步步高升|前程似锦|大吉大利|财源广进|金玉满堂|吉祥如意|福寿安康|福如东海|寿比南山|年年有余|阖家幸福|合家欢乐|恭喜发财|一帆风顺|鹏程万里|万事大吉|喜气洋洋/g;
-function extractNoteNames(text, own, exclude){ var s=String(text||'').replace(BLESS_RE,'，'); var t=s.indexOf('禁忌')>=0?s.split('禁忌')[0]:s; var toks=t.split(/[^\u4e00-\u9fff]+/),out=[],seen={};
+var BLESS_RE=/家和万事兴|万事兴|万事如意|万事顺[意利遂心]?|心想事成|事事如意|事业有成|学业有成|身体健康|健康长寿|平平安安|健健康康|快快乐乐|顺顺利利|步步高升|前程似锦|大吉大利|财源广进|金玉满堂|吉祥如意|福寿安康|福如东海|寿比南山|年年有余|阖家幸福|合家欢乐|恭喜发财|一帆风顺|鹏程万里|万事大吉|喜气洋洋|事业顺畅|事业顺利|事业兴旺|财源滚滚|财运亨通|五福临门|越来越好|超来越好|平安喜乐|健康快乐|学业进步|龙马精神|福气满满|花开富贵|平安健康|聪明伶俐|幸福美满|全家幸福|阖家安康|合家安康|出入平安|岁岁平安|长命百岁|生意兴隆|招财进宝|好运连连|万事顺遂/g;
+// 用简体对照找词（繁体写的也认得），找到的地方换成「，」
+function cutSimp(t,re){ var a=Array.from(String(t==null?'':t)), sm=a.map(function(c){ var x=simpOf(c); return x.length===1?x:'\ufffd'; }).join(''), keep=a.slice(), m; re.lastIndex=0;
+  while((m=re.exec(sm))){ for(var i=m.index;i<m.index+m[0].length;i++)keep[i]=i===m.index?'，':''; if(!m[0].length)re.lastIndex++; } return keep.join(''); }
+// 家人栏常见的不是人名的写法：待补、同上、独生子、已过世、怀孕中、已提交名正言顺……；「改为 / 改成」当分隔
+var FAM_JUNK_RE=/待补|待查|待定|同上|如上|见备注|见上|详见|独生子|独生女|一儿一女|一子一女|[一两二三四五六]个(?:孩子|小孩|儿子|女儿|子女|兄弟|姐妹|姊妹)|已过世|已经过世|过世了|去世|离世|单身|怀孕|预产期|已提交|刚提交|提交了|提交|已做|已办|名正言顺|改为|改成|换成/g;
+function extractNoteNames(text, own, exclude){ var s=cutSimp(text||'',BLESS_RE); var t=s.indexOf('禁忌')>=0?s.split('禁忌')[0]:s; var toks=t.split(/[^\u4e00-\u9fff]+/),out=[],seen={};
   for(var i=0;i<toks.length;i++){ var tok=toks[i],k=0; while(k<tok.length&&PREFIX[tok[k]])k++; var name=tok.slice(k);
     // 「麻烦了」「费心了」：这些姓也是常用字，前面要有称谓才算人名
     if(name.length<2||name.length>3)continue; if(!isSurname(name[0])&&name[0]!==own)continue; if(k===0&&SURN_WEAK.indexOf(name[0])>=0&&name[0]!==own)continue; if(name.length===2&&name[0]===name[1])continue;
@@ -797,7 +808,7 @@ function groupRows(data,hr,cNeu,cSeq){ var g=[]; for(var r=hr+1;r<data.length;r+
   if(sid!==''&&sid!=null&&(g.length===0||g[g.length-1].sid!==sid))g.push({sid:sid,rows:[r]}); else if(g.length>0)g[g.length-1].rows.push(r); else g.push({sid:sid,rows:[r]}); } return g; }
 // 订单号：前后不能接数字；纯数字最多 14 位（身份证 15/18 位、银行卡 16–19 位、+86 手机号都不是订单）。不用 lookbehind：旧版 Safari（16.4 以前）不认，会让整段程序失效
 var ORDER_RE=/(^|[^A-Za-z\d])(?!86\d{11}(?!\d))([A-Za-z]{1,2}\d{6,16}|2\d{7,13}|\d{12,14})(?![\dXx])/g;
-function orderNums(t){ var s=String(t==null?'':t), out=[], m; ORDER_RE.lastIndex=0; while((m=ORDER_RE.exec(s))){ out.push(m[2]); ORDER_RE.lastIndex=m.index+m[1].length+m[2].length; } return out; }
+function orderNums(t){ var s=String(t==null?'':t).replace(/[\uff21-\uff3a\uff41-\uff5a\uff10-\uff19]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0xFEE0); }), out=[], m; ORDER_RE.lastIndex=0; while((m=ORDER_RE.exec(s))){ out.push(m[2]); ORDER_RE.lastIndex=m.index+m[1].length+m[2].length; } return out; }
 function isOrderNo(o){ var a=orderNums(o); return a.length===1&&a[0]===String(o); }
 
 // 解析一个文件 -> people（含自己的订单->新名，用来建总库）
@@ -871,6 +882,9 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
         if(rel){ var relNames=[]; rel._givens.forEach(function(gn){if(gn){fam.push(['关联学员「'+rel._disp+'」('+num+')',gn,false,true,rel._fullnames[rel._givens.indexOf(gn)]||gn]); if(relNames.indexOf(gn)<0)relNames.push(gn);}}); detectedOrders.push({num:num,tag:'已关联 '+rel._disp+(viaM?'（会员编号）':'')+(relNames.length?'（'+relNames.join('／')+'）':'')}); orderProblems.push('✓ 订单「'+num+'」对应家人「'+rel._disp+'」'+(relNames.length?'（新名：'+relNames.join('／')+'）':'')+'——工具已自动比对撞字撞音，建议你再人手核对一次这个名字'); }
         else if(orderDB&&orderDB[key]){ orderDB[key].forEach(function(fn){fam.push(['关联订单 '+num+' 的新名',fn]);}); detectedOrders.push({num:num,tag:'已关联'}); }
         else { unresolvedOrders.push(num); detectedOrders.push({num:num,tag:'待补'}); orderProblems.push('🔍 备注/家人栏有名正言顺订单「'+num+'」——请人手去系统查这单的名字下来了没。下来了就在上方输入框填上，系统会自动比对撞字撞音；还没下来先不填，不算问题'); } });
+      // 写了「订单编号」却没有号码（客户把「订单编号」当成填空写进去）：提醒客服去要号码
+      var miss=scanText.match(/(订单编号|訂單編號|订单号|訂單號|单号|單號)(?![\s:\uff1a]*[A-Za-z0-9\uff21-\uff3a\uff41-\uff5a\uff10-\uff19])/);
+      if(miss&&!Object.keys(seen).length)orderProblems.push('🔍 备注写了「'+miss[1]+'」但后面没有号码——请向客服要家人的订单号，查他的新名有没有撞');
       if(RULES.checkOrderFuzzy){ var seen2={};
         rows.forEach(function(ri){ data[ri].forEach(function(cell){ var c=String(cell==null?'':cell); if(!/[A-Za-z][\s\-_.]+\d/.test(c))return;
           var cl=c.replace(/([A-Za-z]{1,2})((?:[\s\-_.]*\d){6,})/g,function(m,a,b){return a+b.replace(/[\s\-_.]/g,'');});
@@ -948,7 +962,8 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
         var bigZ='鼠龙马虎'.indexOf(zt)>=0, smallZ='牛兔蛇羊猴鸡狗猪'.indexOf(zt)>=0;
         if(bigZ||smallZ)given.forEach(function(ch,gi){ var rr=zigenOf(ch,bigZ?SMALL_ROOTS:BIG_ROOTS,bigZ?BIG_ROOTS:SMALL_ROOTS); if(!rr.length)return;
           msgs.push('新下来的名字（'+neu+'）的「'+ch+'」有'+(bigZ?'小':'大')+'字根「'+rr.join('、')+'」，属'+zt+'（'+(bigZ?'大':'小')+'生肖）不能用');
-          addHit('字根',gi+1,ch); hits[hits.length-1].note='「'+ch+'」有'+(bigZ?'小':'大')+'字根「'+rr.join('、')+'」，属'+zt+'不能用'; }); } }
+          addHit('字根',gi+1,ch); hits[hits.length-1].note='「'+ch+'」有'+(bigZ?'小':'大')+'字根「'+rr.join('、')+'」，属'+zt+'不能用'; }); }
+        else if(cols.zod>=0)warns.push('⚠ 生肖栏没写或认不出（'+(String(r0[cols.zod]==null?'':r0[cols.zod]).trim()||'空白')+'），大小生肖字根没查——请人手看生肖'); }
             if(RULES.checkYue){ var yueSeq=given.map(function(ch){return yueSylOf(ch);}); var yueStr=yueSeq.filter(Boolean).join(' ');
         for(var yb in RULES.YUE_BAD){ if(!yb)continue; var hitYue=false;
           if(yb.indexOf(' ')>=0){ if((' '+yueStr+' ').indexOf(' '+yb+' ')>=0)hitYue=true; } else { if(yueSeq.indexOf(yb)>=0)hitYue=true; }
@@ -1575,10 +1590,16 @@ function relWord(d,key){ if(!key)return ''; var SKIP=/名正言[顺順]|新名|�
   if(String(d.mother||'').indexOf(key)>=0)return '妈妈'; if(String(d.father||'').indexOf(key)>=0)return '爸爸';
   var fields=[d.sib,d.kids,d.note1,d.note2], fb='';
   for(var i=0;i<fields.length;i++){ var t=String(fields[i]||''), at=t.indexOf(key); if(at<0)continue;
-    var ms=t.slice(0,at).match(/[一-鿿]{1,4}(?=[：:])/g)||[];
-    for(var j=ms.length-1;j>=0;j--){ if(SKIP.test(ms[j]))continue; var l=ms[j].replace(/(的)?名字$/,'')||ms[j];
-      if(/^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|子女|家人|家属)$/.test(l)){ fb=fb||l; break; } if(fb&&!isRelLabel(l))break; return l; } } // 往后找时只认真正的称呼（「客户要求：」不算） // 「兄弟姐妹名字：」太笼统，先看备注有没有写「弟弟：」
+    var ms=t.slice(0,at).match(/[一-鿿]{1,4}(?=[：:])/g)||[], ord=ms.length&&ORD_LBL.test(ms[ms.length-1]);
+    for(var j=ms.length-1;j>=0;j--){ if(SKIP.test(ms[j])||ORD_LBL.test(ms[j]))continue; var l=ms[j].replace(/(的)?名字$/,'')||ms[j];
+      if(/^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|子女|家人|家属)$/.test(l)){ fb=fb||l; break; } if(fb&&!isRelLabel(l))break; return l; }
+    if(!fb&&ord){ var nr=nearRel(t.slice(0,at)); if(nr)return nr; } } // 往后找时只认真正的称呼（「客户要求：」不算） // 「兄弟姐妹名字：」太笼统，先看备注有没有写「弟弟：」
   return fb==='姐妹'||fb==='兄弟'?'兄弟姐妹':fb; }
+// 「订单编号：A…」的「订单编号」只是标签，不是关系
+var ORD_LBL=/^(订单|訂單|会员|會員)?(编号|編號|号码|號碼|号|號)?$|单号|單號/;
+// 只给订单号用（名字不走这条，免得把别人的称呼算到后面的人身上）：冒号前是「订单编号」这类标签时，在同一句里往前找最后一个称呼：「老婆已提交名正言顺，订单编号：A…」→ 老婆
+function nearRel(s){ var c=String(s).split(/[。；;\n]/).pop(), re=new RegExp(Object.keys(REL_WORDS).join('|')+'|['+REL_MOD+']*['+REL_ROOT+']+','g'), m, last='';
+  while((m=re.exec(c)))if(m[0].length>=2&&isRelLabel(m[0]))last=m[0]; return last; }
 function isNewName(d,nm){ var re=new RegExp('(?:名正言[顺順]|新名|改名|更名)\\s*[\\uff1a:]?\\s*'+nm); return [d.father,d.mother,d.sib,d.kids].some(function(t){ return re.test(String(t||'')); }); }
 // 同辈：兄弟姐妹、哥姐弟妹（大哥、二姐、堂哥、表妹…）、双胞胎
 function sameGen(w){ return /^(兄弟姐妹|兄弟|姐妹|兄妹|姐弟|双胞胎|雙胞胎|龙凤胎|龍鳳胎)$/.test(w||'')||/^[大小二三四五六七八九十老]*[堂表]?[哥姐弟妹兄]+$/.test(w||''); }
@@ -1981,6 +2002,15 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-20', title:'客户乱写也认得：祝福语、待补、状态不当人名', items:[
+    '家人栏的繁体祝福语（身體健康、事業順暢、五福臨門、越來越好…）不再当成人名',
+    '「待补、同上、见备注、独生子、一儿一女、已过世、单身、怀孕中、已提交名正言顺」不再当成人名',
+    '「张三和李四」「张三&李四」「张三→张四」「张三改张四」「张三（已改为张四）」会拆成两个名字',
+    '备注写了「订单编号：」却没有号码，会提醒去要订单号；生肖栏空白会提醒字根没查',
+    '全形的订单号（Ａ２６…）也认得；备注「辛苦了」不当人名']},
+  {date:'2026-11-20', title:'备注写「老婆…订单编号：」认得出是老婆', items:[
+    '备注写「老婆已提交名正言顺，订单编号：A…」，撞字原因写「和老婆新下来的名字」，不再写「和订单编号新下来的名字」',
+    '「订单编号：」「编号：」「单号：」只是标签，不当成关系；同一句前面有称呼（老婆、弟弟、爱人…）就用那个称呼，找不到才写兄弟姐妹']},
   {date:'2026-11-19', title:'单独下载更明显、字根不能用的字标红', items:[
     '大小生肖字根不能用的字，在名字卡上标红，下面写「属牛不能用」这类说明',
     '学员页的按钮改成金色「下载这位（干净）」／「下载这位（有问题）」',
