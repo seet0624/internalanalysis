@@ -166,7 +166,32 @@
     try { document.startViewTransition(fn).finished.finally(function () { de.classList.remove('g-theme-swap'); }); }
     catch (e) { de.classList.remove('g-theme-swap'); fn(); }   // 浏览器不让做过场就直接换
   };
-  window.HQAuth = { session: session, login: login, logout: logout, confirmLogout: confirmLogout, cloudLogin: cloudLogin, cloudGet: cloudGet, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
+  // 深浅色：四个工具（名字、技术单、保健品、手册）共用一个设定，在一页换了别页也跟着
+  function theme(mode) {
+    try {
+      if (mode) localStorage.setItem('hq-theme', mode);
+      var v = localStorage.getItem('hq-theme');
+      if (!v && (localStorage.getItem('tsr-theme3') === 'dark' || localStorage.getItem('mzys_theme3') === '"dark"')) v = 'dark';   // 以前各页自己记的
+      return v === 'dark' ? 'dark' : 'light';
+    } catch (e) { return mode === 'dark' ? 'dark' : 'light'; }
+  }
+  var THEME_ICON = {
+    dark: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+    light: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+  };
+  // 顶栏的「深色 / 浅色」按钮（html 上 data-theme）
+  function themeButton(btn) {
+    var apply = function (m) {
+      document.documentElement.setAttribute('data-theme', m);
+      btn.innerHTML = m === 'dark' ? THEME_ICON.light + '浅色' : THEME_ICON.dark + '深色';
+      btn.setAttribute('aria-pressed', m === 'dark' ? 'true' : 'false');
+      btn.setAttribute('aria-label', m === 'dark' ? '切换到浅色' : '切换到深色');
+    };
+    apply(theme());
+    // 照画面上的来翻，存不进去也能来回切
+    btn.addEventListener('click', function () { var n = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; theme(n); window.gSwap(function () { apply(n); }); });
+  }
+  window.HQAuth = { theme: theme, themeButton: themeButton, session: session, login: login, logout: logout, confirmLogout: confirmLogout, cloudLogin: cloudLogin, cloudGet: cloudGet, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
 
   if (isHQ) return;
   // 其他页：没登入、或这个身份不能进 → 回首页

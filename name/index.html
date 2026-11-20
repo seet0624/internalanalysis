@@ -61,8 +61,8 @@ header.top{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:12px;pad
 /* 水墨左栏：宽屏才出现，固定在左边（工具列要一整行，所以 1440 以上才放） */
 .g-side{display:none}
 @media (min-width:1440px){
-  body>.g-side{display:flex;flex-direction:column;gap:2px;position:fixed;left:0;top:0;bottom:0;width:220px;padding:16px 12px;overflow-y:auto;z-index:45}
-  body{padding-left:220px}
+  body>.g-side{display:flex;flex-direction:column;gap:2px;position:fixed;left:0;top:0;bottom:0;width:240px;padding:16px 12px;overflow-y:auto;z-index:45}
+  body{padding-left:240px}
   .brand .home,.brand .crumb{display:none} /* 左栏已经有，省位置给工具列 */
 }
 .brand .home:hover{color:var(--gold)}
@@ -521,7 +521,7 @@ body:not(.light) .qi.on{background:#3A2F1C;border-color:#B8873A}
   <button type="button" class="tbtn" data-act="report" data-need-file title="报告（可打印 PDF）"><svg class="i ic"><use href="#i-report"/></svg><span class="lbl">报告</span></button>
   <span class="tsep"></span>
   <button type="button" class="sqbtn" data-act="settings" aria-label="规则设定" title="规则设定"><svg class="i"><use href="#i-sliders"/></svg></button>
-  <button type="button" class="sqbtn" data-act="theme" aria-label="深色 / 浅色" title="深色 / 浅色"><svg class="i"><use href="#i-sun"/></svg></button>
+  <button type="button" class="tbtn" data-act="theme" id="themeBtn" aria-pressed="false"><svg class="i ic"><use href="#i-sun"/></svg><span class="lbl">深色</span></button>
   <span class="g-user" id="gUser"></span>
   <button type="button" class="tbtn g-logout" onclick="HQAuth.confirmLogout()" title="退出登入" aria-label="退出"><svg viewBox="0 0 24 24" class="i" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg><span class="lbl">退出</span></button>
   <button type="button" class="sqbtn" data-act="help" aria-label="使用说明" title="使用说明 · 快捷键（?）"><svg class="i"><use href="#i-help"/></svg></button>
@@ -1021,6 +1021,8 @@ var REVIEWERS=['Anna','yulun','ning','martin'];
 function fillReviewer(sel){ var cur=reviewerName(), names=REVIEWERS.slice(); if(cur&&names.indexOf(cur)<0)names.unshift(cur);
   sel.innerHTML=(cur?'':'<option value="" selected>（未选）</option>')+names.map(function(n){ return '<option'+(n===cur?' selected':'')+'>'+esc(n)+'</option>'; }).join('')+'<option value="__other">其他…</option>';
   sel.onchange=function(){ if(sel.value!=='__other'){ setReviewer(sel.value); return; } var v=window.prompt('输入审核人名字',''); if(v&&v.trim())setReviewer(v); else fillReviewer(sel); }; }
+// 深浅色按钮的字：写的是按下去会变成什么（跟技术单、保健品、手册一样）
+function themeLbl(){ var b=document.getElementById('themeBtn'); if(!b) return; var d=!document.body.classList.contains('light'); b.querySelector('.lbl').textContent=d?'浅色':'深色'; b.setAttribute('aria-pressed',String(d)); }
 function store(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 function load(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function saveDB(){ store('mzys_db', importedDB); }
@@ -2261,7 +2263,7 @@ function runAct(a){ var x=parsedFiles[activeFile];
     case 'rules': openHelp('rules'); break;
     case 'save': exportSession(); break;
     case 'load': importSession(); break;
-    case 'theme': gSwap(function(){ document.body.classList.toggle('light'); store('mzys_theme3', document.body.classList.contains('light')?'light':'dark'); }); break;
+    case 'theme': gSwap(function(){ document.body.classList.toggle('light'); HQAuth.theme(document.body.classList.contains('light')?'light':'dark'); themeLbl(); }); break;
     case 'lang': lang=lang==='cn'?'en':'cn'; store('mzys_lang',lang); applyLang(); break;
     case 'help': openHelp('guide'); break;
     case 'changelog': openHelp('log'); break;
@@ -2322,7 +2324,7 @@ document.addEventListener('keydown',function(e){ var tg=e.target, tn=tg.tagName;
 });
 
 /* init */
-(function(){ var th=load('mzys_theme3','light'); document.body.classList.toggle('light', th==='light'); lang=load('mzys_lang','cn');
+(function(){ var th=HQAuth.theme(); document.body.classList.toggle('light', th==='light'); themeLbl(); lang=load('mzys_lang','cn');
   var sd=load('mzys_db',{}); for(var k in sd)importedDB[k]=sd[k]; document.getElementById('dbCount').textContent=Object.keys(sd).length;
   document.getElementById('verChip').textContent=CHANGELOG[0].date+' 版';
   try{ window._DB=buildOrderDB([], importedDB); }catch(e){ window._DB=Object.assign({},importedDB); }
