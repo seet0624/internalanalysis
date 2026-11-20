@@ -322,7 +322,6 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   var COLOR = { tech: '#A87224', name: '#2F7D6D', product: '#A3492F', transfer: '#2F5E86', system: '#6D4E8C', other: '#6F6553' };
   var IMG = { tech: 1, name: 1, product: 1, transfer: 1, system: 1 };   // hq/brand/manual/cat-*.webp（Krea 生成的东方静物）
   var colorOf = function (g) { return COLOR[g && g.id] || COLOR.other; };
-  var KIND_COLOR = { '操作指南': '#A87224', '话术': '#2F7D6D', '规则速查': '#2F5E86', '注意事项': '#B36A00' };
   // ---------- 文章内容：照原文排，只换排法 ----------
   var isRMB = function (x) { return /RMB\s*\d/.test(x); };
   function tagCell(c, kind) {
@@ -435,7 +434,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   }
   // 步骤：直排编号；「……有没有…… → 有的话……」把「有的话」写在那一步下面；「注意：」是提醒
   function stepHtml(x) {
-    var f = MANUAL.flow([x])[0], t = f.kind === 'decision' ? f.text : x, m = t.match(/^([^：:]{2,12})[：:](.+)$/);
+    var f = MANUAL.flow([x])[0], t = f.kind === 'decision' ? f.text : String(x == null ? '' : x), m = t.match(/^([^：:]{2,12})[：:](.+)$/);
     var body = m && f.kind !== 'note' ? '<b>' + hl(m[1]) + '</b>：' + hl(m[2]) : hl(t);
     return '<li' + (f.kind === 'note' ? ' class="n"' : '') + '><span>' + body + '</span>' + (f.kind === 'decision' ? '<span class="branch">有的话 → ' + hl(f.yes) + '</span>' : '') + '</li>';
   }
@@ -499,7 +498,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     var steps = 0, tables = 0; body.forEach(function (b) { if (b.type === 'ol') steps += b.items.length; if (b.type === 'table') tables++; });
     var lead = [steps ? steps + ' 个步骤' : '', tables ? tables + ' 张表' : '', notes.length ? notes.length + ' 条注意事项' : ''].filter(Boolean).join(' · ');
     // 没有小标题的章：自己加一节，右边目录才有东西
-    var first = body[0] && body[0].type === 'h' ? '' : (toc.push({ id: 's0', text: k === '操作指南' ? '操作步骤' : k === '话术' ? '话术' : '规则与资料' }), headHtml(toc[0].text, 's0'));
+    var first = !body.length || body[0].type === 'h' ? '' : (toc.push({ id: 's0', text: k === '操作指南' ? '操作步骤' : k === '话术' ? '话术' : '规则与资料' }), headHtml(toc[0].text, 's0'));
     var content = first + helper(c) + bodyHtml(body, toc);
     var notice = notes.length ? (toc.push({ id: 'sn', text: '注意事项' }), headHtml('注意事项', 'sn') + '<div class="callout" role="note">' + ICON.warn + '<ul>' + notes.map(function (t) { return '<li>' + hl(t) + '</li>'; }).join('') + '</ul></div>') : '';
     var rel = g ? g.chapters.filter(function (x) { return x.no !== no; }) : [];
@@ -531,7 +530,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
     if (!HB) return;
     var m = location.hash.match(/^#ch(\d+)$/), no = m ? Number(m[1]) : null;
     if (no && chap(no)) { $('out').innerHTML = article(no); visit(no); updateHelpers(); watchOtp(); window.scrollTo(0, 0); var h = $('artH'); h.tabIndex = -1; h.focus({ preventScroll: true }); document.title = chap(no).title + ' · 客服手册'; }
-    else { $('out').innerHTML = home(); results(); document.title = '客服手册'; }
+    else { $('out').innerHTML = home(); results(); watchOtp(); document.title = '客服手册'; }
   }
   window.addEventListener('hashchange', route);
   document.addEventListener('input', function (e) {
