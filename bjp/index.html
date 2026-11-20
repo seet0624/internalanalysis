@@ -11,6 +11,9 @@
 :root{--bg:#F6F1E7;--surface:#FFFDF8;--sunk:#F3ECDF;--ink:#2B2620;--muted:#6F6553;--faint:#7A6F5C;--line:#E8DFCC;--line-soft:#F0E9DB;--field:#DCCFB4;
   --accent:#9A6B22;--accent-hover:#7E5718;--accent-soft:#F6ECD9;--accent-ink:#6E4B12;--on-accent:#FFFFFF;--crit:#B3261E;--crit-bg:#FBE9E7;--ok:#137333;--ok-bg:#E6F4EA;--warn:#7A4300;--warn-bg:#FFF1DC;
   --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif}
+:root[data-theme="dark"]{--bg:#0F1217;--surface:#161A21;--sunk:#12151B;--ink:#E8EAED;--muted:#9AA7BD;--faint:#6B7385;--line:#2A303C;--line-soft:#1E232C;--field:#343B49;
+  --accent:#D4AA5E;--accent-hover:#E2BE7A;--accent-soft:#3A2F1C;--accent-ink:#E9C98A;--on-accent:#1A1916;--crit:#FF8A80;--crit-bg:#3A1C1A;--ok:#7FCC8C;--ok-bg:#183020;--warn:#F2B866;--warn-bg:#33270F;color-scheme:dark}
+.theme svg{flex:none}
 *{box-sizing:border-box}
 html{background:var(--bg)}
 body{margin:0;background-color:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
@@ -85,7 +88,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     <header class="top g-topbg"><div class="top-in">
       <div class="g-titlerow"><a class="home ph-only" href="../name/">← 名字审核</a><span class="g-tile" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg></span>
         <div><h1>保健品分督导</h1><p class="sub">把发货明细按督导分开，一个督导一份</p></div></div>
-      <div class="top-r"><nav class="g-sysnav desk-only" aria-label="切换审核系统"><a class="g-btn3d" href="../name/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>名字审核</a><a class="g-btn3d" href="../tech/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>技术单审核</a><a class="g-btn3d" href="./" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>保健品分督导</a></nav><span class="g-user" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.confirmLogout()">退出</button></div>
+      <div class="top-r"><nav class="g-sysnav desk-only" aria-label="切换审核系统"><a class="g-btn3d" href="../name/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>名字审核</a><a class="g-btn3d" href="../tech/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>技术单审核</a><a class="g-btn3d" href="./" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>保健品分督导</a></nav><button type="button" class="btn small theme" id="theme" aria-pressed="false"></button><span class="g-user" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.confirmLogout()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg>退出</button></div>
     </div></header>
     <main class="page">
       <section class="g-hero"><h2>保健品分督导</h2><p>把每月的保健品发货明细拖进来：只看第一个工作表，用店铺编号找督导，一个督导分成一份文件再下载</p></section>
@@ -113,7 +116,8 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var state = null;
-  try { var _s = HQAuth.session(); if (_s) $('gUser').textContent = _s.id; } catch (e) {}
+  try { var _s = HQAuth.session(); if (_s) { $('gUser').innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'; $('gUser').appendChild(document.createTextNode(_s.id)); } } catch (e) {}
+  HQAuth.themeButton($('theme'));
 
   async function load(file) {
     $('out').innerHTML = '<div class="status" role="status">正在读「' + esc(file.name) + '」……</div>';

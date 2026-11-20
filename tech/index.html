@@ -50,6 +50,9 @@ p{margin:0}
 .nav:hover{background:var(--sunk)}
 .nav[aria-current="page"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
 .nav[disabled]{opacity:.45;cursor:default}
+.nav .gi{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(233,225,207,.08)}
+.nav .gi svg{width:17px;height:17px}
+.nav .badge{margin-left:auto}
 .badge{margin-left:auto;min-width:22px;text-align:center;padding:0 7px;border-radius:999px;font-size:12px;font-weight:700;background:var(--sunk);color:var(--muted)}
 .badge.hot{background:var(--crit);color:#FFFFFF}
 .badge.ok{background:var(--ok-bg);color:var(--ok)}
@@ -381,27 +384,8 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
   var $ = function (id) { return document.getElementById(id); };
   var E = window.ReviewEngine;
 
-  // 金色浅色 by default（审核总部主题）；深色 only when chosen here (remembered in this browser)
-  var THEME_ICON = {
-    dark: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
-    light: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
-  };
-  function applyTheme(mode) {
-    document.documentElement.setAttribute('data-theme', mode);
-    var b = $('theme');
-    b.innerHTML = mode === 'dark' ? THEME_ICON.light + '浅色' : THEME_ICON.dark + '深色';
-    b.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
-    b.setAttribute('aria-label', mode === 'dark' ? '切换到浅色' : '切换到深色');
-  }
   try { var _s = window.HQAuth && HQAuth.session(); if (_s) $('gUser').innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>' + esc(_s.id); } catch (e) {}
-  var savedTheme = 'light';
-  try { if (localStorage.getItem('tsr-theme3') === 'dark') savedTheme = 'dark'; } catch (e) {}
-  applyTheme(savedTheme);
-  $('theme').addEventListener('click', function () {
-    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    window.gSwap(function () { applyTheme(next); });
-    try { localStorage.setItem('tsr-theme3', next); } catch (e) {}
-  });
+  HQAuth.themeButton($('theme'));
   var state = {
     inputs: [], results: null, problems: {}, urgents: {}, solos: {}, edits: {}, reds: {},
     view: 'upload', filter: 'todo', sel: null, tab: 'fields', allFields: false, q: '', openFiles: {},
@@ -825,7 +809,7 @@ if (!window.JSZip) document.write('<script src="https://cdn.jsdelivr.net/npm/jsz
       ['rules', '规则手册', ICON.book, 'data-view="rules"', '', false]
     ];
     var btn = function (cls, n, short) {
-      return '<button type="button" class="' + cls + '" ' + n[3] + (here === n[0] ? ' aria-current="page"' : '') + (n[5] ? ' disabled' : '') + '>' + n[2] + (short || n[1]) + n[4] + '</button>';
+      return '<button type="button" class="' + cls + '" ' + n[3] + (here === n[0] ? ' aria-current="page"' : '') + (n[5] ? ' disabled' : '') + '>' + (cls === 'nav' ? '<span class="gi">' + n[2] + '</span>' : n[2]) + (short || n[1]) + n[4] + '</button>';
     };
     var date = state.date || state.set.date, rev = state.reviewer || state.set.reviewer || 'martin';
     $('side').innerHTML = '<a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-gold.png" alt="">国内客服系统</a>' +
