@@ -137,6 +137,12 @@ const CASES = require('./naming-cases.json');
   const hid = await p.evaluate(() => { const r = { hide: ['h|方甲乙|撞字|1|林甲丙'], rows: [{ neu: '方甲乙', given: '甲乙', hits: [{ kind: '撞字', ni: 1, fc: '甲', full: '林甲丙', fname: '林甲丙', member: '兄弟姐妹' }], msgs: ['新下来的名字（方甲乙）的「乙」有小字根「小」，属龙（大生肖）不能用'], warns: [], tones: [], detail: {} }] };
     return outReason(r) + ' | ' + issuesOf(r).length; });
   ok(hid === '新下来的名字（方甲乙）的「乙」有小字根「小」，属龙（大生肖）不能用 | 2', '勾了下载不放的撞字不写进下载原因、网页照样显示，实际 ' + hid);
+  // 学员页撞字要写关系和备注原文，不用自己去翻备注
+  const relSub = await p.evaluate(() => {
+    const one = (note, num) => issuesOf({ rows: [{ neu: '方甲乙', given: '甲乙', hits: [{ kind: '撞字', ni: 1, pos: 1, fc: '甲', full: '林甲丙', fname: '林甲丙', member: '关联订单 ' + num + ' 的新名' }], msgs: [], warns: [], tones: [], detail: { note2: note } }] })[0].sub;
+    return [one('老公已提交名正言顺，订单编号：A26000000000001', 'A26000000000001'), one('请查 A26000000000002', 'A26000000000002'), one('A26000000000003（她老公）', 'A26000000000003')].join(' | ');
+  });
+  ok(relSub === '关系：老公　备注原文：「老公已提交名正言顺，订单编号：A26000000000001」 | 关系：备注没写清楚　备注原文：「请查 A26000000000002」 | 关系：备注没写清楚　备注原文：「A26000000000003（她老公）」', '学员页撞字要写关系和备注原文，实际 ' + relSub);
   // 同一单兄弟互撞：只在一个人那边勾「下载不放」，另一个人反过来的那句也不能写进下载文件
   const grpHide = await p.evaluate(async () => {
     const H = ['序号', '订单编号', '新名字姓氏', '使用人姓名', '父亲名字', '母亲名字', '兄弟姐妹', '子女', '禁忌字', '新名', '新名拼音', '名册展示', '备注'];

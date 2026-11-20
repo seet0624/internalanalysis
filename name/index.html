@@ -1255,13 +1255,19 @@ function msgTier(m){ return /订单状态备注/.test(m)?'check':'must'; }
 var CLASH_RE=/撞字（|撞谐音[（〔]/;
 var TIER_TXT={must:'必须改',check:'请确认',info:'参考'};
 function famHtml(fname,fc){ var s=String(fname), i=s.indexOf(fc); if(i<0)return esc(s); return esc(s.slice(0,i))+'<span class="fhl">'+esc(fc)+'</span>'+esc(s.slice(i+fc.length)); }
+// 学员页撞字下面写关系（从备注找，跟下载的原因一样）；订单号、找不到关系的，附上备注原文，不用自己去翻
+function hitSub(h,d){ var m=h.member||'', o=m.match(/^关联订单\s*(\S+)\s*的新名$/)||m.match(/^关联学员「[^」]*」\(([^)]*)\)$/); if(m==='父亲'||m==='母亲')return '';
+  var w=whoOf(h,d).who; w=/^(家人|家属)$/.test(w||'')?'':w; if(!o&&w)return '关系：'+w;
+  var key=o?o[1]:(h.full||''), snip=''; [d.note1,d.note2,d.sib,d.kids].some(function(t){ t=String(t||''); var i=key?t.indexOf(key):-1; if(i<0)return false;
+    var e=i+key.length; snip=(i>30?'…':'')+t.slice(Math.max(0,i-30),e+30)+(e+30<t.length?'…':''); return true; }); // 前后各截 30 字：关系有时写在后面（A…（她老公））
+  return '关系：'+(w||'备注没写清楚')+(snip?'　备注原文：「'+snip+'」':''); }
 function issuesOf(r){ var list=[], seen={};
   function add(tier,key,html,sub,neu,short){ var it=seen[key]; if(it){ if(neu&&it.names.indexOf(neu)<0)it.names.push(neu); return; } it={tier:tier,key:key,html:html,sub:sub||'',names:neu?[neu]:[],raw:null,short:short||''}; seen[key]=it; list.push(it); }
   r.rows.forEach(function(rw){
     rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var nch=Array.from(rw.neu)[h.pos]||h.fc;
       add('must','h|'+rw.neu+'|'+h.kind+'|'+h.ni+'|'+h.fname,
         '<b>'+h.kind+'「'+esc(nch)+'」</b>　↔ '+esc(h.member)+' '+famHtml(h.fname,h.fc),
-        '', rw.neu, h.kind+' '+nch+' ↔ '+h.member); seen['h|'+rw.neu+'|'+h.kind+'|'+h.ni+'|'+h.fname].hit=true; });
+        hitSub(h,rw.detail||{}), rw.neu, h.kind+' '+nch+' ↔ '+h.member); seen['h|'+rw.neu+'|'+h.kind+'|'+h.ni+'|'+h.fname].hit=true; });
     rw.msgs.forEach(function(m){ if(CLASH_RE.test(m))return; var t=msgTier(m), c=cleanMsg(m);
       if(/订单状态备注/.test(m)){ var body=c.replace(/^有订单状态备注/,'').replace(/[，,]?\s*请人工检查这单状态再决定\s*$/,'');
         add('check','m|'+m,'<b>订单状态备注</b>　'+hlText(esc(body)),'这单会卡住不能上传，人工看过再决定',rw.neu,'状态备注'); }
@@ -2015,6 +2021,9 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-20', title:'学员页撞字写出关系和备注原文', items:[
+    '「要处理的事」每条撞字下面写「关系：老公」这类，跟下载的原因一样',
+    '撞的是备注里的订单号、或找不到关系时，附上备注原文那一段，不用自己回去翻']},
   {date:'2026-11-20', title:'每条必须改可以勾「下载不放」', items:[
     '学员页「要处理的事」每条必须改右边有「下载不放」：勾了网页照样显示，下载的有问题文件原因不写这条',
     '同一单兄弟姐妹互撞，只要在其中一人那边勾掉，另一人反过来的那句也不写',
