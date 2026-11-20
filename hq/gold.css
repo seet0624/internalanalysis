@@ -111,14 +111,10 @@ body>.g-side .g-out:first-of-type,.g-side .g-label+.g-sys~.g-out{margin-top:auto
 .g-confirm-acts .btn:not(.pri):not(.primary){background:#FAF5EA;color:#2B2620;border:1px solid #DCCFB4;text-shadow:none}
 .g-confirm-acts .btn:not(.pri):not(.primary):hover{background:#F3E8D2;color:#2B2620}
 
-/* 进入动画：左栏从左边滑进来、上面那条往下、内容一块块升上来 */
+/* 进入动画：只有内容很快地淡入上移（0.3 秒内）。左栏、顶栏每页都一样，不再滑进来，换页才不会觉得卡 */
 @media (prefers-reduced-motion:no-preference){
-  .g-enter .g-side{animation:gSlide .6s cubic-bezier(.2,.8,.2,1) both}
-  .g-enter header.top{animation:gDown .5s .08s cubic-bezier(.2,.8,.2,1) both}
-  .g-enter .g-hero,.g-enter .g-hello{animation:gUp .6s .14s cubic-bezier(.2,.8,.2,1) both}
-  .g-enter .g-drop,.g-enter .kpis{animation:gUp .6s .24s cubic-bezier(.2,.8,.2,1) both}
-  .g-enter .g-feats,.g-enter .g-pillbar,.g-enter .page>.narrow>.card{animation:gUp .6s .34s cubic-bezier(.2,.8,.2,1) both}
-  .g-enter .dash,.g-enter .feats,.g-enter #homeInfo{animation:gUp .6s .44s cubic-bezier(.2,.8,.2,1) both}
+  .g-enter .g-hero,.g-enter .g-hello,.g-enter .g-drop,.g-enter .kpis{animation:gUp .28s cubic-bezier(.2,.8,.2,1) both}
+  .g-enter .g-feats,.g-enter .g-pillbar,.g-enter .page>.narrow>.card,.g-enter .dash,.g-enter .feats,.g-enter #homeInfo{animation:gUp .28s .06s cubic-bezier(.2,.8,.2,1) both}
 }
 @keyframes gSlide{from{opacity:0;transform:translateX(-28px)}}
 @keyframes gDown{from{opacity:0;transform:translateY(-12px)}}
@@ -178,13 +174,7 @@ header .g-tile{width:46px;height:46px} header .g-tile svg{width:22px;height:22px
 @media (prefers-reduced-motion:reduce){.g-hero::after{animation:none!important}}
 @media (max-width:600px){:root[data-theme="dark"] .g-hero::before,body:not(.light):not(.g-pat) .g-hero::before{background:linear-gradient(90deg,rgba(14,22,38,.92) 55%,rgba(14,22,38,.6))}}
 
-/* 转页面的过场：换页时旧画面淡出、新画面淡入上移（Chrome / Edge 支援；不支援的浏览器照常换页） */
-@view-transition{navigation:auto}
-::view-transition-old(root){animation:gVtOut .28s ease both}
-::view-transition-new(root){animation:gVtIn .42s cubic-bezier(.2,.8,.2,1) both}
-@keyframes gVtOut{to{opacity:0;transform:scale(.985)}}
-@keyframes gVtIn{from{opacity:0;transform:translateY(10px)}}
-@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}
+/* 不用换页过场（@view-transition）：它会把旧画面停住、等新页面载完才换，大的页面就觉得卡。下面只留换深浅色的淡入淡出 */
 html.g-theme-swap::view-transition-old(root){animation:gVtFade .9s ease both}
 html.g-theme-swap::view-transition-new(root){animation:gVtFade .9s ease reverse both}
 @keyframes gVtFade{to{opacity:0}}
