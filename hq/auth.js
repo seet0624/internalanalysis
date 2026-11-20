@@ -122,6 +122,13 @@
         .then(function (rows) { return rows && rows[0] ? rows[0].data : null; });
     }).catch(function () { return null; });
   }
+  // 拿一个有效的云端登入凭证（快过期就先换新），给要证明身份的后端用（例如数易助手）。拿不到回传 null
+  function cloudAccess() {
+    var tok = cloudToken();
+    if (!tok || !tok.access_token) return Promise.resolve(null);
+    var fresh = tok.expires_at && tok.expires_at * 1000 < Date.now() + 60000 ? refreshToken(tok) : Promise.resolve(tok);
+    return fresh.then(function (t) { return t ? t.access_token : null; }).catch(function () { return null; });
+  }
   function cloudLogin(id, pass, timeoutMs) {
     id = String(id || '').trim().toLowerCase();
     var email = id + '@shuyi-hq.app';
@@ -195,7 +202,7 @@
     // 照画面上的来翻，存不进去也能来回切
     btn.addEventListener('click', function () { var n = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; theme(n); window.gSwap(function () { apply(n); }); });
   }
-  window.HQAuth = { theme: theme, themeButton: themeButton, session: session, login: login, logout: logout, confirmLogout: confirmLogout, cloudLogin: cloudLogin, cloudGet: cloudGet, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
+  window.HQAuth = { theme: theme, themeButton: themeButton, session: session, login: login, logout: logout, confirmLogout: confirmLogout, cloudLogin: cloudLogin, cloudGet: cloudGet, cloudAccess: cloudAccess, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
 
   if (isHQ) return;
   // 其他页：没登入、或这个身份不能进 → 回首页
@@ -204,14 +211,14 @@
     location.replace(ROOT + (s ? '?denied=' : '?next=') + encodeURIComponent(here()));
     return;
   }
-  // 只有老板能看办公室（首页）：其他人点「国内客服系统 / 审核总部」直接回名字审核，不经过首页
+  // 只有老板能看办公室（首页）：其他人点「国内客服系统 / 审核总部」直接回自己的首页（国内：名字审核；海外：海外门户），不经过首页
   if (s.role !== 'boss') {
     document.addEventListener('click', function (e) {
       var a = e.target.closest && e.target.closest('a[href]');
       if (!a) return;
       var to = new URL(a.getAttribute('href'), location.href), home = new URL(ROOT).pathname;
       if (to.origin === location.origin && (to.pathname === home || to.pathname === home + 'index.html')) {
-        e.preventDefault(); location.href = ROOT + 'name/';
+        e.preventDefault(); location.href = ROOT + (s.role === 'os' ? 'handbook/' : 'name/');
       }
     }, true);
   }

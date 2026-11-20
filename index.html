@@ -238,30 +238,18 @@ button{cursor:pointer}
 /* ---------- 登入：白天 / 夜晚 + 动画（灯火、月光、萤火、落叶、水光、雾、飞鸟） ---------- */
 .lg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .lg-fx>*,.lg-fx b{position:absolute;display:block}
-.lg-bg{inset:-2%;background:#0B1424 url("hq/brand/login-night.webp") left center/cover no-repeat;animation:lgZoom 48s ease-in-out infinite alternate;transform-origin:20% 55%}
+.lg-bg{inset:0;background:#0B1424 url("hq/brand/login-night.webp") left center/cover no-repeat}
 html.lg-day .lg-bg{background-color:#EAF0F2;background-image:url("hq/brand/login-day.webp")}
-@keyframes lgZoom{from{transform:scale(1)}to{transform:scale(1.06)}}
-.lg-lamp{left:calc(var(--lx,16%) - 140px);top:calc(var(--ly,52%) - 120px);width:280px;height:240px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,196,92,.55),rgba(255,160,60,.18) 55%,transparent);mix-blend-mode:screen;animation:lgFlicker 3.2s ease-in-out infinite}
-@keyframes lgFlicker{0%,100%{opacity:.75}22%{opacity:1}35%{opacity:.82}58%{opacity:.95}80%{opacity:.7}}
-.lg-moon{right:7%;top:4%;width:280px;height:280px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,226,166,.28),transparent);animation:lgGlow 6s ease-in-out infinite}
-@keyframes lgGlow{50%{opacity:.55;transform:scale(1.08)}}
-.lg-mist{left:-30%;width:160%;height:22%;border-radius:50%;filter:blur(28px);background:radial-gradient(closest-side,rgba(205,220,240,.22),transparent);animation:lgDrift 60s linear infinite alternate}
-.lg-mist.m1{top:48%}.lg-mist.m2{top:62%;height:16%;animation-duration:80s;animation-direction:alternate-reverse;opacity:.8}
-html.lg-day .lg-mist{background:radial-gradient(closest-side,rgba(255,255,255,.55),transparent)}
-@keyframes lgDrift{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
-.lg-water{left:38%;right:0;bottom:0;height:30%;opacity:.5;background:repeating-linear-gradient(176deg,transparent 0 14px,rgba(233,194,122,.12) 15px 16px,transparent 17px 30px);background-size:100% 200%;-webkit-mask-image:linear-gradient(to top,#000,transparent),linear-gradient(90deg,transparent,#000 25%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to top,#000,transparent),linear-gradient(90deg,transparent,#000 25%);mask-composite:intersect;animation:lgWave 9s linear infinite}
-html.lg-day .lg-water{background-image:repeating-linear-gradient(176deg,transparent 0 14px,rgba(255,255,255,.35) 15px 16px,transparent 17px 30px)}
-@keyframes lgWave{to{background-position:0 -60px}}
+/* 背景视频（Krea 做的：水波、云、灯笼、枫叶）：开始播才淡入，没播之前看到的是同一张第一格画面 */
+.lg-vid{inset:0;width:100%;height:100%;object-fit:cover;object-position:left center;opacity:0;transition:opacity .8s ease}
+.lg-vid.on{opacity:1}
+@media (max-width:860px){.lg-bg{background-position:22% center}}
 .lg-flies b{left:var(--x);top:var(--y);width:5px;height:5px;border-radius:50%;background:#FFE7A8;box-shadow:0 0 10px 3px rgba(255,214,120,.7);animation:lgFly var(--d) ease-in-out var(--t) infinite}
 @keyframes lgFly{0%,100%{transform:translate(0,0);opacity:0}20%{opacity:1}50%{transform:translate(40px,-50px);opacity:.6}80%{opacity:1}}
 .lg-leaves b{left:var(--x);top:-4%;width:14px;height:9px;border-radius:0 80% 0 80%;background:linear-gradient(135deg,#F2B544,#C8651E);opacity:.85;animation:lgFall var(--d) linear var(--t) infinite}
 @keyframes lgFall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(calc(var(--r) * 120px + 80px),105vh) rotate(calc(var(--r) * 540deg))}}
-.lg-birds{left:-12%;top:16%;width:120px;opacity:0;animation:lgBirds 34s linear 3s infinite}
-.lg-birds svg{width:100%;height:auto;fill:none;stroke:#3B4048;stroke-width:2.4;stroke-linecap:round}
-@keyframes lgBirds{0%{transform:translate(0,0);opacity:0}5%{opacity:.75}45%{transform:translate(70vw,-6vh);opacity:.75}50%,100%{transform:translate(78vw,-8vh);opacity:0}}
-/* 夜晚才有：灯火、月光、萤火；白天才有：飞鸟 */
-html.lg-day .lg-lamp,html.lg-day .lg-moon,html.lg-day .lg-flies{display:none}
-html:not(.lg-day) .lg-birds{display:none}
+/* 萤火虫只在夜晚 */
+html.lg-day .lg-flies{display:none}
 .lg-scene{position:fixed;top:clamp(12px,2vw,24px);right:clamp(12px,2vw,24px);z-index:5;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(233,194,122,.55);background:rgba(12,18,30,.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#F3EBDA;font:600 15px/1 "ShuyiSerif","Songti SC",serif;letter-spacing:.12em;cursor:pointer}
 .lg-scene:hover{border-color:#E9C27A;color:#FFFFFF}
 .lg-scene svg{width:20px;height:20px;flex:none}
@@ -287,7 +275,7 @@ html.lg-day .login .err{color:#B3261E}
 html.lg-day .lg-scene{background:rgba(255,252,245,.7);color:#5E3E0E;border-color:rgba(184,135,58,.55)}
 html.lg-day .lg-lines{opacity:.45}
 html.lg-day.hq-anon body{background:#EAF0F2 url("hq/brand/login-day.webp") left center/cover no-repeat!important}
-@media (prefers-reduced-motion:reduce){.lg-fx *{animation:none!important}.lg-leaves,.lg-birds,.lg-flies{display:none}}
+@media (prefers-reduced-motion:reduce){.lg-fx *{animation:none!important}.lg-leaves,.lg-flies,.lg-vid{display:none}}
 .lg-note{display:flex;align-items:flex-start;gap:8px;font-size:14px;color:#D9D0BD;line-height:1.6}
 .lg-note svg{flex:none;width:16px;height:16px;margin-top:3px;color:#E9C27A}
 @media (max-width:860px){
@@ -359,7 +347,7 @@ html.lg-day.hq-anon body{background:#EAF0F2 url("hq/brand/login-day.webp") left 
   .hq-room-boss small,.hq-room-main small{display:inline}
 }
 </style>
-<script src="hq/auth.js?v=20261120b" data-page="hq"></script>
+<script src="hq/auth.js?v=20261120c" data-page="hq"></script>
 <script>
 // 已经登入、会被转到别页的：先盖住旧办公室，只留金色 logo，免得闪一下
 try { if (localStorage.getItem('hq-login-scene') === 'day') document.documentElement.classList.add('lg-day'); } catch (e) {}
@@ -367,7 +355,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
   else if (!_s) document.documentElement.classList.add('hq-anon');   // 没登入（例如刚退出）：只显示登入页，不先露出办公室
 } catch (e) {}
 </script>
-<script src="hq/bus.js?v=20261120b"></script>
+<script src="hq/bus.js?v=20261120c"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
 </head>
 <body>
@@ -430,12 +418,9 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
 <div class="login" id="login" hidden>
   <div class="lg-fx" aria-hidden="true">
     <div class="lg-bg"></div>
-    <i class="lg-lamp"></i><i class="lg-moon"></i>
-    <i class="lg-mist m1"></i><i class="lg-mist m2"></i>
-    <i class="lg-water"></i>
+    <video class="lg-vid" id="lgVid" muted loop playsinline preload="none" disablepictureinpicture></video>
     <span class="lg-flies"><b style="--x:12%;--y:62%;--d:7s;--t:-1s"></b><b style="--x:22%;--y:70%;--d:9s;--t:-4s"></b><b style="--x:31%;--y:58%;--d:8s;--t:-2s"></b><b style="--x:8%;--y:78%;--d:10s;--t:-6s"></b><b style="--x:38%;--y:74%;--d:11s;--t:-3s"></b><b style="--x:18%;--y:52%;--d:9s;--t:-7s"></b><b style="--x:44%;--y:66%;--d:12s;--t:-5s"></b><b style="--x:27%;--y:82%;--d:8s;--t:-8s"></b><b style="--x:52%;--y:80%;--d:10s;--t:-2s"></b><b style="--x:5%;--y:60%;--d:7s;--t:-5s"></b></span>
     <span class="lg-leaves"><b style="--x:6%;--d:13s;--t:-2s;--r:1"></b><b style="--x:14%;--d:16s;--t:-9s;--r:-1"></b><b style="--x:22%;--d:12s;--t:-5s;--r:1"></b><b style="--x:30%;--d:18s;--t:-12s;--r:-1"></b><b style="--x:10%;--d:15s;--t:-7s;--r:1"></b><b style="--x:26%;--d:14s;--t:-1s;--r:-1"></b></span>
-    <span class="lg-birds"><svg viewBox="0 0 120 40"><path d="M2 20q12-10 22 0q10-10 22 0" /><path d="M58 8q8-7 15 0q7-7 15 0" /><path d="M84 30q6-5 11 0q5-5 11 0" /></svg></span>
   </div>
   <button type="button" class="lg-scene" id="lgScene" aria-pressed="false"></button>
   <svg class="lg-lines" viewBox="0 0 900 400" aria-hidden="true" fill="none"><defs><linearGradient id="lgl" x1="0" x2="1"><stop offset="0" stop-color="#E9C27A" stop-opacity="0"/><stop offset=".6" stop-color="#E9C27A" stop-opacity=".9"/><stop offset="1" stop-color="#FFF1C9"/></linearGradient></defs>
@@ -465,7 +450,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
 <nav class="hud card drawer" id="drawer" aria-label="组织架构" aria-hidden="true" inert></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="hq/company.js?v=20261120b"></script>
+<script src="hq/company.js?v=20261120c"></script>
 <script type="module">
 const C = window.COMPANY;
 const KIND = { site: '网站', claude: 'Claude', planned: '筹备中' };
@@ -498,12 +483,22 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
       moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>' };
     const btn = $('lgScene'), de = document.documentElement;
     const show = () => { const day = de.classList.contains('lg-day'); btn.innerHTML = day ? ICON.moon + '夜晚' : ICON.sun + '白天'; btn.setAttribute('aria-pressed', String(day)); btn.setAttribute('aria-label', day ? '换成夜晚' : '换成白天'); };
-    btn.addEventListener('click', () => { const day = !de.classList.contains('lg-day'); gSwap(() => { de.classList.toggle('lg-day', day); show(); }); try { localStorage.setItem('hq-login-scene', day ? 'day' : 'night'); } catch (e) {} });
+    btn.addEventListener('click', () => { const day = !de.classList.contains('lg-day'); gSwap(() => { de.classList.toggle('lg-day', day); show(); if (window.lgVideo) lgVideo(); }); try { localStorage.setItem('hq-login-scene', day ? 'day' : 'night'); } catch (e) {} });
     show();
-    // 灯火对准亭子：背景图 cover + 靠左，算出亭子在画面上的位置（图上约 16%、53%）
-    const place = () => { const w = innerWidth, h = innerHeight, k = Math.max(w / 1376, h / 768), top = (h - 768 * k) / 2;
-      de.style.setProperty('--lx', (1376 * k * 0.165) + 'px'); de.style.setProperty('--ly', (top + 768 * k * 0.53) + 'px'); };
-    place(); addEventListener('resize', place);
+    // 背景视频：桌面、网络够快、没设减少动态才播；手机或省流量就停在第一格的静态图
+    const vid = $('lgVid'), conn = navigator.connection || {};
+    const canVideo = !matchMedia('(prefers-reduced-motion: reduce)').matches && innerWidth > 860 && !conn.saveData && !/(^|-)(2g|3g)$/.test(conn.effectiveType || '');
+    const ext = vid.canPlayType && vid.canPlayType('video/webm; codecs="vp9"') ? 'webm' : 'mp4';
+    vid.addEventListener('playing', () => vid.classList.add('on'));
+    vid.addEventListener('error', () => vid.classList.remove('on'));
+    window.lgVideo = () => {
+      if (!canVideo) return;
+      const src = 'hq/brand/video/login-' + (de.classList.contains('lg-day') ? 'day' : 'night') + '.' + ext;
+      if (vid.getAttribute('src') === src) return;
+      vid.classList.remove('on'); vid.setAttribute('src', src);
+      const p = vid.play(); if (p && p.catch) p.catch(() => {});   // 浏览器不让自动播就留在静态图
+    };
+    lgVideo();
   })();
   let savedId = ''; try { savedId = localStorage.getItem('hq-remember-id') || ''; } catch (e) {}
   if (savedId) { $('loginId').value = savedId; $('loginPass').focus(); } else $('loginId').focus();

@@ -9,6 +9,7 @@
 //
 // 只想看会上传哪些文件、不真的上传：DRY_RUN=1 node deploy/upload-oss.mjs
 // 只上传、不删除：Bucket 里以前上传过、现在仓库已经没有的文件会留着，要删到 OSS 控制台手动删。
+// 例外：REMOVED 里列的文件（搬进云端锁住的资料）每次上线都会从 OSS 删掉，免得旧档案还公开着。
 
 import { readdir, readFile } from 'node:fs/promises';
 import { join, relative, extname, sep } from 'node:path';
@@ -29,6 +30,8 @@ const TYPES = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
   '.gif': 'image/gif',
   '.woff': 'font/woff',
   '.ico': 'image/x-icon',
@@ -39,6 +42,15 @@ const TYPES = {
 function cacheFor(key) {
   return key.startsWith('vendor/') ? 'public, max-age=86400' : 'no-cache';
 }
+
+// 已经从网站拿掉、而且不能再公开的文件：每次上线都确认 OSS 上没有（只删这几个确切路径）
+const REMOVED = [
+  'handbook/content/首页.js',
+  'handbook/content/章节.js',
+  'handbook/content/汇率与工期.js',
+  'handbook/改线判定器.dc.html',
+  'handbook/服务中心判定器.dc.html'
+];
 
 const skipped = [];
 
@@ -72,6 +84,7 @@ if (!plan.some((f) => f.key === 'index.html')) {
 
 if (process.env.DRY_RUN) {
   for (const f of plan) console.log(`${f.key}\t${f.type}\t${f.cache}`);
+  console.log('会从 OSS 删掉：' + REMOVED.join('、'));
   console.log(`共 ${plan.length} 个文件（DRY_RUN，没有上传）`);
   process.exit(0);
 }
@@ -104,6 +117,14 @@ for (const f of plan) {
     failed++;
     console.error(`上传失败 ${f.key}：${e.code || ''} ${e.message}`);
   }
+}
+
+try {
+  await client.deleteMulti(REMOVED, { quiet: true });
+  console.log('已确认 OSS 上没有：' + REMOVED.join('、'));
+} catch (e) {
+  failed++;
+  console.error(`删除旧档案失败：${e.code || ''} ${e.message}（请到 OSS 控制台手动删：${REMOVED.join('、')}）`);
 }
 
 if (failed) {

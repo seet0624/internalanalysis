@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html><head>
-<script src="../hq/auth.js?v=20261120b" data-nobadge></script>
+<script src="../hq/auth.js?v=20261120c" data-nobadge></script>
 <script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
+<style>x-dc{display:none!important}html:not(.os-ready) body::after{content:"正在从云端载入海外手册……";position:fixed;inset:0;display:grid;place-items:center;font:15px/1.6 "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;color:#8A7F6C;background:#F6F1E7}html[data-theme=dark]:not(.os-ready) body::after{background:#0F1217;color:#9AA7BD}</style>
 
 <meta name="robots" content="noindex, nofollow">
 <title>数易 · 海外客服门户</title>
@@ -60,25 +61,40 @@ window.CS = {};
     for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
     return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
   }
+  // 每一种失败给不同的说明，主控台也留下原因（客服截图给我们就知道哪里出问题）
+  function fail(code, err) {
+    if (err) console.error('[海外手册]', code, err);
+    var MSG = {
+      browser: '这个浏览器太旧，打不开海外手册。请换 Chrome、Edge，或把 Safari / 微信更新到最新版。',
+      cloud: '连不上云端或登入凭证过期，看不到海外手册。请退出再用海外客服账号登入一次；还是不行，可能是网络挡住了云端，请换网络试试。',
+      data: '云端的海外手册资料坏了，请通知老板（主控台有详细原因）。',
+      runtime: '页面元件载入失败，请重新整理。'
+    };
+    document.documentElement.classList.add('os-ready');
+    bar(MSG[code] || MSG.cloud);
+  }
+  if (typeof DecompressionStream !== 'function' || typeof Response !== 'function') { fail('browser'); return; }
   HQAuth.cloudGet('os_handbook').then(function (d) {
-    if (!d || typeof d.gz !== 'string') throw new Error('no-data');
-    return gunzip(d.gz);
-  }).then(function (txt) {
-    var o = JSON.parse(txt);
-    window.CS = o.CS || {};
-    window.__resourceBlobs = window.__resourceBlobs || {};
-    Object.keys(o.tools || {}).forEach(function (n) {
-      var id = 'cloud:' + n;   // 判定器从云端来：runtime 照 __resources 找到 id，再从 __resourceBlobs 拿内容
-      window.__resources['./' + encodeURIComponent(n) + '.dc.html'] = id;
-      window.__resourceBlobs[id] = new Blob([String(o.tools[n])], { type: 'text/html' });
-    });
-    var need = ['announcements', 'quicklinks', 'tasks', 'week', 'modules', 'fx', 'leadRegions', 'leadTools'];
-    var miss = need.filter(function (k) { return !Array.isArray(window.CS[k]); });
-    if (miss.length) bar('云端的海外手册少了：' + miss.join('、') + '。请老板检查最近一次更新。');
-    var sc = document.createElement('script'); sc.src = 'assets/vendor/dc-runtime.js'; document.head.appendChild(sc);
-  }).catch(function () {
-    bar('海外手册要用海外客服账号登入才看得到。已经登入的话，可能是网络连不上云端，请稍后重新整理；还是不行就退出再登入一次。');
-  });
+    if (!d) return fail('cloud', 'cloudGet 拿不到资料（没有云端凭证、凭证过期、权限不对或网络）');
+    if (typeof d.gz !== 'string') return fail('data', 'os_handbook 没有 gz 栏位');
+    return gunzip(d.gz).then(function (txt) {
+      var o; try { o = JSON.parse(txt); } catch (e) { return fail('data', e); }
+      window.CS = o.CS || {};
+      window.__resourceBlobs = window.__resourceBlobs || {};
+      Object.keys(o.tools || {}).forEach(function (n) {
+        var id = 'cloud:' + n;   // 判定器从云端来：runtime 照 __resources 找到 id，再从 __resourceBlobs 拿内容
+        window.__resources['./' + encodeURIComponent(n) + '.dc.html'] = id;
+        window.__resourceBlobs[id] = new Blob([String(o.tools[n])], { type: 'text/html' });
+      });
+      var need = ['announcements', 'quicklinks', 'tasks', 'week', 'modules', 'fx', 'leadRegions', 'leadTools'];
+      var miss = need.filter(function (k) { return !Array.isArray(window.CS[k]); });
+      if (miss.length) bar('云端的海外手册少了：' + miss.join('、') + '。请老板检查最近一次更新。');
+      var sc = document.createElement('script'); sc.src = 'assets/vendor/dc-runtime.js';
+      sc.onload = function () { document.documentElement.classList.add('os-ready'); };
+      sc.onerror = function (e) { fail('runtime', e); };
+      document.head.appendChild(sc);
+    }, function (e) { fail('data', e); });
+  }).catch(function (e) { fail('cloud', e); });
 })();
 </script>
 <!-- 数易助手后端地址（Netlify 部署后填入，例如 https://xxx.netlify.app/api/ask）；留空则只用本地关键词回答 -->
@@ -126,6 +142,13 @@ header{padding-right:clamp(16px,2.4vw,24px)!important}
 .os-acts svg{flex:none}
 @media (max-width:700px){.os-acts{top:13px}.os-acts .os-user{display:none}.os-acts button{padding:0 10px;font-size:0;gap:0}.os-acts button svg{width:18px;height:18px}header>*:has(>input){margin-right:96px}}
 header img[alt="数易"]{display:none!important}
+.g-confirm{border:1px solid #E2CFA8;border-radius:20px;padding:26px 28px 22px;width:min(400px,calc(100% - 32px));background:#FFFDF8;color:#2B2620;box-shadow:0 30px 70px -20px rgba(43,32,20,.45);font-family:var(--sans)}
+.g-confirm::backdrop{background:rgba(20,16,10,.45);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.g-confirm h2{margin:0 0 8px;font:700 22px var(--serif)}
+.g-confirm p{margin:0;color:#6F6553;font-size:15px}
+.g-confirm-acts{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.g-confirm-acts .btn{min-width:96px;min-height:44px;border-radius:10px;font:600 15px var(--sans);cursor:pointer;background:#FAF5EA;color:#2B2620;border:1px solid #DCCFB4}
+.g-confirm-acts .btn.pri{background:linear-gradient(180deg,#D9B66E,#B8873A);border-color:#B8873A;color:#1A1408}
 .os-alert{position:fixed;top:0;left:0;right:0;z-index:99999;padding:12px 16px;background:var(--bad-bg);color:var(--bad);font:14px/1.6 var(--sans);white-space:pre-wrap;border-bottom:1px solid var(--bad)}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -1366,7 +1389,8 @@ class Component extends DCLogic {
         this._abort=new AbortController();
         const timer=setTimeout(()=>this._abort.abort(), 45000);
         const history=prior.slice(-8).map(m=>({ role:m.role==='user'?'user':'assistant', content:m.text }));
-        const res=await fetch(endpoint,{ method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ question:text, history }), signal:this._abort.signal });
+        const tok=(window.HQAuth && HQAuth.cloudAccess) ? await HQAuth.cloudAccess() : null;   // 助手只回答海外账号和老板：带上云端登入凭证给后端核对
+        const res=await fetch(endpoint,{ method:'POST', headers:Object.assign({ 'Content-Type':'application/json' }, tok ? { Authorization:'Bearer '+tok } : {}), body:JSON.stringify({ question:text, history }), signal:this._abort.signal });
         clearTimeout(timer);
         const data=await res.json().catch(()=>({}));
         if(res.ok && data && typeof data.answer==='string'){
