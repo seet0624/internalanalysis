@@ -306,7 +306,7 @@ button{cursor:pointer}
   .hq-room-boss small,.hq-room-main small{display:inline}
 }
 </style>
-<script src="hq/auth.js" data-page="hq"></script>
+<script src="hq/auth.js?v=20261120" data-page="hq"></script>
 <script>
 // 已经登入、会被转到别页的：先盖住旧办公室，只留金色 logo，免得闪一下
 try { var _s = HQAuth.session(); if (_s && (_s.role === 'cs' || !/[?&]classic/.test(location.search))) document.documentElement.classList.add('hq-go');
