@@ -1469,7 +1469,7 @@ function bindMain(main,r){
   main.querySelectorAll('.vseg button').forEach(function(b){ b.onclick=function(){ var v=b.getAttribute('data-v'); if(v!==r.verdict)changeVerdict(r.sid,v); }; });
   var od=main.querySelector('#oneDl'); if(od)od.onclick=function(){ dlCatch(downloadOne(r)); };
   var rc=main.querySelector('#revChk'); if(rc)rc.onchange=function(){ setReviewed(r, rc.checked, false); };
-  main.querySelectorAll('.hideChk').forEach(function(cb){ cb.onchange=function(){ var k=cb.getAttribute('data-key'); r.hide=(r.hide||[]).filter(function(v){ return v!==k; }); if(cb.checked)r.hide.push(k); saveHide(); renderStudent(); }; });
+  main.querySelectorAll('.hideChk').forEach(function(cb){ cb.onchange=function(){ var k=cb.getAttribute('data-key'); r.hide=(r.hide||[]).filter(function(v){ return v!==k; }); if(cb.checked)r.hide.push(k); saveHide(); renderStudent(); var nb=document.querySelector('#main .hideChk[data-key="'+CSS.escape(k)+'"]'); if(nb)nb.focus(); }; });
   var rwi=main.querySelector('#revWho'); if(rwi)fillReviewer(rwi);
   main.querySelector('#prevBtn').onclick=function(){ move(-1); }; main.querySelector('#nextBtn').onclick=function(){ move(1); };
   var bl=main.querySelector('#backList'); if(bl)bl.onclick=function(){ var q=document.querySelector('#qlist .qi.on')||document.querySelector('#qlist .qi'); if(q)q.focus(); };
@@ -1819,8 +1819,14 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
   var lastCol=lastColOf(x), reasonByRow={}, delRows=[], grpReason={};
   // 同一个订单的每一行写一样的原因（包括没问题的那个名字）：先把同订单所有有问题学员的原因合起来
   function grpKey(r){ var o=String(r.order||'').trim(); return isOrderNo(o)?o:('#'+r.sid); } // 订单号写「无」「-」不算同一单
-  if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem)return; var k=grpKey(r), seen=grpReason[k]||(grpReason[k]=[]);
-    outReason(r).split('；').forEach(function(t){ var k=pairKey(t); if(seen.indexOf(t)<0&&!(k&&seen.some(function(o){ return pairKey(o)===k; })))seen.push(t); }); });
+  // 勾了「下载不放」的那几句，同一单里反方向的同一件事（B 跟 A 撞）也一起不写；因为勾掉才变空的人不补「名字需要重新调整」
+  var hidPK={}, FALLBACK='名字需要重新调整';
+  if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem||!(r.hide||[]).length)return; var shown=outReason(r).split('；');
+    outReason(Object.assign({},r,{hide:[]})).split('；').forEach(function(t){ if(shown.indexOf(t)<0)hidPK[grpKey(r)+'#'+(pairKey(t)||t)]=1; }); });
+  if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem)return; var k=grpKey(r), seen=grpReason[k]||(grpReason[k]=[]), parts=outReason(r).split('；');
+    if(parts.join('；')===FALLBACK&&(r.hide||[]).length)parts=[];
+    parts.forEach(function(t){ var pk=pairKey(t); if(hidPK[k+'#'+(pk||t)])return; if(seen.indexOf(t)<0&&!(pk&&seen.some(function(o){ return pairKey(o)===pk; })))seen.push(t); }); });
+  for(var gk in grpReason)if(!grpReason[gk].length)grpReason[gk].push(FALLBACK);
   // 「A 跟哥哥 B 撞字」和「B 跟弟弟 A 撞字」是同一件事，同一单只写一次
   function pairKey(t){ var m=/^新下来的名字（([^）]+)）和[^（]*（([^）]+)）(撞.*)$/.exec(t); return m?[m[1],m[2]].sort().join('|')+(m[3].match(/\p{Script=Han}/gu)||[]).sort().join(''):''; }
   au.results.forEach(function(r){ var keep=keepProblem==='all'||(keepProblem?r.problem:!r.problem), anyMsg=r.rows.some(function(rw){return rw.msgs.length;});
@@ -1954,7 +1960,7 @@ function soundText(L){ return L.map(function(o,i){ return (i+1)+'. '+(o.order?o.
 // AI 复核：把网页的判定连同指令复制好，客服贴到 Claude、附上原文件，让名字审核 skill 再查一次，只列网页漏掉的
 function copyAiCheck(){ var x=parsedFiles[activeFile]; if(!x)return; var rs=x.audit.results, bad=rs.filter(function(r){return r.problem;});
   var t='/martin-toolkit:name-sheet-audit\n请复核我附上的技术单《'+x.name+'》（'+rs.length+' 位学员'+(x.mixed?'，国内＋海外（名册展示有写的是海外）':x.overseas?'，海外':'，国内')+'）。\n名字审核网页已判定 '+bad.length+' 位有问题：\n'+
-    (bad.length?bad.map(function(r,i){ return (i+1)+'. '+(r.order||'')+' '+baseName(r.disp)+'：'+outReason(r); }).join('\n'):'（没有）')+
+    (bad.length?bad.map(function(r,i){ return (i+1)+'. '+(r.order||'')+' '+baseName(r.disp)+'：'+outReason(Object.assign({},r,{hide:[]})); }).join('\n'):'（没有）')+
     '\n请逐位再查一次（家人撞字撞音含粤语、多音字、禁忌字和禁忌音、繁体、两个新名太像），只列出：①网页没抓到的问题；②你不同意网页判定的地方。没有就回「复核没发现新问题」。';
   function ok(){ toast('已复制：贴到 Claude，再附上这份技术单'); } function fb(){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); ok(); }catch(e){ alert(t); } ta.remove(); }
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,fb); else fb(); }
@@ -2009,8 +2015,9 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
-  {date:'2026-11-21', title:'每条必须改可以勾「下载不放」', items:[
+  {date:'2026-11-20', title:'每条必须改可以勾「下载不放」', items:[
     '学员页「要处理的事」每条必须改右边有「下载不放」：勾了网页照样显示，下载的有问题文件原因不写这条',
+    '同一单兄弟姐妹互撞，只要在其中一人那边勾掉，另一人反过来的那句也不写',
     '勾选会记在这台电脑的浏览器里，重新打开同一个文件还在']},
   {date:'2026-11-20', title:'客户乱写也认得：祝福语、待补、状态不当人名', items:[
     '家人栏的繁体祝福语（身體健康、事業順暢、五福臨門、越來越好…）不再当成人名',

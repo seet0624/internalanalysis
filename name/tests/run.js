@@ -137,6 +137,22 @@ const CASES = require('./naming-cases.json');
   const hid = await p.evaluate(() => { const r = { hide: ['h|方甲乙|撞字|1|林甲丙'], rows: [{ neu: '方甲乙', given: '甲乙', hits: [{ kind: '撞字', ni: 1, fc: '甲', full: '林甲丙', fname: '林甲丙', member: '兄弟姐妹' }], msgs: ['新下来的名字（方甲乙）的「乙」有小字根「小」，属龙（大生肖）不能用'], warns: [], tones: [], detail: {} }] };
     return outReason(r) + ' | ' + issuesOf(r).length; });
   ok(hid === '新下来的名字（方甲乙）的「乙」有小字根「小」，属龙（大生肖）不能用 | 2', '勾了下载不放的撞字不写进下载原因、网页照样显示，实际 ' + hid);
+  // 同一单兄弟互撞：只在一个人那边勾「下载不放」，另一个人反过来的那句也不能写进下载文件
+  const grpHide = await p.evaluate(async () => {
+    const H = ['序号', '订单编号', '新名字姓氏', '使用人姓名', '父亲名字', '母亲名字', '兄弟姐妹', '子女', '禁忌字', '新名', '新名拼音', '名册展示', '备注'];
+    const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('命名'); ws.addRow(H);
+    ws.addRow(['1', 'T0000000000101', '段', '段丙', '无', '无', '兄弟姐妹名字：段丁，段戊', '无', '家人不同音不同字', '段冠宏', 'guàn hóng', '', '弟弟：段戊']);
+    ws.addRow(['2', 'T0000000000101', '段', '段戊', '无', '无', '兄弟姐妹名字：段丙', '无', '家人不同音不同字', '段冠羽', 'guàn yǔ', '', '']);
+    [2, 3].forEach(r => [1, 4].forEach(c => { ws.getRow(r).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC000' } }; }));
+    const buf = await wb.xlsx.writeBuffer(); parsedFiles.length = 0;
+    await loadWithBuffers([{ name: '兄弟互撞 2026-10-01.xlsx', arrayBuffer: async () => buf }]);
+    const x = parsedFiles[0], rs = x.audit.results, cell = async () => { const w = (await buildSplitWorkbook(x, true)).worksheets[0]; return [2, 3].map(r => String(w.getRow(r).getCell(14).value || '')).join(' / '); };
+    const before = await cell();
+    rs[0].hide = issuesOf(rs[0]).filter(i => i.tier === 'must' && /^h\|/.test(i.key)).map(i => i.key);
+    const after = await cell(); rs[0].hide = [];
+    return rs.map(r => r.problem).join(',') + ' | ' + /冠/.test(before) + ' | ' + after;
+  });
+  ok(grpHide === 'true,true | true | 名字需要重新调整 / 名字需要重新调整', '同一单兄弟互撞只勾一边，另一边那句也不写，实际 ' + grpHide);
   // 客户乱写：祝福语（繁简）、待补、状态、「提交了」都不能当人名；「和 & + → 改为」要拆开；真名字照样认得
   const junk = await p.evaluate(async () => {
     const J = ['身體健康，事業順暢', '財源滾滾 五福臨門', '越來越好', '平安喜樂', '订单号：待补', '同上', '见备注', '独生子', '一儿一女', '两个孩子', '已过世', '去世了', '单身', '怀孕中', '预产期12月', '名正言順：', '已提交名正言顺', '提交了', '好运常在'];
