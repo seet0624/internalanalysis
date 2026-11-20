@@ -198,6 +198,8 @@ body.light .qtabs button.on{background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.
 .tier.check{background:var(--warn);color:var(--warn-solid-ink)}
 .tier.info{background:var(--panel2);color:var(--muted);border:1px solid var(--line2);line-height:20px}
 .iss .it{flex:1;min-width:0;word-break:break-word}
+.iss .hideLbl{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;padding-top:2px}
+.iss.off .it>b,.iss.off .it{opacity:.6}
 .iss .it b{font-weight:500}
 .iss .sub{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
 .iss .nt{display:inline-block;font-family:var(--serif-tc);font-size:12px;color:var(--muted);border:1px solid var(--line2);border-radius:5px;padding:0 6px;margin-right:6px}
@@ -1023,6 +1025,7 @@ function store(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
 function load(k,d){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function saveDB(){ store('mzys_db', importedDB); }
 function saveVerdicts(){ var m=load('mzys_verdicts',{}); parsedFiles.forEach(function(x){ x.audit.results.forEach(function(r){ m[x.name+'#'+r.sid]={v:r.verdict,p:r.problem}; }); }); store('mzys_verdicts',m); }
+function saveHide(){ var m=load('mzys_hide',{}); parsedFiles.forEach(function(x){ x.audit.results.forEach(function(r){ var k=x.name+'#'+r.sid; if(r.hide&&r.hide.length)m[k]=r.hide; else delete m[k]; }); }); store('mzys_hide',m); }
 function savedVerdict(fname,sid){ var m=load('mzys_verdicts',{}); return m[fname+'#'+sid]; }
 function saveReviews(){ var m=load('mzys_reviews',{}); parsedFiles.forEach(function(x){ x.audit.results.forEach(function(r){ m[x.name+'#'+r.sid]=!!r.reviewed; }); }); store('mzys_reviews',m); }
 function savedReview(fname,sid){ var m=load('mzys_reviews',{}); return !!m[fname+'#'+sid]; }
@@ -1232,7 +1235,7 @@ function reportToHQ(kind){ if(!window.HQBus)return;
 
 function rebuild(){ var savedDB=load('mzys_db',{}); for(var k in savedDB)importedDB[k]=savedDB[k];
   var db=buildOrderDB(parsedFiles.map(function(x){return x.parsed;}), importedDB); window._DB=db;
-  parsedFiles.forEach(function(x){ x.audit=auditParsed(x.parsed, db); x.audit.results.forEach(function(r){ var sv=savedVerdict(x.name,r.sid); if(sv){ r.verdict=sv.v; r.problem=sv.p; } r.reviewed=savedReview(x.name,r.sid); }); setRegion(x); });
+  parsedFiles.forEach(function(x){ x.audit=auditParsed(x.parsed, db); x.audit.results.forEach(function(r){ var sv=savedVerdict(x.name,r.sid); if(sv){ r.verdict=sv.v; r.problem=sv.p; } r.reviewed=savedReview(x.name,r.sid); r.hide=load('mzys_hide',{})[x.name+'#'+r.sid]||[]; }); setRegion(x); });
   if(activeFile>=parsedFiles.length)activeFile=Math.max(0,parsedFiles.length-1);
   var has=parsedFiles.length>0;
   document.getElementById('welcome').style.display=has?'none':'flex';
@@ -1253,7 +1256,7 @@ var CLASH_RE=/撞字（|撞谐音[（〔]/;
 var TIER_TXT={must:'必须改',check:'请确认',info:'参考'};
 function famHtml(fname,fc){ var s=String(fname), i=s.indexOf(fc); if(i<0)return esc(s); return esc(s.slice(0,i))+'<span class="fhl">'+esc(fc)+'</span>'+esc(s.slice(i+fc.length)); }
 function issuesOf(r){ var list=[], seen={};
-  function add(tier,key,html,sub,neu,short){ var it=seen[key]; if(it){ if(neu&&it.names.indexOf(neu)<0)it.names.push(neu); return; } it={tier:tier,html:html,sub:sub||'',names:neu?[neu]:[],raw:null,short:short||''}; seen[key]=it; list.push(it); }
+  function add(tier,key,html,sub,neu,short){ var it=seen[key]; if(it){ if(neu&&it.names.indexOf(neu)<0)it.names.push(neu); return; } it={tier:tier,key:key,html:html,sub:sub||'',names:neu?[neu]:[],raw:null,short:short||''}; seen[key]=it; list.push(it); }
   r.rows.forEach(function(rw){
     rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var nch=Array.from(rw.neu)[h.pos]||h.fc;
       add('must','h|'+rw.neu+'|'+h.kind+'|'+h.ni+'|'+h.fname,
@@ -1360,8 +1363,11 @@ function fmtTime(t){ var d=new Date(t), p=function(n){return (n<10?'0':'')+n;}; 
 // 右栏每一块可以展开 / 收起；没资料的那块先收起
 function railWrap(h){ return h.replace(/<section><h3>(.*?)<\/h3>/g,function(_,t){ return '<details class="g-rs" open><summary>'+t+'</summary>'; }).replace(/<\/section>/g,'</details>')
   .split('</details>').map(function(c){ return /class="lbl"[^>]*>(没有资料|技术单没写家人|无特别要求|这单没扫到其他编号)/.test(c)?c.replace('<details class="g-rs" open>','<details class="g-rs">'):c; }).join('</details>'); }
-function issueHtml(it){ return '<div class="iss '+it.tier+'"><span class="tier '+it.tier+'">'+TIER_TXT[it.tier]+'</span><div class="it">'+
-  it.names.map(function(n){return '<span class="nt">'+esc(n)+'</span>';}).join('')+it.html+(it.sub?'<span class="sub">'+esc(it.sub)+'</span>':'')+'</div></div>'; }
+// 必须改的每一条都可以勾「下载不放」：网页照样显示，下载的有问题文件原因不写这条
+function issueHtml(it,hide){ var can=it.tier==='must'&&/^[hm]\|/.test(it.key||''), off=can&&(hide||[]).indexOf(it.key)>=0;
+  return '<div class="iss '+it.tier+(off?' off':'')+'"><span class="tier '+it.tier+'">'+TIER_TXT[it.tier]+'</span><div class="it">'+
+  it.names.map(function(n){return '<span class="nt">'+esc(n)+'</span>';}).join('')+it.html+(it.sub?'<span class="sub">'+esc(it.sub)+'</span>':'')+(off?'<span class="sub">下载的文件不写这条</span>':'')+'</div>'+
+  (can?'<label class="hideLbl" title="勾了：网页照样显示，下载的有问题文件原因不写这条"><input type="checkbox" class="hideChk" data-key="'+esc(it.key)+'"'+(off?' checked':'')+'> 下载不放</label>':'')+'</div>'; }
 function centerHtml(r,x){ var sid=String(r.sid), det=r.rows[0].detail||{};
   var iss=issuesOf(r), main=iss.filter(function(i){return i.tier!=='info';}), info=iss.filter(function(i){return i.tier==='info';});
   var disp=String(r.disp||''), mm=disp.match(/^([^（(\s]+)\s*(.*)$/); var nm1=mm?mm[1]:disp, nm2=mm?mm[2]:'';
@@ -1385,7 +1391,7 @@ function centerHtml(r,x){ var sid=String(r.sid), det=r.rows[0].detail||{};
   h+='<div class="sandbox" id="sandbox"><div class="sbf"><input id="sbName" placeholder="试一个新名，例：'+esc((r.rows[0]&&r.rows[0].surname)||'陳')+'星宇" aria-label="试改的新名"><input id="sbPy" placeholder="拼音（可不填）" aria-label="拼音"><button type="button" class="btn pri sm" id="sbGo">检查</button></div><div class="res" id="sbRes"></div></div>';
   h+='<div class="g-rec"><div><span>审核状态</span><b class="'+(bad?'bad':'ok')+'">'+(bad?'有问题':'通过')+'</b></div><div><span>复核时间</span><b>'+(r.reviewed&&tm?fmtTime(tm):(r.reviewed?'已复核':'还没复核'))+'</b></div>'+
     '<div><span>审核人</span><select id="revWho" class="g-who-in" aria-label="审核人（可以改成别人）"></select></div><div><span>处理事项</span><b class="'+(main.length?'bad':'ok')+'">'+main.length+'</b></div></div>';
-  if(main.length)h+='<h2 class="sech">要处理的事（'+main.length+'）</h2><div class="issues">'+main.map(issueHtml).join('')+'</div>';
+  if(main.length)h+='<h2 class="sech">要处理的事（'+main.length+'）</h2><div class="issues">'+main.map(function(it){ return issueHtml(it,r.hide); }).join('')+'</div>';
   if(info.length)h+='<section class="g-refs"><h2 class="g-refs-h">参考资料（'+info.length+'）</h2>'+info.map(function(it){ var c=refCat(it);
     return '<details class="g-ref '+c[0]+'"><summary><span class="g-rtag">'+c[1]+'</span><span class="g-rsum">'+(it.names.length?esc(it.names.join('、'))+'　':'')+it.html.replace(/<[^>]+>/g,'')+'</span></summary><div class="g-rbody">'+issueHtml(it)+'</div></details>'; }).join('')+'</section>';
   h+='<div class="keys"><span><kbd>J</kbd> <kbd>K</kbd> 下一位 / 上一位</span><span><kbd>空格</kbd> 已复核并跳下一位</span><span><kbd>N</kbd> 下一个必须改</span><span><kbd>/</kbd> 搜索</span></div>';
@@ -1463,6 +1469,7 @@ function bindMain(main,r){
   main.querySelectorAll('.vseg button').forEach(function(b){ b.onclick=function(){ var v=b.getAttribute('data-v'); if(v!==r.verdict)changeVerdict(r.sid,v); }; });
   var od=main.querySelector('#oneDl'); if(od)od.onclick=function(){ dlCatch(downloadOne(r)); };
   var rc=main.querySelector('#revChk'); if(rc)rc.onchange=function(){ setReviewed(r, rc.checked, false); };
+  main.querySelectorAll('.hideChk').forEach(function(cb){ cb.onchange=function(){ var k=cb.getAttribute('data-key'); r.hide=(r.hide||[]).filter(function(v){ return v!==k; }); if(cb.checked)r.hide.push(k); saveHide(); renderStudent(); var nb=document.querySelector('#main .hideChk[data-key="'+CSS.escape(k)+'"]'); if(nb)nb.focus(); }; });
   var rwi=main.querySelector('#revWho'); if(rwi)fillReviewer(rwi);
   main.querySelector('#prevBtn').onclick=function(){ move(-1); }; main.querySelector('#nextBtn').onclick=function(){ move(1); };
   var bl=main.querySelector('#backList'); if(bl)bl.onclick=function(){ var q=document.querySelector('#qlist .qi.on')||document.querySelector('#qlist .qi'); if(q)q.focus(); };
@@ -1619,10 +1626,10 @@ function whoOf(h,d){ var m=h.member, o;
   if((o=m.match(/^同色家人「([^」]*)」$/)))return {who:relWord(d,shortName(o[1])),isNew:true};
   if((o=m.match(/^(.+?)「([^」]*)」(?:同一批的|以前的)订单/)))return {who:({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]!=null?({'父亲':'父亲','母亲':'母亲','备注提到':''}[o[1]]||relWord(d,o[2])):(relWord(d,o[2])||o[1])),isNew:true};
   return {who:relWord(d,h.full)||(m==='备注提到'?'':m),isNew:isNewName(d,h.full)}; } // 判断不出关系就回空，outReason 写兄弟姐妹
-function outReason(r){ var out=[];
+function outReason(r){ var out=[], hide=r.hide||[];
   r.rows.forEach(function(rw){ var g=Array.from(rw.given), d=rw.detail||{}, famOrder=[], byFam={};
     // 一个新名写一句，撞字撞音合起来：新下来的名字（王籽寓）和弟弟的名字（王子鸿）、妹妹的名字（王子娴）撞同音字「籽」「子」（zǐ），和父亲的名字（…）撞同一个字「…」
-    rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; var ch=g[h.ni-1]||h.fc, w=whoOf(h,d), tail;
+    rw.hits.forEach(function(h){ if(h.kind!=='撞字'&&h.kind!=='撞音')return; if(hide.indexOf('h|'+rw.neu+'|'+h.kind+'|'+h.ni+'|'+h.fname)>=0)return; var ch=g[h.ni-1]||h.fc, w=whoOf(h,d), tail;
       var who=/^(家人|家属)$/.test(w.who||'')?'':w.who; who=who||'兄弟姐妹'; // 判断不出关系（只有人名、订单号）就写兄弟姐妹
       if(h.kind==='撞字')tail='撞同一个字「'+ch+'」';
       else { var t=rw.tones[h.ni-1]||{}, tp=tonePair(ch,h.fc), pa=addTone(t.syl||'',tp[0]), pb=addTone(t.syl||'',tp[1]); tail='撞同音字「'+ch+'」「'+h.fc+'」（'+(pa===pb?pa:pa+' / '+pb)+'）'; }
@@ -1631,7 +1638,7 @@ function outReason(r){ var out=[];
     // 同一位家人又撞字又撞音写一次：和弟弟的名字（钱明义）撞同一个字「明」、撞同音字「怡」「义」；撞法一样的家人用「、」并在一起
     var clauses=[], famsOf={}; famOrder.forEach(function(f){ var k=byFam[f].join('、'); if(!famsOf[k]){ famsOf[k]=[]; clauses.push(k); } famsOf[k].push(f); });
     if(clauses.length)out.push('新下来的名字（'+rw.neu+'）'+clauses.map(function(k){ return '和'+famsOf[k].join('、')+k; }).join('，'));
-    rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m)&&!/订单状态备注/.test(m))out.push(cleanMsg(m)); }); }); // 订单状态备注不是名字的问题，不写进给出去的文件
+    rw.msgs.forEach(function(m){ if(!CLASH_RE.test(m)&&!/订单状态备注/.test(m)&&hide.indexOf('m|'+m)<0)out.push(cleanMsg(m)); }); }); // 订单状态备注不是名字的问题，不写进给出去的文件
   var seen={}; out=out.filter(function(t){ if(seen[t])return false; seen[t]=1; return true; });
   return out.length?out.join('；'):(r.rows.some(function(rw){ return rw.msgs.some(function(m){ return /订单状态备注/.test(m); }); })?'订单状态要先确认':'名字需要重新调整'); } // 只写撞到的、真正的问题；提醒类（请确认、请人工看）不写进给出去的文件
 
@@ -1812,8 +1819,14 @@ async function buildSplitWorkbook(x, keepProblem){ var wb=new ExcelJS.Workbook()
   var lastCol=lastColOf(x), reasonByRow={}, delRows=[], grpReason={};
   // 同一个订单的每一行写一样的原因（包括没问题的那个名字）：先把同订单所有有问题学员的原因合起来
   function grpKey(r){ var o=String(r.order||'').trim(); return isOrderNo(o)?o:('#'+r.sid); } // 订单号写「无」「-」不算同一单
-  if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem)return; var k=grpKey(r), seen=grpReason[k]||(grpReason[k]=[]);
-    outReason(r).split('；').forEach(function(t){ var k=pairKey(t); if(seen.indexOf(t)<0&&!(k&&seen.some(function(o){ return pairKey(o)===k; })))seen.push(t); }); });
+  // 勾了「下载不放」的那几句，同一单里反方向的同一件事（B 跟 A 撞）也一起不写；因为勾掉才变空的人不补「名字需要重新调整」
+  var hidPK={}, FALLBACK='名字需要重新调整';
+  if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem||!(r.hide||[]).length)return; var shown=outReason(r).split('；');
+    outReason(Object.assign({},r,{hide:[]})).split('；').forEach(function(t){ if(shown.indexOf(t)<0)hidPK[grpKey(r)+'#'+(pairKey(t)||t)]=1; }); });
+  if(keepProblem===true)au.results.forEach(function(r){ if(!r.problem)return; var k=grpKey(r), seen=grpReason[k]||(grpReason[k]=[]), parts=outReason(r).split('；');
+    if(parts.join('；')===FALLBACK&&(r.hide||[]).length)parts=[];
+    parts.forEach(function(t){ var pk=pairKey(t); if(hidPK[k+'#'+(pk||t)])return; if(seen.indexOf(t)<0&&!(pk&&seen.some(function(o){ return pairKey(o)===pk; })))seen.push(t); }); });
+  for(var gk in grpReason)if(!grpReason[gk].length)grpReason[gk].push(FALLBACK);
   // 「A 跟哥哥 B 撞字」和「B 跟弟弟 A 撞字」是同一件事，同一单只写一次
   function pairKey(t){ var m=/^新下来的名字（([^）]+)）和[^（]*（([^）]+)）(撞.*)$/.exec(t); return m?[m[1],m[2]].sort().join('|')+(m[3].match(/\p{Script=Han}/gu)||[]).sort().join(''):''; }
   au.results.forEach(function(r){ var keep=keepProblem==='all'||(keepProblem?r.problem:!r.problem), anyMsg=r.rows.some(function(rw){return rw.msgs.length;});
@@ -1947,7 +1960,7 @@ function soundText(L){ return L.map(function(o,i){ return (i+1)+'. '+(o.order?o.
 // AI 复核：把网页的判定连同指令复制好，客服贴到 Claude、附上原文件，让名字审核 skill 再查一次，只列网页漏掉的
 function copyAiCheck(){ var x=parsedFiles[activeFile]; if(!x)return; var rs=x.audit.results, bad=rs.filter(function(r){return r.problem;});
   var t='/martin-toolkit:name-sheet-audit\n请复核我附上的技术单《'+x.name+'》（'+rs.length+' 位学员'+(x.mixed?'，国内＋海外（名册展示有写的是海外）':x.overseas?'，海外':'，国内')+'）。\n名字审核网页已判定 '+bad.length+' 位有问题：\n'+
-    (bad.length?bad.map(function(r,i){ return (i+1)+'. '+(r.order||'')+' '+baseName(r.disp)+'：'+outReason(r); }).join('\n'):'（没有）')+
+    (bad.length?bad.map(function(r,i){ return (i+1)+'. '+(r.order||'')+' '+baseName(r.disp)+'：'+outReason(Object.assign({},r,{hide:[]})); }).join('\n'):'（没有）')+
     '\n请逐位再查一次（家人撞字撞音含粤语、多音字、禁忌字和禁忌音、繁体、两个新名太像），只列出：①网页没抓到的问题；②你不同意网页判定的地方。没有就回「复核没发现新问题」。';
   function ok(){ toast('已复制：贴到 Claude，再附上这份技术单'); } function fb(){ var ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); ok(); }catch(e){ alert(t); } ta.remove(); }
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(ok,fb); else fb(); }
@@ -2002,6 +2015,10 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-20', title:'每条必须改可以勾「下载不放」', items:[
+    '学员页「要处理的事」每条必须改右边有「下载不放」：勾了网页照样显示，下载的有问题文件原因不写这条',
+    '同一单兄弟姐妹互撞，只要在其中一人那边勾掉，另一人反过来的那句也不写',
+    '勾选会记在这台电脑的浏览器里，重新打开同一个文件还在']},
   {date:'2026-11-20', title:'客户乱写也认得：祝福语、待补、状态不当人名', items:[
     '家人栏的繁体祝福语（身體健康、事業順暢、五福臨門、越來越好…）不再当成人名',
     '「待补、同上、见备注、独生子、一儿一女、已过世、单身、怀孕中、已提交名正言顺」不再当成人名',
