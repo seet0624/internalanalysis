@@ -723,8 +723,10 @@ function splitNames(text){ var t=String(text==null?'':text); if(NULLS[t.trim()])
   for(var i=0;i<NOISE.length;i++)t=t.split(NOISE[i]).join('，'); // 留分隔，「张三孩子李四」不会黏成一个名字
   var parts=t.split(/[@\uff0c,\u3001\uff1b;\uff1a:\u3000\s\/&\uff06+\uff0b\u2192\u21d2>\-]+/).concat(extra),out=[];
   for(var j=0;j<parts.length;j++){var c=cjkOnly(parts[j]);if(!c||NULLS[c])continue; c=stripRel(c); if(c&&!NULLS[c]&&!REL_WORDS[c]&&!NO_NAME_RE.test(c)&&Array.from(c).length>=2&&!junk4(c)&&out.indexOf(c)<0)out.push(c);} return out; }
-// 刚好四个字、开头不是姓也不是称呼（「爱人钱玉」要留）：多半是吉祥话，不当人名
-function junk4(c){ var h=c.slice(0,2); return Array.from(c).length===4&&!isSurname(c[0])&&!isSurname(h)&&!REL_WORDS[h]&&!REL_FULL[h]&&!REL_RE.test(c); }
+// 刚好四个字、开头不是姓也不是称呼（「爱人钱玉」要留）、又有吉祥词：是吉祥话，不当人名
+// 只丢含吉祥词的（扎西多吉、阿依古丽这类没有常见姓的真名要留）
+var BLESS2_RE=/健康|平安|顺利|顺畅|顺遂|幸福|快乐|如意|吉祥|富贵|发财|兴旺|兴隆|进步|长寿|安康|美满|喜乐|好运|大吉|有成|有余|满满|滚滚|临门|越好|精神|聪明|伶俐|万事|事业|财源|财运|学业|身体|常在|常乐/;
+function junk4(c){ var h=c.slice(0,2); return Array.from(c).length===4&&!isSurname(c[0])&&!isSurname(h)&&!REL_WORDS[h]&&!REL_FULL[h]&&!REL_RE.test(c)&&BLESS2_RE.test(Array.from(c).map(simpOf).join('')); }
 // 「爱人：罗小红」「配偶：第一任：王小明」→ 名字前面最近的称谓（爱人 / 配偶）；找不到就空
 function isRelLabel(l){ if(/^(曾用名|原名|现用名|调整名|数易名|健在|未婚|孩子|原配|第[一二三]任)$/.test(l))return false; return !!(REL_WORDS[l]||REL_FULL[l]||/^(外公|外婆|姥姥|姥爷|爷爷|奶奶|兄弟姐妹)$/.test(l)||new RegExp('^['+REL_MOD+']*['+REL_ROOT+']{1,4}$').test(l)); }
 function relLabelOf(raw,n){ var mm=new RegExp('(^|[^\\u4e00-\\u9fff])'+n+'(?![\\u4e00-\\u9fff])').exec(String(raw)); if(!mm)return ''; var i=mm.index+mm[1].length; var seg=String(raw).slice(0,i).split(/[；;]/).pop(), m, last='', re=/([一-鿿]{1,8})\s*[：:]/g;
@@ -745,10 +747,10 @@ var NAME_STOP={'辛苦':1,'辛苦了':1,'辛苦啦':1,'谢谢':1,'你好':1,'大
 // 备注常写的吉祥话：先整句拿掉，免得「家和万事兴」被拆成人名「万事兴」（万是姓）
 var BLESS_RE=/家和万事兴|万事兴|万事如意|万事顺[意利遂心]?|心想事成|事事如意|事业有成|学业有成|身体健康|健康长寿|平平安安|健健康康|快快乐乐|顺顺利利|步步高升|前程似锦|大吉大利|财源广进|金玉满堂|吉祥如意|福寿安康|福如东海|寿比南山|年年有余|阖家幸福|合家欢乐|恭喜发财|一帆风顺|鹏程万里|万事大吉|喜气洋洋|事业顺畅|事业顺利|事业兴旺|财源滚滚|财运亨通|五福临门|越来越好|超来越好|平安喜乐|健康快乐|学业进步|龙马精神|福气满满|花开富贵|平安健康|聪明伶俐|幸福美满|全家幸福|阖家安康|合家安康|出入平安|岁岁平安|长命百岁|生意兴隆|招财进宝|好运连连|万事顺遂/g;
 // 用简体对照找词（繁体写的也认得），找到的地方换成「，」
-function cutSimp(t,re){ var a=Array.from(String(t==null?'':t)), sm=a.map(simpOf).join(''), keep=a.slice(), m; if(sm.length!==a.length)return a.join(''); re.lastIndex=0;
+function cutSimp(t,re){ var a=Array.from(String(t==null?'':t)), sm=a.map(function(c){ var x=simpOf(c); return x.length===1?x:'\ufffd'; }).join(''), keep=a.slice(), m; re.lastIndex=0;
   while((m=re.exec(sm))){ for(var i=m.index;i<m.index+m[0].length;i++)keep[i]=i===m.index?'，':''; if(!m[0].length)re.lastIndex++; } return keep.join(''); }
 // 家人栏常见的不是人名的写法：待补、同上、独生子、已过世、怀孕中、已提交名正言顺……；「改为 / 改成」当分隔
-var FAM_JUNK_RE=/待补|待查|待定|同上|如上|见备注|见上|详见|独生子|独生女|一儿一女|一子一女|[两三四五]个|已过世|过世|去世|离世|单身|怀孕|预产期|已提交|刚提交|提交了|提交|已做|已办|名正言顺|改为|改成|换成/g;
+var FAM_JUNK_RE=/待补|待查|待定|同上|如上|见备注|见上|详见|独生子|独生女|一儿一女|一子一女|[一两二三四五六]个(?:孩子|小孩|儿子|女儿|子女|兄弟|姐妹|姊妹)|已过世|已经过世|过世了|去世|离世|单身|怀孕|预产期|已提交|刚提交|提交了|提交|已做|已办|名正言顺|改为|改成|换成/g;
 function extractNoteNames(text, own, exclude){ var s=cutSimp(text||'',BLESS_RE); var t=s.indexOf('禁忌')>=0?s.split('禁忌')[0]:s; var toks=t.split(/[^\u4e00-\u9fff]+/),out=[],seen={};
   for(var i=0;i<toks.length;i++){ var tok=toks[i],k=0; while(k<tok.length&&PREFIX[tok[k]])k++; var name=tok.slice(k);
     // 「麻烦了」「费心了」：这些姓也是常用字，前面要有称谓才算人名
@@ -881,7 +883,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
         else if(orderDB&&orderDB[key]){ orderDB[key].forEach(function(fn){fam.push(['关联订单 '+num+' 的新名',fn]);}); detectedOrders.push({num:num,tag:'已关联'}); }
         else { unresolvedOrders.push(num); detectedOrders.push({num:num,tag:'待补'}); orderProblems.push('🔍 备注/家人栏有名正言顺订单「'+num+'」——请人手去系统查这单的名字下来了没。下来了就在上方输入框填上，系统会自动比对撞字撞音；还没下来先不填，不算问题'); } });
       // 写了「订单编号」却没有号码（客户把「订单编号」当成填空写进去）：提醒客服去要号码
-      var miss=scanText.match(/(订单编号|訂單編號|订单号|訂單號|单号|單號)\s*[:\uff1a]?\s*(?=$|[^A-Za-z0-9\uff21-\uff3a\uff41-\uff5a\uff10-\uff19\s])/);
+      var miss=scanText.match(/(订单编号|訂單編號|订单号|訂單號|单号|單號)(?![\s:\uff1a]*[A-Za-z0-9\uff21-\uff3a\uff41-\uff5a\uff10-\uff19])/);
       if(miss&&!Object.keys(seen).length)orderProblems.push('🔍 备注写了「'+miss[1]+'」但后面没有号码——请向客服要家人的订单号，查他的新名有没有撞');
       if(RULES.checkOrderFuzzy){ var seen2={};
         rows.forEach(function(ri){ data[ri].forEach(function(cell){ var c=String(cell==null?'':cell); if(!/[A-Za-z][\s\-_.]+\d/.test(c))return;
