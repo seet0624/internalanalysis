@@ -257,6 +257,7 @@ input::placeholder{color:var(--ink-faint);}
   .rise,.pulse,.halo,.twinkle,.bob,.chatpop,.msg,.dot{animation:none !important;}
   .hov,.lift,.aibar,.ring,.now,.fab,.chip{transition:none !important;}
   .lift:hover,.aibar:hover,.fab:hover{transform:none;}
+  .os-tool3d,.os-tool3d:hover,.os-tool3d:active{transition:none;transform:none;}
 }
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @media print{
@@ -343,7 +344,7 @@ input::placeholder{color:var(--ink-faint);}
       <div style="flex:0 0 100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
         <span style="font-size:11px;letter-spacing:.22em;color:var(--ink-soft);white-space:nowrap;">工具速查</span>
         <sc-for list="{{ tools }}" as="t" hint-placeholder-count="5">
-          <button class="{{ t.cls }}" sc-camel-on-click="{{ t.onGo }}" style="{{ t.style }}" title="{{ t.tip }}">
+          <button class="{{ t.cls }}" sc-camel-on-click="{{ t.onGo }}" style="{{ t.style }}" title="{{ t.tip }}" aria-current="{{ t.cur }}">
             <span style="display:inline-flex;">{{ t.el }}</span><span>{{ t.title }}</span>
           </button>
         </sc-for>
@@ -1908,8 +1909,8 @@ class Component extends DCLogic {
       ].map(t=>{
         const active=isSection && route.id===t.id;
         // 会帮忙算的工具（汇率、服务中心、改线）做成 3D 金色按钮，一看就知道可以按来查
-        if(t.fn) return { title:t.title, el:ic(t.icon,16,2), onGo:goId(t.id), cls:'os-tool3d'+(active?' on':''), tip:t.title+'：输入资料直接算出结果', style:'' };
-        return { title:t.title, el:ic(t.icon,15,1.8), onGo:goId(t.id), cls:'', tip:t.title,
+        if(t.fn) return { title:t.title, el:ic(t.icon,16,2), onGo:goId(t.id), cls:'os-tool3d'+(active?' on':''), cur:active?'page':'false', tip:t.title+'：输入资料直接算出结果', style:'' };
+        return { title:t.title, el:ic(t.icon,15,1.8), onGo:goId(t.id), cls:'', cur:active?'page':'false', tip:t.title,
           style:'display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-family:var(--sans);font-size:12.5px;padding:7px 12px;border-radius:999px;white-space:nowrap;border:1px solid '
             +(active?'var(--gold-deep)':'var(--rule)')+';background:'+(active?'var(--gold-deep)':'var(--card)')+';color:'+(active?'#fff':'var(--ink)')+';' };
       }),
