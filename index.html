@@ -272,6 +272,17 @@ html.lg-day .lg-scene{background:rgba(255,252,245,.7);color:#5E3E0E;border-color
 html.lg-day .lg-lines{opacity:.45}
 html.lg-day.hq-anon body{background:#EAF0F2 url("hq/brand/login-day.webp") left center/cover no-repeat!important}
 @media (prefers-reduced-motion:reduce){.lg-fx *{animation:none!important}.lg-leaves,.lg-flies,.lg-vid{display:none}}
+/* 登入中 / 退出后的过场（Krea 做的「推向亭子、金光充满画面」，退出时倒着播） */
+.login>.lg-cine{position:fixed;inset:0;z-index:20;background:#EAF0F2 url("hq/brand/login-day.webp") left center/cover no-repeat;cursor:pointer;transition:opacity .45s ease}
+.login>.lg-cine[hidden]{display:none}
+.lg-cine video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:left center}
+.lg-gold{position:absolute;inset:0;background:radial-gradient(circle at 28% 52%,#FFF6DD 0,#F7D58C 38%,#E2AE55 75%,#C98E3A 100%);opacity:0;transition:opacity .35s ease}
+.lg-cine.gold .lg-gold{opacity:1}
+.lg-cine.gold::after{content:"";position:absolute;inset:0;margin:auto;width:110px;height:105px;background:url(hq/brand/shuyi-logo-gold.png) center/contain no-repeat;filter:drop-shadow(0 4px 14px rgba(120,70,10,.35));opacity:0;animation:lgFade .3s .35s ease forwards,hqPulse 1.2s .65s ease-in-out infinite}
+.lg-cine.bye::after{display:none}
+.lg-cine.out{opacity:0;pointer-events:none}
+.lg-skip{position:absolute;right:24px;bottom:20px;padding:6px 12px;border-radius:999px;background:rgba(255,250,240,.65);color:#5E3E0E;font-size:13px;letter-spacing:.08em}
+.lg-cine.gold .lg-skip{display:none}
 .lg-note{display:flex;align-items:flex-start;gap:8px;font-size:14px;color:#D9D0BD;line-height:1.6}
 .lg-note svg{flex:none;width:16px;height:16px;margin-top:3px;color:#E9C27A}
 @media (max-width:860px){
@@ -343,7 +354,7 @@ html.lg-day.hq-anon body{background:#EAF0F2 url("hq/brand/login-day.webp") left 
   .hq-room-boss small,.hq-room-main small{display:inline}
 }
 </style>
-<script src="hq/auth.js?v=20261120d" data-page="hq"></script>
+<script src="hq/auth.js?v=20261121a" data-page="hq"></script>
 <script>
 // 已经登入、会被转到别页的：先盖住旧办公室，只留金色 logo，免得闪一下
 document.documentElement.classList.add('lg-day');   // 登入页每次打开都是白天
@@ -351,7 +362,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
   else if (!_s) document.documentElement.classList.add('hq-anon');   // 没登入（例如刚退出）：只显示登入页，不先露出办公室
 } catch (e) {}
 </script>
-<script src="hq/bus.js?v=20261120d"></script>
+<script src="hq/bus.js?v=20261121a"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
 </head>
 <body>
@@ -419,6 +430,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
     <span class="lg-leaves"><b style="--x:6%;--d:13s;--t:-2s;--r:1"></b><b style="--x:14%;--d:16s;--t:-9s;--r:-1"></b><b style="--x:22%;--d:12s;--t:-5s;--r:1"></b><b style="--x:30%;--d:18s;--t:-12s;--r:-1"></b><b style="--x:10%;--d:15s;--t:-7s;--r:1"></b><b style="--x:26%;--d:14s;--t:-1s;--r:-1"></b></span>
   </div>
   <button type="button" class="lg-scene" id="lgScene" aria-pressed="false"></button>
+  <div class="lg-cine" id="lgCine" hidden aria-hidden="true"><video id="lgCineVid" muted playsinline preload="none" disablepictureinpicture></video><i class="lg-gold"></i><span class="lg-skip">点一下跳过</span></div>
   <svg class="lg-lines" viewBox="0 0 900 400" aria-hidden="true" fill="none"><defs><linearGradient id="lgl" x1="0" x2="1"><stop offset="0" stop-color="#E9C27A" stop-opacity="0"/><stop offset=".6" stop-color="#E9C27A" stop-opacity=".9"/><stop offset="1" stop-color="#FFF1C9"/></linearGradient></defs>
     <path d="M0 380C260 360 520 330 900 120" stroke="url(#lgl)" stroke-width="2"/><path d="M60 395C320 370 560 350 900 190" stroke="url(#lgl)" stroke-width="1.2" opacity=".7"/><path d="M180 400C420 385 640 360 900 250" stroke="url(#lgl)" stroke-width="1" opacity=".5"/></svg>
   <div class="lg-brand">
@@ -446,7 +458,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
 <nav class="hud card drawer" id="drawer" aria-label="组织架构" aria-hidden="true" inert></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="hq/company.js?v=20261120d"></script>
+<script src="hq/company.js?v=20261121a"></script>
 <script type="module">
 const C = window.COMPANY;
 const KIND = { site: '网站', claude: 'Claude', planned: '筹备中' };
@@ -495,6 +507,39 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
       const p = vid.play(); if (p && p.catch) p.catch(() => {});   // 浏览器不让自动播就留在静态图
     };
     if (document.readyState === 'complete') setTimeout(lgVideo, 400); else addEventListener('load', () => setTimeout(lgVideo, 400), { once: true });   // 页面载完才下载视频，不跟登入页抢网速
+    // 登入中 / 退出后的过场：桌面、白天、网络够快才播；其他情况用原本很短的淡出
+    const cine = $('lgCine'), cv = $('lgCineVid');
+    const cineOk = () => canVideo && de.classList.contains('lg-day');
+    const afterLoad = (fn, ms) => { if (document.readyState === 'complete') setTimeout(fn, ms); else addEventListener('load', () => setTimeout(fn, ms), { once: true }); };
+    // 退出后回来（?bye）：从金光倒着拉回湖景，停在登入页
+    if (params.has('bye')) {
+      history.replaceState(null, '', location.pathname + location.search.replace(/[?&]bye(=[^&]*)?/, '').replace(/^&/, '?'));
+      cine.hidden = false; cine.classList.add('gold', 'bye');
+      let gone = false;
+      const out = () => { if (gone) return; gone = true; cine.classList.add('out'); setTimeout(() => { cine.hidden = true; cine.classList.remove('out', 'gold', 'bye'); }, 460); };
+      cine.onclick = out;
+      if (cineOk()) {
+        cv.onplaying = () => cine.classList.remove('gold');
+        cv.onended = out; cv.onerror = out;
+        cv.src = 'hq/brand/video/login-leave.' + ext; cv.preload = 'auto';
+        const p = cv.play(); if (p && p.catch) p.catch(out);
+        setTimeout(() => { if (cine.classList.contains('gold')) out(); }, 900);   // 0.9 秒还没开始播就直接淡出，不让人等
+        setTimeout(out, 3200);
+      } else setTimeout(out, 250);
+    }
+    // 登入要用的「推向亭子」：页面和背景视频之后才下载
+    afterLoad(() => { if (cineOk() && !cv.getAttribute('src')) { cv.preload = 'auto'; cv.src = 'hq/brand/video/login-enter.' + ext; } }, 1500);
+    // 播「推向亭子」：能播就回传一个 Promise（播完、变金色才结束），不能播回传 null
+    window.lgEnter = () => {
+      if (!cineOk() || !/login-enter/.test(cv.getAttribute('src') || '') || cv.readyState < 3) return null;
+      return new Promise((done) => {
+        cine.hidden = false; cine.classList.remove('gold', 'bye', 'out');
+        let fin = false; const end = () => { if (fin) return; fin = true; cv.pause(); cine.classList.add('gold'); setTimeout(done, 300); };
+        cv.onplaying = null; cv.onended = end; cv.onerror = end; cine.onclick = end;
+        cv.currentTime = 0; const p = cv.play(); if (p && p.catch) p.catch(end);
+        setTimeout(end, 2600);
+      });
+    };
   })();
   let savedId = ''; try { savedId = localStorage.getItem('hq-remember-id') || ''; } catch (e) {}
   if (savedId) { $('loginId').value = savedId; $('loginPass').focus(); } else $('loginId').focus();
@@ -525,9 +570,13 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
     if (btn) { btn.disabled = true; btn.textContent = '连接公司云端…'; }
     const cloud = HQAuth.cloudLogin($('loginId').value, $('loginPass').value);   // 连不上也照样进去（本机模式）
     if (nextUrl(sess)) {   // 要转页：离开动画和连云端同时进行，两样都好了就走（不再先等云端、再等动画）
-      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      box.classList.add('lg-leave');
-      await Promise.all([cloud, new Promise((r) => setTimeout(r, still ? 0 : 350))]);
+      const cine = window.lgEnter && lgEnter();   // 推向亭子、金光（约 1.6 秒，可以点一下跳过）
+      if (cine) await Promise.all([cloud, cine]);
+      else {
+        const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        box.classList.add('lg-leave');
+        await Promise.all([cloud, new Promise((r) => setTimeout(r, still ? 0 : 350))]);
+      }
       goNext(sess); return;
     }
     await cloud;
@@ -538,7 +587,7 @@ if (goNext(SESSION)) await new Promise(() => {});
 const ROLE = SESSION.role;
 document.body.classList.add('role-' + ROLE);
 $('acct').innerHTML = `<span>${esc(SESSION.id)} · ${esc(SESSION.name)}</span><button type="button" id="logout">登出</button>`;
-$('logout').addEventListener('click', () => { HQAuth.logout(); location.href = location.pathname; });
+$('logout').addEventListener('click', () => { HQAuth.logout(); location.href = location.pathname + '?bye=1'; });   // ?bye：登入页播退出过场
 
 // ---------- 功能：客服一登入就看到我们有几个功能，审核工具最大，点了直接用 ----------
 const SHORT = { 'manual/': '客服手册', 'handbook/': '海外客服门户', 'guide/': '工具启动教程', 'docs/dongfang/': '东方药林教程', 'numera/': 'NUMERA' };
