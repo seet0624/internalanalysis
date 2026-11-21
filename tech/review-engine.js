@@ -482,6 +482,17 @@
     return t || null;
   }
 
+  // 天希手表 vs 天希手表 / 许舒涵九合平衡牌 vs 九合平衡牌: the same tool when one name holds the other
+  // 名正言順 / 鴻運手錶 written in 繁体 are the same tool as 名正言顺 / 鸿运手表
+  var SIMP = { '順': '顺', '運': '运', '鴻': '鸿', '錶': '表', '澤': '泽', '貴': '贵', '寶': '宝', '親': '亲', '華': '华', '豐': '丰', '吊墜': '吊坠', '牌': '牌' };
+  function simpTool(x) { return String(x || '').replace(/吊墜|[順運鴻錶澤貴寶親華豐]/g, function (c) { return SIMP[c] || c; }); }
+  function sameTool(a, b) {
+    var n = function (x) { return simpTool(productName(x)).replace(/\s/g, ''); };
+    a = n(a); b = n(b);
+    return !a || !b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0;
+  }
+  // 「海外技术单 …」「今日技术单 …」name no tool
+  var GENERIC_TOOL = /^\s*(海外|国内|國內|全部|今日|今天|所有|新|旧|舊|[（(]?第?\d+[份批]?[）)]?)\s*$/;
   function toolName(fileName) {
     var base = String(fileName).replace(/\.xlsx$/i, '');
     var m = base.match(/^(.*?)技术单/);
@@ -609,6 +620,8 @@
     var range = dataRowRange(ws, header);
     var C = header.cols;
     tool = toolFromSheet(ws, range, C) || toolName(file.name);
+    // the tool the file NAME promises ("天希手表技术单 …"); empty for "技术单 20.11.2026.xlsx"
+    var fileTool = /技术单/.test(file.name) && !GENERIC_TOOL.test(toolName(file.name)) && /[\u4e00-\u9fff]/.test(toolName(file.name)) ? toolName(file.name) : '';
     // one sheet can hold several products (天祥手表 + 天富手表 + 鸿运手表 …): each one gets its own file
     var products = [];
     if (C['商品标题']) for (var pr = range.first; pr <= range.last; pr++) {
@@ -701,6 +714,13 @@
         Object.keys(orig).forEach(function (h) {
           if (orig[h] !== get(h)) add({ kind: 'edited', level: 'info', text: '已改「' + h + '」：' + (orig[h] || '（空）') + ' → ' + (get(h) || '（空）') + '（已标红）' });
         });
+        // 同一单（同订单号、同产品）在别的文件也有 → 重复：先放有问题，审核人决定要不要这一单
+        var dupOf = (opts.fileDups || {})[orderNo14(key) + '|' + simpTool(o.product)];
+        // 审核人按了「不是重复，保留」: keep the note, but it no longer makes the order 有问题 (other problems still do)
+        var keptDup = dupOf && (opts.notDups || {})[file.name + '|' + key];
+        if (dupOf) add({ kind: 'dup-order', level: keptDup ? 'info' : 'high', problem: !keptDup, who: '审核人', text: '这一单在《' + dupOf.file + '》也有（同一个订单号、同样是' + o.product + '）— ' + (keptDup ? '你选了保留，不是重复' : '重复了，确认后可以不要这一单') });
+        // 文件名是天希手表，这一单却是鸿运手表 → 可能放错文件（照样另开鸿运手表文件）
+        else if (fileTool && !sameTool(fileTool, o.product)) add({ kind: 'wrong-file', level: 'high', text: '这一单是「' + o.product + '」，文件名却是「' + fileTool + '」— 会另开' + o.product + '文件；请确认没有放错文件' });
       }
 
       // 海外技术单: these products must be checked before they can be made → 有问题
@@ -1071,9 +1091,12 @@
       o.babyUrgent = !!(o.newborn && urgs[mk]);
       // 单独发: the reviewer wants this one order in its own file for the expert
       o.solo = !!solos[mk];
+      // 重复的单，审核人按了「不要这一单」: no output file carries it
+      // only while it still is an open repeat: after the files change, a stale choice never hides an order
+      o.skip = !!(opts.skips || {})[mk] && o.flags.some(function (f) { return f.kind === 'dup-order' && f.problem; });
     });
     result.orders = orderList.map(function (o) {
-      return { key: o.key, seq: o.seq, person: o.person, title: o.title, flags: o.flags, urgent: o.urgent, autoUrgent: o.autoUrgent, babyUrgent: o.babyUrgent, solo: o.solo, gender: o.gender,
+      return { key: o.key, seq: o.seq, person: o.person, title: o.title, flags: o.flags, urgent: o.urgent, autoUrgent: o.autoUrgent, babyUrgent: o.babyUrgent, solo: o.solo, skip: o.skip, gender: o.gender,
         autoProblem: o.autoProblem, problem: o.problem, newborn: !!o.newborn, family: o.family || null, fields: o.fields || [] };
     });
     result.isWatch = isWatch; result.splitBrand = splitBrand;
@@ -1101,6 +1124,7 @@
     // Partition into output files.
     var groups = {};
     famOrder.forEach(function (o) {
+      if (o.skip) return;
       var tags = [];
       if (o.problem) tags.push('有问题');
       // 新生儿 (not 有问题) share one 新生儿 file, urgent words or not — unless the reviewer pressed 加急
@@ -1228,9 +1252,9 @@
   var SELF_COLS = /^(序号|订单时间|订单编号|原订单编号|原訂單編號|会员编号|会员姓名|服务中心编号|商品标题|加工序号|产品配置编号|股东名称|新名字姓氏|使用人姓名|新名|新名拼音|名册展示|配置人|审核人|性别|生肖|公历生日|农历时辰|是否子时|是否双胞胎|数字|颜色|刻名字)$/;
   // 家人订单只在同一个文件里找：每个文件单独审核，不跟别的工具的单连起来
   async function scanFamilies(files) {
-    var groups = [], byFile = [];
+    var groups = [], byFile = [], scanned = [];
     for (var i = 0; i < files.length; i++) {
-      var orders = [], byNo = {};
+      var orders = scanned[i] = [], byNo = {};
       try {
         var wb = await load(files[i].buffer), ws = wb.worksheets[0], header = findHeader(ws);
         if (!header) continue;
@@ -1240,7 +1264,7 @@
           var no = orderNo14(g('订单编号'));
           if (!no || byNo[no]) continue;
           var snm = (g('新名字姓氏').match(/[\u4e00-\u9fff]/) || [])[0];
-          var o = { no: no, id: g('订单编号').trim(), surname: snm || '', person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool,
+          var o = { no: no, id: g('订单编号').trim(), surname: snm || '', person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool, product: productName(g('商品标题')) || tool,
             names: ownNames(g('使用人姓名')).concat(ownNames(g('会员姓名'))),
             rel: relNames([g('父亲名字'), g('母亲名字'), g('兄弟姐妹'), g('子女')].join(' ')),
             // every column can carry a relative (父亲名字 / 母亲名字 / 兄弟姐妹 / 子女 / 备注 …), except the order's own identity
@@ -1284,7 +1308,40 @@
       orders.forEach(function (o) { o.names.forEach(function (n) { if (names.indexOf(n) < 0) names.push(n); }); });
       byFile[i] = { byNo: map, names: names };
     }
-    return { groups: groups, byFile: byFile };
+    return { groups: groups, byFile: byFile, scanned: scanned };
+  }
+
+  // the same order (订单号 + 产品) in two files: one copy is extra. The copy sitting in another tool's file
+  // (鸿运手表 inside 天希手表技术单) is the extra one; otherwise the later file's copy.
+  function findDups(files, scanned) {
+    var dups = files.map(function () { return {}; }), seen = {};
+    var misplaced = function (c) { var t = toolName(files[c.i].name); return /技术单/.test(files[c.i].name) && !GENERIC_TOOL.test(t) && /[\u4e00-\u9fff]/.test(t) && !sameTool(t, c.o.product); };
+    (scanned || []).forEach(function (orders, i) {
+      (orders || []).forEach(function (o) {
+        var k = o.no + '|' + simpTool(o.product), cur = { i: i, o: o }, prev = seen[k];
+        if (!prev) { seen[k] = cur; return; }
+        if (prev.i === i) return;
+        var extra = cur, keep = prev;
+        if (misplaced(prev) && !misplaced(cur)) { extra = prev; keep = cur; seen[k] = cur; }
+        dups[extra.i][k] = { file: files[keep.i].name };
+      });
+    });
+    return dups;
+  }
+  // 同一个学员、同一个工具、不同订单号：可能真的买了两次，也可能重复下单 → 只提醒，不拦
+  // (还没取名的「新生儿 / 宝宝」不算同一个人)
+  function findRepeatBuys(files, scanned) {
+    var by = {}, out = [];
+    (scanned || []).forEach(function (orders, i) {
+      (orders || []).forEach(function (o) {
+        var who = String(o.person || '').replace(/\s/g, '');
+        if (who.length < 2 || noNameYet(who)) return;
+        var k = who + '|' + simpTool(o.product), g = by[k];
+        if (!g) { g = by[k] = { person: who, product: o.product, orders: [] }; out.push(g); }
+        if (!g.orders.some(function (x) { return x.no === o.no; })) g.orders.push({ no: o.no, id: o.id || o.no, file: files[i].name });
+      });
+    });
+    return out.filter(function (g) { return g.orders.length > 1; });
   }
 
   async function processFiles(files, options) {
@@ -1292,9 +1349,11 @@
     var out = [];
     opts.families = await scanFamilies(files);
     out.families = opts.families.groups;
+    var fileDups = findDups(files, opts.families.scanned);
+    out.repeatBuys = findRepeatBuys(files, opts.families.scanned);
     for (var i = 0; i < files.length; i++) {
       // each file is reviewed on its own: only its own family groups and names
-      try { out.push(await processFile(files[i], Object.assign({}, opts, { fileFamily: opts.families.byFile[i] }))); }
+      try { out.push(await processFile(files[i], Object.assign({}, opts, { fileFamily: opts.families.byFile[i], fileDups: fileDups[i] }))); }
       catch (e) { out.push({ name: files[i].name, tool: toolName(files[i].name), orders: [], outputs: [], error: String(e && e.message || e) }); }
     }
     return out;
