@@ -23,7 +23,8 @@ const kinds = (o) => o.flags.map((f) => f.kind);
 test('同一单（同订单号、同样是鸿运手表）出现在天希手表文件：天希那一份算重复，放有问题；鸿运文件那份不动', async () => {
   const a = row('甲一', '鸿运手表');
   const files = [await sheet(HY, [a, row('乙二', '鸿运手表')]), await sheet(TX, [row('丙三', '天希手表'), Object.assign({}, a)])];
-  const [hy, tx] = await E.processFiles(files, {});
+  const res = await E.processFiles(files, {}), [hy, tx] = res;
+  assert.strictEqual(res.repeatBuys.length, 0, '同一单不算「买了两次」');
   assert.ok(!kinds(order(hy, '甲一')).includes('dup-order'));
   const dup = order(tx, '甲一');
   assert.ok(kinds(dup).includes('dup-order'), kinds(dup).join(','));
