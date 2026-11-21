@@ -375,7 +375,7 @@ table.dl .fn{overflow-wrap:anywhere}
 <!-- 读 Excel / zip 的组件很大，上传时才用到：defer 不挡住画面先出来（review-engine 是用到时才去拿） -->
 <script src="../vendor/exceljs.min.js" defer></script>
 <script src="../vendor/jszip.min.js" defer></script>
-<script src="review-engine.js?v=6cdd46195a"></script>
+<script src="review-engine.js?v=9822001022"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -384,7 +384,7 @@ table.dl .fn{overflow-wrap:anywhere}
   try { var _s = window.HQAuth && HQAuth.session(); if (_s) $('gUser').innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>' + esc(_s.id); } catch (e) {}
   HQAuth.themeButton($('theme'));
   var state = {
-    inputs: [], results: null, problems: {}, urgents: {}, solos: {}, skips: {}, edits: {}, reds: {}, uploadNotes: [],
+    inputs: [], results: null, problems: {}, urgents: {}, solos: {}, skips: {}, notDups: {}, edits: {}, reds: {}, uploadNotes: [],
     view: 'upload', filter: 'todo', sel: null, tab: 'fields', allFields: false, q: '', openFiles: {},
     pick: { good: true, urgent: true, solo: true, bad: false }, dled: {}, busy: false, error: '',
     set: { date: E.todayStr(), reviewer: E.DEFAULTS.reviewer, brands: E.DEFAULTS.splitWatchBrands.join('，'), askfirst: E.DEFAULTS.askFirstProducts.join('，'), urgent: E.DEFAULTS.urgentWords.join('，'), nameDate: '', region: 'auto' }
@@ -461,6 +461,10 @@ table.dl .fn{overflow-wrap:anywhere}
         var zipH = E.isOverseasName(f.name), zipDate = E.dateFromName(f.name);
         for (var j = 0; j < names.length; j++) {
           var en = names[j].split('/').pop();
+          // 国内/天希手表技术单.xlsx + 海外/天希手表技术单.xlsx: keep both, the second one gets （第2份） in front
+          var taken = function (n) { return out.some(function (x) { return x.name === n; }); }, nth = 2, orig = en;
+          while (taken(en)) en = '（第' + nth++ + '份）' + orig;
+          if (en !== orig) state.uploadNotes.push('zip 里有两个「' + orig + '」（在不同资料夹），第二个叫「' + en + '」，两个都会审核；如果其实是同一份，会在待你决定显示重复的单。');
           out.push({ name: en, overseas: zipH || E.isOverseasName(en), nameDate: E.dateFromName(en) || zipDate, buffer: await zip.files[names[j]].async('arraybuffer') });
         }
       } else if (/\.xlsx$/i.test(f.name)) out.push({ name: f.name, buffer: buf });
@@ -479,7 +483,7 @@ table.dl .fn{overflow-wrap:anywhere}
     try {
       state.date = date;
       state.reviewer = state.set.reviewer.trim() || 'martin';
-      state.results = await E.processFiles(state.inputs, { problems: state.problems, urgents: state.urgents, solos: state.solos, skips: state.skips, edits: state.edits, reds: state.reds, askFirstProducts: list(state.set.askfirst), date: date, reviewer: state.reviewer, nameDate: state.nameDate || '', region: state.set.region, splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
+      state.results = await E.processFiles(state.inputs, { problems: state.problems, urgents: state.urgents, solos: state.solos, skips: state.skips, notDups: state.notDups, edits: state.edits, reds: state.reds, askFirstProducts: list(state.set.askfirst), date: date, reviewer: state.reviewer, nameDate: state.nameDate || '', region: state.set.region, splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
     } catch (e) { state.error = '审核失败：' + (e && e.message || e); }
     state.busy = false;
     if (!state.error) { state.dled = {}; downloadedOnce = false; }
@@ -593,10 +597,13 @@ table.dl .fn{overflow-wrap:anywhere}
   function todos() {
     var out = [];
     items().forEach(function (it) {
-      var pf = it.o.flags.filter(function (f) { return f.problem; });
+      var dupF = it.o.flags.filter(function (f) { return f.kind === 'dup-order'; })[0];
+      if (dupF) out.push({ type: 'problem', kind: 'dup-order', label: PROB_LABEL['dup-order'], it: it, flags: [dupF], decided: !!it.o.skip || !!state.notDups[it.mk], ok: !!state.notDups[it.mk], skip: !!it.o.skip });
+      var pf = it.o.flags.filter(function (f) { return f.problem && f.kind !== 'dup-order'; });
       if (it.o.autoProblem && pf.length) {
         var k = pf[0].kind;
-        out.push({ type: 'problem', kind: k, label: PROB_LABEL[k] || '要确认', it: it, flags: pf, decided: has(state.problems, it.mk) || !!state.skips[it.mk], ok: has(state.problems, it.mk) && !state.problems[it.mk], skip: !!state.skips[it.mk] });
+        // an order thrown out as a repeat needs no other decision
+        out.push({ type: 'problem', kind: k, label: PROB_LABEL[k] || '要确认', it: it, flags: pf, decided: has(state.problems, it.mk) || !!it.o.skip, ok: has(state.problems, it.mk) && !state.problems[it.mk] });
       }
       it.o.flags.forEach(function (f) {
         if (f.pending) out.push({ type: 'pending', kind: 'pending', label: '备注要不要标红', it: it, f: f, decided: f.pending.decided });
@@ -984,7 +991,7 @@ table.dl .fn{overflow-wrap:anywhere}
       if (r.error) w.push(r.name + '：读不出来，不会下载 — ' + r.error);
       if (r.regionNote) w.push(r.name + '：' + r.regionNote + '（不对就在下载中心改国内 / 海外）');
     });
-    (state.uploadNotes || []).forEach(function (x) { w.push(x); });
+    (state.uploadNotes || []).forEach(function (x) { if (w.indexOf(x) < 0) w.push(x); });
     var wrong = {};
     items().forEach(function (it) {
       if (it.o.skip || !it.o.flags.some(function (f) { return f.kind === 'wrong-file'; })) return;
@@ -1025,9 +1032,9 @@ table.dl .fn{overflow-wrap:anywhere}
     } else if (t.kind === 'dup-order') {
       h += t.flags.map(function (f) { return '<div class="why">' + esc(f.text) + '</div>'; }).join('') +
         '<div class="acts"><button type="button" class="btn small red-out pick-red" data-skip="' + esc(it.mk) + '" aria-pressed="' + t.skip + '">重复了，不要这一单</button>' +
-        '<button type="button" class="btn small pick-on" data-prob="' + esc(it.mk) + '" data-v="0" aria-pressed="' + (t.decided && t.ok) + '">不是重复，保留</button>' +
+        '<button type="button" class="btn small pick-on" data-keep="' + esc(it.mk) + '" aria-pressed="' + t.ok + '">不是重复，保留</button>' +
         '<button type="button" class="btn link" data-open="' + esc(it.mk) + '">看全部资料</button></div>';
-      if (t.decided) h += '<div class="decision">' + (t.skip ? '已决定：不要这一单，下载的文件里不会有它' : '已决定：保留') + '（再按一次可以取消）</div>';
+      if (t.decided) h += '<div class="decision">' + (t.skip ? '已决定：不要这一单，下载的文件里不会有它' : '已决定：保留（这单如果还有别的问题，在下面另外处理）') + '（再按一次可以取消）</div>';
     } else if (t.kind === 'engrave-no') {
       // 刻名字 holds an order number: look that order up in the system, then type the name here (saved in red),
       // or write 刻新名字 when the new name is not out yet
@@ -1320,7 +1327,7 @@ table.dl .fn{overflow-wrap:anywhere}
     if ('allfields' in d) { state.allFields = !state.allFields; render(); return; }
     if (d.prob) {
       // pressing the chosen answer again clears it (back to the rule's own decision)
-      if (b.getAttribute('aria-pressed') === 'true') delete state.problems[d.prob]; else { state.problems[d.prob] = d.v === '1'; delete state.skips[d.prob]; }
+      if (b.getAttribute('aria-pressed') === 'true') delete state.problems[d.prob]; else state.problems[d.prob] = d.v === '1';
       run(); return;
     }
     if (d.redall) {
@@ -1382,11 +1389,16 @@ table.dl .fn{overflow-wrap:anywhere}
     }
     if (d.skip) {
       var sk = b.getAttribute('aria-pressed') !== 'true';
-      if (sk) { state.skips[d.skip] = true; delete state.problems[d.skip]; } else delete state.skips[d.skip];
+      if (sk) { state.skips[d.skip] = true; delete state.notDups[d.skip]; } else delete state.skips[d.skip];
       run().then(function (ok) { if (ok) toast(sk ? '这一单不要了，下载的文件里不会有它' : '已放回'); }); return;
     }
+    if (d.keep) {
+      var kp = b.getAttribute('aria-pressed') !== 'true';
+      if (kp) { state.notDups[d.keep] = true; delete state.skips[d.keep]; } else delete state.notDups[d.keep];
+      run().then(function (ok) { if (ok) toast(kp ? '已保留：不算重复' : '已取消保留'); }); return;
+    }
     if ('skipall' in d) {
-      todos().forEach(function (x) { if (x.kind === 'dup-order' && !x.decided) { state.skips[x.it.mk] = true; delete state.problems[x.it.mk]; } });
+      todos().forEach(function (x) { if (x.kind === 'dup-order' && !x.decided) state.skips[x.it.mk] = true; });
       run().then(function (ok) { if (ok) toast('重复的单都不要了'); }); return;
     }
     if (d.copytext) { copyText(d.copytext, b); return; }
@@ -1414,7 +1426,7 @@ table.dl .fn{overflow-wrap:anywhere}
     if ('resetnd' in d) { state.nameDate = ''; state.set.nameDate = ''; run().then(function (ok) { if (ok) toast('文件名日期改回跟上传的文件'); }); return; }
     if ('rerun' in d) { run().then(function (ok) { if (ok) go('review'); }); return; }
     if ('reset' in d) {
-      state.inputs = []; state.results = null; state.problems = {}; state.urgents = {}; state.solos = {}; state.skips = {}; state.uploadNotes = []; state.set.region = 'auto'; state.nameDate = ''; state.set.nameDate = ''; state.editND = false; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {}; state.dled = {};
+      state.inputs = []; state.results = null; state.problems = {}; state.urgents = {}; state.solos = {}; state.skips = {}; state.notDups = {}; state.uploadNotes = []; state.set.region = 'auto'; state.nameDate = ''; state.set.nameDate = ''; state.editND = false; state.edits = {}; state.reds = {}; state.sel = null; state.error = ''; state.openFiles = {}; state.dled = {};
       go('upload'); return;
     }
   });

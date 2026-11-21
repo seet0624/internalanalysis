@@ -74,3 +74,33 @@ test('文件名没写工具（技术单 日期.xlsx）：不提醒放错文件',
   const [r] = await E.processFiles([await sheet('技术单 20.11.2026（2）.xlsx', [row('丙三', '天希手表'), row('丁四', '鸿运手表')])], {});
   assert.ok(r.orders.every((o) => !kinds(o).includes('wrong-file')));
 });
+
+test('重复的单又写了暂缓：按「不是重复，保留」只拿掉重复，暂缓照样有问题', async () => {
+  const a = row('甲一', '鸿运手表');
+  const files = [await sheet(HY, [a]), await sheet(TX, [row('丙三', '天希手表'), Object.assign({}, a, { 备注: '暂缓制作' })])];
+  const [, tx] = await E.processFiles(files, { notDups: { [TX + '|' + a.订单编号]: true } });
+  const o = order(tx, '甲一');
+  assert.ok(!o.flags.some((f) => f.kind === 'dup-order' && f.problem), '重复不再算有问题');
+  assert.ok(o.problem, '暂缓还是有问题');
+});
+
+test('按过「不要这一单」，但换了文件以后已经不重复：照样输出，不会悄悄不见', async () => {
+  const a = row('甲一', '鸿运手表');
+  const files = [await sheet(TX, [row('丙三', '天希手表'), a])];
+  const [tx] = await E.processFiles(files, { skips: { [TX + '|' + a.订单编号]: true } });
+  assert.ok(!order(tx, '甲一').skip);
+  assert.strictEqual(tx.outputs.reduce((n, o) => n + o.orders, 0), 2);
+});
+
+test('「海外技术单 日期」：文件名没写工具，不提醒放错文件', async () => {
+  const [r] = await E.processFiles([await sheet('海外技术单 20.11.2026（2）H.xlsx', [row('丙三', '天希手表'), row('丁四', '鸿运手表')])], {});
+  assert.ok(r.orders.every((o) => !kinds(o).includes('wrong-file')));
+});
+
+test('同一单一份写繁体（鴻運手錶）一份写简体（鸿运手表）：还是算重复', async () => {
+  const a = row('甲一', '鸿运手表');
+  const files = [await sheet(HY, [a]), await sheet(TX, [row('丙三', '天希手表'), Object.assign({}, a, { 商品标题: '鴻運手錶' })])];
+  const [hy, tx] = await E.processFiles(files, {});
+  assert.ok(kinds(order(tx, '甲一')).includes('dup-order'));
+  assert.ok(!kinds(order(hy, '甲一')).includes('dup-order'));
+});
