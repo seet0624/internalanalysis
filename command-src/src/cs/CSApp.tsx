@@ -123,7 +123,7 @@ function CSSidebar({ view, setView }: { view: View; setView: (v: View) => void }
       <div className="flex items-center gap-2 border-t border-[#2A303C] p-3">
         <button type="button" onClick={() => setView('settings')} className={cn('flex flex-1 items-center gap-2 rounded-full px-3 py-2 text-sm hover:bg-elevated', view === 'settings' && 'bg-[#1A73E8]/20 text-[#8AB4F8]')}><Settings className="size-4" />系统设置</button>
         {s.role === 'boss' && <button type="button" onClick={() => s.setCsView(false)} className="flex items-center gap-1 rounded-full px-3 py-2 text-xs text-brand hover:bg-brand/10" title="回老板仪表板"><ArrowLeft className="size-3.5" />老板</button>}
-        <button type="button" onClick={() => { window.HQAuth?.logout(); location.href = window.HQAuth?.root ?? '../'; }} className="rounded-full px-3 py-2 text-xs text-muted hover:bg-elevated">登出</button>
+        <button type="button" onClick={() => { window.HQAuth?.logout(); location.href = (window.HQAuth?.root ?? '../') + '?bye=1'; }} className="rounded-full px-3 py-2 text-xs text-muted hover:bg-elevated">登出</button>
       </div>
     </aside>
   );
