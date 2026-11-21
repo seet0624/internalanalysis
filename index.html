@@ -515,10 +515,10 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
     const afterLoad = (fn, ms) => { if (document.readyState === 'complete') setTimeout(fn, ms); else addEventListener('load', () => setTimeout(fn, ms), { once: true }); };
     // 退出后回来（?bye）：从金光倒着拉回湖景，停在登入页（登入页每次打开都是白天，所以用白天那段）
     if (params.has('bye')) {
-      history.replaceState(null, '', location.pathname + location.search.replace(/[?&]bye(=[^&]*)?/, '').replace(/^&/, '?'));
+      { const q = new URLSearchParams(location.search); q.delete('bye'); history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); }
       cine.hidden = false; cine.classList.add('gold', 'bye');
       let gone = false;
-      const out = () => { if (gone) return; gone = true; cine.classList.add('out'); setTimeout(() => { cine.hidden = true; cine.classList.remove('out', 'gold', 'bye'); }, 460); };
+      const out = () => { if (gone) return; gone = true; cine.classList.add('out'); setTimeout(() => { cine.hidden = true; cine.classList.remove('out', 'gold', 'bye'); if (window.lgPreloadEnter) lgPreloadEnter(); }, 460); };   // 退出过场播完，再下载登入要用的那段
       cine.onclick = out;
       if (cineOk()) {
         cv.onplaying = () => cine.classList.remove('gold');
