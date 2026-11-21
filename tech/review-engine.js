@@ -1328,6 +1328,21 @@
     });
     return dups;
   }
+  // 同一个学员、同一个工具、不同订单号：可能真的买了两次，也可能重复下单 → 只提醒，不拦
+  // (还没取名的「新生儿 / 宝宝」不算同一个人)
+  function findRepeatBuys(files, scanned) {
+    var by = {}, out = [];
+    (scanned || []).forEach(function (orders, i) {
+      (orders || []).forEach(function (o) {
+        var who = String(o.person || '').replace(/\s/g, '');
+        if (who.length < 2 || noNameYet(who)) return;
+        var k = who + '|' + simpTool(o.product), g = by[k];
+        if (!g) { g = by[k] = { person: who, product: o.product, orders: [] }; out.push(g); }
+        if (!g.orders.some(function (x) { return x.no === o.no; })) g.orders.push({ no: o.no, id: o.id || o.no, file: files[i].name });
+      });
+    });
+    return out.filter(function (g) { return g.orders.length > 1; });
+  }
 
   async function processFiles(files, options) {
     var opts = Object.assign({}, DEFAULTS, options || {});
@@ -1335,6 +1350,7 @@
     opts.families = await scanFamilies(files);
     out.families = opts.families.groups;
     var fileDups = findDups(files, opts.families.scanned);
+    out.repeatBuys = findRepeatBuys(files, opts.families.scanned);
     for (var i = 0; i < files.length; i++) {
       // each file is reviewed on its own: only its own family groups and names
       try { out.push(await processFile(files[i], Object.assign({}, opts, { fileFamily: opts.families.byFile[i], fileDups: fileDups[i] }))); }

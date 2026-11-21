@@ -104,3 +104,17 @@ test('同一单一份写繁体（鴻運手錶）一份写简体（鸿运手表�
   assert.ok(kinds(order(tx, '甲一')).includes('dup-order'));
   assert.ok(!kinds(order(hy, '甲一')).includes('dup-order'));
 });
+
+test('同一个学员、同一个工具、不同订单号：不算重复，但列出来提醒', async () => {
+  const files = [await sheet(HY, [row('甲一', '鸿运手表'), row('乙二', '鸿运手表')]), await sheet(TX, [row('丙三', '天希手表'), row('甲一', '鸿運手錶')])];
+  const res = await E.processFiles(files, {});
+  assert.ok(res.every((r) => r.orders.every((o) => !kinds(o).includes('dup-order'))));
+  assert.strictEqual(res.repeatBuys.length, 1);
+  assert.strictEqual(res.repeatBuys[0].person, '甲一');
+  assert.strictEqual(res.repeatBuys[0].orders.length, 2);
+});
+
+test('两个都叫「新生儿」（还没取名）：不当成同一个人', async () => {
+  const res = await E.processFiles([await sheet('名正言顺技术单 20.11.2026（2）.xlsx', [row('新生儿', '名正言顺命名'), row('新生儿', '名正言顺命名')])], {});
+  assert.strictEqual(res.repeatBuys.length, 0);
+});

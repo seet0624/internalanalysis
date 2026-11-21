@@ -375,7 +375,7 @@ table.dl .fn{overflow-wrap:anywhere}
 <!-- 读 Excel / zip 的组件很大，上传时才用到：defer 不挡住画面先出来（review-engine 是用到时才去拿） -->
 <script src="../vendor/exceljs.min.js" defer></script>
 <script src="../vendor/jszip.min.js" defer></script>
-<script src="review-engine.js?v=9822001022"></script>
+<script src="review-engine.js?v=a69b48d18c"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -998,6 +998,10 @@ table.dl .fn{overflow-wrap:anywhere}
       (wrong[it.r.name] = wrong[it.r.name] || []).push(it.o.person + '（' + productNameOf(it.o) + '）');
     });
     Object.keys(wrong).forEach(function (n) { w.push('《' + n + '》里有 ' + wrong[n].length + ' 单不是这个工具：' + wrong[n].join('、') + '。会另开文件，请确认没有放错。'); });
+    // same student, same tool, different order numbers: maybe a real second purchase, maybe ordered twice
+    (state.results && state.results.repeatBuys || []).forEach(function (g) {
+      w.push(g.person + ' 买了 ' + g.orders.length + ' 次' + g.product + '（订单号 ' + g.orders.map(function (x) { return x.id; }).join('、') + '），请确认不是重复下单。');
+    });
     var dates = {};
     allOutputs().forEach(function (o) { if (o.nameDate) dates[o.nameDate] = true; });
     if (Object.keys(dates).length > 1) w.push('这批文件的日期不一样：' + Object.keys(dates).join('、') + '，是不是混了别天的文件？');
