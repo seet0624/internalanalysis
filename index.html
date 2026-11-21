@@ -275,6 +275,7 @@ html.lg-day.hq-anon body{background:#EAF0F2 url("hq/brand/login-day.webp") left 
 /* 登入中 / 退出后的过场（Krea 做的「推向亭子、金光充满画面」，退出时倒着播） */
 .login>.lg-cine{position:fixed;inset:0;z-index:20;background:#EAF0F2 url("hq/brand/login-day.webp") left center/cover no-repeat;cursor:pointer;transition:opacity .45s ease}
 .login>.lg-cine[hidden]{display:none}
+.login>.lg-cine.night{background-color:#0B1424;background-image:url("hq/brand/login-night.webp")}
 .lg-cine video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:left center}
 .lg-gold{position:absolute;inset:0;background:radial-gradient(circle at 28% 52%,#FFF6DD 0,#F7D58C 38%,#E2AE55 75%,#C98E3A 100%);opacity:0;transition:opacity .35s ease}
 .lg-cine.gold .lg-gold{opacity:1}
@@ -491,7 +492,7 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
       moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>' };
     const btn = $('lgScene'), de = document.documentElement;
     const show = () => { const day = de.classList.contains('lg-day'); btn.innerHTML = day ? ICON.moon + '夜晚' : ICON.sun + '白天'; btn.setAttribute('aria-pressed', String(day)); btn.setAttribute('aria-label', day ? '换成夜晚' : '换成白天'); };
-    btn.addEventListener('click', () => { const day = !de.classList.contains('lg-day'); gSwap(() => { de.classList.toggle('lg-day', day); show(); if (window.lgVideo) lgVideo(); }) });
+    btn.addEventListener('click', () => { const day = !de.classList.contains('lg-day'); gSwap(() => { de.classList.toggle('lg-day', day); show(); if (window.lgVideo) lgVideo(); }); if (window.lgPreloadEnter) setTimeout(lgPreloadEnter, 800); });
     show();
     // 背景视频：桌面、网络够快、没设减少动态才播；手机或省流量就停在第一格的静态图
     const vid = $('lgVid'), conn = navigator.connection || {};
@@ -509,9 +510,10 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
     if (document.readyState === 'complete') setTimeout(lgVideo, 400); else addEventListener('load', () => setTimeout(lgVideo, 400), { once: true });   // 页面载完才下载视频，不跟登入页抢网速
     // 登入中 / 退出后的过场：桌面、白天、网络够快才播；其他情况用原本很短的淡出
     const cine = $('lgCine'), cv = $('lgCineVid');
-    const cineOk = () => canVideo && de.classList.contains('lg-day');
+    const cineOk = () => canVideo;
+    const enterSrc = () => 'hq/brand/video/login-enter' + (de.classList.contains('lg-day') ? '' : '-night') + '.' + ext;   // 白天 / 夜晚各一段
     const afterLoad = (fn, ms) => { if (document.readyState === 'complete') setTimeout(fn, ms); else addEventListener('load', () => setTimeout(fn, ms), { once: true }); };
-    // 退出后回来（?bye）：从金光倒着拉回湖景，停在登入页
+    // 退出后回来（?bye）：从金光倒着拉回湖景，停在登入页（登入页每次打开都是白天，所以用白天那段）
     if (params.has('bye')) {
       history.replaceState(null, '', location.pathname + location.search.replace(/[?&]bye(=[^&]*)?/, '').replace(/^&/, '?'));
       cine.hidden = false; cine.classList.add('gold', 'bye');
@@ -528,12 +530,14 @@ const SESSION = HQAuth.session() || await new Promise((resolve) => {
       } else setTimeout(out, 250);
     }
     // 登入要用的「推向亭子」：页面和背景视频之后才下载
-    afterLoad(() => { if (cineOk() && !cv.getAttribute('src')) { cv.preload = 'auto'; cv.src = 'hq/brand/video/login-enter.' + ext; } }, 1500);
+    const preloadEnter = () => { if (cineOk() && cv.getAttribute('src') !== enterSrc() && cine.hidden) { cv.preload = 'auto'; cv.src = enterSrc(); } };
+    afterLoad(preloadEnter, 1500);
+    window.lgPreloadEnter = preloadEnter;   // 换白天 / 夜晚时改下载对的那段
     // 播「推向亭子」：能播就回传一个 Promise（播完、变金色才结束），不能播回传 null
     window.lgEnter = () => {
-      if (!cineOk() || !/login-enter/.test(cv.getAttribute('src') || '') || cv.readyState < 3) return null;
+      if (!cineOk() || cv.getAttribute('src') !== enterSrc() || cv.readyState < 3) return null;
       return new Promise((done) => {
-        cine.hidden = false; cine.classList.remove('gold', 'bye', 'out');
+        cine.hidden = false; cine.classList.remove('gold', 'bye', 'out'); cine.classList.toggle('night', !de.classList.contains('lg-day'));
         let fin = false; const end = () => { if (fin) return; fin = true; cv.pause(); cine.classList.add('gold'); setTimeout(done, 300); };
         cv.onplaying = null; cv.onended = end; cv.onerror = end; cine.onclick = end;
         cv.currentTime = 0; const p = cv.play(); if (p && p.catch) p.catch(end);
