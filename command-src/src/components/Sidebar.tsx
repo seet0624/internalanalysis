@@ -33,7 +33,7 @@ export function Sidebar({ open, onClose, drawer = false }: { open: boolean; onCl
     if (id === 'overview') { s.selectFloor(null); s.selectPerson(null); }
     onClose();
   };
-  const logout = () => { window.HQAuth?.logout(); location.href = window.HQAuth?.root ?? '../'; };
+  const logout = () => { window.HQAuth?.logout(); location.href = (window.HQAuth?.root ?? '../') + '?bye=1'; };
 
   return (
     <aside className={cn(

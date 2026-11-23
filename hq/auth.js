@@ -166,7 +166,7 @@
     d.innerHTML = '<form method="dialog"><h2>确定要退出吗？</h2><p>退出后要重新输入账号和密码才能使用。</p>' +
       '<div class="g-confirm-acts"><button type="submit" value="no" class="btn" autofocus>取消</button><button type="submit" value="yes" class="btn primary pri">退出</button></div></form>';
     document.body.appendChild(d);
-    d.addEventListener('close', function () { var yes = d.returnValue === 'yes'; d.remove(); if (yes) { logout(); location.href = ROOT; } });
+    d.addEventListener('close', function () { var yes = d.returnValue === 'yes'; d.remove(); if (yes) { logout(); location.href = ROOT + '?bye=1'; } });   // ?bye：回到登入页时播退出过场
     d.showModal();
   }
   // 换深浅色：浏览器支援就慢慢淡过去（像天黑 / 天亮），不支援或设了减少动态就直接换
