@@ -79,3 +79,18 @@ test('新生儿按了加急：这一单另开新生儿特殊加急文件，不�
   assert.ok(r.orders.find((o) => o.key === rows[1].订单编号).babyUrgent);
   assert.strictEqual(r.outputs.filter((o) => !o.urgent).length, 1);
 });
+
+// 单独发的新生儿：只有一位使用人，文件名写「姓氏 + 新生儿」（新名字姓氏那一栏）
+test('单独发的新生儿：文件名开头写（单独发）再写姓氏和新生儿', async () => {
+  const H2 = HEAD.concat(['新名字姓氏']);
+  const rows = babies().map((r, i) => Object.assign(r, { 新名字姓氏: i ? '王' : '林' }));
+  const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('技术单');
+  ws.addRow(['技术单']); ws.addRow(H2);
+  rows.forEach((r, i) => ws.addRow(H2.map((h) => (h === '序号' ? i + 1 : r[h] ?? ''))));
+  const f = { name: BABY, buffer: Buffer.from(await wb.xlsx.writeBuffer()) };
+  const [r] = await E.processFiles([f], { date: '12.11.2026', solos: { [BABY + '|' + rows[1].订单编号]: true } });
+  const s = r.outputs.find((o) => o.solo);
+  assert.ok(s, names(r).join(' / '));
+  assert.match(s.name, /^（单独发）王新生儿名正言顺(命名)?技术单/);
+  assert.ok(r.outputs.filter((o) => !o.solo).every((o) => /^新生儿/.test(o.name)), names(r).join(' / '));
+});
