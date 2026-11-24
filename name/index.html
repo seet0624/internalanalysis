@@ -904,7 +904,7 @@ function auditParsed(pf, orderDB){ var data=pf.data,cols=pf.cols,groups=pf.group
       var pyOk=(given.length>0&&syl.length===given.length);
       var msgs=[],warns=[],hits=[];
       // 专家导错姓：新名开头的姓要跟订单的「新名字姓氏」一样（繁简当一样；新名只有两个字可能没写姓，不查）
-      var gsur=cjkOnly(grpSur), ga=Array.from(gsur), na=Array.from(neu);
+      var gsur=NULLS[grpSur]?'':cjkOnly(grpSur.replace(/[（(][^）)]*[）)]/g,'')), ga=Array.from(gsur), na=Array.from(neu); // 「无」不查；「胡（随母）」只比胡
       if(ga.length&&na.length>=ga.length+2&&na.slice(0,ga.length).map(norm).join('')!==ga.map(norm).join(''))msgs.push('新下来的名字（'+neu+'）的姓「'+na.slice(0,ga.length).join('')+'」和订单的新名字姓氏「'+gsur+'」不一样');
       var pyFixed='', pyBad=false; var rawSyl=syl.slice();
       if(pyOk&&RULES.checkPyMatch!==false){

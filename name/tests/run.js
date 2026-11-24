@@ -192,6 +192,9 @@ const CASES = require('./naming-cases.json');
     ws.addRow(['10', 'T0000000000080', '吴', '吴丁', '牛', '无', '无', '无', '无', '无', '吴铭宇', 'míng yǔ', '']); // 简体也一样
     ws.addRow(['11', 'T0000000000083', '胡', '胡甲', '马', '无', '无', '无', '无', '无', '付安宇', 'fù ān yǔ', '']); // 专家导错姓：订单姓胡，新名姓付
     ws.addRow(['12', 'T0000000000084', '刘', '刘甲', '龙', '无', '无', '无', '无', '无', '刘絲宇', 'sī yǔ', '']); // 糸字旁不算小（专家确认）
+    ws.addRow(['13', 'T0000000000085', '无', '方甲', '马', '无', '无', '无', '无', '无', '方安宇', 'ān yǔ', '']); // 姓氏栏写「无」不查
+    ws.addRow(['14', 'T0000000000086', '胡（随母）', '胡乙', '马', '无', '无', '无', '无', '无', '付安宇', 'fù ān yǔ', '']); // 括号拿掉再比
+    ws.addRow(['15', 'T0000000000087', '刘', '刘乙', '马', '无', '无', '无', '无', '无', '劉安宇', 'liú ān yǔ', '']); // 繁简同姓不算错
     const buf = await wb.xlsx.writeBuffer(); parsedFiles.length = 0;
     await loadWithBuffers([{ name: '生肖字根 2026-10-01.xlsx', arrayBuffer: async () => buf }]);
     const rs = parsedFiles[0].audit.results;
@@ -200,7 +203,7 @@ const CASES = require('./naming-cases.json');
     return rs.map(r => baseName(r.disp) + ':' + (r.problem ? '有问题' : '通过')).join(' ') + ' | ' + outReason(rs[0]) + ' | 红字:' + red + ' | 勾:' + document.querySelectorAll('#main .hideChk').length + (() => { document.querySelector('#main .hideChk').click(); const t = outReason(rs[0]) + '/' + (JSON.stringify(load('mzys_hide', {})).indexOf('佘珮帆') >= 0); document.querySelector('#main .hideChk').click(); return ' | 勾后:' + t + '/' + outReason(rs[0]).slice(0, 6); })();
   });
   { const sr = await p.evaluate(() => window._surReason); ok(sr === '新下来的名字（付安宇）的姓「付」和订单的新名字姓氏「胡」不一样', '新名的姓和订单姓氏不一样要写原因，实际 ' + sr); }
-  ok(zg === '佘甲:有问题 周甲:有问题 王甲:通过 周乙:通过 周丙:通过 周丁:有问题 吴甲:通过 吴乙:通过 吴丙:有问题 吴丁:通过 胡甲:有问题 刘甲:通过 | 新下来的名字（佘珮帆）的「珮」有大字根「王」，属牛（小生肖）不能用 | 红字:珮 | 勾:1 | 勾后:名字需要重新调整/true/新下来的名字', '大小生肖字根（名字卡上不能用的字要标红），实际 ' + zg);
+  ok(zg === '佘甲:有问题 周甲:有问题 王甲:通过 周乙:通过 周丙:通过 周丁:有问题 吴甲:通过 吴乙:通过 吴丙:有问题 吴丁:通过 胡甲:有问题 刘甲:通过 方甲:通过 胡乙:有问题 刘乙:通过 | 新下来的名字（佘珮帆）的「珮」有大字根「王」，属牛（小生肖）不能用 | 红字:珮 | 勾:1 | 勾后:名字需要重新调整/true/新下来的名字', '大小生肖字根（名字卡上不能用的字要标红），实际 ' + zg);
 
   // 老板规则：同辈兄弟姐妹同字同音不算问题（客户写了「家人不同音不同字」才照查）；「訂單編號」不是名字；申请加急不卡；同一个订单号是自己
   const gen = await p.evaluate(async () => {
