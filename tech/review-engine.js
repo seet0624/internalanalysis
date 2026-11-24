@@ -496,7 +496,7 @@
   function toolName(fileName) {
     var base = String(fileName).replace(/\.xlsx$/i, '');
     var m = base.match(/^(.*?)技术单/);
-    return (m ? m[1] : base.split(/\s/)[0]).replace(/^（单独发）/, '').replace(/^新生儿/, '').replace(/[（(](男款|女款|男女款)[）)]/g, '');
+    return (m ? m[1] : base.split(/\s/)[0]).replace(/^（单独发）/, '').replace(/^[\u4e00-\u9fff]{0,2}新生儿/, '').replace(/[（(](男款|女款|男女款)[）)]/g, '');
   }
 
   // --- subset files: keep only some data rows, pack them up, pull the footer up, keep merges intact ---
@@ -699,7 +699,7 @@
       var key = get('订单编号') || ('row' + r);
       var o = byOrder[key];
       if (!o) {
-        o = byOrder[key] = { key: key, seq: get('序号'), person: get('使用人姓名'), surname: (String(get('新名字姓氏') || '').match(/[\u4e00-\u9fff]+/) || [''])[0], title: get('商品标题'),
+        o = byOrder[key] = { key: key, seq: get('序号'), person: get('使用人姓名'), surname: (String(get('新名字姓氏') || '').replace(/[（(][^）)]*[）)]/g, '').match(/[\u4e00-\u9fff]+/) || [''])[0].slice(0, 2), title: get('商品标题'),
           rows: [], flags: [], urgent: false, newborn: false, gender: '', changes: 0, product: productName(get('商品标题')) || tool };
         orderList.push(o);
       }
