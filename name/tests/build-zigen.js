@@ -15,6 +15,8 @@ for (const line of fs.readFileSync(process.argv[2], 'utf8').split('\n')) {
 ids['壴'] = ['⿱士豆']; ids['寺'] = ['⿱土寸'];
 // 金字旁不算王字根（老板确认：姓名学把金算鸡的字根，不拆出王）；鈺 这类右边有玉的照样算
 ids['金'] = [];
+// 糸字旁不算小字根（专家确认：紜、緒 属龙可以用）
+ids['糸'] = [];
 const memo = {};
 function parts(ch, seen) {
   if (memo[ch]) return memo[ch]; const out = new Set([ch]); seen = seen || new Set(); if (seen.has(ch)) return out; seen.add(ch);
