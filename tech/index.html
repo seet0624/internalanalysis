@@ -375,7 +375,7 @@ table.dl .fn{overflow-wrap:anywhere}
 <!-- 读 Excel / zip 的组件很大，上传时才用到：defer 不挡住画面先出来（review-engine 是用到时才去拿） -->
 <script src="../vendor/exceljs.min.js" defer></script>
 <script src="../vendor/jszip.min.js" defer></script>
-<script src="review-engine.js?v=83987a3e50"></script>
+<script src="review-engine.js?v=dd0e73139d"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -805,7 +805,8 @@ table.dl .fn{overflow-wrap:anywhere}
       var skipped = (state.seen || []).filter(function (n) { return !/\.(xlsx|zip)$/i.test(n) && !/^（zip 里/.test(n); });
       state.checkNotes = state.uploadNotes.concat(skipped.length ? ['这些不是 .xlsx，没有检查：' + skipped.join('、') + '（旧版 .xls 请先在 Excel 另存为 .xlsx）'] : []);
       if (!got.length) state.checkError = '没有找到 .xlsx 技术单，请上传 .xlsx 或装着 .xlsx 的 .zip。';
-      else state.check = await E.checkFiles(got, { date: E.todayStr() });
+      // same settings as the review page, so the check expects what the page would make
+      else state.check = await E.checkFiles(got, { date: E.todayStr(), askFirstProducts: list(state.set.askfirst), splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
     } catch (e) { state.checkError = '检查失败：' + (e && e.message || e); }
     state.seen = keepSeen; state.uploadNotes = keepNotes;
     state.checkBusy = false; render();
@@ -822,7 +823,7 @@ table.dl .fn{overflow-wrap:anywhere}
       var bad = checkBad(), conf = res.filter(function (r) { return r.confirms.length; }).length;
       h += '<section class="card pad" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">' +
         '<div><b style="font-size:18px">' + res.length + ' 个文件：' + (bad ? '<span style="color:var(--crit)">' + bad + ' 个有错</span>' : '<span style="color:var(--ok)">全部对</span>') + (conf ? '，' + conf + ' 个有事要确认' : '') + '</b>' +
-        '<div class="small">只交做好的文件时，系统看不出员工有没有漏掉整张单、或改了客人写的内容；它照规则检查红字、行数、文件名和页脚。</div></div>' +
+        '<div class="small">只交做好的文件时，系统看不出员工有没有漏掉整张单、或改了客人写的内容；它照规则检查红字、行数、文件名和页脚。在审核台手动改过的格子、手动选的红字或国内 / 海外，这里也会显示成差别。</div></div>' +
         '<button type="button" class="btn small" data-checkreset>清空</button></section>';
       h += res.map(checkCard).join('');
     } else {

@@ -1371,6 +1371,23 @@
   }
 
   // ---------- 检查员工自己做的技术单 ----------
+  // staff paint with Excel's 红色 (FFFF0000) or 深红 (FFC00000): both are red text
+  var STAFF_RED = /^FF(FF0000|C00000)$/i;
+  function staffRed(cell) {
+    var f = cell.font, v = cell.value, red = function (x) { return x && x.color && STAFF_RED.test(String(x.color.argb || '')); };
+    return red(f) || !!(v && typeof v === 'object' && v.richText && v.richText.some(function (r) { return red(r.font); }));
+  }
+  function stripRed(cell) {
+    var v = cell.value;
+    if (v && typeof v === 'object' && v.richText) cell.value = { richText: v.richText.map(function (r) {
+      var rf = Object.assign({}, r.font || {}); if (rf.color && STAFF_RED.test(String(rf.color.argb || ''))) delete rf.color;
+      return { text: r.text, font: rf };
+    }) };
+    var f = Object.assign({}, cell.font || {});
+    if (f.color && STAFF_RED.test(String(f.color.argb || ''))) { delete f.color; cell.style = Object.assign({}, cell.style, { font: f }); }
+  }
+  // 制表时间 20/11/2026 or 2026/11/20 → the same as 20.11.2026
+  function footerDate(t) { return dateFromName(String(t || '').replace(/\//g, '-')); }
   // 页脚三格：审核人 / 制表时间 / 回传时间（值写在同一格冒号后，或右边的格子）
   // (only below the data: the header row has its own 审核人 column)
   function readFooter(ws, fromRow) {
@@ -1403,7 +1420,7 @@
       heads.forEach(function (h) {
         var c = row.getCell(C[h]); if (isSlave(c)) c = c.master;
         var v = cellText(c).trim();
-        cells[key + '|' + n + '|' + h] = { v: v, red: !isBlank(v) && isRedCell(c) };
+        cells[key + '|' + n + '|' + h] = { v: v, red: !isBlank(v) && staffRed(c) };
       });
     }
     // orders under a blank row: the review never reads them, so the staff member's file can't be checked there
@@ -1435,9 +1452,9 @@
         Object.keys(dups[i] || {}).forEach(function (k) { rep.errors.push('订单 ' + k.split('|')[0] + '（' + k.split('|')[1] + '）在《' + dups[i][k].file + '》也有 — 交了两次'); });
         // the copy the rules start from: no red at all
         var wb = await load(f.buffer);
-        wb.worksheets[0].eachRow(function (row) { row.eachCell({ includeEmpty: false }, function (c) { if (!isSlave(c)) unRed(c); }); });
+        wb.worksheets[0].eachRow(function (row) { row.eachCell({ includeEmpty: false }, function (c) { if (!isSlave(c)) stripRed(c); }); });
         var clean = Object.assign({}, f, { buffer: await wb.xlsx.writeBuffer() }); // keeps a zip's H / date
-        var made = dateFromName(staff.footer.made || ''), base = { date: made || opts.date, reviewer: staff.footer.reviewer || opts.reviewer, region: 'auto' };
+        var made = footerDate(staff.footer.made), base = { date: made || opts.date, reviewer: staff.footer.reviewer || opts.reviewer, region: 'auto' };
         // the staff member's own choices, read from the file name
         var tagP = /（有问题）/.test(f.name), tagU = /（特殊加急）/.test(f.name), solo = /^（单独发）/.test(f.name);
         var mine = { problems: {}, urgents: {}, solos: {} };
@@ -1459,13 +1476,13 @@
         if (asMade.outputs.length > 1) rep.errors.push('这个文件应该分成 ' + asMade.outputs.length + ' 个：' + rep.expected.join('、'));
         else if (asMade.outputs.length === 1 && rep.expected[0] !== f.name) rep.errors.push('文件名应该是「' + rep.expected[0] + '」');
         // 3) footer
-        var ft = staff.footer, want = asMade.footer || {};
+        var ft = staff.footer, want = { back: asMade.outputs[0] && asMade.outputs[0].back || (asMade.footer || {}).back };
         if (!ft.reviewer) rep.errors.push('页脚：审核人没写');
         if (!ft.made) rep.errors.push('页脚：制表时间没写');
         else if (!made) rep.errors.push('页脚：制表时间「' + ft.made + '」看不懂，请写成 日.月.年');
         if (!ft.back) rep.errors.push('页脚：回传时间没写' + (want.back ? '，应该是 ' + want.back : ''));
         else if (made && !want.back) rep.errors.push('页脚：回传时间无法核对');
-        else if (made && dateFromName(ft.back) !== want.back) rep.errors.push('页脚：回传时间应该是 ' + want.back + '（' + want.rule + '），你写「' + ft.back + '」');
+        else if (made && footerDate(ft.back) !== want.back) rep.errors.push('页脚：回传时间应该是 ' + want.back + '，你写「' + ft.back + '」');
         // 4) red text, rows, content — cell by cell against the rules' own files
         var exp = { cells: {}, orders: {} };
         for (var j = 0; j < asMade.outputs.length; j++) {

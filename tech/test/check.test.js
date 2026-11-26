@@ -103,3 +103,24 @@ test('zip 叫 …H.zip：里面的文件照样算海外，不乱报文件名', a
   const [r] = await E.checkFiles([{ name: f.name, buffer: f.buffer, overseas: false }], {});
   assert.deepStrictEqual(r.errors, [], r.errors.join(' / '));
 });
+
+test('新生儿名正言顺：回传时间是 +7 天，不算错', async () => {
+  const raw2 = await raw('名正言顺技术单 20.11.2026（1）.xlsx', [row('新生儿', { 商品标题: '名正言顺命名', 公历生日: '', 备注: '预产期 20.12.2026' })]);
+  const [r0] = await E.processFiles([raw2], { date: '20.11.2026', reviewer: '小美' });
+  const files = r0.outputs.map((o) => ({ name: o.name, buffer: Buffer.from(o.buffer) }));
+  assert.ok(/^新生儿/.test(files[0].name), files[0].name);
+  const [r] = await E.checkFiles(files, {});
+  assert.ok(!r.errors.some((e) => /回传时间/.test(e)), r.errors.join(' / '));
+});
+
+test('制表时间写 20/11/2026、红字用深红：都认得', async () => {
+  const [f] = await perfect([row('甲一', { 订单状态备注: '已付款' }), row('乙二')]);
+  const bad = await edit(f, (ws) => ws.eachRow((r) => r.eachCell((c) => {
+    const t = String(c.value || '');
+    if (/^制表时间/.test(t)) r.eachCell((x) => { x.value = x === c ? '制表时间：20/11/2026' : null; });
+    if (t === '已付款') c.font = { color: { argb: 'FFC00000' } };
+  })));
+  const [r] = await E.checkFiles([bad], {});
+  assert.deepStrictEqual(r.errors, [], r.errors.join(' / '));
+  assert.deepStrictEqual(r.red, []);
+});
