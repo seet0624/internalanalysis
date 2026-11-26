@@ -355,7 +355,7 @@ html.lg-day.hq-anon body{background:#EAF0F2 url("hq/brand/login-day.webp") left 
   .hq-room-boss small,.hq-room-main small{display:inline}
 }
 </style>
-<script src="hq/auth.js?v=20261121a" data-page="hq"></script>
+<script src="hq/auth.js?v=20261126a" data-page="hq"></script>
 <script>
 // 已经登入、会被转到别页的：先盖住旧办公室，只留金色 logo，免得闪一下
 document.documentElement.classList.add('lg-day');   // 登入页每次打开都是白天
@@ -363,7 +363,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
   else if (!_s) document.documentElement.classList.add('hq-anon');   // 没登入（例如刚退出）：只显示登入页，不先露出办公室
 } catch (e) {}
 </script>
-<script src="hq/bus.js?v=20261121a"></script>
+<script src="hq/bus.js?v=20261126a"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
 </head>
 <body>
@@ -459,7 +459,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
 <nav class="hud card drawer" id="drawer" aria-label="组织架构" aria-hidden="true" inert></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="hq/company.js?v=20261121a"></script>
+<script src="hq/company.js?v=20261126a"></script>
 <script type="module">
 const C = window.COMPANY;
 const KIND = { site: '网站', claude: 'Claude', planned: '筹备中' };
