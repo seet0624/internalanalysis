@@ -143,6 +143,21 @@ t('名正言顺的技术单认得出来（文件名、表头标题、商品标�
   assert.strictEqual(WX.isNameSheet('开运吊坠技术单.xlsx', PAIR_HEAD.concat([remark])), false);   // 备注写到名正言顺：还是工具
   assert.strictEqual(WX.isNameSheet('鸿运手表技术单.xlsx', body), false);
 });
+t('工具和名正言顺混在同一份：不当整份名正言顺，工具照审；名正言顺那几单标出来；繁体「名正言順」也认得', () => {
+  const mixed = PAIR_HEAD.concat([pair(1, '天富手表', '3', '黄', '3', '黑'), pair(2, '鲟鱼肽套餐赠品（名正言顺命名）')]);
+  assert.strictEqual(WX.isNameSheet('套餐技术单.xlsx', mixed), false);
+  const m = msgs(mixed);
+  assert.match(m[0], /数字 3 重复/);   // 工具照样审到
+  assert.match(m[1], /名正言顺.*名字审核/);
+  assert.doesNotMatch(m[1], /没有配五行/);
+  assert.strictEqual(WX.isNameSheet('名正言順技术单.xlsx', PAIR_HEAD), true);
+  assert.strictEqual(WX.isNameSheet('技术单.xlsx', PAIR_HEAD.concat([pair(1, '名正言順', '3', '黄')])), true);
+});
+t('页面载入 check.js 的版本号跟 hq/ 共用档案不一样就要换（check.js 改了，旧快取会配新页面）', () => {
+  const fs = require('fs'), path = require('path');
+  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /check\.js\?v=20261126b"/, 'check.js 这次有改，版本号要换新');
+});
 t('读不懂的表（没有「商品标题」或「配制信息」）回传 ok: false', () => {
   assert.strictEqual(WX.check([['随便一个表'], ['甲', '乙']]).ok, false);
 });
