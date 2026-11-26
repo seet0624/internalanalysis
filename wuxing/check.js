@@ -17,6 +17,7 @@
       if (v.richText) return v.richText.map(function (r) { return r.text; }).join('').trim();
       if (v.text != null) return String(v.text).trim();
       if (v.result != null) return String(v.result).trim();
+      if (v.error != null) return String(v.error);   // Excel 错误值（#N/A 之类）
       if (v instanceof Date) return v.toISOString().slice(0, 10);
     }
     return String(v).replace(/\u00a0/g, ' ').trim();
@@ -26,18 +27,21 @@
   // aoa：一个工作表的二维阵列（第 0 列 = 第 1 行）。表头那一行有「商品标题」；「配制信息」那一格起到「配制人」之前是专家填的
   function layout(aoa) {
     var hi = -1;
-    for (var i = 0; i < Math.min(aoa.length, 8); i++) if ((aoa[i] || []).map(text).indexOf('商品标题') >= 0) { hi = i; break; }
+    // 取最后一行：表头两行上下合并时，读出来上下两行都有「商品标题」，下面那行才有「数字」「颜色」
+    for (var i = 0; i < Math.min(aoa.length, 8); i++) if ((aoa[i] || []).map(text).indexOf('商品标题') >= 0) hi = i;
     if (hi < 0) return null;
     var head = aoa[hi].map(text), col = function (n) { return head.indexOf(n); };
     var start = -1;
     for (var r = 0; r < hi; r++) { var at = (aoa[r] || []).map(text).indexOf('配制信息'); if (at >= 0) { start = at; break; } }
     var end = col('配制人');
-    if (start < 0 || end < 0) return null;
+    if (start < 0 || end < 0 || col('订单编号') < 0) return null;   // 没有订单编号栏就一单都认不出来，不能当成「全部没问题」
     var nums = [], single = [];
     for (var c = start; c < end; c++) {
       if (head[c] === '数字') nums.push({ n: c, c: head[c + 1] === '颜色' ? c + 1 : -1 });
-      else if (head[c] !== '颜色' || head[c - 1] !== '数字') single.push({ c: c, name: head[c] });   // 乾坤「颜色」、生肖「生肖1/生肖2」
+      else if (head[c] && (head[c] !== '颜色' || head[c - 1] !== '数字')) single.push({ c: c, name: head[c] });   // 乾坤「颜色」、生肖「生肖1/生肖2」
     }
+    // 认不得的配制栏（版面变了）：宁可列成「没审到」，也不要乱审
+    if (!nums.length && (!single.length || single.some(function (x) { return ['颜色', '生肖1', '生肖2'].indexOf(x.name) < 0; }))) return null;
     return { hi: hi, title: col('商品标题'), order: col('订单编号'), user: col('使用人姓名'), nums: nums, single: single };
   }
 
@@ -66,7 +70,7 @@
           else seen[n] = p.n;
           filled.push({ n: n, c: c, cells: cells });
         });
-        if (!filled.length) add('专家没有配五行', titleCell);
+        if (!filled.length) { if (!issues.length) add('专家没有配五行', titleCell); }   // 有颜色没数字的，上面已经说了
         else {
           MIN.forEach(function (m) {
             if (m.has.test(product) && filled.length < m.n) add(m.label + '五行最少要 ' + m.n + ' 个，现在只有 ' + filled.length + ' 个，要问', titleCell);

@@ -103,6 +103,27 @@ t('只有颜色 / 生肖的（乾坤、十二生肖）：使用人那边的「�
   assert.match(m[2], /颜色「金」不对/);
   assert.strictEqual(m[3], '');
 });
+t('表头两行上下合并（读出来第 3、4 行都有「商品标题」）：用下面那行，照样抓到问题', () => {
+  const merged = PAIR_HEAD.map((r) => r.slice());
+  merged[2] = merged[3].map((v, i) => (i >= 7 && i < 17 ? merged[2][i] : v));   // 合并格：第 3 行也回传「序号、订单编号、商品标题…配制人」
+  const m = msgs(merged.concat([pair(1, '天富手表', '3', '紫', '3', '黄')]));
+  assert.strictEqual(m.length, 1);   // 第 4 行表头不能当成一单
+  assert.match(m[0], /颜色「紫」不对/);
+  assert.match(m[0], /数字 3 重复/);
+});
+t('找不到「订单编号」栏、或配制信息没有认得的栏：不能说全部没问题，要回传 ok: false', () => {
+  const noOrder = PAIR_HEAD.map((r) => r.map((v) => (v === '订单编号' ? '订单号' : v)));
+  assert.strictEqual(WX.check(noOrder.concat([pair(1, '天富手表', '3', '黄')])).ok, false);
+  const odd = [SINGLE[0], SINGLE[1], SINGLE[2].map((v) => (v === '生肖1' ? '甲' : v === '生肖2' ? '乙' : v))];
+  odd[2][5] = '丙';
+  assert.strictEqual(WX.check(odd.concat([['1', 'T001', '乾坤圆满吊坠', '测试', '', '黄', '', '', '', '']])).ok, false);
+});
+t('有颜色没数字：只说这一句，不会再说「专家没有配五行」；Excel 错误值照样显示', () => {
+  const m = msgs(PAIR_HEAD.concat([pair(1, '天富手表', '', '黄'), pair(2, '天富手表', { error: '#N/A' }, '黄')]));
+  assert.match(m[0], /有颜色「黄」没有数字/);
+  assert.doesNotMatch(m[0], /没有配五行/);
+  assert.match(m[1], /数字「#N\/A」不对/);
+});
 t('读不懂的表（没有「商品标题」或「配制信息」）回传 ok: false', () => {
   assert.strictEqual(WX.check([['随便一个表'], ['甲', '乙']]).ok, false);
 });

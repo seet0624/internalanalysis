@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>五行审核</title>
-<script src="../hq/auth.js?v=20261126a" data-nobadge></script>
+<script src="../hq/auth.js?v=20261126b" data-nobadge></script>
 <script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
-<script src="../hq/bus.js?v=20261126a"></script>
+<script src="../hq/bus.js?v=20261126b"></script>
 <style>
 /* 五行审核：跟名字审核、技术单审核同一套（米色底、金色重点、水墨左栏） */
 :root{--bg:#F6F1E7;--surface:#FFFDF8;--sunk:#F3ECDF;--ink:#2B2620;--muted:#6F6553;--faint:#7A6F5C;--line:#E8DFCC;--line-soft:#F0E9DB;--field:#DCCFB4;
@@ -76,7 +76,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 td ul{margin:0;padding-left:18px}
 .rules{margin:0;padding-left:20px}
 </style>
-<link rel="stylesheet" href="../hq/gold.css?v=20261126a">
+<link rel="stylesheet" href="../hq/gold.css?v=20261126b">
 </head>
 <body class="g-pat">
 <div class="shell">
@@ -142,15 +142,20 @@ td ul{margin:0;padding-left:18px}
     try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
     catch (e) { try { return new TextDecoder('gbk').decode(bytes); } catch (e2) { return new TextDecoder('utf-8').decode(bytes); } }
   }
-  async function inputs(files) {
+  // 一个文件坏掉不影响其他的；读不到、不是 .xlsx 的都记下来，列在「没审到」
+  async function inputs(files, unread) {
     var out = [];
     for (var i = 0; i < files.length; i++) {
-      var f = files[i], buf = await f.arrayBuffer();
-      if (/\.zip$/i.test(f.name)) {
-        var zip = await JSZip.loadAsync(buf, { decodeFileName: zipName });
-        var names = Object.keys(zip.files).filter(function (n) { return /\.xlsx$/i.test(n) && !/(^|\/)(__MACOSX|~\$)/.test(n); });
-        for (var j = 0; j < names.length; j++) out.push({ name: names[j].split('/').pop(), buffer: await zip.files[names[j]].async('arraybuffer') });
-      } else if (/\.xlsx$/i.test(f.name)) out.push({ name: f.name, buffer: buf });
+      var f = files[i];
+      try {
+        if (/\.zip$/i.test(f.name)) {
+          var zip = await JSZip.loadAsync(await f.arrayBuffer(), { decodeFileName: zipName });
+          var names = Object.keys(zip.files).filter(function (n) { return /\.xlsx$/i.test(n) && !/(^|\/)(__MACOSX|~\$)/.test(n); });
+          if (!names.length) unread.push(f.name + '（zip 里没有 .xlsx）');
+          for (var j = 0; j < names.length; j++) out.push({ name: names[j].split('/').pop(), buffer: await zip.files[names[j]].async('arraybuffer') });
+        } else if (/\.xlsx$/i.test(f.name)) out.push({ name: f.name, buffer: await f.arrayBuffer() });
+        else unread.push(f.name + '（只收 .xlsx 或 .zip；旧的 .xls 请先用 Excel 另存成 .xlsx）');
+      } catch (e) { unread.push(f.name + (/\.zip$/i.test(f.name) ? '（zip 打不开，可能没下载完整，请重新下载再试）' : '（' + (e.message || e) + '）')); }
     }
     return out;
   }
@@ -178,14 +183,14 @@ td ul{margin:0;padding-left:18px}
     $('out').innerHTML = '<div class="status" role="status">正在审核……</div>';
     try {
       if (!window.ExcelJS || !window.JSZip) throw new Error('读 Excel 的组件没载入，请重新整理页面');
-      var list = await inputs(files);
-      if (!list.length) throw new Error('没有找到 .xlsx 技术单（zip 里也没有）');
-      var done = [], unread = [];
+      var unread = [], list = await inputs(files, unread);
+      if (!list.length) throw new Error('没有找到 .xlsx 技术单' + (unread.length ? '：' + unread.join('；') : ''));
+      var done = [];
       for (var i = 0; i < list.length; i++) {
         var f = list[i], wb, ws, r = { ok: false };
         try { wb = await workbook(f.buffer); } catch (e) { unread.push(f.name + '（' + (e.message || e) + '）'); continue; }
         for (var k = 0; k < wb.worksheets.length && !r.ok; k++) { ws = wb.worksheets[k]; r = WX.check(aoaOf(ws)); }
-        if (!r.ok) { unread.push(f.name + '（找不到「商品标题」或「配制信息」）'); continue; }
+        if (!r.ok) { unread.push(f.name + '（认不出表格：要有「商品标题」「订单编号」「配制信息」「配制人」，配制信息要是数字、颜色或生肖）'); continue; }
         var bad = r.rows.filter(function (x) { return x.issues.length; });
         bad.forEach(function (x) { x.issues.forEach(function (is) { is.cells.forEach(function (rc) { paintRed(ws.getCell(rc[0] + 1, rc[1] + 1)); }); }); });
         done.push({ name: f.name, rows: r.rows, bad: bad, wb: bad.length ? wb : null });
