@@ -88,6 +88,8 @@ td ul{margin:0;padding-left:18px}
 .file td{overflow-wrap:anywhere}
 :root[data-theme="dark"] .wx-黑{border-color:#9A948B}
 .empty{padding:18px 20px;text-align:center}
+.name-go{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px}
+.name-go ul{margin:6px 0 0;padding-left:20px}
 .file>summary .fn{font-size:14px;color:var(--ink);font-weight:700}
 .file .tbl{border-top:1px solid var(--line-soft)}
 tr.is-bad td{background:var(--crit-bg)}
@@ -151,6 +153,7 @@ td.res{min-width:180px}
           <li>五行狮子最少 4 个，没有蓝色</li>
           <li>九合平衡牌：九格刚好 1 到 9 各一次</li>
           <li>乾坤圆满吊坠（颜色）、十二生肖吊坠（生肖）：专家要填</li>
+          <li>名正言顺的技术单这里不审：会提醒你到「名字审核」审核</li>
         </ul>
       </details>
     </main>
@@ -217,18 +220,20 @@ td.res{min-width:180px}
       if (!window.ExcelJS || !window.JSZip) throw new Error('读 Excel 的组件没载入，请重新整理页面');
       var unread = [], list = await inputs(files, unread);
       if (!list.length) throw new Error('没有找到 .xlsx 技术单' + (unread.length ? '：' + unread.join('；') : ''));
-      var done = [];
+      var done = [], names = [];
       for (var i = 0; i < list.length; i++) {
         var f = list[i], wb, ws, r = { ok: false };
         try { wb = await workbook(f.buffer); } catch (e) { unread.push(f.name + '（' + (e.message || e) + '）'); continue; }
-        for (var k = 0; k < wb.worksheets.length && !r.ok; k++) { ws = wb.worksheets[k]; r = WX.check(aoaOf(ws)); }
+        var isName = false;
+        for (var k = 0; k < wb.worksheets.length && !r.ok && !isName; k++) { ws = wb.worksheets[k]; var aoa = aoaOf(ws); isName = WX.isNameSheet(f.name, aoa); if (!isName) r = WX.check(aoa); }
+        if (isName) { names.push(f.name); continue; }   // 名正言顺不审，提醒去名字审核
         if (!r.ok) { unread.push(f.name + '（认不出表格：要有「商品标题」「订单编号」「配制信息」「配制人」，配制信息要是数字、颜色或生肖）'); continue; }
         var bad = r.rows.filter(function (x) { return x.issues.length; });
         bad.forEach(function (x) { x.issues.forEach(function (is) { is.cells.forEach(function (rc) { paintRed(ws.getCell(rc[0] + 1, rc[1] + 1)); }); }); });
         done.push({ name: f.name, rows: r.rows, bad: bad, wb: bad.length ? wb : null });
       }
       var orders = done.reduce(function (a, d) { return a + d.rows.length; }, 0), problem = done.reduce(function (a, d) { return a + d.bad.length; }, 0);
-      state = { done: done, unread: unread, orders: orders, problem: problem };
+      state = { done: done, unread: unread, names: names, orders: orders, problem: problem };
       filterNow = 'all';
       render();
       window.HQBus && HQBus.emit({ tool: 'wuxing', kind: 'processed', files: done.length, items: orders, problem: problem });
@@ -252,7 +257,12 @@ td.res{min-width:180px}
 
   function render() {
     var s = state, badFiles = s.done.filter(function (d) { return d.bad.length; });
-    var h = '<section class="card pad sum" role="status"><span>文件 <b>' + s.done.length + '</b> 个</span><span>订单 <b>' + s.orders + '</b> 单</span>' +
+    var h = '';
+    // 名正言顺的文件：五行审核只审工具，提醒去名字审核
+    if (s.names.length) h += '<section class="warn name-go" role="alert"><div><b>' + s.names.length + ' 个是名正言顺的技术单，这里不审</b>：五行审核只审工具（手表、手链、吊坠、牌子…），名正言顺请到「名字审核」审核。<ul>' +
+      s.names.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div><a class="btn g-btn3d" href="../name/">去名字审核 →</a></section>';
+    if (!s.done.length) { $('out').innerHTML = h + (s.unread.length ? '<section class="warn" role="alert"><b>' + s.unread.length + ' 个文件没审到：</b><ul>' + s.unread.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></section>' : ''); return; }   // 没有工具的文件：不要说「全部没问题：0 单」
+    h += '<section class="card pad sum" role="status"><span>文件 <b>' + s.done.length + '</b> 个</span><span>订单 <b>' + s.orders + '</b> 单</span>' +
       '<span' + (s.problem ? ' class="bad"' : '') + '>有问题 <b>' + s.problem + '</b> 单</span></section>';
     if (s.unread.length) h += '<section class="warn" role="alert"><b>' + s.unread.length + ' 个文件没审到：</b><ul>' + s.unread.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></section>';
     if (!s.problem) h += '<section class="ok-box" role="status"><b>全部没问题</b>：' + s.orders + ' 单的五行都照规则配好了，可以去系统「回传导入五行」。</section>';

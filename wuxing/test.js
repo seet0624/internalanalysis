@@ -134,6 +134,15 @@ t('config：每单专家填的内容（给网页画圆点），有问题的那�
   const plain = WX.check(PLAIN_HEAD.concat([['1', 'T001', '九合平衡牌', '测试', '向东', '5', '1', '', '', '', '', '', '', '', '', '']])).rows[0];
   assert.deepStrictEqual(plain.config.map((x) => [x.n, x.c]), [['5', null], ['1', null]]);   // 没有颜色栏：c 是 null
 });
+t('名正言顺的技术单认得出来（文件名、表头标题、商品标题）；只是备注提到的不算', () => {
+  const body = PAIR_HEAD.concat([pair(1, '天富手表', '3', '黄')]);
+  assert.strictEqual(WX.isNameSheet('名正言顺技术单 2026-11-11（3）H.xlsx', body), true);   // 文件名
+  assert.strictEqual(WX.isNameSheet('技术单.xlsx', [['名正言顺配制信息表']].concat(body.slice(1))), true);   // 第一行标题
+  assert.strictEqual(WX.isNameSheet('技术单.xlsx', PAIR_HEAD.concat([pair(1, '名正言顺', '3', '黄')])), true);   // 商品标题
+  const remark = pair(1, '开运吊坠', '3', '黄'); remark[remark.length - 1] = '名正言顺 - 测试新名';
+  assert.strictEqual(WX.isNameSheet('开运吊坠技术单.xlsx', PAIR_HEAD.concat([remark])), false);   // 备注写到名正言顺：还是工具
+  assert.strictEqual(WX.isNameSheet('鸿运手表技术单.xlsx', body), false);
+});
 t('读不懂的表（没有「商品标题」或「配制信息」）回传 ok: false', () => {
   assert.strictEqual(WX.check([['随便一个表'], ['甲', '乙']]).ok, false);
 });

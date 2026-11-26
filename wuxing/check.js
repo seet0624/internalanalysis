@@ -101,12 +101,23 @@
     return { ok: true, rows: rows };
   }
 
+  // 名正言顺的技术单不归五行审核（要到名字审核）：看文件名、第一行标题、「商品标题」那一栏。备注写到名正言顺的工具单不算
+  function isNameSheet(fileName, aoa) {
+    var re = /名正言顺/;
+    if (re.test(fileName || '') || (aoa[0] || []).some(function (v) { return re.test(text(v)); })) return true;
+    for (var i = 0; i < Math.min(aoa.length, 8); i++) {
+      var at = (aoa[i] || []).map(text).indexOf('商品标题');
+      if (at >= 0) return aoa.slice(i + 1).some(function (row) { return re.test(text((row || [])[at])); });
+    }
+    return false;
+  }
+
   // 有些软件存的技术单，文件信息少了 cp: 前缀（<lastModifiedBy>），读 Excel 的组件会读不进去；读之前补上（跟名字审核同一招，表格内容不动）
   function fixCore(xml) {
     return xml.replace(/<(\/?)(coreProperties|lastModifiedBy|lastPrinted|revision|category|contentStatus|keywords|version|identifier|language)(\s|>|\/)/g, '<$1cp:$2$3');
   }
 
-  var api = { check: check, text: text, fixCore: fixCore, COLORS: COLORS };
+  var api = { check: check, isNameSheet: isNameSheet, text: text, fixCore: fixCore, COLORS: COLORS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.WX = api;
 })(this);
