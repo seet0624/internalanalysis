@@ -14,7 +14,7 @@ description: Add a new review tool / feature page to the 审核总部 site and w
    <script src="../hq/auth.js?v=20261126b"></script>
    <script src="../hq/bus.js?v=20261126b"></script>
    ```
-   左上角放 `<a href="../">审核总部</a>`。`?v=` 照其他页现在用的版本（改了 hq/ 共用档案就各页一起换新）。Excel 用 `../vendor/exceljs.min.js`、zip 用 `../vendor/jszip.min.js`。
+   左上角放 `<a href="../">审核总部</a>`。`?v=` 照其他页现在用的版本（改了 hq/ 共用档案就各页一起换新）。工具自己资料夹的 `.js`（例如 `check.js`）也要加 `?v=`，不然浏览器会拿旧的 `.js` 配新的页面而出错。Excel 用 `../vendor/exceljs.min.js`、zip 用 `../vendor/jszip.min.js`。
 2. **权限**：`hq/auth.js` 的 `ACCESS` —— 国内客服（`cs`）要用就把 `'xxx/'` 加进 `cs` 的清单；老板是 `'*'`。
 3. **存东西**：`localStorage` 的 key 加这个工具自己的前缀（现在有 `mzys_` 名字审核、`tsr-` 技术单、`hq-` 总部、`cmd-` 指挥中心）。
 4. **处理完文件就报告**（真实数字，不要编）：
