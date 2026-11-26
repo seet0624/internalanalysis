@@ -559,6 +559,8 @@ body:not(.light) .qi.on{background:#3A2F1C;border-color:#B8873A}
       <button type="button" data-act="dlsup" id="dlSupBtn">督导文件（国内） <span class="k" id="kSup"></span></button>
       <hr id="dlOneSep" style="display:none">
       <button type="button" data-act="dlone" id="dlOneBtn" style="display:none">只下载这位学员 <span class="k" id="kOne"></span></button>
+      <hr>
+      <button type="button" data-act="askdir" title="开：每次下载先问存到哪里；关：直接存到浏览器的「下载」文件夹">下载前先选存放位置 <span class="k" id="kAsk">关</span></button>
     </div>
   </div>
 </header>
@@ -1874,7 +1876,9 @@ function dateStr(){ var d=new Date(); function p(n){return(n<10?'0':'')+n;} retu
 // 下载前问存到哪里：一份 → 「另存为」；好几份（国内海外分开）→ 选一个文件夹全部存进去。Chrome / Edge 才有，别的浏览器照旧直接下载。
 // 要在按下按钮后马上问（浏览器只在点击后几秒内允许开对话框）：所以先算好文件名、先问位置，再去做文件。
 var MIME={'.xlsx':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','.xls':'application/vnd.ms-excel','.zip':'application/zip','.csv':'text/csv','.json':'application/json'};
-async function saveTargets(names){ if(!names.length)return null; var t=null;
+// 开关「下载前先选存放位置」：预设关（直接存到「下载」文件夹），开了才问
+function askDir(){ return !!load('mzys_askdir',false); }
+async function saveTargets(names){ if(!names.length||!askDir())return null; var t=null;
   try{ if(names.length===1&&window.showSaveFilePicker){ var ext=(names[0].match(/\.[^.]+$/)||['.xlsx'])[0].toLowerCase(), acc={}; acc[MIME[ext]||'application/octet-stream']=[ext];
         t=[await window.showSaveFilePicker({suggestedName:names[0], types:[{description:ext==='.zip'?'压缩包':ext==='.csv'?'CSV 表格':ext==='.json'?'存档':'Excel 表格', accept:acc}]})]; return t; }
     if(names.length>1&&window.showDirectoryPicker)t={dir:await window.showDirectoryPicker({id:'mzys-dl',mode:'readwrite'})}; }
@@ -1906,7 +1910,8 @@ function oneOf(x,r){ var drop=[]; x.audit.results.forEach(function(q){ if(q!==r)
 async function downloadOne(r){ var x=parsedFiles[activeFile]; if(!x||!r){ toast('先在左边点一位学员'); return; }
   var p=oneOf(x,r), k=r.problem?'bad':'clean'; await runSave([outName(p,k)],[async function(){ return new Blob([await (r.problem?await buildSplitWorkbook(p,true):await buildCleanWorkbook(p)).xlsx.writeBuffer()]); }]); }
 // 「下载结果」菜单：开着学员页时多一项「只下载这位学员」
-function syncOneDl(){ var r=curResult(), on=!!(r&&document.getElementById('main').querySelector('#oneDl'));
+function syncAsk(){ var k=document.getElementById('kAsk'); if(k)k.textContent=askDir()?'开':'关'; }
+function syncOneDl(){ syncAsk(); var r=curResult(), on=!!(r&&document.getElementById('main').querySelector('#oneDl'));
   document.getElementById('dlOneSep').style.display=document.getElementById('dlOneBtn').style.display=on?'':'none';
   if(on)document.getElementById('kOne').textContent=baseName(r.disp)+'（'+(r.problem?'有问题':'干净')+'）'; }
 async function downloadOrig(){ if(!parsedFiles.length)return; var x=parsedFiles[activeFile]; var ps=partsOf(x);
@@ -2023,6 +2028,9 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 
 /*==== info: 使用说明 / 审核规则 / 版本更新 ====*/
 var CHANGELOG=[
+  {date:'2026-11-26', title:'下载前选位置可以关掉', items:[
+    '「下载结果」菜单最下面加「下载前先选存放位置」开关：预设关，直接存到「下载」文件夹；打开才每次先问存到哪里',
+    '开关记在各自电脑的浏览器里']},
   {date:'2026-11-24', title:'新名姓氏不对要改、糸字旁不算小', items:[
     '新名开头的姓跟订单的「新名字姓氏」不一样（专家导错姓），判必须改，原因写「新下来的名字（付安宇）的姓「付」和订单的新名字姓氏「胡」不一样」',
     '糸字旁（紜、緒、絲、結）不算小字根：专家确认属龙可以用；「結」里面的「吉」还是有「士」']},
@@ -2276,6 +2284,7 @@ function runAct(a){ var x=parsedFiles[activeFile];
     case 'dlbad': dlCatch(downloadSplit(true)); break;
     case 'dlclean': dlCatch(downloadSplit(false)); break;
     case 'dlone': dlCatch(downloadOne(curResult())); break;
+    case 'askdir': store('mzys_askdir',!askDir()); syncAsk(); toast(askDir()?'下载前会先问存到哪里':'下载会直接存到「下载」文件夹'); break;
     case 'dlsup': dlCatch(downloadSup()); break;
     case 'suptable': openSupTable(); break;
     case 'supimport': importSupData(); break;

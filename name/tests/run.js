@@ -137,6 +137,14 @@ const CASES = require('./naming-cases.json');
   const hid = await p.evaluate(() => { const r = { hide: ['h|方甲乙|撞字|1|林甲丙'], rows: [{ neu: '方甲乙', given: '甲乙', hits: [{ kind: '撞字', ni: 1, fc: '甲', full: '林甲丙', fname: '林甲丙', member: '兄弟姐妹' }], msgs: ['新下来的名字（方甲乙）的「乙」有小字根「小」，属龙（大生肖）不能用'], warns: [], tones: [], detail: {} }] };
     return outReason(r) + ' | ' + issuesOf(r).length; });
   ok(hid === '新下来的名字（方甲乙）的「乙」有小字根「小」，属龙（大生肖）不能用 | 2', '勾了下载不放的撞字不写进下载原因、网页照样显示，实际 ' + hid);
+  // 「下载前先选存放位置」开关：关（预设）就直接下载、不跳视窗；开了才问
+  const ask = await p.evaluate(async () => { let called = 0; const old = window.showSaveFilePicker;
+    window.showSaveFilePicker = async () => { called++; const e = new Error('x'); e.name = 'AbortError'; throw e; };
+    store('mzys_askdir', null); const a = await saveTargets(['甲.xlsx']);
+    document.querySelector('[data-act="askdir"]').click(); let b = 'ok'; try { await saveTargets(['甲.xlsx']); } catch (e) { b = e.name; }
+    const k = document.getElementById('kAsk').textContent; document.querySelector('[data-act="askdir"]').click(); window.showSaveFilePicker = old;
+    return [a === null, called, b, k, document.getElementById('kAsk').textContent].join('|'); });
+  ok(ask === 'true|1|AbortError|开|关', '下载前先选位置的开关：预设关、开了才问，实际 ' + ask);
   // 学员页撞字要写关系和备注原文，不用自己去翻备注
   const relSub = await p.evaluate(() => {
     const one = (note, num) => issuesOf({ rows: [{ neu: '方甲乙', given: '甲乙', hits: [{ kind: '撞字', ni: 1, pos: 1, fc: '甲', full: '林甲丙', fname: '林甲丙', member: '关联订单 ' + num + ' 的新名' }], msgs: [], warns: [], tones: [], detail: { note2: note } }] })[0].sub;
