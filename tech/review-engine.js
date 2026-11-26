@@ -1370,5 +1370,113 @@
     return out;
   }
 
-  return { processFiles: processFiles, DEFAULTS: DEFAULTS, todayStr: todayStr, isOverseasName: isOverseasName, dateFromName: dateFromName, _mentionedFamily: mentionedFamily, _zodiacFor: zodiacFor, _surnameVsOwn: surnameVsOwn, _surnameCheck: surnameCheck, _ziShi: ziShi };
+  // ---------- 检查员工自己做的技术单 ----------
+  // 页脚三格：审核人 / 制表时间 / 回传时间（值写在同一格冒号后，或右边的格子）
+  function readFooter(ws) {
+    var out = {}, KEY = { '审核人': 'reviewer', '制表时间': 'made', '回传时间': 'back' };
+    ws.eachRow(function (row) {
+      row.eachCell({ includeEmpty: false }, function (c) {
+        if (isSlave(c)) return;
+        var m = cellText(c).trim().match(/^(审核人|制表时间|回传时间)[:：]\s*(.*)$/);
+        if (!m) return;
+        var v = m[2].trim();
+        if (!v) { var x = valueCellRightOf(row, c); v = x.existing ? cellText(x.cell).trim() : ''; }
+        out[KEY[m[1]]] = v;
+      });
+    });
+    return out;
+  }
+  // every data cell of a sheet, keyed 订单编号|第几行|栏名 (rows can be moved around; a 名正言顺 student has two rows)
+  async function sheetCells(buffer) {
+    var wb = await load(buffer), ws = wb.worksheets[0], header = findHeader(ws);
+    if (!header || !header.cols['订单编号']) return null;
+    var range = dataRowRange(ws, header), C = header.cols, heads = Object.keys(C).filter(function (h) { return h !== '序号'; });
+    var cells = {}, orders = {}, list = [];
+    for (var r = range.first; r <= range.last; r++) {
+      var row = ws.getRow(r), key = cellText(row.getCell(C['订单编号']));
+      if (isBlank(key)) continue;
+      var o = orders[key];
+      if (!o) { o = orders[key] = { key: key, rows: 0, person: (cellText(row.getCell(C['使用人姓名'] || 1)).trim() || cellText(row.getCell(C['会员姓名'] || 1)).trim()) }; list.push(o); }
+      var n = ++o.rows;
+      heads.forEach(function (h) {
+        var c = row.getCell(C[h]); if (isSlave(c)) c = c.master;
+        var v = cellText(c).trim();
+        cells[key + '|' + n + '|' + h] = { v: v, red: !isBlank(v) && isRedCell(c) };
+      });
+    }
+    return { cells: cells, orders: orders, list: list, footer: readFooter(ws) };
+  }
+  // A staff member made the files by hand. For each one: run the rules on a copy with all red taken out,
+  // then compare with what the staff member handed in.
+  //   errors   — against the rules: red text, rows, content, file name, footer, handed in twice
+  //   confirms — 有问题 / 加急 differ from what the rules would do: the staff member may have asked someone
+  async function checkFiles(files, options) {
+    var opts = Object.assign({}, DEFAULTS, options || {});
+    var scan = await scanFamilies(files), dups = findDups(files, scan.scanned), out = [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i], rep = { name: f.name, errors: [], red: [], confirms: [], expected: [], orders: 0 };
+      out.push(rep);
+      try {
+        var staff = await sheetCells(f.buffer);
+        if (!staff) { rep.errors.push('读不出来：找不到表头（序号 / 订单编号）'); continue; }
+        rep.orders = staff.list.length;
+        var who = function (k) { return (staff.orders[k] && staff.orders[k].person) || k; };
+        Object.keys(dups[i] || {}).forEach(function (k) { rep.errors.push('订单 ' + k.split('|')[0] + '（' + k.split('|')[1] + '）在《' + dups[i][k].file + '》也有 — 交了两次'); });
+        // the copy the rules start from: no red at all
+        var wb = await load(f.buffer);
+        wb.worksheets[0].eachRow(function (row) { row.eachCell({ includeEmpty: false }, function (c) { if (!isSlave(c)) unRed(c); }); });
+        var clean = { name: f.name, buffer: await wb.xlsx.writeBuffer() };
+        var made = dateFromName(staff.footer.made || ''), base = { date: made || opts.date, reviewer: staff.footer.reviewer || opts.reviewer, region: 'auto' };
+        // the staff member's own choices, read from the file name
+        var tagP = /（有问题）/.test(f.name), tagU = /（特殊加急）/.test(f.name), solo = /^（单独发）/.test(f.name);
+        var mine = { problems: {}, urgents: {}, solos: {} };
+        staff.list.forEach(function (o) { var mk = f.name + '|' + o.key; mine.problems[mk] = tagP; mine.urgents[mk] = tagU; if (solo) mine.solos[mk] = true; });
+        var rules = (await processFiles([clean], Object.assign({}, opts, base, { solos: mine.solos })))[0];
+        var asMade = (await processFiles([clean], Object.assign({}, opts, base, mine)))[0];
+        if (rules.error || asMade.error) { rep.errors.push('读不出来：' + (rules.error || asMade.error)); continue; }
+        // 1) 有问题 / 加急: rules vs the staff member's choice → 请确认
+        rules.orders.forEach(function (o) {
+          var why = o.flags.filter(function (x) { return x.problem; }).map(function (x) { return x.text; }).join('；');
+          if (o.problem && !tagP) rep.confirms.push(who(o.key) + '：规则会放「有问题」（' + why + '），你放在普通文件 — 问过了吗？');
+          if (!o.problem && tagP) rep.confirms.push(who(o.key) + '：规则看不出有问题，你放了「有问题」— 原因要写清楚');
+          var u = o.newborn ? !!o.babyUrgent : !!o.urgent;
+          if (u && !tagU && !o.newborn) rep.confirms.push(who(o.key) + '：规则会设特殊加急（备注 / 日期），你没有加急 — 确认不用加急？');
+          if (!u && tagU && !o.newborn) rep.confirms.push(who(o.key) + '：规则看不出要加急，你设了特殊加急 — 确认要加急？');
+        });
+        // 2) file name and split, as the rules would make it with the staff member's own choices
+        rep.expected = asMade.outputs.map(function (o) { return o.name; });
+        if (asMade.outputs.length > 1) rep.errors.push('这个文件应该分成 ' + asMade.outputs.length + ' 个：' + rep.expected.join('、'));
+        else if (asMade.outputs.length === 1 && rep.expected[0] !== f.name) rep.errors.push('文件名应该是「' + rep.expected[0] + '」');
+        // 3) footer
+        var ft = staff.footer, want = asMade.footer || {};
+        if (!ft.reviewer) rep.errors.push('页脚：审核人没写');
+        if (!ft.made) rep.errors.push('页脚：制表时间没写');
+        else if (!made) rep.errors.push('页脚：制表时间「' + ft.made + '」看不懂，请写成 日.月.年');
+        if (!ft.back) rep.errors.push('页脚：回传时间没写' + (want.back ? '，应该是 ' + want.back : ''));
+        else if (made && want.back && dateFromName(ft.back) !== want.back) rep.errors.push('页脚：回传时间应该是 ' + want.back + '（' + want.rule + '），你写「' + ft.back + '」');
+        // 4) red text, rows, content — cell by cell against the rules' own files
+        var exp = { cells: {}, orders: {} };
+        for (var j = 0; j < asMade.outputs.length; j++) {
+          var e = await sheetCells(asMade.outputs[j].buffer);
+          if (!e) continue;
+          Object.assign(exp.cells, e.cells);
+          Object.keys(e.orders).forEach(function (k) { exp.orders[k] = e.orders[k]; });
+        }
+        Object.keys(exp.orders).forEach(function (k) {
+          var a = staff.orders[k], b = exp.orders[k];
+          if (a && a.rows < b.rows) rep.errors.push(who(k) + '：少了 ' + (b.rows - a.rows) + ' 行（应该有 ' + b.rows + ' 行）');
+          if (a && a.rows > b.rows) rep.errors.push(who(k) + '：多了 ' + (a.rows - b.rows) + ' 行');
+        });
+        Object.keys(exp.cells).forEach(function (k) {
+          var want = exp.cells[k], got = staff.cells[k], p = k.split('|');
+          if (!got) return;
+          if (want.v !== got.v) rep.errors.push(who(p[0]) + ' 的「' + p[2] + '」应该是「' + (want.v || '（空）') + '」，你写「' + (got.v || '（空）') + '」');
+          if (want.red !== got.red) rep.red.push({ key: p[0], person: who(p[0]), row: +p[1], h: p[2], value: got.v, want: want.red });
+        });
+      } catch (err) { rep.errors.push('检查失败：' + (err && err.message || err)); }
+    }
+    return out;
+  }
+
+  return { processFiles: processFiles, checkFiles: checkFiles, DEFAULTS: DEFAULTS, todayStr: todayStr, isOverseasName: isOverseasName, dateFromName: dateFromName, _mentionedFamily: mentionedFamily, _zodiacFor: zodiacFor, _surnameVsOwn: surnameVsOwn, _surnameCheck: surnameCheck, _ziShi: ziShi };
 });
