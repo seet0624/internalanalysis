@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>五行审核</title>
+<script src="../hq/auth.js?v=20261126b" data-nobadge></script>
+<script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
+<script src="../hq/bus.js?v=20261126b"></script>
+<style>
+/* 五行审核：跟名字审核、技术单审核同一套（米色底、金色重点、水墨左栏） */
+:root{--bg:#F6F1E7;--surface:#FFFDF8;--sunk:#F3ECDF;--ink:#2B2620;--muted:#6F6553;--faint:#7A6F5C;--line:#E8DFCC;--line-soft:#F0E9DB;--field:#DCCFB4;
+  --accent:#9A6B22;--accent-hover:#7E5718;--accent-soft:#F6ECD9;--accent-ink:#6E4B12;--on-accent:#FFFFFF;--crit:#B3261E;--crit-bg:#FBE9E7;--ok:#137333;--ok-bg:#E6F4EA;--warn:#7A4300;--warn-bg:#FFF1DC;
+  --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif}
+:root[data-theme="dark"]{--bg:#0F1217;--surface:#161A21;--sunk:#12151B;--ink:#E8EAED;--muted:#9AA7BD;--faint:#6B7385;--line:#2A303C;--line-soft:#1E232C;--field:#343B49;
+  --accent:#D4AA5E;--accent-hover:#E2BE7A;--accent-soft:#3A2F1C;--accent-ink:#E9C98A;--on-accent:#1A1916;--crit:#FF8A80;--crit-bg:#3A1C1A;--ok:#7FCC8C;--ok-bg:#183020;--warn:#F2B866;--warn-bg:#33270F;color-scheme:dark}
+.theme svg{flex:none}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background-color:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+[hidden]{display:none!important}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h1,h2,h3{margin:0;line-height:1.3}
+p{margin:0}
+.shell{min-height:100vh}
+.side{display:none}
+@media (min-width:1000px){
+  .shell{display:grid;grid-template-columns:240px minmax(0,1fr)}
+  .side{display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow-y:auto;padding:16px 12px}
+}
+.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
+@media (min-width:720px){.top-in{padding:14px 28px}}
+.top .sub{font-size:13px;color:var(--muted)}
+.top-r{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.home{font-size:13px;color:var(--muted);text-decoration:none}
+@media (min-width:1000px){.ph-only{display:none!important}}
+@media (max-width:999px){.desk-only{display:none!important}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid var(--field);border-radius:10px;background:var(--surface);color:var(--ink);font-weight:500;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn.small{min-height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.btn[disabled]{opacity:.5;cursor:default}
+.page{max-width:1120px;margin:0 auto;padding:24px 16px 80px;display:flex;flex-direction:column;gap:20px}
+@media (min-width:720px){.page{padding:28px 28px 60px}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 24px -18px rgba(110,75,18,.4)}
+.pad{padding:18px 22px}
+.small{font-size:13px;color:var(--muted)}
+.drop{position:relative;border-radius:20px;background:var(--surface);cursor:pointer}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.drop .fake{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 28px;border-radius:12px;font-size:16px}
+.error{background:var(--crit-bg);color:var(--crit);border-radius:12px;padding:12px 16px}
+.status{display:flex;align-items:center;gap:10px;color:var(--accent-ink)}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;align-items:center}
+.facts b{font-size:18px}
+.facts label{display:inline-flex;align-items:center;gap:8px}
+.facts input[aria-invalid="true"]{border-color:var(--crit)}
+.facts input{width:64px;min-height:38px;padding:0 10px;border:1px solid var(--field);border-radius:8px;background:var(--surface);text-align:center}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:14px;padding:14px 18px}
+.warn ul{margin:6px 0 0;padding-left:20px}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:12px 14px;text-align:left;border-top:1px solid var(--line-soft);vertical-align:middle}
+thead th{background:var(--sunk);font-size:13px;color:var(--muted);font-weight:700;border-top:0}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.grp{font-family:"ShuyiSerif","Songti SC","SimSun",serif;font-weight:700;font-size:17px}
+.fn{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.acts{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.sum{display:flex;flex-wrap:wrap;gap:8px 28px;align-items:center}
+.sum b{font-size:18px}
+.ok-box{background:var(--ok-bg);color:var(--ok);border-radius:14px;padding:14px 18px}
+.bad{color:var(--crit)}
+td ul{margin:0;padding-left:18px}
+.rules{margin:0;padding-left:20px}
+</style>
+<link rel="stylesheet" href="../hq/gold.css?v=20261126b">
+</head>
+<body class="g-pat">
+<div class="shell">
+  <aside class="side g-side" aria-label="审核总部导航">
+    <a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-gold.png" alt="">国内客服系统</a>
+    <a class="g-sys" href="../name/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v15l-3.5-2-3.5 2-3.5-2z"/><path d="M8.5 9h7M8.5 12.5h4.5"/></svg></span>名字审核</a>
+    <a class="g-sys" href="../tech/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="3.5" rx="1"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 13l2 2 4-4"/></svg></span>技术单审核</a>
+    <a class="g-sys" href="../bjp/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg></span>保健品分督导</a>
+    <a class="g-sys" href="./" aria-current="page"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="10.2" r="2.2"/><circle cx="16.3" cy="18.6" r="2.2"/><circle cx="7.7" cy="18.6" r="2.2"/><circle cx="5" cy="10.2" r="2.2"/></svg></span>五行审核</a>
+    <div class="g-label">资料</div>
+    <a class="g-sys" href="../manual/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg></span>客服手册</a>
+    <a class="g-sys" href="https://shuyitoolguidance.netlify.app/" target="_blank" rel="noopener"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.8v6.4l5-3.2z"/></svg></span>工具启动教程</a>
+    <a class="g-sys" href="../docs/dongfang/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 17.5h2"/></svg></span>商城教程</a>
+    <button type="button" class="g-sys g-out" onclick="HQAuth.confirmLogout()"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>退出</button>
+  </aside>
+  <div style="min-width:0">
+    <header class="top g-topbg"><div class="top-in">
+      <div class="g-titlerow"><a class="home ph-only" href="../name/">← 名字审核</a><span class="g-tile" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="10.2" r="2.2"/><circle cx="16.3" cy="18.6" r="2.2"/><circle cx="7.7" cy="18.6" r="2.2"/><circle cx="5" cy="10.2" r="2.2"/></svg></span>
+        <div><h1>五行审核</h1><p class="sub">专家回传的五行，审过才回传导入系统</p></div></div>
+      <div class="top-r"><nav class="g-sysnav desk-only" aria-label="切换审核系统"><a class="g-btn3d" href="../name/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>名字审核</a><a class="g-btn3d" href="../tech/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>技术单审核</a><a class="g-btn3d" href="../bjp/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>保健品分督导</a><a class="g-btn3d" href="./" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="10.2" r="2.2"/><circle cx="16.3" cy="18.6" r="2.2"/><circle cx="7.7" cy="18.6" r="2.2"/><circle cx="5" cy="10.2" r="2.2"/></svg>五行审核</a></nav><button type="button" class="btn small theme" id="theme" aria-pressed="false"></button><span class="g-user" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.confirmLogout()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg>退出</button></div>
+    </div></header>
+    <main class="page">
+      <section class="g-hero"><h2>五行审核</h2><p>专家回传的技术单拖进来：照国内手册检查每一单的五行，有问题的格子标红，审过再「回传导入五行」</p></section>
+      <label class="drop g-drop" id="drop">
+        <img class="g-drop-art" src="../hq/brand/upload-art.svg" alt="" width="250" height="183">
+        <span class="g-drop-txt">
+          <span class="big">把专家回传的技术单拖进来</span>
+          <span class="small">多个 .xlsx，或整包 .zip 都可以。所有处理都在你的电脑里完成，不会上传到网上。</span>
+          <span class="fake g-btn3d">选择文件</span>
+          <span class="small g-tip">只看「配制信息」那几栏（数字、颜色、生肖）；表格其他地方不改</span>
+        </span>
+        <input id="pick" type="file" accept=".xlsx,.zip" multiple>
+      </label>
+      <div id="out" aria-live="polite"></div>
+      <details class="card pad"><summary>审核规则</summary>
+        <ul class="rules small">
+          <li>每个数字旁边都要有颜色；数字只能 1–9，颜色只能 黄、黑、白、绿、红、蓝</li>
+          <li>同一单数字不能重复；中间不能空一格后面又有数字</li>
+          <li>戒指最少 4 个、数字幸福手链最少 3 个、鸿运（流年）手表最少 3 个；少了就是有问题，要问（国内手册「工具注意事项」）</li>
+          <li>五行狮子最少 4 个，没有蓝色</li>
+          <li>九合平衡牌：九格刚好 1 到 9 各一次</li>
+          <li>乾坤圆满吊坠（颜色）、十二生肖吊坠（生肖）：专家要填</li>
+        </ul>
+      </details>
+    </main>
+  </div>
+</div>
+<!-- 读写 Excel、zip 的组件很大，选了文件才用到：defer 不挡住画面先出来 -->
+<script src="../vendor/exceljs.min.js" defer></script>
+<script src="../vendor/jszip.min.js" defer></script>
+<script src="check.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var RED = 'FFFF0000', XLSX_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  var state = null;
+  try { var _s = HQAuth.session(); if (_s) { $('gUser').innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'; $('gUser').appendChild(document.createTextNode(_s.id)); } } catch (e) {}
+  HQAuth.themeButton($('theme'));
+
+  // zip 里的中文文件名：有的用 UTF-8，有的用 GBK
+  function zipName(bytes) {
+    try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+    catch (e) { try { return new TextDecoder('gbk').decode(bytes); } catch (e2) { return new TextDecoder('utf-8').decode(bytes); } }
+  }
+  // 一个文件坏掉不影响其他的；读不到、不是 .xlsx 的都记下来，列在「没审到」
+  async function inputs(files, unread) {
+    var out = [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i];
+      try {
+        if (/\.zip$/i.test(f.name)) {
+          var zip = await JSZip.loadAsync(await f.arrayBuffer(), { decodeFileName: zipName });
+          var names = Object.keys(zip.files).filter(function (n) { return /\.xlsx$/i.test(n) && !/(^|\/)(__MACOSX|~\$)/.test(n); });
+          if (!names.length) unread.push(f.name + '（zip 里没有 .xlsx）');
+          for (var j = 0; j < names.length; j++) out.push({ name: names[j].split('/').pop(), buffer: await zip.files[names[j]].async('arraybuffer') });
+        } else if (/\.xlsx$/i.test(f.name)) out.push({ name: f.name, buffer: await f.arrayBuffer() });
+        else unread.push(f.name + '（只收 .xlsx 或 .zip；旧的 .xls 请先用 Excel 另存成 .xlsx）');
+      } catch (e) { unread.push(f.name + (/\.zip$/i.test(f.name) ? '（zip 打不开，可能没下载完整，请重新下载再试）' : '（' + (e.message || e) + '）')); }
+    }
+    return out;
+  }
+  async function workbook(buffer) {
+    var zip = await JSZip.loadAsync(buffer), core = zip.file('docProps/core.xml');
+    if (core) zip.file('docProps/core.xml', WX.fixCore(await core.async('string')));
+    var wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(await zip.generateAsync({ type: 'arraybuffer' }));
+    return wb;
+  }
+  function aoaOf(ws) {
+    var aoa = [];
+    ws.eachRow({ includeEmpty: true }, function (row, i) { var a = []; row.eachCell({ includeEmpty: true }, function (c, j) { a[j - 1] = c.value; }); aoa[i - 1] = a; });
+    return aoa;
+  }
+  // 红字（跟技术单审核一样），保留格子原本的底色、字型
+  function paintRed(cell) {
+    var v = cell.value;
+    if (v && typeof v === 'object' && v.richText) cell.value = { richText: v.richText.map(function (r) { return { text: r.text, font: Object.assign({}, r.font || {}, { color: { argb: RED } }) }; }) };
+    cell.style = Object.assign({}, cell.style, { font: Object.assign({}, cell.font || {}, { color: { argb: RED } }) });
+  }
+
+  async function run(files) {
+    if (document.readyState !== 'complete') await new Promise(function (r) { addEventListener('load', r, { once: true }); });   // 组件是 defer：load 才保证都载完
+    $('out').innerHTML = '<div class="status" role="status">正在审核……</div>';
+    try {
+      if (!window.ExcelJS || !window.JSZip) throw new Error('读 Excel 的组件没载入，请重新整理页面');
+      var unread = [], list = await inputs(files, unread);
+      if (!list.length) throw new Error('没有找到 .xlsx 技术单' + (unread.length ? '：' + unread.join('；') : ''));
+      var done = [];
+      for (var i = 0; i < list.length; i++) {
+        var f = list[i], wb, ws, r = { ok: false };
+        try { wb = await workbook(f.buffer); } catch (e) { unread.push(f.name + '（' + (e.message || e) + '）'); continue; }
+        for (var k = 0; k < wb.worksheets.length && !r.ok; k++) { ws = wb.worksheets[k]; r = WX.check(aoaOf(ws)); }
+        if (!r.ok) { unread.push(f.name + '（认不出表格：要有「商品标题」「订单编号」「配制信息」「配制人」，配制信息要是数字、颜色或生肖）'); continue; }
+        var bad = r.rows.filter(function (x) { return x.issues.length; });
+        bad.forEach(function (x) { x.issues.forEach(function (is) { is.cells.forEach(function (rc) { paintRed(ws.getCell(rc[0] + 1, rc[1] + 1)); }); }); });
+        done.push({ name: f.name, rows: r.rows, bad: bad, wb: bad.length ? wb : null });
+      }
+      var orders = done.reduce(function (a, d) { return a + d.rows.length; }, 0), problem = done.reduce(function (a, d) { return a + d.bad.length; }, 0);
+      state = { done: done, unread: unread, orders: orders, problem: problem };
+      render();
+      window.HQBus && HQBus.emit({ tool: 'wuxing', kind: 'processed', files: done.length, items: orders, problem: problem });
+    } catch (e) {
+      state = null;
+      $('out').innerHTML = '<div class="error" role="alert">读不出来：' + esc(e.message || e) + '</div>';
+    }
+  }
+
+  function render() {
+    var s = state, badFiles = s.done.filter(function (d) { return d.bad.length; });
+    var h = '<section class="card pad sum"><span>文件 <b>' + s.done.length + '</b> 个</span><span>订单 <b>' + s.orders + '</b> 单</span>' +
+      '<span' + (s.problem ? ' class="bad"' : '') + '>有问题 <b>' + s.problem + '</b> 单</span></section>';
+    if (s.unread.length) h += '<section class="warn" role="alert"><b>' + s.unread.length + ' 个文件没审到：</b><ul>' + s.unread.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></section>';
+    if (!s.problem) h += '<section class="ok-box" role="status"><b>全部没问题</b>：' + s.orders + ' 单的五行都照规则配好了，可以去系统「回传导入五行」。</section>';
+    else {
+      h += '<section class="card"><div class="tbl"><table><thead><tr><th scope="col">文件</th><th scope="col">使用人</th><th scope="col">订单编号</th><th scope="col">商品</th><th scope="col">问题</th></tr></thead><tbody>' +
+        badFiles.map(function (d) {
+          return d.bad.map(function (x) {
+            return '<tr><td class="fn">' + esc(d.name) + '</td><td>' + esc(x.user) + '</td><td>' + esc(x.order) + '</td><td>' + esc(x.product) + '</td><td class="bad"><ul>' +
+              x.issues.map(function (is) { return '<li>' + esc(is.msg) + '</li>'; }).join('') + '</ul></td></tr>';
+          }).join('');
+        }).join('') + '</tbody></table></div></section>';
+      h += '<div class="acts"><span class="small">有问题的格子已经标红字；问过专家、改好以后，再一起回传导入五行。没问题的文件不用下载，原本的就可以用。</span>' +
+        '<button type="button" class="btn g-btn3d" data-dl>下载标红的文件（' + badFiles.length + ' 个）</button></div>';
+    }
+    $('out').innerHTML = h;
+  }
+
+  function save(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+  document.addEventListener('click', async function (e) {
+    var b = e.target.closest('[data-dl]'); if (!b || !state) return;
+    var files = state.done.filter(function (d) { return d.wb; });
+    b.disabled = true;
+    try {
+      if (files.length === 1) save(new Blob([await files[0].wb.xlsx.writeBuffer()], { type: XLSX_TYPE }), files[0].name);
+      else {
+        var zip = new JSZip(), used = {};
+        for (var i = 0; i < files.length; i++) { var n = files[i].name, k = 2; while (used[n]) n = '（第' + k++ + '份）' + files[i].name; used[n] = 1; zip.file(n, await files[i].wb.xlsx.writeBuffer()); }
+        save(await zip.generateAsync({ type: 'blob' }), '五行审核（有问题，已标红）.zip');
+      }
+    } catch (err) { alert('下载失败：' + (err.message || err)); }
+    b.disabled = false;
+  });
+
+  $('pick').addEventListener('change', function () { if (this.files.length) run(Array.from(this.files)); this.value = ''; });
+  var drop = $('drop');
+  ['dragenter', 'dragover'].forEach(function (t) { window.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('over'); }); });
+  ['dragleave', 'drop'].forEach(function (t) { window.addEventListener(t, function (e) { e.preventDefault(); if (t === 'drop' || !e.relatedTarget) drop.classList.remove('over'); }); });
+  window.addEventListener('drop', function (e) { var fs = e.dataTransfer && e.dataTransfer.files; if (fs && fs.length) run(Array.from(fs)); });
+})();
+</script>
+</body>
+</html>

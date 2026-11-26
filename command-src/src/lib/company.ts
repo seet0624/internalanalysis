@@ -57,8 +57,8 @@ function findTeam(ref: string): HQTeam | undefined {
 
 // 审核工具对应的小组：名字审核 → cs.name，技术单 → cs.tech，保健品分督导 → cs.bjp
 const TOOL_OF_TEAM: Record<string, string> = { 'cs.name': 'name', 'cs.tech': 'tech', 'cs.bjp': 'bjp' };
-// 事件交给哪个部门：名字审核 → 客服部，保健品 → 订单管理组，技术单 → 技术支持
-const DEPT_OF_TOOL: Record<string, string> = { name: 'cs', bjp: 'orders', tech: 'techsup' };
+// 事件交给哪个部门：名字审核 → 客服部，保健品 → 订单管理组，技术单、五行审核 → 技术支持
+const DEPT_OF_TOOL: Record<string, string> = { name: 'cs', bjp: 'orders', tech: 'techsup', wuxing: 'techsup' };
 export const deptOf = (e: HQEvent) => DEPT_OF_TOOL[e.tool] || 'techsup';
 const n = (e: HQEvent, k: string) => Number(e[k] ?? 0);
 const minsAgo = (t: number) => Math.max(0, (Date.now() - t) / 60000);
@@ -74,6 +74,12 @@ export function describeEvent(e: HQEvent): L {
     return {
       zh: `保健品分督导：${n(e, 'items')} 单分成 ${n(e, 'groups')} 份，${n(e, 'problem')} 单分不到督导`,
       en: `Supplement shipments: ${n(e, 'items')} orders split into ${n(e, 'groups')} files, ${n(e, 'problem')} without a supervisor`
+    };
+  }
+  if (e.tool === 'wuxing') {
+    return {
+      zh: `五行审核：${n(e, 'files')} 个文件、${n(e, 'items')} 单，${n(e, 'problem')} 单五行有问题`,
+      en: `Five-element review: ${n(e, 'files')} files, ${n(e, 'items')} orders — ${n(e, 'problem')} with issues`
     };
   }
   if (e.kind === 'downloaded') return { zh: '技术单文件已下载，可以转给专家', en: 'Order files downloaded, ready for experts' };

@@ -56,6 +56,15 @@ window.COMPANY = {
             { name: '小核', trait: '仔细', role: '核对员', duty: '查不到店铺、没有督导、数量不对的单列出来，一单都不漏。' },
             { name: '阿发', trait: '热心', role: '发件员', duty: '文件照 8 月的格式下载好，发到各督导的群。' }
           ]
+        },
+        {
+          id: 'wuxing', name: '五行审核组', kind: 'site', href: 'wuxing/', color: '#7A8A3A',
+          summary: '专家回传的技术单，照国内手册审五行（数字、颜色、最少几个），审过才回传导入系统。',
+          agents: [
+            { name: '阿行', trait: '沉稳', role: '五行审核员', duty: '一单一单看数字有没有配颜色、有没有重复跳格、够不够最少几个。' },
+            { name: '小问', trait: '客气', role: '跟进员', duty: '有问题的单去问专家或督导，改好再放回去。' },
+            { name: '阿传', trait: '准时', role: '回传员', duty: '全部审过，到系统回传导入五行，核对委外加工的数量。' }
+          ]
         }
       ]
     },
@@ -145,6 +154,12 @@ window.COMPANY = {
     ],
     'tech.downloaded': [
       { from: 'tech/1', to: 'tech/0', say: '文件都下载好了，可以转给专家', reply: '好，我发出去' }
+    ],
+    'wuxing.processed': [
+      { from: 'wuxing/0', say: '收到 {files} 个专家回传的文件、{items} 单，开始审五行' },
+      { from: 'wuxing/0', to: 'wuxing/1', when: 'problem>0', say: '{problem} 单五行有问题，已经标红，麻烦问一下专家', reply: '好，我去问' },
+      { from: 'wuxing/0', to: 'wuxing/2', say: '审好了：{items} 单里 {problem} 单有问题，其他的可以回传导入五行', reply: '收到，我去导入' },
+      { from: 'wuxing/2', to: 'boss', say: '五行审完：{items} 单，{problem} 单有问题', reply: '辛苦了' }
     ],
     'bjp.processed': [
       { from: 'bjp/0', say: '收到 {files} 份发货明细、{items} 单，开始分督导' },
