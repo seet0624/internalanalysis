@@ -124,6 +124,16 @@ t('有颜色没数字：只说这一句，不会再说「专家没有配五行�
   assert.doesNotMatch(m[0], /没有配五行/);
   assert.match(m[1], /数字「#N\/A」不对/);
 });
+t('config：每单专家填的内容（给网页画圆点），有问题的那几个标 bad', () => {
+  const r = WX.check(PAIR_HEAD.concat([pair(1, '天富手表', '3', '黄', '8', '紫', '3', '黑')])).rows[0];
+  assert.deepStrictEqual(r.config, [{ n: '3', c: '黄', bad: true }, { n: '8', c: '紫', bad: true }, { n: '3', c: '黑', bad: true }]);
+  const ok = WX.check(PAIR_HEAD.concat([pair(2, '天富手表', '3', '黄', '8', '黑')])).rows[0];
+  assert.deepStrictEqual(ok.config, [{ n: '3', c: '黄', bad: false }, { n: '8', c: '黑', bad: false }]);
+  const single = WX.check(SINGLE.concat([['1', 'T001', '十二生肖吊坠', '测试', '蓝', '', '马', '', '', '']])).rows[0];
+  assert.deepStrictEqual(single.config, [{ label: '生肖1', v: '马', bad: false }]);
+  const plain = WX.check(PLAIN_HEAD.concat([['1', 'T001', '九合平衡牌', '测试', '向东', '5', '1', '', '', '', '', '', '', '', '', '']])).rows[0];
+  assert.deepStrictEqual(plain.config.map((x) => [x.n, x.c]), [['5', null], ['1', null]]);   // 没有颜色栏：c 是 null
+});
 t('读不懂的表（没有「商品标题」或「配制信息」）回传 ok: false', () => {
   assert.strictEqual(WX.check([['随便一个表'], ['甲', '乙']]).ok, false);
 });

@@ -54,13 +54,14 @@
       var a = aoa[r] || [], get = function (c) { return c < 0 ? '' : text(a[c]); }, cfg = function (c) { return c < 0 ? '' : squash(a[c]); };
       if (!get(L.order)) continue;   // 表尾（审核人、制表时间）没有订单编号
       var product = get(L.title), issues = [], add = function (msg, cells) { issues.push({ msg: msg, cells: cells }); };
-      var titleCell = [[r, L.title]];
+      var titleCell = [[r, L.title]], shown = [];   // shown：专家填的内容，给网页画出来（数字 + 颜色、或单一栏）
 
       if (L.nums.length) {
         var filled = [], seen = {}, gapAt = -1;
         L.nums.forEach(function (p, k) {
           var n = cfg(p.n), c = cfg(p.c), cells = p.c < 0 ? [[r, p.n]] : [[r, p.n], [r, p.c]];
           if (!n && !c) { if (gapAt < 0) gapAt = k; return; }
+          shown.push({ n: n, c: p.c < 0 ? null : c, cols: [p.n, p.c] });
           if (gapAt >= 0) { add('第 ' + (gapAt + 1) + ' 格空着，后面又有数字（跳格）', [[r, L.nums[gapAt].n]]); gapAt = -2; }
           if (!n) { add('第 ' + (k + 1) + ' 格有颜色「' + c + '」没有数字', cells); return; }
           if (!/^[1-9]$/.test(n)) add('第 ' + (k + 1) + ' 格数字「' + n + '」不对（只能 1–9）', [[r, p.n]]);
@@ -88,11 +89,14 @@
           var v = cfg(s.c);
           if (!v) return;
           any = true;
+          shown.push({ label: s.name, v: v, cols: [s.c] });
           if (s.name === '颜色' && COLORS.indexOf(v) < 0) add('颜色「' + v + '」不对（只能 ' + COLORS.join('、') + '）', [[r, s.c]]);
         });
         if (!any) add('专家没有配置（' + L.single.map(function (s) { return s.name; }).filter(Boolean).join('、') + ' 都空着）', titleCell);
       }
-      rows.push({ line: r + 1, order: get(L.order), user: get(L.user), product: product, issues: issues });
+      // 哪几格被问题点到，网页就在那几个圆点画红圈
+      shown.forEach(function (x) { x.bad = issues.some(function (is) { return is.cells.some(function (rc) { return x.cols.indexOf(rc[1]) >= 0; }); }); delete x.cols; });
+      rows.push({ line: r + 1, order: get(L.order), user: get(L.user), product: product, issues: issues, config: shown });
     }
     return { ok: true, rows: rows };
   }
