@@ -484,8 +484,8 @@
 
   // 天希手表 vs 天希手表 / 许舒涵九合平衡牌 vs 九合平衡牌: the same tool when one name holds the other
   // 名正言順 / 鴻運手錶 written in 繁体 are the same tool as 名正言顺 / 鸿运手表
-  var SIMP = { '順': '顺', '運': '运', '鴻': '鸿', '錶': '表', '澤': '泽', '貴': '贵', '寶': '宝', '親': '亲', '華': '华', '豐': '丰', '吊墜': '吊坠', '牌': '牌' };
-  function simpTool(x) { return String(x || '').replace(/吊墜|[順運鴻錶澤貴寶親華豐]/g, function (c) { return SIMP[c] || c; }); }
+  var SIMP = { '順': '顺', '運': '运', '鴻': '鸿', '錶': '表', '澤': '泽', '貴': '贵', '寶': '宝', '親': '亲', '華': '华', '豐': '丰', '墜': '坠' };
+  function simpTool(x) { return String(x || '').replace(/[順運鴻錶澤貴寶親華豐墜]/g, function (c) { return SIMP[c]; }); }
   function sameTool(a, b) {
     var n = function (x) { return simpTool(productName(x)).replace(/\s/g, ''); };
     a = n(a); b = n(b);
@@ -493,6 +493,14 @@
   }
   // 「海外技术单 …」「今日技术单 …」name no tool
   var GENERIC_TOOL = /^\s*(海外|国内|國內|全部|今日|今天|所有|新|旧|舊|[（(]?第?\d+[份批]?[）)]?)\s*$/;
+  // the tool a file NAME promises ("天希手表技术单 …" → 天希手表); '' for "技术单 20.11.2026.xlsx" / "海外技术单 …"
+  function fileToolOf(name) {
+    var t = toolName(name);
+    return /技术单/.test(name) && !GENERIC_TOOL.test(t) && /[\u4e00-\u9fff]/.test(t) ? t : '';
+  }
+  // an order belongs in a file named after tool t when its tool matches, or its full 商品标题 names t
+  // ("N1 鲟鱼肽健康套餐 - 赠品（名正言顺命名）" belongs in 鲟鱼肽健康套餐技术单 and in 名正言顺技术单)
+  function fitsFileTool(t, product, title) { return !t || sameTool(t, product) || simpTool(title).indexOf(simpTool(t)) >= 0; }
   function toolName(fileName) {
     var base = String(fileName).replace(/\.xlsx$/i, '');
     var m = base.match(/^(.*?)技术单/);
@@ -622,7 +630,7 @@
     var C = header.cols;
     tool = toolFromSheet(ws, range, C) || toolName(file.name);
     // the tool the file NAME promises ("天希手表技术单 …"); empty for "技术单 20.11.2026.xlsx"
-    var fileTool = /技术单/.test(file.name) && !GENERIC_TOOL.test(toolName(file.name)) && /[\u4e00-\u9fff]/.test(toolName(file.name)) ? toolName(file.name) : '';
+    var fileTool = fileToolOf(file.name);
     // one sheet can hold several products (天祥手表 + 天富手表 + 鸿运手表 …): each one gets its own file
     var products = [];
     if (C['商品标题']) for (var pr = range.first; pr <= range.last; pr++) {
@@ -721,7 +729,7 @@
         var keptDup = dupOf && (opts.notDups || {})[file.name + '|' + key];
         if (dupOf) add({ kind: 'dup-order', level: keptDup ? 'info' : 'high', problem: !keptDup, who: '审核人', text: '这一单在《' + dupOf.file + '》也有（同一个订单号、同样是' + o.product + '）— ' + (keptDup ? '你选了保留，不是重复' : '重复了，确认后可以不要这一单') });
         // 文件名是天希手表，这一单却是鸿运手表 → 可能放错文件（照样另开鸿运手表文件）
-        else if (fileTool && !sameTool(fileTool, o.product)) add({ kind: 'wrong-file', level: 'high', text: '这一单是「' + o.product + '」，文件名却是「' + fileTool + '」— 会另开' + o.product + '文件；请确认没有放错文件' });
+        else if (!fitsFileTool(fileTool, o.product, get('商品标题'))) add({ kind: 'wrong-file', level: 'high', text: '这一单是「' + o.product + '」，文件名却是「' + fileTool + '」— 会另开' + o.product + '文件；请确认没有放错文件' });
       }
 
       // 海外技术单: these products must be checked before they can be made → 有问题
@@ -1267,7 +1275,7 @@
           var no = orderNo14(g('订单编号'));
           if (!no || byNo[no]) continue;
           var snm = (g('新名字姓氏').match(/[\u4e00-\u9fff]/) || [])[0];
-          var o = { no: no, id: g('订单编号').trim(), surname: snm || '', person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool, product: productName(g('商品标题')) || tool,
+          var o = { no: no, id: g('订单编号').trim(), surname: snm || '', person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool, product: productName(g('商品标题')) || tool, title: g('商品标题'),
             names: ownNames(g('使用人姓名')).concat(ownNames(g('会员姓名'))),
             rel: relNames([g('父亲名字'), g('母亲名字'), g('兄弟姐妹'), g('子女')].join(' ')),
             // every column can carry a relative (父亲名字 / 母亲名字 / 兄弟姐妹 / 子女 / 备注 …), except the order's own identity
@@ -1318,7 +1326,7 @@
   // (鸿运手表 inside 天希手表技术单) is the extra one; otherwise the later file's copy.
   function findDups(files, scanned) {
     var dups = files.map(function () { return {}; }), seen = {};
-    var misplaced = function (c) { var t = toolName(files[c.i].name); return /技术单/.test(files[c.i].name) && !GENERIC_TOOL.test(t) && /[\u4e00-\u9fff]/.test(t) && !sameTool(t, c.o.product); };
+    var misplaced = function (c) { return !fitsFileTool(fileToolOf(files[c.i].name), c.o.product, c.o.title); };
     (scanned || []).forEach(function (orders, i) {
       (orders || []).forEach(function (o) {
         var k = o.no + '|' + simpTool(o.product), cur = { i: i, o: o }, prev = seen[k];
