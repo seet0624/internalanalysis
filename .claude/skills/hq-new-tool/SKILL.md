@@ -11,8 +11,8 @@ description: Add a new review tool / feature page to the 审核总部 site and w
 
 1. **新文件夹** `xxx/index.html`。开头载入：
    ```html
-   <script src="../hq/auth.js?v=20261121a"></script>
-   <script src="../hq/bus.js?v=20261121a"></script>
+   <script src="../hq/auth.js?v=20261126a"></script>
+   <script src="../hq/bus.js?v=20261126a"></script>
    ```
    左上角放 `<a href="../">审核总部</a>`。`?v=` 照其他页现在用的版本（改了 hq/ 共用档案就各页一起换新）。Excel 用 `../vendor/exceljs.min.js`、zip 用 `../vendor/jszip.min.js`。
 2. **权限**：`hq/auth.js` 的 `ACCESS` —— 国内客服（`cs`）要用就把 `'xxx/'` 加进 `cs` 的清单；老板是 `'*'`。

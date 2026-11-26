@@ -86,7 +86,8 @@
     // 云端也登出（让登入凭证失效），再清掉这台电脑上的
     try {
       var tok = JSON.parse(localStorage.getItem(CLOUD_TOKEN) || 'null');
-      if (tok && tok.access_token) fetch(CLOUD_URL + '/auth/v1/logout', { method: 'POST', keepalive: true, headers: { apikey: CLOUD_KEY, Authorization: 'Bearer ' + tok.access_token } }).catch(function () {});
+      // scope=local：账号是大家共用的，只登出这个浏览器；不加的话会把同账号所有人一起踢掉
+      if (tok && tok.access_token) fetch(CLOUD_URL + '/auth/v1/logout?scope=local', { method: 'POST', keepalive: true, headers: { apikey: CLOUD_KEY, Authorization: 'Bearer ' + tok.access_token } }).catch(function () {});
     } catch (e) {}
     try { localStorage.removeItem(KEY); localStorage.removeItem(CLOUD_TOKEN); } catch (e) {}
   }
