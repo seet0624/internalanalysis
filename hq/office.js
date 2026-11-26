@@ -551,8 +551,9 @@ export function mountOffice(container, company, opts = {}) {
     const s = label(`<i style="background:${cs.color || '#8C6B24'}"></i>${esc(cs.name || '客服部')}<small>主要办公区</small>`, 'hq-room hq-room-main', 'dept/cs');
     s.position.set(cx, 2.6, o.z0 + 0.6); scene.add(s);
     register('dept/cs', { el: s.element, pos: new THREE.Vector3(cx, 0.5, (o.z0 + o.z1) / 2) });
-    const quads = [[-13, -4.2, -2.5, 1.2], [-1.5, -4.2, 9, 1.2], [-13, 2.2, -2.5, 7.6], [-1.5, 2.2, 9, 7.6]];
-    (cs.teams || []).slice(0, 4).forEach((t, qi) => {
+    // 后排三区、前排两区（每组最多 4 人、两排对坐，7 宽够放）
+    const quads = [[-13, -4.2, -6, 1.2], [-5.5, -4.2, 1.5, 1.2], [2, -4.2, 9, 1.2], [-13, 2.2, -2.5, 7.6], [-1.5, 2.2, 9, 7.6]];
+    (cs.teams || []).slice(0, quads.length).forEach((t, qi) => {
       const [x0, z0, x1, z1] = quads[qi], qx = (x0 + x1) / 2, qz = (z0 + z1) / 2;
       const planned = t.kind === 'planned';
       const rug = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), planned ? M.ghost : tintMat(t.color, 0.78));
