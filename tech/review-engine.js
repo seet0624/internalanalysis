@@ -1372,12 +1372,14 @@
 
   // ---------- 检查员工自己做的技术单 ----------
   // 页脚三格：审核人 / 制表时间 / 回传时间（值写在同一格冒号后，或右边的格子）
-  function readFooter(ws) {
+  // (only below the data: the header row has its own 审核人 column)
+  function readFooter(ws, fromRow) {
     var out = {}, KEY = { '审核人': 'reviewer', '制表时间': 'made', '回传时间': 'back' };
-    ws.eachRow(function (row) {
+    ws.eachRow(function (row, r) {
+      if (r < fromRow) return;
       row.eachCell({ includeEmpty: false }, function (c) {
         if (isSlave(c)) return;
-        var m = cellText(c).trim().match(/^(审核人|制表时间|回传时间)[:：]\s*(.*)$/);
+        var m = cellText(c).trim().match(/^(审核人|制表时间|回传时间)\s*[:：]?\s*(.*)$/);
         if (!m) return;
         var v = m[2].trim();
         if (!v) { var x = valueCellRightOf(row, c); v = x.existing ? cellText(x.cell).trim() : ''; }
@@ -1404,7 +1406,14 @@
         cells[key + '|' + n + '|' + h] = { v: v, red: !isBlank(v) && isRedCell(c) };
       });
     }
-    return { cells: cells, orders: orders, list: list, footer: readFooter(ws) };
+    // orders under a blank row: the review never reads them, so the staff member's file can't be checked there
+    var lost = 0;
+    for (var q = range.last + 1; q <= ws.rowCount; q++) {
+      var qr = ws.getRow(q);
+      if (FOOTER_LABEL.test(cellText(qr.getCell(1)).trim()) || /^(审核人|制表时间|回传时间)/.test(cellText(qr.getCell(1)).trim())) break;
+      if (/\d{6,}/.test(cellText(qr.getCell(C['订单编号'])))) lost++;
+    }
+    return { cells: cells, orders: orders, list: list, lost: lost, footer: readFooter(ws, range.last + 1) };
   }
   // A staff member made the files by hand. For each one: run the rules on a copy with all red taken out,
   // then compare with what the staff member handed in.
@@ -1420,12 +1429,14 @@
         var staff = await sheetCells(f.buffer);
         if (!staff) { rep.errors.push('读不出来：找不到表头（序号 / 订单编号）'); continue; }
         rep.orders = staff.list.length;
+        if (!rep.orders) { rep.errors.push('读不到任何订单：表头下面第一行的订单编号是空的？'); continue; }
+        if (staff.lost) rep.errors.push('有 ' + staff.lost + ' 单在空行下面，审核读不到 — 把中间的空行删掉');
         var who = function (k) { return (staff.orders[k] && staff.orders[k].person) || k; };
         Object.keys(dups[i] || {}).forEach(function (k) { rep.errors.push('订单 ' + k.split('|')[0] + '（' + k.split('|')[1] + '）在《' + dups[i][k].file + '》也有 — 交了两次'); });
         // the copy the rules start from: no red at all
         var wb = await load(f.buffer);
         wb.worksheets[0].eachRow(function (row) { row.eachCell({ includeEmpty: false }, function (c) { if (!isSlave(c)) unRed(c); }); });
-        var clean = { name: f.name, buffer: await wb.xlsx.writeBuffer() };
+        var clean = Object.assign({}, f, { buffer: await wb.xlsx.writeBuffer() }); // keeps a zip's H / date
         var made = dateFromName(staff.footer.made || ''), base = { date: made || opts.date, reviewer: staff.footer.reviewer || opts.reviewer, region: 'auto' };
         // the staff member's own choices, read from the file name
         var tagP = /（有问题）/.test(f.name), tagU = /（特殊加急）/.test(f.name), solo = /^（单独发）/.test(f.name);
@@ -1453,17 +1464,19 @@
         if (!ft.made) rep.errors.push('页脚：制表时间没写');
         else if (!made) rep.errors.push('页脚：制表时间「' + ft.made + '」看不懂，请写成 日.月.年');
         if (!ft.back) rep.errors.push('页脚：回传时间没写' + (want.back ? '，应该是 ' + want.back : ''));
-        else if (made && want.back && dateFromName(ft.back) !== want.back) rep.errors.push('页脚：回传时间应该是 ' + want.back + '（' + want.rule + '），你写「' + ft.back + '」');
+        else if (made && !want.back) rep.errors.push('页脚：回传时间无法核对');
+        else if (made && dateFromName(ft.back) !== want.back) rep.errors.push('页脚：回传时间应该是 ' + want.back + '（' + want.rule + '），你写「' + ft.back + '」');
         // 4) red text, rows, content — cell by cell against the rules' own files
         var exp = { cells: {}, orders: {} };
         for (var j = 0; j < asMade.outputs.length; j++) {
           var e = await sheetCells(asMade.outputs[j].buffer);
-          if (!e) continue;
+          if (!e) { rep.errors.push('规则做出来的「' + asMade.outputs[j].name + '」读不出来，这部分没核对'); continue; }
           Object.assign(exp.cells, e.cells);
           Object.keys(e.orders).forEach(function (k) { exp.orders[k] = e.orders[k]; });
         }
         Object.keys(exp.orders).forEach(function (k) {
           var a = staff.orders[k], b = exp.orders[k];
+          if (!a) rep.errors.push('少了「' + (b.person || k) + '」这一单');
           if (a && a.rows < b.rows) rep.errors.push(who(k) + '：少了 ' + (b.rows - a.rows) + ' 行（应该有 ' + b.rows + ' 行）');
           if (a && a.rows > b.rows) rep.errors.push(who(k) + '：多了 ' + (a.rows - b.rows) + ' 行');
         });

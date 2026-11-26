@@ -375,7 +375,7 @@ table.dl .fn{overflow-wrap:anywhere}
 <!-- 读 Excel / zip 的组件很大，上传时才用到：defer 不挡住画面先出来（review-engine 是用到时才去拿） -->
 <script src="../vendor/exceljs.min.js" defer></script>
 <script src="../vendor/jszip.min.js" defer></script>
-<script src="review-engine.js?v=da94222cf2"></script>
+<script src="review-engine.js?v=83987a3e50"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -795,12 +795,19 @@ table.dl .fn{overflow-wrap:anywhere}
   function checkBad() { return (state.check || []).filter(function (r) { return r.errors.length || r.red.length; }).length; }
   async function runCheck(fl) {
     if (!window.ExcelJS || !window.JSZip) { toast('读 Excel 的组件还没载入，请稍等几秒再拖一次'); return; }
-    state.checkBusy = true; state.checkError = ''; render();
+    if (state.checkBusy) { toast('上一批还在检查，请等一下'); return; }
+    state.checkBusy = true; state.checkError = ''; state.check = null; state.checkNotes = []; render();
+    // readInputs writes the main review's seen / notes: keep them out of it
+    var keepSeen = state.seen, keepNotes = state.uploadNotes;
+    state.uploadNotes = [];
     try {
       var got = await readInputs(Array.prototype.slice.call(fl || []));
+      var skipped = (state.seen || []).filter(function (n) { return !/\.(xlsx|zip)$/i.test(n) && !/^（zip 里/.test(n); });
+      state.checkNotes = state.uploadNotes.concat(skipped.length ? ['这些不是 .xlsx，没有检查：' + skipped.join('、') + '（旧版 .xls 请先在 Excel 另存为 .xlsx）'] : []);
       if (!got.length) state.checkError = '没有找到 .xlsx 技术单，请上传 .xlsx 或装着 .xlsx 的 .zip。';
       else state.check = await E.checkFiles(got, { date: E.todayStr() });
     } catch (e) { state.checkError = '检查失败：' + (e && e.message || e); }
+    state.seen = keepSeen; state.uploadNotes = keepNotes;
     state.checkBusy = false; render();
   }
   function viewCheck() {
@@ -809,6 +816,7 @@ table.dl .fn{overflow-wrap:anywhere}
       '<span class="fake">选择文件</span><input id="cpick" type="file" multiple accept=".xlsx,.zip"></label>';
     if (state.checkBusy) h += '<div class="status" role="status"><span class="spin" aria-hidden="true"></span>正在检查……</div>';
     if (state.checkError) h += '<div class="error" role="alert">' + esc(state.checkError) + '</div>';
+    if ((state.checkNotes || []).length) h += '<div class="warnbox"><ul>' + state.checkNotes.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
     var res = state.check;
     if (res) {
       var bad = checkBad(), conf = res.filter(function (r) { return r.confirms.length; }).length;
@@ -1456,7 +1464,7 @@ table.dl .fn{overflow-wrap:anywhere}
       todos().forEach(function (x) { if (x.kind === 'dup-order' && !x.decided) state.skips[x.it.mk] = true; });
       run().then(function (ok) { if (ok) toast('重复的单都不要了'); }); return;
     }
-    if ('checkreset' in d) { state.check = null; state.checkError = ''; render(); return; }
+    if ('checkreset' in d) { state.check = null; state.checkError = ''; state.checkNotes = []; render(); return; }
     if (d.copytext) { copyText(d.copytext, b); return; }
     if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; saveMark(o.name, new Blob([o.buffer]), [dkey(o)]); return; }
     if (d.dlzip) { var z = zipOf(d.dlzip); zipBlob(z.outs).then(function (bl) { return saveMark(z.name, bl, [z.name].concat(z.outs.map(dkey))); }).catch(zipFail); return; }

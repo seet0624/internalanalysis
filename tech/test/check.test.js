@@ -83,3 +83,23 @@ test('同一单交了两次（两个文件都有）', async () => {
   const res = await E.checkFiles([f1, f2], { date: '20.11.2026' });
   assert.ok(res[1].errors.some((e) => /交了两次/.test(e)), res[1].errors.join(' / '));
 });
+
+test('表头下面第一行是空的：不能显示「全对」', async () => {
+  const [f] = await perfect([row('甲一'), row('乙二')]);
+  const bad = await edit(f, (ws) => ws.spliceRows(3, 0, []));
+  const [r] = await E.checkFiles([bad], {});
+  assert.ok(r.errors.length, '应该报错');
+});
+
+test('中间有空行：空行下面的单要报出来', async () => {
+  const [f] = await perfect([row('甲一'), row('乙二')]);
+  const bad = await edit(f, (ws) => ws.spliceRows(4, 0, []));
+  const [r] = await E.checkFiles([bad], {});
+  assert.ok(r.errors.some((e) => /空行下面/.test(e)), r.errors.join(' / '));
+});
+
+test('zip 叫 …H.zip：里面的文件照样算海外，不乱报文件名', async () => {
+  const [f] = await perfect([row('甲一'), row('乙二')]);
+  const [r] = await E.checkFiles([{ name: f.name, buffer: f.buffer, overseas: false }], {});
+  assert.deepStrictEqual(r.errors, [], r.errors.join(' / '));
+});
