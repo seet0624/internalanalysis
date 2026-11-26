@@ -3,6 +3,7 @@
 (function (root) {
   'use strict';
   var COLORS = ['黄', '黑', '白', '绿', '红', '蓝'];
+  var NAME_RE = /名正言[顺順]/;   // 名正言顺（繁体也算）
   // 国内手册：戒指最少 4 个、数字幸福手链最少 3 个、鸿运（流年）手表最少 3 个；五行狮子最少 4 个、没有蓝色。刚好差一个也算有问题（老板 2026-11 定）
   var MIN = [
     { has: /戒指/, n: 4, label: '戒指' },
@@ -55,6 +56,11 @@
       if (!get(L.order)) continue;   // 表尾（审核人、制表时间）没有订单编号
       var product = get(L.title), issues = [], add = function (msg, cells) { issues.push({ msg: msg, cells: cells }); };
       var titleCell = [[r, L.title]], shown = [];   // shown：专家填的内容，给网页画出来（数字 + 颜色、或单一栏）
+      if (NAME_RE.test(product)) {   // 工具单里夹着名正言顺：这一单不审五行，标出来提醒
+        add('这一单是名正言顺，五行审核不审，请到「名字审核」审核', titleCell);
+        rows.push({ line: r + 1, order: get(L.order), user: get(L.user), product: product, issues: issues, config: [] });
+        continue;
+      }
 
       if (L.nums.length) {
         var filled = [], seen = {}, gapAt = -1;
@@ -101,12 +107,27 @@
     return { ok: true, rows: rows };
   }
 
+  // 名正言顺的技术单不归五行审核（要到名字审核）：看文件名、第一行标题、「商品标题」那一栏。备注写到名正言顺的工具单不算
+  // 商品标题那一栏：要每一单都是名正言顺才算整份（套餐技术单会夹赠品「（名正言顺命名）」，工具照样要审）
+  function isNameSheet(fileName, aoa) {
+    var re = NAME_RE;
+    if (re.test(fileName || '') || (aoa[0] || []).some(function (v) { return re.test(text(v)); })) return true;
+    for (var i = 0; i < Math.min(aoa.length, 8); i++) {
+      var head = (aoa[i] || []).map(text), at = head.indexOf('商品标题'), on = head.indexOf('订单编号');
+      if (at < 0) continue;
+      var orders = aoa.slice(i + 1).filter(function (row) { return on < 0 || text((row || [])[on]); });   // 表尾没有订单编号
+      if (aoa[i + 1] && (aoa[i + 1] || []).map(text).indexOf('商品标题') >= 0) continue;   // 表头上下合并：用下面那行
+      return orders.length > 0 && orders.every(function (row) { return re.test(text((row || [])[at])); });
+    }
+    return false;
+  }
+
   // 有些软件存的技术单，文件信息少了 cp: 前缀（<lastModifiedBy>），读 Excel 的组件会读不进去；读之前补上（跟名字审核同一招，表格内容不动）
   function fixCore(xml) {
     return xml.replace(/<(\/?)(coreProperties|lastModifiedBy|lastPrinted|revision|category|contentStatus|keywords|version|identifier|language)(\s|>|\/)/g, '<$1cp:$2$3');
   }
 
-  var api = { check: check, text: text, fixCore: fixCore, COLORS: COLORS };
+  var api = { check: check, isNameSheet: isNameSheet, text: text, fixCore: fixCore, COLORS: COLORS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.WX = api;
 })(this);
