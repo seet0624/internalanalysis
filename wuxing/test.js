@@ -148,5 +148,8 @@ t('页面载入自己的 .js 都带版本号（不然浏览器拿旧的 check.js
     const html = fs.readFileSync(path.join(root, page), 'utf8');
     assert.match(html, new RegExp('<script src="' + js.replace('.', '\\.') + '\\?v=\\w+"'), page + ' 载入 ' + js + ' 没有 ?v=');
   }
+  // 3D 办公室：首页动态载入 office.js、office.js 再载入 campus.js
+  assert.match(fs.readFileSync(path.join(root, 'index.html'), 'utf8'), /import\('\.\/hq\/office\.js\?v=\w+'\)/, 'index.html 载入 office.js 没有 ?v=');
+  assert.match(fs.readFileSync(path.join(root, 'hq/office.js'), 'utf8'), /from '\.\/campus\.js\?v=\w+'/, 'office.js 载入 campus.js 没有 ?v=');
 });
 console.log(`全部通过（${n} 项）`);
