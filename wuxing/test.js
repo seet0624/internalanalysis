@@ -142,4 +142,14 @@ t('文件信息少了 cp: 前缀会补上，已经有的不动', () => {
   assert.strictEqual(WX.fixCore('<cp:lastModifiedBy>甲</cp:lastModifiedBy>'), '<cp:lastModifiedBy>甲</cp:lastModifiedBy>');
 });
 
+t('页面载入自己的 .js 都带版本号（不然浏览器拿旧的 check.js，配新的页面会出错）', () => {
+  const fs = require('fs'), path = require('path'), root = path.join(__dirname, '..');
+  for (const [page, js] of [['wuxing/index.html', 'check.js'], ['bjp/index.html', 'split.js'], ['manual/index.html', 'manual.js'], ['name/index.html', 'shops.js']]) {
+    const html = fs.readFileSync(path.join(root, page), 'utf8');
+    assert.match(html, new RegExp('<script src="' + js.replace('.', '\\.') + '\\?v=\\w+"'), page + ' 载入 ' + js + ' 没有 ?v=');
+  }
+  // 3D 办公室：首页动态载入 office.js、office.js 再载入 campus.js
+  assert.match(fs.readFileSync(path.join(root, 'index.html'), 'utf8'), /import\('\.\/hq\/office\.js\?v=\w+'\)/, 'index.html 载入 office.js 没有 ?v=');
+  assert.match(fs.readFileSync(path.join(root, 'hq/office.js'), 'utf8'), /from '\.\/campus\.js\?v=\w+'/, 'office.js 载入 campus.js 没有 ?v=');
+});
 console.log(`全部通过（${n} 项）`);

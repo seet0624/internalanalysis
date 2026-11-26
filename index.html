@@ -870,7 +870,7 @@ function playDemo() {
 
 // ---------- 3D ----------
 try {
-  const { mountOffice } = await import('./hq/office.js');
+  const { mountOffice } = await import('./hq/office.js?v=20261126b');
   office = mountOffice($('stage'), C, { stats, role: ROLE, companyName: coName(), onSelect: (id) => renderPanel(id), onFeed: addFeed });
   if (new URLSearchParams(location.search).has('debug')) window.hqOffice = office;   // 网址加 ?debug 可以在主控台看 3D 状态
 } catch (e) {
