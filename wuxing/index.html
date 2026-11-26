@@ -75,6 +75,34 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .bad{color:var(--crit)}
 td ul{margin:0;padding-left:18px}
 .rules{margin:0;padding-left:20px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px}
+.seg{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:var(--sunk);border:1px solid var(--line)}
+.seg button{min-height:36px;padding:0 14px;border:0;border-radius:9px;background:none;color:var(--muted);font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.find{min-height:40px;width:min(280px,100%);padding:0 12px;border:1px solid var(--field);border-radius:10px;background:var(--surface)}
+.file>summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding:14px 20px;cursor:pointer;list-style:none}
+.file>summary::-webkit-details-marker{display:none}
+.file>summary::before{content:"▾";color:var(--muted);transition:transform .15s}
+.file:not([open])>summary::before{transform:rotate(-90deg)}
+.file>summary .fn{font-size:14px;color:var(--ink);font-weight:700}
+.file .tbl{border-top:1px solid var(--line-soft)}
+tr.is-bad td{background:var(--crit-bg)}
+td.res{min-width:180px}
+.okmark{color:var(--ok);font-weight:500}
+.wxs{display:flex;flex-wrap:wrap;gap:5px}
+/* 五行圆点：底色 = 专家配的颜色，里面写数字；有问题的加红圈 */
+.wx{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:28px;height:28px;padding:0 6px;border-radius:14px;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;border:1px solid transparent}
+.wx-黄{background:#E9B949;color:#3A2A00}.wx-黑{background:#2B2620;color:#FFF;border-color:#55504A}.wx-白{background:#FFF;color:#2B2620;border-color:#CFC6B5}
+.wx-绿{background:#3E8E5A;color:#FFF}.wx-红{background:#C6453B;color:#FFF}.wx-蓝{background:#3A6EA8;color:#FFF}
+.wx-无{background:var(--sunk);color:var(--ink);border-color:var(--field)}
+.wx-怪{background:var(--surface);color:var(--crit);border:1px dashed var(--crit)}
+.wx.is-bad{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--crit)}
+.wx small{font-size:11px;font-weight:500}
+.wx-怪{padding:0 8px}
+/* 每个文件的表格栏宽一样，上下对齐；手机上表格自己左右滑 */
+.file{min-width:0;max-width:100%;overflow:hidden}
+.file table{table-layout:fixed;min-width:760px}
+.file th:nth-child(1){width:11%}.file th:nth-child(2){width:15%}.file th:nth-child(3){width:13%}.file th:nth-child(4){width:33%}
 </style>
 <link rel="stylesheet" href="../hq/gold.css?v=20261126b">
 </head>
@@ -197,6 +225,7 @@ td ul{margin:0;padding-left:18px}
       }
       var orders = done.reduce(function (a, d) { return a + d.rows.length; }, 0), problem = done.reduce(function (a, d) { return a + d.bad.length; }, 0);
       state = { done: done, unread: unread, orders: orders, problem: problem };
+      filterNow = 'all';
       render();
       window.HQBus && HQBus.emit({ tool: 'wuxing', kind: 'processed', files: done.length, items: orders, problem: problem });
     } catch (e) {
@@ -205,25 +234,64 @@ td ul{margin:0;padding-left:18px}
     }
   }
 
+  var COLOR_OK = ['黄', '黑', '白', '绿', '红', '蓝'];
+  function chip(x) {
+    if (x.label) {   // 单一栏：乾坤「颜色」、生肖
+      var isColor = x.label === '颜色', cls = isColor ? (COLOR_OK.indexOf(x.v) >= 0 ? 'wx-' + x.v : 'wx-怪') : 'wx-无';
+      return '<span class="wx ' + cls + (x.bad ? ' is-bad' : '') + '" title="' + esc(x.label + '：' + x.v) + '">' + esc(x.v) + '</span>';
+    }
+    var cls = x.c == null ? 'wx-无' : COLOR_OK.indexOf(x.c) >= 0 ? 'wx-' + x.c : 'wx-怪';
+    var name = x.c == null ? '' : (x.c || '没有颜色');
+    return '<span class="wx ' + cls + (x.bad ? ' is-bad' : '') + '" title="' + esc((x.n || '没有数字') + (name ? ' ' + name : '')) + '">' + esc(x.n || '?') +
+      (name ? '<span class="vh">' + esc(name) + '</span>' : '') + (cls === 'wx-怪' ? '<small>' + esc(x.c || '无色') + '</small>' : '') + '</span>';
+  }
+
   function render() {
     var s = state, badFiles = s.done.filter(function (d) { return d.bad.length; });
     var h = '<section class="card pad sum"><span>文件 <b>' + s.done.length + '</b> 个</span><span>订单 <b>' + s.orders + '</b> 单</span>' +
       '<span' + (s.problem ? ' class="bad"' : '') + '>有问题 <b>' + s.problem + '</b> 单</span></section>';
     if (s.unread.length) h += '<section class="warn" role="alert"><b>' + s.unread.length + ' 个文件没审到：</b><ul>' + s.unread.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></section>';
     if (!s.problem) h += '<section class="ok-box" role="status"><b>全部没问题</b>：' + s.orders + ' 单的五行都照规则配好了，可以去系统「回传导入五行」。</section>';
-    else {
-      h += '<section class="card"><div class="tbl"><table><thead><tr><th scope="col">文件</th><th scope="col">使用人</th><th scope="col">订单编号</th><th scope="col">商品</th><th scope="col">问题</th></tr></thead><tbody>' +
-        badFiles.map(function (d) {
-          return d.bad.map(function (x) {
-            return '<tr><td class="fn">' + esc(d.name) + '</td><td>' + esc(x.user) + '</td><td>' + esc(x.order) + '</td><td>' + esc(x.product) + '</td><td class="bad"><ul>' +
-              x.issues.map(function (is) { return '<li>' + esc(is.msg) + '</li>'; }).join('') + '</ul></td></tr>';
-          }).join('');
-        }).join('') + '</tbody></table></div></section>';
-      h += '<div class="acts"><span class="small">有问题的格子已经标红字；问过专家、改好以后，再一起回传导入五行。没问题的文件不用下载，原本的就可以用。</span>' +
-        '<button type="button" class="btn g-btn3d" data-dl>下载标红的文件（' + badFiles.length + ' 个）</button></div>';
-    }
+    else h += '<div class="acts"><span class="small">有问题的格子已经标红字；问过专家、改好以后，再一起回传导入五行。没问题的文件不用下载，原本的就可以用。</span>' +
+      '<button type="button" class="btn g-btn3d" data-dl>下载标红的文件（' + badFiles.length + ' 个）</button></div>';
+    h += '<div class="bar"><div class="seg" role="group" aria-label="显示哪些单">' +
+      [['all', '全部', s.orders], ['bad', '有问题', s.problem], ['ok', '没问题', s.orders - s.problem]].map(function (f) {
+        return '<button type="button" data-filter="' + f[0] + '" aria-pressed="' + (f[0] === 'all') + '">' + f[1] + ' ' + f[2] + '</button>';
+      }).join('') + '</div><input class="find" id="find" type="search" placeholder="搜姓名或订单编号" aria-label="搜姓名或订单编号"></div>';
+    // 一个文件一块；有问题的文件、有问题的单排前面
+    s.done.slice().sort(function (a, b) { return (b.bad.length > 0) - (a.bad.length > 0); }).forEach(function (d) {
+      var rows = d.rows.slice().sort(function (a, b) { return (b.issues.length > 0) - (a.issues.length > 0); });
+      h += '<details class="card file" open><summary><span class="fn">' + esc(d.name) + '</span><span class="small">' + d.rows.length + ' 单' +
+        (d.bad.length ? ' · <span class="bad">有问题 ' + d.bad.length + '</span>' : ' · 没问题') + '</span></summary>' +
+        '<div class="tbl"><table><thead><tr><th scope="col">使用人</th><th scope="col">订单编号</th><th scope="col">商品</th><th scope="col">五行</th><th scope="col">结果</th></tr></thead><tbody>' +
+        rows.map(function (x) {
+          var bad = x.issues.length > 0;
+          return '<tr' + (bad ? ' class="is-bad"' : '') + ' data-bad="' + (bad ? 1 : 0) + '" data-key="' + esc((x.user + ' ' + x.order).toLowerCase()) + '"><td>' + esc(x.user) + '</td><td>' + esc(x.order) + '</td><td>' + esc(x.product) + '</td>' +
+            '<td><div class="wxs">' + (x.config.length ? x.config.map(chip).join('') : '<span class="small">（空）</span>') + '</div></td>' +
+            '<td class="res">' + (bad ? '<ul class="bad">' + x.issues.map(function (is) { return '<li>' + esc(is.msg) + '</li>'; }).join('') + '</ul>' : '<span class="okmark">✓ 没问题</span>') + '</td></tr>';
+        }).join('') + '</tbody></table></div></details>';
+    });
     $('out').innerHTML = h;
+    $('find').addEventListener('input', applyFilter);
   }
+  var filterNow = 'all';
+  function applyFilter() {
+    var q = ($('find') && $('find').value || '').trim().toLowerCase();
+    document.querySelectorAll('#out details.file').forEach(function (d) {
+      var shown = 0;
+      d.querySelectorAll('tbody tr').forEach(function (tr) {
+        var ok = (filterNow === 'all' || (filterNow === 'bad') === (tr.dataset.bad === '1')) && (!q || tr.dataset.key.indexOf(q) >= 0);
+        tr.hidden = !ok; if (ok) shown++;
+      });
+      d.hidden = !shown;
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-filter]'); if (!b) return;
+    filterNow = b.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    applyFilter();
+  });
 
   function save(blob, name) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
   document.addEventListener('click', async function (e) {
