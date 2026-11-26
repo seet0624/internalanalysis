@@ -549,10 +549,11 @@ export function mountOffice(container, company, opts = {}) {
     const o = OPEN[0];
     const cx = (o.x0 + o.x1) / 2;
     const s = label(`<i style="background:${cs.color || '#8C6B24'}"></i>${esc(cs.name || '客服部')}<small>主要办公区</small>`, 'hq-room hq-room-main', 'dept/cs');
-    s.position.set(cx, 2.6, o.z0 + 0.6); scene.add(s);
+    s.position.set(cx, 2.6, o.z0 + 0.2); scene.add(s);   // 靠北一点：后排中间那区（技术单）的牌子就在下面
     register('dept/cs', { el: s.element, pos: new THREE.Vector3(cx, 0.5, (o.z0 + o.z1) / 2) });
     // 后排三区、前排两区（每组最多 4 人、两排对坐，7 宽够放）
     const quads = [[-13, -4.2, -6, 1.2], [-5.5, -4.2, 1.5, 1.2], [2, -4.2, 9, 1.2], [-13, 2.2, -2.5, 7.6], [-1.5, 2.2, 9, 7.6]];
+    if ((cs.teams || []).length > quads.length) console.warn('3D 办公室：客服部小组超过 ' + quads.length + ' 个，多的没有座位');
     (cs.teams || []).slice(0, quads.length).forEach((t, qi) => {
       const [x0, z0, x1, z1] = quads[qi], qx = (x0 + x1) / 2, qz = (z0 + z1) / 2;
       const planned = t.kind === 'planned';
