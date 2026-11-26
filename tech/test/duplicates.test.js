@@ -119,3 +119,8 @@ test('两个都叫「新生儿」（还没取名）：不当成同一个人', as
   const res = await E.processFiles([await sheet('名正言顺技术单 20.11.2026（2）.xlsx', [row('新生儿', '名正言顺命名'), row('新生儿', '名正言顺命名')])], {});
   assert.strictEqual(res.repeatBuys.length, 0);
 });
+
+test('文件名是套餐（鲟鱼肽健康套餐技术单），单是套餐送的名正言顺：不提醒放错文件', async () => {
+  const [r] = await E.processFiles([await sheet('鲟鱼肽健康套餐技术单 20.11.2026（1）.xlsx', [row('甲一', 'N1 鲟鱼肽健康套餐 - 赠品（名正言顺命名）')])], {});
+  assert.ok(r.orders.every((o) => !kinds(o).includes('wrong-file')), kinds(r.orders[0]).join(','));
+});

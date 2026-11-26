@@ -375,7 +375,7 @@ table.dl .fn{overflow-wrap:anywhere}
 <!-- 读 Excel / zip 的组件很大，上传时才用到：defer 不挡住画面先出来（review-engine 是用到时才去拿） -->
 <script src="../vendor/exceljs.min.js" defer></script>
 <script src="../vendor/jszip.min.js" defer></script>
-<script src="review-engine.js?v=fc7a470c1f"></script>
+<script src="review-engine.js?v=dd0e73139d"></script>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
@@ -416,6 +416,7 @@ table.dl .fn{overflow-wrap:anywhere}
     rows: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>',
     down: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg>',
     book: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5zM4 19a2 2 0 0 1 2-2h13"/></svg>',
+    audit: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6v3H9zM7 5H5v16h14V5h-2"/><path d="M8.5 13.5l2.5 2.5 4.5-5"/></svg>',
     globe: '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>'
   };
 
@@ -790,6 +791,63 @@ table.dl .fn{overflow-wrap:anywhere}
       '<div class="cover"><small>技术单审核台 · 更新日期 ' + esc(today) + '</small><h1>审核规则手册</h1><p>先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红。</p></div>' +
       rulesBody(true) + '</div></body></html>';
   }
+  // ---------- 检查员工自己做的技术单 ----------
+  function checkBad() { return (state.check || []).filter(function (r) { return r.errors.length || r.red.length; }).length; }
+  async function runCheck(fl) {
+    if (!window.ExcelJS || !window.JSZip) { toast('读 Excel 的组件还没载入，请稍等几秒再拖一次'); return; }
+    if (state.checkBusy) { toast('上一批还在检查，请等一下'); return; }
+    state.checkBusy = true; state.checkError = ''; state.check = null; state.checkNotes = []; render();
+    // readInputs writes the main review's seen / notes: keep them out of it
+    var keepSeen = state.seen, keepNotes = state.uploadNotes;
+    state.uploadNotes = [];
+    try {
+      var got = await readInputs(Array.prototype.slice.call(fl || []));
+      var skipped = (state.seen || []).filter(function (n) { return !/\.(xlsx|zip)$/i.test(n) && !/^（zip 里/.test(n); });
+      state.checkNotes = state.uploadNotes.concat(skipped.length ? ['这些不是 .xlsx，没有检查：' + skipped.join('、') + '（旧版 .xls 请先在 Excel 另存为 .xlsx）'] : []);
+      if (!got.length) state.checkError = '没有找到 .xlsx 技术单，请上传 .xlsx 或装着 .xlsx 的 .zip。';
+      // same settings as the review page, so the check expects what the page would make
+      else state.check = await E.checkFiles(got, { date: E.todayStr(), askFirstProducts: list(state.set.askfirst), splitWatchBrands: list(state.set.brands), urgentWords: list(state.set.urgent) });
+    } catch (e) { state.checkError = '检查失败：' + (e && e.message || e); }
+    state.seen = keepSeen; state.uploadNotes = keepNotes;
+    state.checkBusy = false; render();
+  }
+  function viewCheck() {
+    var h = '<div class="page"><div class="narrow" style="max-width:1100px">';
+    h += '<label class="drop" id="cdrop"><span class="ico">' + ICON.audit + '</span><span class="big">把员工做好的技术单拖到这里</span><span class="small">一个或多个 .xlsx，或整包 .zip。只在你的电脑里检查，不会上传</span>' +
+      '<span class="fake">选择文件</span><input id="cpick" type="file" multiple accept=".xlsx,.zip"></label>';
+    if (state.checkBusy) h += '<div class="status" role="status"><span class="spin" aria-hidden="true"></span>正在检查……</div>';
+    if (state.checkError) h += '<div class="error" role="alert">' + esc(state.checkError) + '</div>';
+    if ((state.checkNotes || []).length) h += '<div class="warnbox"><ul>' + state.checkNotes.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
+    var res = state.check;
+    if (res) {
+      var bad = checkBad(), conf = res.filter(function (r) { return r.confirms.length; }).length;
+      h += '<section class="card pad" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">' +
+        '<div><b style="font-size:18px">' + res.length + ' 个文件：' + (bad ? '<span style="color:var(--crit)">' + bad + ' 个有错</span>' : '<span style="color:var(--ok)">全部对</span>') + (conf ? '，' + conf + ' 个有事要确认' : '') + '</b>' +
+        '<div class="small">只交做好的文件时，系统看不出员工有没有漏掉整张单、或改了客人写的内容；它照规则检查红字、行数、文件名和页脚。在审核台手动改过的格子、手动选的红字或国内 / 海外，这里也会显示成差别。</div></div>' +
+        '<button type="button" class="btn small" data-checkreset>清空</button></section>';
+      h += res.map(checkCard).join('');
+    } else {
+      h += '<section class="card pad"><b>会检查</b><ul class="notes" style="margin-top:6px">' +
+        '<li>红字：该红的没红、不该红的红了（逐格列出）</li><li>行数和内容：名正言顺每人两行、总备注和备注一样要清空……</li>' +
+        '<li>文件名：工具、日期、单数、H、（特殊加急）（有问题）；一个文件该不该分开</li><li>页脚：审核人、制表时间、回传时间</li>' +
+        '<li>同一单交了两次</li><li>有问题、加急和规则不一样的，放在「请确认」（员工可能问过人）</li></ul></section>';
+    }
+    return h + '</div></div>';
+  }
+  function checkCard(r) {
+    var n = r.errors.length + r.red.length;
+    var h = '<section class="card pad" style="display:flex;flex-direction:column;gap:10px"><div class="main-h"><h2 style="font-size:16px;overflow-wrap:anywhere">' + esc(r.name) + '</h2>' +
+      (n ? '<span class="tag crit">' + n + ' 个错</span>' : '<span class="tag ok">✓ 全对</span>') + '</div>' +
+      '<span class="small">' + r.orders + ' 单</span>';
+    if (r.errors.length) h += '<ul class="notes" style="color:var(--crit-ink)">' + r.errors.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') + '</ul>';
+    if (r.red.length) h += '<div class="tbl"><table><thead><tr><th scope="col">学员</th><th scope="col">栏</th><th scope="col">内容</th><th scope="col">应该</th></tr></thead><tbody>' +
+      r.red.map(function (x) {
+        return '<tr><td>' + esc(x.person) + (x.row > 1 ? '<span class="small">（第' + x.row + '行）</span>' : '') + '</td><td>' + esc(x.h) + '</td><td style="overflow-wrap:anywhere;max-width:420px">' + esc(x.value) + '</td>' +
+          '<td>' + (x.want ? '<b style="color:var(--crit)">要红字（你没红）</b>' : '<b>不要红（你红了）</b>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+    if (r.confirms.length) h += '<div class="warnbox"><b>请确认（不一定是错）</b><ul>' + r.confirms.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') + '</ul></div>';
+    return h + '</section>';
+  }
   function viewRules() {
     return '<div class="page"><section class="rules-box" aria-label="审核规则手册">' + rulesBody(false) + '</section></div>' + rulesPreview();
   }
@@ -804,12 +862,12 @@ table.dl .fn{overflow-wrap:anywhere}
   (function () { var st = document.createElement('style'); st.textContent = rulesCss('.rules-box'); document.head.appendChild(st); })();
   function render() {
     renderTop();
-    var v = state.view === 'rules' ? 'rules' : state.results ? state.view : 'upload';
-    $('app').innerHTML = v === 'upload' ? viewUpload() : v === 'review' ? viewReview() : v === 'rules' ? viewRules() : viewDownload();
+    var v = state.view === 'rules' || state.view === 'check' ? state.view : state.results ? state.view : 'upload';
+    $('app').innerHTML = v === 'upload' ? viewUpload() : v === 'review' ? viewReview() : v === 'rules' ? viewRules() : v === 'check' ? viewCheck() : viewDownload();
   }
   // which nav item is "here": 工作台 = review on 待你决定, 全部订单 = review on any other filter
   function navKey() {
-    var v = state.view === 'rules' ? 'rules' : state.results ? state.view : 'upload';
+    var v = state.view === 'rules' || state.view === 'check' ? state.view : state.results ? state.view : 'upload';
     return v === 'review' ? (state.filter === 'todo' ? 'home' : 'orders') : v;
   }
   function picked() {
@@ -825,7 +883,8 @@ table.dl .fn{overflow-wrap:anywhere}
       ['upload', '上传文件', ICON.upl, 'data-view="upload"', '', false],
       ['orders', '全部订单', ICON.rows, 'data-view="review" data-filter="all"', res ? '<span class="badge">' + items().length + '</span>' : '', !res],
       ['download', '下载中心', ICON.down, 'data-view="download"', res ? '<span class="badge ok">' + ready + '</span>' : '', !res],
-      ['rules', '规则手册', ICON.book, 'data-view="rules"', '', false]
+      ['rules', '规则手册', ICON.book, 'data-view="rules"', '', false],
+      ['check', '检查员工的单', ICON.audit, 'data-view="check"', state.check ? '<span class="badge' + (checkBad() ? ' hot' : ' ok') + '">' + (checkBad() || '✓') + '</span>' : '', false]
     ];
     var btn = function (cls, n, short) {
       return '<button type="button" class="' + cls + '" ' + n[3] + (here === n[0] ? ' aria-current="page"' : '') + (n[5] ? ' disabled' : '') + '>' + (cls === 'nav' ? '<span class="gi">' + n[2] + '</span>' : n[2]) + (short || n[1]) + n[4] + '</button>';
@@ -844,9 +903,10 @@ table.dl .fn{overflow-wrap:anywhere}
       home: ['今日工作台', '快速处理待审核的订单与文件'],
       orders: ['全部订单', res ? state.results.length + ' 个文件 · ' + items().length + ' 单' : ''],
       download: ['下载中心', '下载前看一下这几项；改了以后文件马上更新'],
-      rules: ['审核规则手册', '先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红']
+      rules: ['审核规则手册', '先看流程图知道每单去哪个文件，再查表知道每一格什么情况要红'],
+      check: ['检查员工的单', '员工自己做好的技术单拖进来：系统照规则再做一次，逐格对比红字、文件名、页脚']
     }[here];
-    var TI = { home: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>', upload: ICON.upl, orders: ICON.rows, download: ICON.down, rules: ICON.book }[here];
+    var TI = { home: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>', upload: ICON.upl, orders: ICON.rows, download: ICON.down, rules: ICON.book, check: ICON.audit }[here];
     $('toph').innerHTML = '<a class="home ph-only" href="../">← 审核总部</a><div class="g-titlerow"><span class="g-tile desk-only">' + TI + '</span><div><h1>' + esc(T[0]) + '</h1><p class="sub" title="' + esc(T[1]) + '">' + esc(T[1]) + '</p></div></div>';
     var n = res ? picked() : 0;
     $('topacts').innerHTML = here === 'home' || here === 'orders'
@@ -1405,6 +1465,7 @@ table.dl .fn{overflow-wrap:anywhere}
       todos().forEach(function (x) { if (x.kind === 'dup-order' && !x.decided) state.skips[x.it.mk] = true; });
       run().then(function (ok) { if (ok) toast('重复的单都不要了'); }); return;
     }
+    if ('checkreset' in d) { state.check = null; state.checkError = ''; state.checkNotes = []; render(); return; }
     if (d.copytext) { copyText(d.copytext, b); return; }
     if (d.dlR != null) { var o = state.results[+d.dlR].outputs[+d.dlO]; saveMark(o.name, new Blob([o.buffer]), [dkey(o)]); return; }
     if (d.dlzip) { var z = zipOf(d.dlzip); zipBlob(z.outs).then(function (bl) { return saveMark(z.name, bl, [z.name].concat(z.outs.map(dkey))); }).catch(zipFail); return; }
@@ -1454,6 +1515,7 @@ table.dl .fn{overflow-wrap:anywhere}
   document.addEventListener('change', function (e) {
     var t = e.target;
     if (t.id === 'pick') { addFiles(t.files); t.value = ''; return; }
+    if (t.id === 'cpick') { runCheck(t.files); t.value = ''; return; }
     if (t.dataset && t.dataset.pick) { state.pick[t.dataset.pick] = t.checked; render(); }
   });
   // <details> remember open / closed across re-renders
@@ -1464,12 +1526,13 @@ table.dl .fn{overflow-wrap:anywhere}
     if ('adv' in t.dataset) state.advOpen = t.open;
     if ('dec' in t.dataset) state.decOpen = t.open;
   }, true);
-  document.addEventListener('dragover', function (e) { var dz = e.target.closest && e.target.closest('#drop'); if (dz) { e.preventDefault(); dz.classList.add('over'); } });
-  document.addEventListener('dragleave', function (e) { var dz = e.target.closest && e.target.closest('#drop'); if (dz) dz.classList.remove('over'); });
+  document.addEventListener('dragover', function (e) { var dz = e.target.closest && e.target.closest('#drop, #cdrop'); if (dz) { e.preventDefault(); dz.classList.add('over'); } });
+  document.addEventListener('dragleave', function (e) { var dz = e.target.closest && e.target.closest('#drop, #cdrop'); if (dz) dz.classList.remove('over'); });
   document.addEventListener('drop', function (e) {
-    var dz = e.target.closest && e.target.closest('#drop');
+    var dz = e.target.closest && e.target.closest('#drop, #cdrop');
     if (!dz) return;
-    e.preventDefault(); dz.classList.remove('over'); addFiles(e.dataTransfer && e.dataTransfer.files);
+    e.preventDefault(); dz.classList.remove('over');
+    if (dz.id === 'cdrop') runCheck(e.dataTransfer && e.dataTransfer.files); else addFiles(e.dataTransfer && e.dataTransfer.files);
   });
 
   render();

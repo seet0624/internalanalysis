@@ -484,8 +484,8 @@
 
   // 天希手表 vs 天希手表 / 许舒涵九合平衡牌 vs 九合平衡牌: the same tool when one name holds the other
   // 名正言順 / 鴻運手錶 written in 繁体 are the same tool as 名正言顺 / 鸿运手表
-  var SIMP = { '順': '顺', '運': '运', '鴻': '鸿', '錶': '表', '澤': '泽', '貴': '贵', '寶': '宝', '親': '亲', '華': '华', '豐': '丰', '吊墜': '吊坠', '牌': '牌' };
-  function simpTool(x) { return String(x || '').replace(/吊墜|[順運鴻錶澤貴寶親華豐]/g, function (c) { return SIMP[c] || c; }); }
+  var SIMP = { '順': '顺', '運': '运', '鴻': '鸿', '錶': '表', '澤': '泽', '貴': '贵', '寶': '宝', '親': '亲', '華': '华', '豐': '丰', '墜': '坠' };
+  function simpTool(x) { return String(x || '').replace(/[順運鴻錶澤貴寶親華豐墜]/g, function (c) { return SIMP[c]; }); }
   function sameTool(a, b) {
     var n = function (x) { return simpTool(productName(x)).replace(/\s/g, ''); };
     a = n(a); b = n(b);
@@ -493,6 +493,14 @@
   }
   // 「海外技术单 …」「今日技术单 …」name no tool
   var GENERIC_TOOL = /^\s*(海外|国内|國內|全部|今日|今天|所有|新|旧|舊|[（(]?第?\d+[份批]?[）)]?)\s*$/;
+  // the tool a file NAME promises ("天希手表技术单 …" → 天希手表); '' for "技术单 20.11.2026.xlsx" / "海外技术单 …"
+  function fileToolOf(name) {
+    var t = toolName(name);
+    return /技术单/.test(name) && !GENERIC_TOOL.test(t) && /[\u4e00-\u9fff]/.test(t) ? t : '';
+  }
+  // an order belongs in a file named after tool t when its tool matches, or its full 商品标题 names t
+  // ("N1 鲟鱼肽健康套餐 - 赠品（名正言顺命名）" belongs in 鲟鱼肽健康套餐技术单 and in 名正言顺技术单)
+  function fitsFileTool(t, product, title) { return !t || sameTool(t, product) || simpTool(title).indexOf(simpTool(t)) >= 0; }
   function toolName(fileName) {
     var base = String(fileName).replace(/\.xlsx$/i, '');
     var m = base.match(/^(.*?)技术单/);
@@ -622,7 +630,7 @@
     var C = header.cols;
     tool = toolFromSheet(ws, range, C) || toolName(file.name);
     // the tool the file NAME promises ("天希手表技术单 …"); empty for "技术单 20.11.2026.xlsx"
-    var fileTool = /技术单/.test(file.name) && !GENERIC_TOOL.test(toolName(file.name)) && /[\u4e00-\u9fff]/.test(toolName(file.name)) ? toolName(file.name) : '';
+    var fileTool = fileToolOf(file.name);
     // one sheet can hold several products (天祥手表 + 天富手表 + 鸿运手表 …): each one gets its own file
     var products = [];
     if (C['商品标题']) for (var pr = range.first; pr <= range.last; pr++) {
@@ -721,7 +729,7 @@
         var keptDup = dupOf && (opts.notDups || {})[file.name + '|' + key];
         if (dupOf) add({ kind: 'dup-order', level: keptDup ? 'info' : 'high', problem: !keptDup, who: '审核人', text: '这一单在《' + dupOf.file + '》也有（同一个订单号、同样是' + o.product + '）— ' + (keptDup ? '你选了保留，不是重复' : '重复了，确认后可以不要这一单') });
         // 文件名是天希手表，这一单却是鸿运手表 → 可能放错文件（照样另开鸿运手表文件）
-        else if (fileTool && !sameTool(fileTool, o.product)) add({ kind: 'wrong-file', level: 'high', text: '这一单是「' + o.product + '」，文件名却是「' + fileTool + '」— 会另开' + o.product + '文件；请确认没有放错文件' });
+        else if (!fitsFileTool(fileTool, o.product, get('商品标题'))) add({ kind: 'wrong-file', level: 'high', text: '这一单是「' + o.product + '」，文件名却是「' + fileTool + '」— 会另开' + o.product + '文件；请确认没有放错文件' });
       }
 
       // 海外技术单: these products must be checked before they can be made → 有问题
@@ -1267,7 +1275,7 @@
           var no = orderNo14(g('订单编号'));
           if (!no || byNo[no]) continue;
           var snm = (g('新名字姓氏').match(/[\u4e00-\u9fff]/) || [])[0];
-          var o = { no: no, id: g('订单编号').trim(), surname: snm || '', person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool, product: productName(g('商品标题')) || tool,
+          var o = { no: no, id: g('订单编号').trim(), surname: snm || '', person: g('使用人姓名').trim() || g('会员姓名').trim(), tool: tool, product: productName(g('商品标题')) || tool, title: g('商品标题'),
             names: ownNames(g('使用人姓名')).concat(ownNames(g('会员姓名'))),
             rel: relNames([g('父亲名字'), g('母亲名字'), g('兄弟姐妹'), g('子女')].join(' ')),
             // every column can carry a relative (父亲名字 / 母亲名字 / 兄弟姐妹 / 子女 / 备注 …), except the order's own identity
@@ -1318,7 +1326,7 @@
   // (鸿运手表 inside 天希手表技术单) is the extra one; otherwise the later file's copy.
   function findDups(files, scanned) {
     var dups = files.map(function () { return {}; }), seen = {};
-    var misplaced = function (c) { var t = toolName(files[c.i].name); return /技术单/.test(files[c.i].name) && !GENERIC_TOOL.test(t) && /[\u4e00-\u9fff]/.test(t) && !sameTool(t, c.o.product); };
+    var misplaced = function (c) { return !fitsFileTool(fileToolOf(files[c.i].name), c.o.product, c.o.title); };
     (scanned || []).forEach(function (orders, i) {
       (orders || []).forEach(function (o) {
         var k = o.no + '|' + simpTool(o.product), cur = { i: i, o: o }, prev = seen[k];
@@ -1362,5 +1370,143 @@
     return out;
   }
 
-  return { processFiles: processFiles, DEFAULTS: DEFAULTS, todayStr: todayStr, isOverseasName: isOverseasName, dateFromName: dateFromName, _mentionedFamily: mentionedFamily, _zodiacFor: zodiacFor, _surnameVsOwn: surnameVsOwn, _surnameCheck: surnameCheck, _ziShi: ziShi };
+  // ---------- 检查员工自己做的技术单 ----------
+  // staff paint with Excel's 红色 (FFFF0000) or 深红 (FFC00000): both are red text
+  var STAFF_RED = /^FF(FF0000|C00000)$/i;
+  function staffRed(cell) {
+    var f = cell.font, v = cell.value, red = function (x) { return x && x.color && STAFF_RED.test(String(x.color.argb || '')); };
+    return red(f) || !!(v && typeof v === 'object' && v.richText && v.richText.some(function (r) { return red(r.font); }));
+  }
+  function stripRed(cell) {
+    var v = cell.value;
+    if (v && typeof v === 'object' && v.richText) cell.value = { richText: v.richText.map(function (r) {
+      var rf = Object.assign({}, r.font || {}); if (rf.color && STAFF_RED.test(String(rf.color.argb || ''))) delete rf.color;
+      return { text: r.text, font: rf };
+    }) };
+    var f = Object.assign({}, cell.font || {});
+    if (f.color && STAFF_RED.test(String(f.color.argb || ''))) { delete f.color; cell.style = Object.assign({}, cell.style, { font: f }); }
+  }
+  // 制表时间 20/11/2026 or 2026/11/20 → the same as 20.11.2026
+  function footerDate(t) { return dateFromName(String(t || '').replace(/\//g, '-')); }
+  // 页脚三格：审核人 / 制表时间 / 回传时间（值写在同一格冒号后，或右边的格子）
+  // (only below the data: the header row has its own 审核人 column)
+  function readFooter(ws, fromRow) {
+    var out = {}, KEY = { '审核人': 'reviewer', '制表时间': 'made', '回传时间': 'back' };
+    ws.eachRow(function (row, r) {
+      if (r < fromRow) return;
+      row.eachCell({ includeEmpty: false }, function (c) {
+        if (isSlave(c)) return;
+        var m = cellText(c).trim().match(/^(审核人|制表时间|回传时间)\s*[:：]?\s*(.*)$/);
+        if (!m) return;
+        var v = m[2].trim();
+        if (!v) { var x = valueCellRightOf(row, c); v = x.existing ? cellText(x.cell).trim() : ''; }
+        out[KEY[m[1]]] = v;
+      });
+    });
+    return out;
+  }
+  // every data cell of a sheet, keyed 订单编号|第几行|栏名 (rows can be moved around; a 名正言顺 student has two rows)
+  async function sheetCells(buffer) {
+    var wb = await load(buffer), ws = wb.worksheets[0], header = findHeader(ws);
+    if (!header || !header.cols['订单编号']) return null;
+    var range = dataRowRange(ws, header), C = header.cols, heads = Object.keys(C).filter(function (h) { return h !== '序号'; });
+    var cells = {}, orders = {}, list = [];
+    for (var r = range.first; r <= range.last; r++) {
+      var row = ws.getRow(r), key = cellText(row.getCell(C['订单编号']));
+      if (isBlank(key)) continue;
+      var o = orders[key];
+      if (!o) { o = orders[key] = { key: key, rows: 0, person: (cellText(row.getCell(C['使用人姓名'] || 1)).trim() || cellText(row.getCell(C['会员姓名'] || 1)).trim()) }; list.push(o); }
+      var n = ++o.rows;
+      heads.forEach(function (h) {
+        var c = row.getCell(C[h]); if (isSlave(c)) c = c.master;
+        var v = cellText(c).trim();
+        cells[key + '|' + n + '|' + h] = { v: v, red: !isBlank(v) && staffRed(c) };
+      });
+    }
+    // orders under a blank row: the review never reads them, so the staff member's file can't be checked there
+    var lost = 0;
+    for (var q = range.last + 1; q <= ws.rowCount; q++) {
+      var qr = ws.getRow(q);
+      if (FOOTER_LABEL.test(cellText(qr.getCell(1)).trim()) || /^(审核人|制表时间|回传时间)/.test(cellText(qr.getCell(1)).trim())) break;
+      if (/\d{6,}/.test(cellText(qr.getCell(C['订单编号'])))) lost++;
+    }
+    return { cells: cells, orders: orders, list: list, lost: lost, footer: readFooter(ws, range.last + 1) };
+  }
+  // A staff member made the files by hand. For each one: run the rules on a copy with all red taken out,
+  // then compare with what the staff member handed in.
+  //   errors   — against the rules: red text, rows, content, file name, footer, handed in twice
+  //   confirms — 有问题 / 加急 differ from what the rules would do: the staff member may have asked someone
+  async function checkFiles(files, options) {
+    var opts = Object.assign({}, DEFAULTS, options || {});
+    var scan = await scanFamilies(files), dups = findDups(files, scan.scanned), out = [];
+    for (var i = 0; i < files.length; i++) {
+      var f = files[i], rep = { name: f.name, errors: [], red: [], confirms: [], expected: [], orders: 0 };
+      out.push(rep);
+      try {
+        var staff = await sheetCells(f.buffer);
+        if (!staff) { rep.errors.push('读不出来：找不到表头（序号 / 订单编号）'); continue; }
+        rep.orders = staff.list.length;
+        if (!rep.orders) { rep.errors.push('读不到任何订单：表头下面第一行的订单编号是空的？'); continue; }
+        if (staff.lost) rep.errors.push('有 ' + staff.lost + ' 单在空行下面，审核读不到 — 把中间的空行删掉');
+        var who = function (k) { return (staff.orders[k] && staff.orders[k].person) || k; };
+        Object.keys(dups[i] || {}).forEach(function (k) { rep.errors.push('订单 ' + k.split('|')[0] + '（' + k.split('|')[1] + '）在《' + dups[i][k].file + '》也有 — 交了两次'); });
+        // the copy the rules start from: no red at all
+        var wb = await load(f.buffer);
+        wb.worksheets[0].eachRow(function (row) { row.eachCell({ includeEmpty: false }, function (c) { if (!isSlave(c)) stripRed(c); }); });
+        var clean = Object.assign({}, f, { buffer: await wb.xlsx.writeBuffer() }); // keeps a zip's H / date
+        var made = footerDate(staff.footer.made), base = { date: made || opts.date, reviewer: staff.footer.reviewer || opts.reviewer, region: 'auto' };
+        // the staff member's own choices, read from the file name
+        var tagP = /（有问题）/.test(f.name), tagU = /（特殊加急）/.test(f.name), solo = /^（单独发）/.test(f.name);
+        var mine = { problems: {}, urgents: {}, solos: {} };
+        staff.list.forEach(function (o) { var mk = f.name + '|' + o.key; mine.problems[mk] = tagP; mine.urgents[mk] = tagU; if (solo) mine.solos[mk] = true; });
+        var rules = (await processFiles([clean], Object.assign({}, opts, base, { solos: mine.solos })))[0];
+        var asMade = (await processFiles([clean], Object.assign({}, opts, base, mine)))[0];
+        if (rules.error || asMade.error) { rep.errors.push('读不出来：' + (rules.error || asMade.error)); continue; }
+        // 1) 有问题 / 加急: rules vs the staff member's choice → 请确认
+        rules.orders.forEach(function (o) {
+          var why = o.flags.filter(function (x) { return x.problem; }).map(function (x) { return x.text; }).join('；');
+          if (o.problem && !tagP) rep.confirms.push(who(o.key) + '：规则会放「有问题」（' + why + '），你放在普通文件 — 问过了吗？');
+          if (!o.problem && tagP) rep.confirms.push(who(o.key) + '：规则看不出有问题，你放了「有问题」— 原因要写清楚');
+          var u = o.newborn ? !!o.babyUrgent : !!o.urgent;
+          if (u && !tagU && !o.newborn) rep.confirms.push(who(o.key) + '：规则会设特殊加急（备注 / 日期），你没有加急 — 确认不用加急？');
+          if (!u && tagU && !o.newborn) rep.confirms.push(who(o.key) + '：规则看不出要加急，你设了特殊加急 — 确认要加急？');
+        });
+        // 2) file name and split, as the rules would make it with the staff member's own choices
+        rep.expected = asMade.outputs.map(function (o) { return o.name; });
+        if (asMade.outputs.length > 1) rep.errors.push('这个文件应该分成 ' + asMade.outputs.length + ' 个：' + rep.expected.join('、'));
+        else if (asMade.outputs.length === 1 && rep.expected[0] !== f.name) rep.errors.push('文件名应该是「' + rep.expected[0] + '」');
+        // 3) footer
+        var ft = staff.footer, want = { back: asMade.outputs[0] && asMade.outputs[0].back || (asMade.footer || {}).back };
+        if (!ft.reviewer) rep.errors.push('页脚：审核人没写');
+        if (!ft.made) rep.errors.push('页脚：制表时间没写');
+        else if (!made) rep.errors.push('页脚：制表时间「' + ft.made + '」看不懂，请写成 日.月.年');
+        if (!ft.back) rep.errors.push('页脚：回传时间没写' + (want.back ? '，应该是 ' + want.back : ''));
+        else if (made && !want.back) rep.errors.push('页脚：回传时间无法核对');
+        else if (made && footerDate(ft.back) !== want.back) rep.errors.push('页脚：回传时间应该是 ' + want.back + '，你写「' + ft.back + '」');
+        // 4) red text, rows, content — cell by cell against the rules' own files
+        var exp = { cells: {}, orders: {} };
+        for (var j = 0; j < asMade.outputs.length; j++) {
+          var e = await sheetCells(asMade.outputs[j].buffer);
+          if (!e) { rep.errors.push('规则做出来的「' + asMade.outputs[j].name + '」读不出来，这部分没核对'); continue; }
+          Object.assign(exp.cells, e.cells);
+          Object.keys(e.orders).forEach(function (k) { exp.orders[k] = e.orders[k]; });
+        }
+        Object.keys(exp.orders).forEach(function (k) {
+          var a = staff.orders[k], b = exp.orders[k];
+          if (!a) rep.errors.push('少了「' + (b.person || k) + '」这一单');
+          if (a && a.rows < b.rows) rep.errors.push(who(k) + '：少了 ' + (b.rows - a.rows) + ' 行（应该有 ' + b.rows + ' 行）');
+          if (a && a.rows > b.rows) rep.errors.push(who(k) + '：多了 ' + (a.rows - b.rows) + ' 行');
+        });
+        Object.keys(exp.cells).forEach(function (k) {
+          var want = exp.cells[k], got = staff.cells[k], p = k.split('|');
+          if (!got) return;
+          if (want.v !== got.v) rep.errors.push(who(p[0]) + ' 的「' + p[2] + '」应该是「' + (want.v || '（空）') + '」，你写「' + (got.v || '（空）') + '」');
+          if (want.red !== got.red) rep.red.push({ key: p[0], person: who(p[0]), row: +p[1], h: p[2], value: got.v, want: want.red });
+        });
+      } catch (err) { rep.errors.push('检查失败：' + (err && err.message || err)); }
+    }
+    return out;
+  }
+
+  return { processFiles: processFiles, checkFiles: checkFiles, DEFAULTS: DEFAULTS, todayStr: todayStr, isOverseasName: isOverseasName, dateFromName: dateFromName, _mentionedFamily: mentionedFamily, _zodiacFor: zodiacFor, _surnameVsOwn: surnameVsOwn, _surnameCheck: surnameCheck, _ziShi: ziShi };
 });
