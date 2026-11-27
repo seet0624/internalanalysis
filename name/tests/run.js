@@ -211,6 +211,13 @@ const CASES = require('./naming-cases.json');
     window._surReason = outReason(rs[10]);
     return rs.map(r => baseName(r.disp) + ':' + (r.problem ? '有问题' : '通过')).join(' ') + ' | ' + outReason(rs[0]) + ' | 红字:' + red + ' | 勾:' + document.querySelectorAll('#main .hideChk').length + (() => { document.querySelector('#main .hideChk').click(); const t = outReason(rs[0]) + '/' + (JSON.stringify(load('mzys_hide', {})).indexOf('佘珮帆') >= 0); document.querySelector('#main .hideChk').click(); return ' | 勾后:' + t + '/' + outReason(rs[0]).slice(0, 6); })();
   });
+  { const vd = await p.evaluate(() => { const x = parsedFiles[0], sid = x.audit.results[10].sid, k = x.name + '#' + sid;
+      const m = load('mzys_verdicts', {}); m[k] = { v: '通过', p: false }; store('mzys_verdicts', m); rebuild(); // 旧格式（新规则上线前自动存的「通过」）
+      const r1 = parsedFiles[0].audit.results[10].problem; activeFile = 0; changeVerdict(sid, '通过'); rebuild();
+      const r2 = parsedFiles[0].audit.results[10].problem, saved = load('mzys_verdicts', {}), n = Object.keys(saved).filter(kk => kk.indexOf(x.name + '#') === 0).length;
+      delete saved[k]; store('mzys_verdicts', saved); rebuild(); return [r1, r2, n].join('|'); });
+    ok(vd === 'true|false|1', '旧的自动「通过」不能盖掉新抓到的问题；手动按通过要记住；只记手动改的那一位，实际 ' + vd); }
+  { const sc = await p.evaluate(() => { selectSid(parsedFiles[0].audit.results[10].sid); return Array.from(document.querySelectorAll('#main .han.clash .hz')).map(e => e.textContent).join('') + '|' + document.querySelector('#main .ncard .nh .lbl').textContent.trim() + '|' + Array.from(document.querySelectorAll('#main .nnote')).map(e => e.textContent).join(''); }); ok(sc === '付|·　姓「胡」|✕ 姓「付」和订单的姓氏「胡」不一样', '姓氏不对：名字卡写订单的姓、错的姓标红，实际 ' + sc); }
   { const sr = await p.evaluate(() => window._surReason); ok(sr === '新下来的名字（付安宇）的姓「付」和订单的新名字姓氏「胡」不一样', '新名的姓和订单姓氏不一样要写原因，实际 ' + sr); }
   ok(zg === '佘甲:有问题 周甲:有问题 王甲:通过 周乙:通过 周丙:通过 周丁:有问题 吴甲:通过 吴乙:通过 吴丙:有问题 吴丁:通过 胡甲:有问题 刘甲:通过 方甲:通过 胡乙:有问题 刘乙:通过 林甲:通过 | 新下来的名字（佘珮帆）的「珮」有大字根「王」，属牛（小生肖）不能用 | 红字:珮 | 勾:1 | 勾后:名字需要重新调整/true/新下来的名字', '大小生肖字根（名字卡上不能用的字要标红），实际 ' + zg);
 
