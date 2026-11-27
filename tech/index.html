@@ -1499,8 +1499,9 @@ table.dl .fn{overflow-wrap:anywhere}
     }
   });
   document.addEventListener('keydown', function (e) {
+    if (document.querySelector('dialog[open]')) return;   // 系统提醒框开着：键盘交给提醒框
     if (e.key === 'Escape' && state.rulesPreview) { state.rulesPreview = false; render(); return; }
-    if (e.key === 'Escape' && state.sel && !(e.target && /^dl-/.test(e.target.id))) { closeDetail(); return; }
+    if (e.key === 'Escape' && state.sel && !(e.target && /^dl-/.test(e.target.id))) { e.preventDefault(); closeDetail(); return; }
     if (e.key === 'Enter' && e.target && e.target.dataset && e.target.dataset.engIn) { e.preventDefault(); fillEngrave(e.target.dataset.engIn); return; }
     if (e.key === 'Enter' && e.target && e.target.id === 'dl-rev') { e.preventDefault(); saveReviewer(); }
     if (e.key === 'Enter' && e.target && e.target.id === 'dl-nd') { e.preventDefault(); saveNameDate(); }
