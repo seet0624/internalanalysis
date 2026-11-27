@@ -355,7 +355,7 @@ html.lg-day.hq-anon body{background:#EAF0F2 url("hq/brand/login-day.webp") left 
   .hq-room-boss small,.hq-room-main small{display:inline}
 }
 </style>
-<script src="hq/auth.js?v=20261126b" data-page="hq"></script>
+<script src="hq/auth.js?v=20261127a" data-page="hq"></script>
 <script>
 // 已经登入、会被转到别页的：先盖住旧办公室，只留金色 logo，免得闪一下
 // 登入页每次打开都是白天；只有从深色页面退出回来（?bye），停在夜晚，接夜晚的退出过场
@@ -365,7 +365,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
   else if (!_s) document.documentElement.classList.add('hq-anon');   // 没登入（例如刚退出）：只显示登入页，不先露出办公室
 } catch (e) {}
 </script>
-<script src="hq/bus.js?v=20261126b"></script>
+<script src="hq/bus.js?v=20261127a"></script>
 <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js" } }</script>
 </head>
 <body>
@@ -461,7 +461,7 @@ try { var _s = HQAuth.session(); if (_s && (_s.role !== 'boss' || !/[?&]classic/
 <nav class="hud card drawer" id="drawer" aria-label="组织架构" aria-hidden="true" inert></nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
-<script src="hq/company.js?v=20261126b"></script>
+<script src="hq/company.js?v=20261127a"></script>
 <script type="module">
 const C = window.COMPANY;
 const KIND = { site: '网站', claude: 'Claude', planned: '筹备中' };
@@ -597,7 +597,7 @@ $('acct').innerHTML = `<span>${esc(SESSION.id)} · ${esc(SESSION.name)}</span><b
 $('logout').addEventListener('click', () => { HQAuth.logout(); location.href = location.pathname + '?bye=1'; });   // ?bye：登入页播退出过场
 
 // ---------- 功能：客服一登入就看到我们有几个功能，审核工具最大，点了直接用 ----------
-const SHORT = { 'manual/': '客服手册', 'handbook/': '海外客服门户', 'guide/': '工具启动教程', 'docs/dongfang/': '东方药林教程', 'numera/': 'NUMERA' };
+const SHORT = { 'manual/': '客服手册', 'repair/': '维修价目', 'handbook/': '海外客服门户', 'guide/': '工具启动教程', 'docs/dongfang/': '东方药林教程', 'numera/': 'NUMERA' };
 const LICON = {
   wuxing: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="10.2" r="2.2"/><circle cx="16.3" cy="18.6" r="2.2"/><circle cx="7.7" cy="18.6" r="2.2"/><circle cx="5" cy="10.2" r="2.2"/></svg>',
   name: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><path d="m9 14 2 2 4-4"/></svg>',
@@ -870,7 +870,7 @@ function playDemo() {
 
 // ---------- 3D ----------
 try {
-  const { mountOffice } = await import('./hq/office.js?v=20261126b');
+  const { mountOffice } = await import('./hq/office.js?v=20261127a');
   office = mountOffice($('stage'), C, { stats, role: ROLE, companyName: coName(), onSelect: (id) => renderPanel(id), onFeed: addFeed });
   if (new URLSearchParams(location.search).has('debug')) window.hqOffice = office;   // 网址加 ?debug 可以在主控台看 3D 状态
 } catch (e) {

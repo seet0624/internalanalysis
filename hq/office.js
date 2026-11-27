@@ -8,7 +8,7 @@ import { CSS2DRenderer, CSS2DObject } from '../vendor/three/CSS2DRenderer.js';
 import { RoomEnvironment } from '../vendor/three/RoomEnvironment.js';
 import { RoundedBoxGeometry } from '../vendor/three/RoundedBoxGeometry.js';
 import { mergeGeometries } from '../vendor/three/BufferGeometryUtils.js';
-import { buildEntrance, buildPlaza, buildRoof } from './campus.js?v=20261126b';
+import { buildEntrance, buildPlaza, buildRoof } from './campus.js?v=20261127a';
 
 // ---------- 楼层尺寸（1 单位约 1 公尺） ----------
 const BW = 48, BD = 32;                 // x: -24..24，z: -16..16（z 越大越靠镜头）

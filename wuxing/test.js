@@ -156,7 +156,7 @@ t('工具和名正言顺混在同一份：不当整份名正言顺，工具照�
 t('页面载入 check.js 的版本号跟 hq/ 共用档案不一样就要换（check.js 改了，旧快取会配新页面）', () => {
   const fs = require('fs'), path = require('path');
   const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-  assert.doesNotMatch(html, /check\.js\?v=20261126b"/, 'check.js 这次有改，版本号要换新');
+  assert.doesNotMatch(html, /check\.js\?v=20261127a"/, 'check.js 这次有改，版本号要换新');
 });
 t('读不懂的表（没有「商品标题」或「配制信息」）回传 ok: false', () => {
   assert.strictEqual(WX.check([['随便一个表'], ['甲', '乙']]).ok, false);

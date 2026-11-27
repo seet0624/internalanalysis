@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>维修价目</title>
+<script src="../hq/auth.js?v=20261127a" data-nobadge></script>
+<script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
+<script src="../hq/bus.js?v=20261127a"></script>
+<style>
+/* 维修价目：跟名字审核、技术单审核同一套（米色底、金色重点、水墨左栏） */
+:root{--bg:#F6F1E7;--surface:#FFFDF8;--sunk:#F3ECDF;--ink:#2B2620;--muted:#6F6553;--faint:#7A6F5C;--line:#E8DFCC;--line-soft:#F0E9DB;--field:#DCCFB4;
+  --accent:#9A6B22;--accent-hover:#7E5718;--accent-soft:#F6ECD9;--accent-ink:#6E4B12;--on-accent:#FFFFFF;--crit:#B3261E;--crit-bg:#FBE9E7;--ok:#137333;--ok-bg:#E6F4EA;--warn:#7A4300;--warn-bg:#FFF1DC;
+  --sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif}
+:root[data-theme="dark"]{--bg:#0F1217;--surface:#161A21;--sunk:#12151B;--ink:#E8EAED;--muted:#9AA7BD;--faint:#6B7385;--line:#2A303C;--line-soft:#1E232C;--field:#343B49;
+  --accent:#D4AA5E;--accent-hover:#E2BE7A;--accent-soft:#3A2F1C;--accent-ink:#E9C98A;--on-accent:#1A1916;--crit:#FF8A80;--crit-bg:#3A1C1A;--ok:#7FCC8C;--ok-bg:#183020;--warn:#F2B866;--warn-bg:#33270F;color-scheme:dark}
+.theme svg{flex:none}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background-color:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6}
+[hidden]{display:none!important}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+h1,h2,h3{margin:0;line-height:1.3}
+p{margin:0}
+.shell{min-height:100vh}
+.side{display:none}
+@media (min-width:1000px){
+  .shell{display:grid;grid-template-columns:240px minmax(0,1fr)}
+  .side{display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow-y:auto;padding:16px 12px}
+}
+.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px}
+@media (min-width:720px){.top-in{padding:14px 28px}}
+.top .sub{font-size:13px;color:var(--muted)}
+.top-r{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.home{font-size:13px;color:var(--muted);text-decoration:none}
+@media (min-width:1000px){.ph-only{display:none!important}}
+@media (max-width:999px){.desk-only{display:none!important}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border:1px solid var(--field);border-radius:10px;background:var(--surface);color:var(--ink);font-weight:500;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn.small{min-height:36px;padding:0 12px;font-size:14px;border-radius:8px}
+.btn[disabled]{opacity:.5;cursor:default}
+.page{max-width:1120px;margin:0 auto;padding:24px 16px 80px;display:flex;flex-direction:column;gap:20px}
+@media (min-width:720px){.page{padding:28px 28px 60px}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 24px -18px rgba(110,75,18,.4)}
+.pad{padding:18px 22px}
+.small{font-size:13px;color:var(--muted)}
+.drop{position:relative;border-radius:20px;background:var(--surface);cursor:pointer}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop input{position:absolute;width:1px;height:1px;opacity:0}
+.drop .fake{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 28px;border-radius:12px;font-size:16px}
+.error{background:var(--crit-bg);color:var(--crit);border-radius:12px;padding:12px 16px}
+.status{display:flex;align-items:center;gap:10px;color:var(--accent-ink)}
+.facts{display:flex;flex-wrap:wrap;gap:8px 28px;align-items:center}
+.facts b{font-size:18px}
+.facts label{display:inline-flex;align-items:center;gap:8px}
+.facts input[aria-invalid="true"]{border-color:var(--crit)}
+.facts input{width:64px;min-height:38px;padding:0 10px;border:1px solid var(--field);border-radius:8px;background:var(--surface);text-align:center}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:14px;padding:14px 18px}
+.warn ul{margin:6px 0 0;padding-left:20px}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:12px 14px;text-align:left;border-top:1px solid var(--line-soft);vertical-align:middle}
+thead th{background:var(--sunk);font-size:13px;color:var(--muted);font-weight:700;border-top:0}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.grp{font-family:"ShuyiSerif","Songti SC","SimSun",serif;font-weight:700;font-size:17px}
+.fn{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
+.acts{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.center{text-align:center}
+.loading{display:grid;place-items:center;padding:60px 0}
+.loading img{width:64px;height:61px;animation:rpBreath 1.8s ease-in-out infinite}
+@keyframes rpBreath{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
+@media (prefers-reduced-motion:reduce){.loading img{animation:none}}
+/* 搜寻 + 分类 */
+.finder{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.search{display:flex;align-items:center;gap:10px;min-height:52px;padding:0 16px;border:1.5px solid var(--field);border-radius:14px;background:var(--bg);color:var(--muted)}
+.search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search input{flex:1;min-width:0;border:0;background:none;font-size:16px;outline:none;color:var(--ink)}
+.cats{display:flex;flex-wrap:wrap;gap:8px}
+.cats button{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);font-weight:500}
+.cats button svg{width:18px;height:18px}
+.cats button small{font-size:12px;color:var(--faint)}
+.cats button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.cats button[aria-pressed="true"] small{color:inherit;opacity:.8}
+/* 左边产品、右边项目 */
+.browse{display:grid;gap:16px}
+@media (min-width:1000px){.browse{grid-template-columns:260px minmax(0,1fr);align-items:start}.plist{position:sticky;top:96px;max-height:calc(100vh - 120px);overflow-y:auto}}
+.plist{position:relative;padding:8px;display:flex;flex-direction:column;gap:2px}
+@media (max-width:999px){.plist{flex-direction:row;overflow-x:auto;scroll-snap-type:x proximity}.pitem{flex:none;scroll-snap-align:start}}
+.pitem{display:flex;align-items:center;gap:10px;min-height:52px;padding:6px 10px;border:0;border-radius:10px;background:none;text-align:left;color:var(--ink)}
+.pitem:hover{background:var(--sunk)}
+.pitem[aria-current="true"]{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
+.pitem img,.pitem .pic{flex:none;width:36px;height:36px;border-radius:9px;object-fit:cover;display:grid;place-items:center;background:var(--sunk);color:var(--accent)}
+.pitem .pic svg{width:20px;height:20px}
+.pn{display:flex;flex-direction:column;line-height:1.3}
+.pn small{font-size:12px;color:var(--faint);font-weight:400}
+.pdetail{display:flex;flex-direction:column;gap:14px;min-width:0;scroll-margin-top:90px}
+.dhead{display:flex;align-items:center;gap:14px;padding:18px 20px}
+.dhead h3{font-family:var(--g-brush);font-size:24px}
+.dicon{flex:none;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.dicon svg{width:28px;height:28px}
+.gallery{display:flex;gap:10px;overflow-x:auto}
+.shot{flex:none;padding:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);cursor:zoom-in}
+.shot img{display:block;height:130px;width:auto}
+.grp{overflow:hidden}
+.grp h4{display:flex;align-items:baseline;gap:8px;margin:0;padding:12px 20px;background:var(--sunk);font-size:15px;border-bottom:1px solid var(--line-soft)}
+.grp h4 small{font-size:12px;color:var(--faint);font-weight:400}
+.items{list-style:none;margin:0;padding:0;font-family:var(--sans)}
+.items li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:6px 16px;padding:12px 20px;border-top:1px solid var(--line-soft)}
+.items li:first-child{border-top:0}
+.items li:hover{background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+.iq{overflow-wrap:anywhere}
+.note{margin-top:4px;font-size:12.5px;color:var(--muted);white-space:pre-line}
+.tag{display:inline-block;margin-right:8px;padding:0 8px;border-radius:6px;background:var(--sunk);color:var(--muted);font-size:12px}
+/* 价钱：数字粗体对齐；免费绿、无法维修灰、时价 / 重做橙 */
+.pr{justify-self:end;font-weight:700;font-variant-numeric:tabular-nums;font-size:16px;white-space:nowrap}
+.pr-num{color:var(--ink)}
+.pr-free{color:var(--ok);background:var(--ok-bg);padding:2px 10px;border-radius:999px;font-size:13px}
+.pr-none{color:var(--muted);background:var(--sunk);padding:2px 10px;border-radius:999px;font-size:13px;font-weight:500}
+.pr-ask{color:var(--warn);background:var(--warn-bg);padding:2px 10px;border-radius:999px;font-size:13px}
+.pr-text{font-size:13.5px;white-space:normal;text-align:right;max-width:220px}
+.acts{display:flex;gap:6px}
+.mini{min-height:32px;padding:0 10px;border:1px solid var(--field);border-radius:8px;background:var(--surface);color:var(--muted);font-size:13px}
+.mini:hover{border-color:var(--accent);color:var(--accent-ink)}
+@media (max-width:640px){.items li{grid-template-columns:minmax(0,1fr) auto}.acts{grid-column:1/-1}}
+/* 搜寻结果 */
+.results{padding:6px 0}
+.rhead{padding:10px 20px}
+.rgrp{border-top:1px solid var(--line)}
+.rprod{display:inline-flex;align-items:center;gap:8px;margin:12px 20px 4px;padding:0;border:0;background:none;font-weight:700;font-size:16px;color:var(--accent-ink)}
+.rprod svg{width:20px;height:20px}
+.empty{padding:28px 20px;text-align:center;color:var(--muted)}
+/* 对比、看大图 */
+.dlg{width:min(520px,calc(100vw - 32px));max-height:calc(100vh - 64px);padding:22px 24px;border:1px solid var(--line);border-radius:18px;background:var(--surface);color:var(--ink);box-shadow:0 30px 60px -20px rgba(0,0,0,.35)}
+.dlg::backdrop{background:rgba(20,16,10,.45)}
+.dlg .x{position:absolute;top:10px;right:12px;width:36px;height:36px;border:0;border-radius:50%;background:var(--sunk);font-size:20px;line-height:1;color:var(--muted)}
+.dlg h3{font-family:var(--g-brush);font-size:20px;margin-bottom:4px}
+.cmp{list-style:none;margin:14px 0 0;padding:0;counter-reset:c}
+.cmp li{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:10px;counter-increment:c}
+.cmp li span:first-child::before{content:counter(c) ". ";color:var(--faint)}
+.cmp li.me{background:var(--accent-soft);font-weight:700}
+.cmp li small{margin-left:8px;font-size:12px;color:var(--accent-ink)}
+.big{display:block;max-width:100%;height:auto;margin:20px auto 0;border-radius:10px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:14px;box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
+</style>
+<link rel="stylesheet" href="../hq/gold.css?v=20261127a">
+</head>
+<body class="g-pat">
+<div class="shell">
+  <aside class="side g-side" aria-label="审核总部导航">
+    <a class="g-brand" href="../" title="回到审核总部"><img src="../hq/brand/shuyi-logo-gold.png" alt="">国内客服系统</a>
+    <a class="g-sys" href="../name/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V5a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v15l-3.5-2-3.5 2-3.5-2z"/><path d="M8.5 9h7M8.5 12.5h4.5"/></svg></span>名字审核</a>
+    <a class="g-sys" href="../tech/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="3.5" rx="1"/><path d="M8 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2"/><path d="M9 13l2 2 4-4"/></svg></span>技术单审核</a>
+    <a class="g-sys" href="../bjp/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg></span>保健品分督导</a>
+    <a class="g-sys" href="../wuxing/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="10.2" r="2.2"/><circle cx="16.3" cy="18.6" r="2.2"/><circle cx="7.7" cy="18.6" r="2.2"/><circle cx="5" cy="10.2" r="2.2"/></svg></span>五行审核</a>
+    <div class="g-label">资料</div>
+    <a class="g-sys" href="../manual/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg></span>客服手册</a>
+    <a class="g-sys" href="./" aria-current="page"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.3 5.3l-6 6a1.6 1.6 0 0 0 2.3 2.3l6-6a4 4 0 0 0 5.3-5.3l-2.5 2.5-2.2-.6-.6-2.2z"/></svg></span>维修价目</a>
+    <a class="g-sys" href="https://shuyitoolguidance.netlify.app/" target="_blank" rel="noopener"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M10 8.8v6.4l5-3.2z"/></svg></span>工具启动教程</a>
+    <a class="g-sys" href="../docs/dongfang/"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 17.5h2"/></svg></span>商城教程</a>
+    <button type="button" class="g-sys g-out" onclick="HQAuth.confirmLogout()"><span class="gi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg></span>退出</button>
+  </aside>
+  <div style="min-width:0">
+    <header class="top g-topbg"><div class="top-in">
+      <div class="g-titlerow"><a class="home ph-only" href="../name/">← 名字审核</a><span class="g-tile" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.3 5.3l-6 6a1.6 1.6 0 0 0 2.3 2.3l6-6a4 4 0 0 0 5.3-5.3l-2.5 2.5-2.2-.6-.6-2.2z"/></svg></span>
+        <div><h1>维修价目</h1><p class="sub">国内维修收费：选产品看价钱、搜问题、同类对比</p></div></div>
+      <div class="top-r"><nav class="g-sysnav desk-only" aria-label="切换审核系统"><a class="g-btn3d" href="../name/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>名字审核</a><a class="g-btn3d" href="../tech/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>技术单审核</a><a class="g-btn3d" href="../bjp/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>保健品分督导</a><a class="g-btn3d" href="../wuxing/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="10.2" r="2.2"/><circle cx="16.3" cy="18.6" r="2.2"/><circle cx="7.7" cy="18.6" r="2.2"/><circle cx="5" cy="10.2" r="2.2"/></svg>五行审核</a></nav><button type="button" class="btn small theme" id="theme" aria-pressed="false"></button><span class="g-user" id="gUser"></span><button type="button" class="btn small g-logout" onclick="HQAuth.confirmLogout()"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h10"/></svg>退出</button></div>
+    </div></header>
+    <main class="page">
+      <section class="g-hero"><h2>维修价目</h2><p id="heroSub">国内维修收费，价钱单位：人民币。选产品看全部项目，或直接搜问题</p></section>
+      <section class="card finder" aria-label="搜寻">
+        <label class="search"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="vh">搜寻维修项目</span><input id="q" type="search" autocomplete="off" placeholder="搜问题或产品：掉钻、表带、天富 表把、开运 清洗…" disabled></label>
+        <div class="cats" id="cats" role="group" aria-label="分类"></div>
+      </section>
+      <div id="state" role="status"><div class="loading"><img src="../hq/brand/shuyi-logo-gold.png" alt=""><span class="vh">正在载入维修价目</span></div></div>
+      <div class="browse" id="browse" hidden>
+        <nav class="plist card" id="plist" aria-label="产品"></nav>
+        <section class="pdetail" id="detail" aria-live="polite"></section>
+      </div>
+      <section class="card results" id="results" hidden aria-live="polite"></section>
+    </main>
+  </div>
+</div>
+<dialog id="dlg" class="dlg"><form method="dialog"><button class="x" aria-label="关闭">×</button></form><div id="dlgBody"></div></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="view.js?v=20261127a"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var DATA = null, cat = 'all', current = null;
+  try { var _s = HQAuth.session(); if (_s) { $('gUser').innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'; $('gUser').appendChild(document.createTextNode(_s.id)); } } catch (e) {}
+  HQAuth.themeButton($('theme'));
+
+  // ---------- 载入：云端 cs_docs.repair_prices（gzip 后的 base64，跟海外手册同一种格式） ----------
+  function fail(msg, err) {
+    if (err) console.error('[维修价目]', err);
+    $('state').innerHTML = '<div class="error" role="alert">' + esc(msg) + '</div>';
+  }
+  function gunzip(b64) {
+    var bin = atob(b64), u8 = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  }
+  var slow = setTimeout(function () { if (!DATA) $('state').insertAdjacentHTML('beforeend', '<p class="small center">载入比较久：可能网络挡住了云端。可以再等一下，或重新整理、换网络试试。</p>'); }, 15000);
+  if (typeof DecompressionStream !== 'function') fail('这个浏览器太旧，打不开维修价目。请换 Chrome、Edge，或把 Safari / 微信更新到最新版。');
+  else HQAuth.cloudGet('repair_prices').then(function (d) {
+    if (!d || typeof d.gz !== 'string') return fail('连不上云端或登入凭证过期，看不到维修价目。请退出再用国内客服账号登入一次；还是不行，请换网络试试。', d);
+    return gunzip(d.gz).then(function (txt) { DATA = JSON.parse(txt); clearTimeout(slow); start(); });
+  }).catch(function (e) { fail('维修价目资料读不出来，请通知老板（主控台有详细原因）。', e); });
+
+  // ---------- 画面 ----------
+  var ICON = {
+    watch: '<circle cx="12" cy="12" r="5"/><path d="M12 10v2l1.2 1.2M9 7.5 9.6 3h4.8l.6 4.5M9 16.5l.6 4.5h4.8l.6-4.5"/>',
+    ring: '<circle cx="12" cy="14" r="6"/><path d="m9.5 5 2.5 3 2.5-3-1-2h-3z"/>',
+    bracelet: '<ellipse cx="12" cy="12" rx="8" ry="5"/><circle cx="6" cy="9.5" r="1.3"/><circle cx="12" cy="7" r="1.3"/><circle cx="18" cy="9.5" r="1.3"/>',
+    pendant: '<path d="M7 3c1 3 3 4.5 5 4.5S16 6 17 3"/><circle cx="12" cy="14" r="5"/>',
+    plaque: '<rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 9h6M9 13h6M9 17h3"/>',
+    earring: '<circle cx="9" cy="5" r="1.5"/><path d="M9 6.5v4"/><path d="M9 10.5 6 17h6z"/><circle cx="16" cy="7" r="1.5"/><path d="M16 8.5v8"/>',
+    other: '<path d="M12 3v18M7 8l5-5 5 5"/>'
+  };
+  var icon = function (c) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON[c] || ICON.other) + '</svg>'; };
+  var count = function (p) { return p.groups.reduce(function (n, g) { return n + g.items.length; }, 0); };
+  var inCat = function (p) { return cat === 'all' || p.cat === cat; };
+  var price = function (pr) { var pi = RP.priceInfo(pr); return '<span class="pr pr-' + pi.kind + '">' + esc(pi.text) + '</span>'; };
+
+  function start() {
+    $('heroSub').textContent = '国内维修收费（' + (DATA.version || '') + ' 版），价钱单位：人民币。选产品看全部项目，或直接搜问题';
+    $('state').innerHTML = ''; $('state').hidden = true;
+    $('q').disabled = false;
+    var n = function (id) { return DATA.products.filter(function (p) { return id === 'all' || p.cat === id; }).length; };
+    $('cats').innerHTML = [{ id: 'all', name: '全部' }].concat(DATA.cats.filter(function (c) { return n(c.id); })).map(function (c) {
+      return '<button type="button" data-cat="' + esc(c.id) + '" aria-pressed="' + (c.id === 'all') + '">' + (c.id === 'all' ? '' : icon(c.id)) + esc(c.name) + '<small>' + n(c.id) + '</small></button>';
+    }).join('');
+    var want = decodeURIComponent(location.hash.replace(/^#/, ''));
+    current = DATA.products.filter(function (p) { return p.name === want; })[0] || DATA.products[0];
+    $('browse').hidden = false; renderList(); renderDetail();   // 先显示再画，选中的产品才捲得到
+  }
+
+  function renderList() {
+    $('plist').innerHTML = DATA.products.filter(inCat).map(function (p) {
+      return '<button type="button" class="pitem" data-p="' + esc(p.name) + '"' + (p === current ? ' aria-current="true"' : '') + '>' +
+        (p.images.length ? '<img src="' + p.images[0] + '" alt="" loading="lazy">' : '<span class="pic">' + icon(p.cat) + '</span>') +
+        '<span class="pn">' + esc(p.name) + '<small>' + count(p) + ' 项</small></span></button>';
+    }).join('');
+    // 选中的产品要看得到：手机是横的一排（左右滑），电脑是直的（上下滑）
+    var L = $('plist'), el = L.querySelector('[aria-current]');
+    if (el) { if (innerWidth < 1000) L.scrollLeft = el.offsetLeft - 12; else L.scrollTop = el.offsetTop - 12; }
+  }
+
+  function renderDetail() {
+    var p = current;
+    var catName = (DATA.cats.filter(function (c) { return c.id === p.cat; })[0] || {}).name || '';
+    var h = '<div class="card dhead"><span class="dicon">' + icon(p.cat) + '</span><div><h3>' + esc(p.name) + '</h3><p class="small">' + esc(catName) + ' · ' + count(p) + ' 个维修项目 · 点「对比」看同类产品的价钱</p></div></div>';
+    if (p.images.length) h += '<div class="gallery">' + p.images.map(function (u, i) { return '<button type="button" class="shot" data-img="' + i + '" aria-label="放大第 ' + (i + 1) + ' 张图"><img src="' + u + '" alt="' + esc(p.name) + ' 示意图 ' + (i + 1) + '" loading="lazy"></button>'; }).join('') + '</div>';
+    h += p.groups.map(function (g, gi) {
+      return '<section class="card grp">' + (g.part ? '<h4>' + esc(g.part) + '<small>' + g.items.length + ' 项</small></h4>' : '') + '<ul class="items">' +
+        g.items.map(function (it, ii) {
+          return '<li><div class="iq">' + esc(it.q) + (it.note ? '<p class="note">' + esc(it.note) + '</p>' : '') + '</div>' + price(it.price) +
+            '<div class="acts"><button type="button" class="mini" data-copy="' + gi + ':' + ii + '">复制</button>' +
+            (DATA.products.filter(function (o) { return o.cat === p.cat; }).length > 1 ? '<button type="button" class="mini" data-cmp="' + gi + ':' + ii + '">对比</button>' : '') + '</div></li>';
+        }).join('') + '</ul></section>';
+    }).join('');
+    $('detail').innerHTML = h;
+  }
+
+  function renderResults() {
+    var q = $('q').value.trim(), hits = RP.search(DATA, q, cat);
+    $('browse').hidden = !!q; $('results').hidden = !q;
+    if (!q) return;
+    if (!hits.length) { $('results').innerHTML = '<p class="empty">找不到「' + esc(q) + '」。试试短一点的字，例如「掉钻」「表带」「清洗」。</p>'; return; }
+    var by = {};
+    hits.forEach(function (r) { (by[r.product.name] = by[r.product.name] || []).push(r); });
+    $('results').innerHTML = '<p class="small rhead">找到 <b>' + hits.length + '</b> 项，在 ' + Object.keys(by).length + ' 个产品</p>' + Object.keys(by).map(function (name) {
+      return '<div class="rgrp"><button type="button" class="rprod" data-p="' + esc(name) + '">' + icon(by[name][0].product.cat) + esc(name) + ' →</button><ul class="items">' +
+        by[name].map(function (r) {
+          var pr = r.product, gi = pr.groups.findIndex(function (g) { return g.items.indexOf(r.item) >= 0; }), ii = pr.groups[gi].items.indexOf(r.item);
+          return '<li><div class="iq">' + (r.part ? '<span class="tag">' + esc(r.part) + '</span>' : '') + esc(r.item.q) + (r.item.note ? '<p class="note">' + esc(r.item.note) + '</p>' : '') + '</div>' + price(r.item.price) +
+            '<div class="acts"><button type="button" class="mini" data-copy="' + gi + ':' + ii + '" data-of="' + esc(name) + '">复制</button></div></li>';
+        }).join('') + '</ul></div>';
+    }).join('');
+  }
+
+  function pick(name) {
+    current = DATA.products.filter(function (p) { return p.name === name; })[0] || current;
+    history.replaceState(null, '', '#' + encodeURIComponent(current.name));
+    if (!inCat(current)) { cat = 'all'; document.querySelectorAll('[data-cat]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.cat === 'all')); }); }
+    $('q').value = ''; renderResults(); renderList(); renderDetail();
+    if (innerWidth < 1000) $('detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function toast(t) { var el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 1800); }
+  function itemOf(btn, key) { var p = btn.dataset.of ? DATA.products.filter(function (x) { return x.name === btn.dataset.of; })[0] : current, ix = btn.dataset[key].split(':'), g = p.groups[+ix[0]]; return { p: p, g: g, it: g.items[+ix[1]] }; }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b || !DATA) return;
+    if (b.dataset.cat) {
+      cat = b.dataset.cat;
+      document.querySelectorAll('[data-cat]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      if (!inCat(current)) current = DATA.products.filter(inCat)[0];
+      renderList(); renderDetail(); renderResults();
+    } else if (b.dataset.p) pick(b.dataset.p);
+    else if (b.dataset.copy) {
+      var c = itemOf(b, 'copy'), text = RP.copyText(c.p.name, c.g.part, c.it);
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { toast('已复制：' + text); }, function () { window.prompt('复制这段：', text); });
+    } else if (b.dataset.cmp) {
+      var m = itemOf(b, 'cmp'), rows = RP.compare(DATA, m.p.name, m.g.part, m.it.q);
+      $('dlgBody').innerHTML = '<h3>同类对比</h3><p class="small">' + esc((m.g.part ? m.g.part + ' · ' : '') + m.it.q) + '：' + rows.length + ' 个产品有这一项，便宜的排前面</p><ol class="cmp">' +
+        rows.map(function (r) { return '<li' + (r.me ? ' class="me"' : '') + '><span>' + esc(r.name) + (r.me ? '<small>目前这个</small>' : '') + '</span><span class="pr pr-' + r.kind + '">' + esc(r.text) + '</span></li>'; }).join('') + '</ol>';
+      $('dlg').showModal();
+    } else if (b.dataset.img) {
+      $('dlgBody').innerHTML = '<img class="big" src="' + current.images[+b.dataset.img] + '" alt="' + esc(current.name) + ' 示意图">';
+      $('dlg').showModal();
+    }
+  });
+  $('dlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });   // 点外面关掉
+  var qt; $('q').addEventListener('input', function () { clearTimeout(qt); qt = setTimeout(renderResults, 120); });
+})();
+</script>
+</body>
+</html>
