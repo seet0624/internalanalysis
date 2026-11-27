@@ -4,3 +4,4 @@
 repair/*.json
 # 测试脚本不小心留下的截图资料夹
 undefined/
+__pycache__/
