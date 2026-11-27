@@ -20,7 +20,7 @@
   // 每个身份能进的页面（网站根目录下的路径开头）
   var ACCESS = {
     boss: ['*'],
-    cs: ['', 'index.html', 'name/', 'tech/', 'bjp/', 'wuxing/', 'manual/', 'guide/', 'numera/', 'docs/'],   // 国内客服不进 3D 办公室（command/），登入直接到名字审核
+    cs: ['', 'index.html', 'name/', 'tech/', 'bjp/', 'wuxing/', 'manual/', 'repair/', 'guide/', 'numera/', 'docs/'],   // 国内客服不进 3D 办公室（command/），登入直接到名字审核
     os: ['', 'index.html', 'handbook/']   // 海外客服：只有海外客服门户
   };
 

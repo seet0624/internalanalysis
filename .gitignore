@@ -1,0 +1,7 @@
+# 真实资料不进 repo（GitHub 是公开的）：价目表、技术单等 Excel，和 repair/import.py 转出来的档案
+*.xlsx
+*.xls
+repair/*.json
+# 测试脚本不小心留下的截图资料夹
+undefined/
+__pycache__/

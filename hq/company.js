@@ -135,6 +135,7 @@ window.COMPANY = {
   library: [
     { href: 'handbook/', title: '数易 · 海外客服门户', desc: '客服手册：标准流程、话术库、布告栏速查、改线判定器、服务中心判定器、售后服务培训。' },
     { href: 'manual/', title: '客服手册', desc: '业务流程 · 操作指引 · 规范说明：18 章分五类，有搜索、流程图、收藏；登入后从云端载入。' },
+    { href: 'repair/', title: '维修价目', desc: '国内维修收费：手表、戒指、手链、吊坠、牌子、耳环，选产品看价钱、搜问题、同类对比、复制话术；登入后从云端载入。' },
     { href: 'guide/', title: '工具启动教程', desc: '工具怎么启动、怎么用。' },
     { href: 'docs/dongfang/', title: '东方药林健康商城 · 手机端教程', desc: '登录、下单、订单管理、提现，31 页图文。' },
     { href: 'numera/', title: 'SHUYI · NUMERA', desc: '数易品牌网站。' }
