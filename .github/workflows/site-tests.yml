@@ -17,8 +17,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node name/tests/run.js
+      # 不用浏览器的先跑（快）
       - run: node bjp/test.js
       - run: node wuxing/test.js
       - run: node manual/test.js
       - run: node repair/test.js
+      # 名字审核是在浏览器里跑：装 Playwright 和 Chromium（跟本机同一版）
+      - run: npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.63.0
+      - run: npx playwright install --with-deps chromium
+      - run: node name/tests/run.js
