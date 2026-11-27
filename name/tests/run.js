@@ -282,6 +282,9 @@ const CASES = require('./naming-cases.json');
       await p.click('dialog.g-notice .gn-more');
       const list = await step(() => { const l = document.querySelector('dialog.g-notice .gn-list'); return { hidden: l.offsetHeight === 0, text: l.textContent }; });
       ok(!list.hidden && /李丽/.test(list.text) && /督导/.test(list.text), '按「查看完整名单」要展开每位缺什么，实际 ' + JSON.stringify(list));
+      await p.keyboard.press('?');   // 提醒框开着时，页面快捷键（? 说明、Ctrl+Z 复原、j/k）不能动到后面的页面
+      const keys = await step(() => ({ help: document.getElementById('help').style.display === 'flex', open: !!document.querySelector('dialog.g-notice[open]') }));
+      ok(!keys.help && keys.open, '提醒框开着按快捷键不能开后面的说明页，实际 ' + JSON.stringify(keys));
       await p.click('dialog.g-notice [value="back"]');
       const back = await step(async () => { try { await window._sup1; } catch (e) {} return { open: !!document.querySelector('dialog.g-notice[open]'), table: !!document.querySelector('#modalBox .suptblwrap'), dls: window._dls.length }; });
       ok(!back.open && back.table && back.dls === 0, '按「返回补充资料」要关掉提醒、打开督导表、不下载，实际 ' + JSON.stringify(back));

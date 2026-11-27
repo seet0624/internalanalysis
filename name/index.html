@@ -2330,6 +2330,7 @@ document.getElementById('helpClose').onclick=function(){ document.getElementById
 ['modal','setModal','help'].forEach(function(id){ var m=document.getElementById(id); m.addEventListener('click',function(e){ if(e.target===m)m.style.display='none'; }); });
 document.addEventListener('click',function(e){ if(!e.target.closest('.dd'))closeMenus(); var pop=document.getElementById('pop'); if(pop.style.display==='block'&&!pop.contains(e.target)&&!e.target.closest('.han'))hidePop(); });
 document.addEventListener('keydown',function(e){ var tg=e.target, tn=tg.tagName;
+  if(document.querySelector('dialog[open]'))return;   // 系统弹窗开着：Esc 和快捷键交给弹窗，不要动到后面的页面
   if(e.key==='Escape'){ closeMenus(); hidePop(); closeModals(); if(tg.id==='searchBox')tg.blur(); return; }
   if(tn==='INPUT'||tn==='TEXTAREA'||tn==='SELECT'||tg.isContentEditable)return;
   if(anyModalOpen())return;
