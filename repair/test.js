@@ -71,4 +71,15 @@ t('国内每一页的左栏都要有同一套入口（加新页面时漏了哪�
     }
   }
 });
+t('国内每一页上方的「切换审核系统」按钮列都要有四个审核系统', () => {
+  const fs = require('fs'), path = require('path'), root = path.join(__dirname, '..');
+  const TOOLS = ['name', 'tech', 'bjp', 'wuxing'];
+  for (const page of ['name', 'tech', 'bjp', 'wuxing', 'manual', 'repair']) {
+    const html = fs.readFileSync(path.join(root, page, 'index.html'), 'utf8');
+    for (const want of TOOLS) {
+      const href = want === page ? '(\\./|\\.\\./' + want + '/)' : '\\.\\./' + want + '/';
+      assert.match(html, new RegExp('class="g-btn3d" href="' + href + '"'), page + '/ 上方按钮列少了 ' + want + '/');
+    }
+  }
+});
 console.log(`全部通过（${n} 项）`);

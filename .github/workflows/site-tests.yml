@@ -1,0 +1,24 @@
+# 国内各页面的考题（名字审核、保健品、五行审核、客服手册、维修价目，含左栏 / 上方按钮列一致）：有一题不对，PR 会显示红叉，不要合并
+name: 国内页面考题
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node name/tests/run.js
+      - run: node bjp/test.js
+      - run: node wuxing/test.js
+      - run: node manual/test.js
+      - run: node repair/test.js
