@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>名字审核 · 名正言顺</title>
-<script src="../hq/auth.js?v=20261127a" data-nobadge></script>
+<script src="../hq/auth.js?v=20261127b" data-nobadge></script>
 <script src="../hq/tool-kit.js?v=20261127a"></script>
 <script src="../hq/bus.js?v=20261127a"></script>
 <meta name="theme-color" content="#F8F9FA">
@@ -456,7 +456,7 @@ body:not(.light) .qi.on{background:#3A2F1C;border-color:#B8873A}
 .g-rs>summary{display:flex;align-items:center;gap:10px;min-height:46px;cursor:pointer;list-style:none;font-family:var(--g-kai);font-weight:700;font-size:16px;color:var(--ink)}
 .g-rs>summary::before{content:"";flex:none;width:6px;height:18px;border-radius:3px;background:linear-gradient(#E9C27A,#B8873A)}
 </style>
-<link rel="stylesheet" href="../hq/gold.css?v=20261127a">
+<link rel="stylesheet" href="../hq/gold.css?v=20261127b">
 </head>
 <body class="light"><!-- 预设金色浅色：先放 class，载入时才不会先闪一下深色 -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1790,7 +1790,18 @@ async function downloadSup(){ if(!parsedFiles.length)return; var x=parsedFiles[a
   var rows=supRows(x); if(!rows.length){ toast('这份没有「通过」的学员'); return; }
   var miss=supMissing(x);
   var px=x.mixed?partOf(x,false):x; // 先问位置（浏览器只在点击后几秒内允许），再问「有人没填，照样下载？」
-  await runSave([outName(px,'sup')],[async function(){ return new Blob([await (await buildSupWorkbook(px)).xlsx.writeBuffer()]); }],function(){ return !miss.length||confirm('有 '+miss.length+' 位学员的督导、店铺或群还没填好（'+miss.slice(0,5).map(function(r){return shortName(r.disp)||('序'+r.sid);}).join('、')+(miss.length>5?'……':'')+'）。\n照样下载（那几格空着）？\n（按「取消」，去顶栏「督导」那张表一起填好）'); }); }
+  await runSave([outName(px,'sup')],[async function(){ return new Blob([await (await buildSupWorkbook(px)).xlsx.writeBuffer()]); }],async function(){
+    if(!miss.length)return true;
+    // 系统的提醒框（不用浏览器的 confirm）：继续下载照原本流程；返回就打开上面的「督导」表去补
+    var nm=function(r){ return shortName(r.disp)||('序'+r.sid); };
+    var a=await HQAuth.notice({ badge:'需要注意', title:'下载前需要补充资料', sub:'系统检测到部分学员资料尚未填写完整。',
+      count:miss.length, countText:' 位学员资料不完整', desc:'检测到以下学员的督导、店铺或群组资料尚未填写：',
+      peopleTitle:'涉及学员', people:miss.map(function(r){ var s=supOf(r); return { name:nm(r), miss:[!s.sup&&'督导',!s.shop&&'店铺',!s.group&&'群'].filter(Boolean).join('、') }; }),
+      peopleNote:'共 '+miss.length+' 位学员 · 可查看完整名单及缺失项目。',
+      impactTitle:'继续下载会有什么影响？', impact:'若继续下载，上述学员缺失的资料栏位将保持空白，不会自动补齐。',
+      ok:'继续下载（资料留空）', back:'返回补充资料', backSub:'前往顶部「督导」表格完善资料' });
+    if(a==='back')openSupTable(miss[0]);
+    return a==='ok'; }); }
 // 读 .xls / .xlsx：SheetJS 只在导入时才载入（本地 vendor 优先，载不到退回 cdnjs）
 function needXLSX(){ return new Promise(function(ok,bad){ if(window.XLSX)return ok(window.XLSX);
   function add(src,next){ var sc=document.createElement('script'); sc.src=src; sc.onload=function(){ window.XLSX?ok(window.XLSX):next(); }; sc.onerror=next; document.head.appendChild(sc); }
@@ -1893,7 +1904,7 @@ async function dl(blob,name,handle){ if(handle){ var w=await handle.createWritab
 // 问好位置 → 一份一份做、写进去；中途出错就把还没写好的空文件删掉（已经有的旧文件不会被动到：写入要到 close 才生效）
 function safeName(n){ return String(n).replace(/[\\\/:*?"<>|]/g,'_'); }
 async function runSave(names,makers,beforeMake){ names=names.map(safeName); var tg=await saveTargets(names), done=0;
-  try{ if(beforeMake&&!beforeMake()){ var ab=new Error('cancel'); ab.name='AbortError'; throw ab; }
+  try{ if(beforeMake&&!(await beforeMake())){ var ab=new Error('cancel'); ab.name='AbortError'; throw ab; }
     for(;done<names.length;done++)await dl(await makers[done](),names[done],tg&&tg[done]); }
   catch(e){ if(tg)for(var i=done;i<tg.length;i++){ try{ var f=await tg[i].getFile(); if(f.size===0){ if(tg.dir)await tg.dir.removeEntry(names[i]); else if(tg[i].remove)await tg[i].remove(); } }catch(e2){} }
     if(e&&e.name!=='AbortError'&&done)e.message=(e.message||'')+'（已经存好的：'+names.slice(0,done).join('、')+'；没存好的已删掉，文件夹里如果还有 0 KB 的文件请删掉）'; throw e; }
@@ -2319,6 +2330,7 @@ document.getElementById('helpClose').onclick=function(){ document.getElementById
 ['modal','setModal','help'].forEach(function(id){ var m=document.getElementById(id); m.addEventListener('click',function(e){ if(e.target===m)m.style.display='none'; }); });
 document.addEventListener('click',function(e){ if(!e.target.closest('.dd'))closeMenus(); var pop=document.getElementById('pop'); if(pop.style.display==='block'&&!pop.contains(e.target)&&!e.target.closest('.han'))hidePop(); });
 document.addEventListener('keydown',function(e){ var tg=e.target, tn=tg.tagName;
+  if(document.querySelector('dialog[open]'))return;   // 系统弹窗开着：Esc 和快捷键交给弹窗，不要动到后面的页面
   if(e.key==='Escape'){ closeMenus(); hidePop(); closeModals(); if(tg.id==='searchBox')tg.blur(); return; }
   if(tn==='INPUT'||tn==='TEXTAREA'||tn==='SELECT'||tg.isContentEditable)return;
   if(anyModalOpen())return;
