@@ -94,3 +94,14 @@ test('单独发的新生儿：文件名开头写（单独发）再写姓氏和�
   assert.match(s.name, /^（单独发）王新生儿名正言顺(命名)?技术单/);
   assert.ok(r.outputs.filter((o) => !o.solo).every((o) => /^新生儿/.test(o.name)), names(r).join(' / '));
 });
+
+// 英文备注里的 express（表达）/ rush（no rush = 不急）不是加急；urgent / asap 才算
+test('英文备注写 express / no rush 不算加急，写 urgent 才算', async () => {
+  const rows = two();
+  rows[0].备注 = 'He is a loving father who loves to express gratitude every day. No rush.';
+  rows[1].备注 = 'Please process urgent';
+  const [r] = await E.processFiles([await sheet(NAME, rows)], { date: '6.11.2026' });
+  const u = (i) => r.orders.find((o) => o.key === rows[i].订单编号).urgent;
+  assert.strictEqual(u(0), false);
+  assert.strictEqual(u(1), true);
+});

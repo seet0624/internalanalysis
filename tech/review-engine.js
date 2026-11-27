@@ -18,7 +18,7 @@
     askFirstProducts: ['天解手表', '天泽手表', '福运戒指', '天恒手表'],
     urgentWords: ['加急', '急件', '特急', '紧急', '緊急', '急需', '急用', '急要', '赶急', '趕急', '赶件', '趕件', '赶时间', '趕時間',
       '尽快', '盡快', '尽早', '盡早', '越快越好', '快点', '快點', '快些', '速办', '速辦', '优先处理', '優先處理', '优先', '優先',
-      'urgent', 'asap', 'rush', 'express']
+      'urgent', 'asap'] // express、rush 在英文备注里常是普通字（express gratitude、no rush），不算
   };
 
   // Simplified ↔ traditional forms of common surnames, so 劉 matches 刘.
