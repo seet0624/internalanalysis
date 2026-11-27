@@ -60,4 +60,15 @@ t('免费 / 无法维修也带上备注', () => {
   assert.strictEqual(RP.copyText('戊', '', { q: '组装', price: '免费', note: '保修期内' }), '戊「组装」：免费（保修期内）');
   assert.strictEqual(RP.copyText('戊', '', { q: '变形', price: '无法维修', note: '只能重做' }), '戊「变形」：无法维修（只能重做）');
 });
+t('国内每一页的左栏都要有同一套入口（加新页面时漏了哪一页会在这里抓到）', () => {
+  const fs = require('fs'), path = require('path'), root = path.join(__dirname, '..');
+  const PAGES = ['name', 'tech', 'bjp', 'wuxing', 'manual', 'repair'];
+  for (const page of PAGES) {
+    const html = fs.readFileSync(path.join(root, page, 'index.html'), 'utf8');
+    for (const want of PAGES) {
+      const href = want === page ? '(\\./|\\.\\./' + want + '/)' : '\\.\\./' + want + '/';
+      assert.match(html, new RegExp('class="g-sys" href="' + href + '"'), page + '/ 左栏少了 ' + want + '/ 的入口');
+    }
+  }
+});
 console.log(`全部通过（${n} 项）`);
