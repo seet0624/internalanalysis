@@ -199,6 +199,8 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   // ---------- 载入：云端 cs_docs.repair_prices（gzip 后的 base64，跟海外手册同一种格式） ----------
   function fail(msg, err) {
     if (err) console.error('[维修价目]', err);
+    clearTimeout(slow);
+    $('state').hidden = false; $('browse').hidden = true; $('results').hidden = true;
     $('state').innerHTML = '<div class="error" role="alert">' + esc(msg) + '</div>';
   }
   function gunzip(b64) {
@@ -206,11 +208,15 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
     return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
   }
-  var slow = setTimeout(function () { if (!DATA) $('state').insertAdjacentHTML('beforeend', '<p class="small center">载入比较久：可能网络挡住了云端。可以再等一下，或重新整理、换网络试试。</p>'); }, 15000);
+  var slow; slow = setTimeout(function () { if (!DATA) $('state').insertAdjacentHTML('beforeend', '<p class="small center">载入比较久：可能网络挡住了云端。可以再等一下，或重新整理、换网络试试。</p>'); }, 15000);
   if (typeof DecompressionStream !== 'function') fail('这个浏览器太旧，打不开维修价目。请换 Chrome、Edge，或把 Safari / 微信更新到最新版。');
   else HQAuth.cloudGet('repair_prices').then(function (d) {
     if (!d || typeof d.gz !== 'string') return fail('连不上云端或登入凭证过期，看不到维修价目。请退出再用国内客服账号登入一次；还是不行，请换网络试试。', d);
-    return gunzip(d.gz).then(function (txt) { DATA = JSON.parse(txt); clearTimeout(slow); start(); });
+    return gunzip(d.gz).then(function (txt) {
+      DATA = JSON.parse(txt); clearTimeout(slow);
+      DATA.products.forEach(function (p) { p.images = (p.images || []).map(RP.safeImg).filter(Boolean); });   // 只留 data:image，别的丢掉
+      start();
+    });
   }).catch(function (e) { fail('维修价目资料读不出来，请通知老板（主控台有详细原因）。', e); });
 
   // ---------- 画面 ----------
@@ -229,14 +235,14 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   var price = function (pr) { var pi = RP.priceInfo(pr); return '<span class="pr pr-' + pi.kind + '">' + esc(pi.text) + '</span>'; };
 
   function start() {
-    $('heroSub').textContent = '国内维修收费（' + (DATA.version || '') + ' 版），价钱单位：人民币。选产品看全部项目，或直接搜问题';
+    $('heroSub').textContent = '国内维修收费' + (DATA.version ? '（' + DATA.version + ' 版）' : '') + '，价钱单位：人民币。选产品看全部项目，或直接搜问题';
     $('state').innerHTML = ''; $('state').hidden = true;
     $('q').disabled = false;
     var n = function (id) { return DATA.products.filter(function (p) { return id === 'all' || p.cat === id; }).length; };
     $('cats').innerHTML = [{ id: 'all', name: '全部' }].concat(DATA.cats.filter(function (c) { return n(c.id); })).map(function (c) {
       return '<button type="button" data-cat="' + esc(c.id) + '" aria-pressed="' + (c.id === 'all') + '">' + (c.id === 'all' ? '' : icon(c.id)) + esc(c.name) + '<small>' + n(c.id) + '</small></button>';
     }).join('');
-    var want = decodeURIComponent(location.hash.replace(/^#/, ''));
+    var want = ''; try { want = decodeURIComponent(location.hash.replace(/^#/, '')); } catch (e) {}   // 网址被截断（微信常见）就当没有
     current = DATA.products.filter(function (p) { return p.name === want; })[0] || DATA.products[0];
     $('browse').hidden = false; renderList(); renderDetail();   // 先显示再画，选中的产品才捲得到
   }
@@ -244,7 +250,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   function renderList() {
     $('plist').innerHTML = DATA.products.filter(inCat).map(function (p) {
       return '<button type="button" class="pitem" data-p="' + esc(p.name) + '"' + (p === current ? ' aria-current="true"' : '') + '>' +
-        (p.images.length ? '<img src="' + p.images[0] + '" alt="" loading="lazy">' : '<span class="pic">' + icon(p.cat) + '</span>') +
+        (p.images.length ? '<img src="' + esc(p.images[0]) + '" alt="" loading="lazy">' : '<span class="pic">' + icon(p.cat) + '</span>') +
         '<span class="pn">' + esc(p.name) + '<small>' + count(p) + ' 项</small></span></button>';
     }).join('');
     // 选中的产品要看得到：手机是横的一排（左右滑），电脑是直的（上下滑）
@@ -256,13 +262,13 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     var p = current;
     var catName = (DATA.cats.filter(function (c) { return c.id === p.cat; })[0] || {}).name || '';
     var h = '<div class="card dhead"><span class="dicon">' + icon(p.cat) + '</span><div><h3>' + esc(p.name) + '</h3><p class="small">' + esc(catName) + ' · ' + count(p) + ' 个维修项目 · 点「对比」看同类产品的价钱</p></div></div>';
-    if (p.images.length) h += '<div class="gallery">' + p.images.map(function (u, i) { return '<button type="button" class="shot" data-img="' + i + '" aria-label="放大第 ' + (i + 1) + ' 张图"><img src="' + u + '" alt="' + esc(p.name) + ' 示意图 ' + (i + 1) + '" loading="lazy"></button>'; }).join('') + '</div>';
+    if (p.images.length) h += '<div class="gallery">' + p.images.map(function (u, i) { return '<button type="button" class="shot" data-img="' + i + '" aria-label="放大第 ' + (i + 1) + ' 张图"><img src="' + esc(u) + '" alt="' + esc(p.name) + ' 示意图 ' + (i + 1) + '" loading="lazy"></button>'; }).join('') + '</div>';
     h += p.groups.map(function (g, gi) {
       return '<section class="card grp">' + (g.part ? '<h4>' + esc(g.part) + '<small>' + g.items.length + ' 项</small></h4>' : '') + '<ul class="items">' +
         g.items.map(function (it, ii) {
           return '<li><div class="iq">' + esc(it.q) + (it.note ? '<p class="note">' + esc(it.note) + '</p>' : '') + '</div>' + price(it.price) +
             '<div class="acts"><button type="button" class="mini" data-copy="' + gi + ':' + ii + '">复制</button>' +
-            (DATA.products.filter(function (o) { return o.cat === p.cat; }).length > 1 ? '<button type="button" class="mini" data-cmp="' + gi + ':' + ii + '">对比</button>' : '') + '</div></li>';
+            (RP.compare(DATA, p.name, g.part, it.q).length > 1 ? '<button type="button" class="mini" data-cmp="' + gi + ':' + ii + '">对比</button>' : '') + '</div></li>';
         }).join('') + '</ul></section>';
     }).join('');
     $('detail').innerHTML = h;
@@ -300,7 +306,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     if (b.dataset.cat) {
       cat = b.dataset.cat;
       document.querySelectorAll('[data-cat]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
-      if (!inCat(current)) current = DATA.products.filter(inCat)[0];
+      if (!inCat(current)) { current = DATA.products.filter(inCat)[0]; history.replaceState(null, '', '#' + encodeURIComponent(current.name)); }
       renderList(); renderDetail(); renderResults();
     } else if (b.dataset.p) pick(b.dataset.p);
     else if (b.dataset.copy) {
@@ -312,11 +318,15 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
         rows.map(function (r) { return '<li' + (r.me ? ' class="me"' : '') + '><span>' + esc(r.name) + (r.me ? '<small>目前这个</small>' : '') + '</span><span class="pr pr-' + r.kind + '">' + esc(r.text) + '</span></li>'; }).join('') + '</ol>';
       $('dlg').showModal();
     } else if (b.dataset.img) {
-      $('dlgBody').innerHTML = '<img class="big" src="' + current.images[+b.dataset.img] + '" alt="' + esc(current.name) + ' 示意图">';
+      $('dlgBody').innerHTML = '<img class="big" src="' + esc(current.images[+b.dataset.img] || '') + '" alt="' + esc(current.name) + ' 示意图">';
       $('dlg').showModal();
     }
   });
-  $('dlg').addEventListener('click', function (e) { if (e.target === this) this.close(); });   // 点外面关掉
+  $('dlg').addEventListener('click', function (e) {   // 点到框外面才关（框里的空白不算）
+    if (e.target !== this) return;
+    var r = this.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) this.close();
+  });
   var qt; $('q').addEventListener('input', function () { clearTimeout(qt); qt = setTimeout(renderResults, 120); });
 })();
 </script>

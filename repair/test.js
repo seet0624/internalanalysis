@@ -10,7 +10,7 @@ const DATA = {
     { name: '乙手表', cat: 'watch', images: [], groups: [{ part: '表把', items: [{ q: '表把脱落（已丢失）', price: 1200, note: '' }] }] },
     { name: '丙手表', cat: 'watch', images: [], groups: [{ part: '表把', items: [{ q: '表把脱落（已丢失）', price: '时价', note: '' }] }] },
     { name: '丁吊坠', cat: 'pendant', images: [], groups: [{ part: '', items: [
-      { q: '小钻掉钻（钻丢失）', price: '200/颗（新价钱：2000）', note: '' }, { q: '表面变形', price: '重做', note: '无法维修' },
+      { q: '小钻掉钻（钻丢失）', price: '100/颗（新价钱：900）', note: '' }, { q: '表面变形', price: '重做', note: '无法维修' },
       { q: '内部变色', price: '免费', note: '' }, { q: '封条断裂', price: '无法维修', note: '' }, { q: '修改尺寸', price: 50, note: '备注：只能扩大半号' }] }] }
   ]
 };
@@ -24,8 +24,8 @@ t('价钱显示：数字加 ¥ 和千分位；免费、无法维修、时价 / �
   assert.strictEqual(RP.priceInfo('没得维修').kind, 'none');
   assert.strictEqual(RP.priceInfo('时价').kind, 'ask');
   assert.strictEqual(RP.priceInfo('重做').kind, 'ask');
-  const odd = RP.priceInfo('200/颗（新价钱：2000）');
-  assert.strictEqual(odd.kind, 'text'); assert.strictEqual(odd.text, '200/颗（新价钱：2000）'); assert.strictEqual(odd.value, 200);
+  const odd = RP.priceInfo('100/颗（新价钱：900）');
+  assert.strictEqual(odd.kind, 'text'); assert.strictEqual(odd.text, '100/颗（新价钱：900）'); assert.strictEqual(odd.value, 100);
 });
 t('搜寻：每个字都要对到（产品、部件、问题、备注），可以限定分类', () => {
   assert.strictEqual(RP.search(DATA, '表把').length, 4);
@@ -46,7 +46,18 @@ t('复制话术：数字写人民币、文字照原文、有备注附上', () =>
   assert.strictEqual(RP.copyText(p.name, '', p.groups[0].items[3]), '丁吊坠「封条断裂」：无法维修');
   assert.strictEqual(RP.copyText(p.name, '', p.groups[0].items[2]), '丁吊坠「内部变色」：免费');
   assert.strictEqual(RP.copyText(p.name, '', p.groups[0].items[4]), '丁吊坠「修改尺寸」，维修费用人民币 50（备注：只能扩大半号）');
-  assert.strictEqual(RP.copyText(p.name, '', p.groups[0].items[0]), '丁吊坠「小钻掉钻（钻丢失）」，维修费用：200/颗（新价钱：2000）');
+  assert.strictEqual(RP.copyText(p.name, '', p.groups[0].items[0]), '丁吊坠「小钻掉钻（钻丢失）」，维修费用：100/颗（新价钱：900）');
 });
 
+t('图片只收 data:image 的 base64，其他（会执行程序的）一律丢掉', () => {
+  assert.strictEqual(RP.safeImg('data:image/webp;base64,AAAA+/=='), 'data:image/webp;base64,AAAA+/==');
+  assert.strictEqual(RP.safeImg('x" onerror="alert(1)'), '');
+  assert.strictEqual(RP.safeImg('javascript:alert(1)'), '');
+  assert.strictEqual(RP.safeImg('data:image/svg+xml;base64,AAAA'), '');   // svg 可以带程序
+  assert.strictEqual(RP.safeImg(null), '');
+});
+t('免费 / 无法维修也带上备注', () => {
+  assert.strictEqual(RP.copyText('戊', '', { q: '组装', price: '免费', note: '保修期内' }), '戊「组装」：免费（保修期内）');
+  assert.strictEqual(RP.copyText('戊', '', { q: '变形', price: '无法维修', note: '只能重做' }), '戊「变形」：无法维修（只能重做）');
+});
 console.log(`全部通过（${n} 项）`);

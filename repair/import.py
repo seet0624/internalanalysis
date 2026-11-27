@@ -18,7 +18,7 @@ def price(v):
     s = txt(v)
     if s in ('', '-', '—'):
         return None
-    return int(s) if re.fullmatch(r'\d+', s) else s   # 纯数字存成数字；「免费」「时价」「200（新价钱：2000）」照原文
+    return int(s) if re.fullmatch(r'\d+', s) else s   # 纯数字存成数字；「免费」「时价」「100（新价钱：90）」这种照原文
 
 
 def name(s):
@@ -55,7 +55,11 @@ def matrix(ws, head_row, first_row, name_cols, part_col=2, q_col=3):
 
 
 def cols(ws, row, start):
-    return {c: name(ws.cell(row, c).value) for c in range(start, ws.max_column + 1) if txt(ws.cell(row, c).value) and txt(ws.cell(row, c).value) not in ('中国',)}
+    out = {c: name(ws.cell(row, c).value) for c in range(start, ws.max_column + 1) if txt(ws.cell(row, c).value) and txt(ws.cell(row, c).value) not in ('中国',)}
+    dup = [n for n in set(out.values()) if list(out.values()).count(n) > 1]
+    if dup:   # 同名的两栏会互相盖掉价钱：宁可停下来让人看
+        sys.exit('「' + ws.title + '」有同名的产品栏：' + '、'.join(dup) + '，请先改表头再转')
+    return out
 
 
 def img_url(im):
@@ -67,23 +71,26 @@ def img_url(im):
 
 
 def main(src, dst):
-    wb = openpyxl.load_workbook(src)
-    products = {}
+    wb = openpyxl.load_workbook(src, data_only=True)   # 价钱格是公式的话读算好的数字
+    products, skipped = {}, []
 
-    def add(n, rows):
-        p = products.setdefault(n, {'name': n, 'cat': cat_of(n), 'groups': [], 'images': []})
+    def add(n, rows, cat=None):   # cat：手表、戒指表照工作表分类；其他照产品名猜
+        p = products.setdefault(n, {'name': n, 'cat': cat or cat_of(n), 'groups': [], 'images': []})
         for part, q, pr, note in rows:
+            if any(it['q'] == q for g in p['groups'] if g['part'] == part for it in g['items']):
+                skipped.append(n + ' / ' + (part + ' / ' if part else '') + q + '：两张表都有，用第一张的')
+                continue
             if not p['groups'] or p['groups'][-1]['part'] != part:
                 p['groups'].append({'part': part, 'items': []})
             p['groups'][-1]['items'].append({'q': q, 'price': pr, 'note': note})
 
     ws = wb['手表']
     for n, rows in matrix(ws, 1, 3, cols(ws, 1, 5)).items():
-        add(n, rows)
+        add(n, rows, 'watch')
     for sheet in ('戒指', '戒指2'):   # 两张戒指表，同一个戒指合在一起
         ws = wb[sheet]
         for n, rows in matrix(ws, 4, 7, cols(ws, 4, 4)).items():
-            add(n, rows)
+            add(n, rows, 'ring')
 
     ws = wb['手链、吊坠、寻龙撅，牌子，耳环']
     ranges, cur = [], None
@@ -98,11 +105,16 @@ def main(src, dst):
         q, pr, note = txt(ws.cell(r, 2).value), price(ws.cell(r, 3).value), txt(ws.cell(r, 4).value)
         if q and pr is not None:
             add(cur, [['', q, pr, note]])
+        elif q:
+            skipped.append(cur + ' / ' + q + '：没有价钱，没放进去（第 ' + str(r) + ' 行）')
     for im in ws._images:   # 图片放在它所在那几列的产品
         row = im.anchor._from.row + 1
         for n, a, b in ranges:
             if a <= row <= b and n in products:
                 products[n]['images'].append(img_url(im))
+                break
+        else:
+            skipped.append('第 ' + str(row) + ' 行的图片：对不到产品，没放进去')
 
     order = ['watch', 'ring', 'bracelet', 'pendant', 'plaque', 'earring', 'other']
     data = {
@@ -115,6 +127,11 @@ def main(src, dst):
     }
     # 上传格式跟海外手册一样：{v, gz}，gz = gzip 后的 base64（网页用浏览器内建的解压）
     raw = json.dumps(data, ensure_ascii=False).encode()
+    for p in data['products']:
+        print('%-8s %-14s %3d 项  %d 张图' % (p['cat'], p['name'], sum(len(g['items']) for g in p['groups']), len(p['images'])))
+    for x in skipped:
+        print('跳过：' + x)
+    print('共 %d 个产品；有 %d 行跳过，请对一下有没有漏' % (len(data['products']), len(skipped)))
     with open(dst, 'w', encoding='utf-8') as f:
         json.dump({'v': data['version'], 'gz': base64.b64encode(gzip.compress(raw, 9)).decode()}, f)
 

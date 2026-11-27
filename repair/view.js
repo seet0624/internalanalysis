@@ -12,7 +12,7 @@
     if (/无法维修|没得维修|不能维修/.test(s)) return { text: s, kind: 'none', value: Infinity };
     if (/^(时价|重做|报价)/.test(s)) return { text: s, kind: 'ask', value: Infinity };
     var lead = s.match(/^(\d+)/);
-    return { text: s, kind: 'text', value: lead ? Number(lead[1]) : Infinity };   // 「200/颗（新价钱：2000）」：排序用开头的数字
+    return { text: s, kind: 'text', value: lead ? Number(lead[1]) : Infinity };   // 「100/颗（新价钱：900）」这种：排序用开头的数字
   }
 
   function rows(data) {
@@ -49,12 +49,15 @@
   function copyText(productName, part, item) {
     var pi = priceInfo(item.price);
     var what = productName + (part && item.q.indexOf(part) < 0 ? ' ' + part : '') + '「' + item.q + '」';
-    if (pi.kind === 'none') return what + '：' + pi.text;
-    if (pi.kind === 'free') return what + '：免费' + (pi.text !== '免费' ? pi.text.replace(/^免费/, '') : '');
-    return what + '，维修费用' + (pi.kind === 'num' ? '人民币 ' + pi.value : '：' + pi.text) + (item.note ? '（' + item.note.replace(/\s+/g, ' ') + '）' : '');
+    var note = item.note ? '（' + item.note.replace(/\s+/g, ' ') + '）' : '';
+    if (pi.kind === 'none' || pi.kind === 'free') return what + '：' + pi.text + note;
+    return what + '，维修费用' + (pi.kind === 'num' ? '人民币 ' + pi.value : '：' + pi.text) + note;
   }
 
-  var api = { priceInfo: priceInfo, search: search, compare: compare, copyText: copyText, rows: rows };
+  // 图片只收 data:image（png / jpg / webp / gif）的 base64；svg 和其他网址会带程序，一律不用
+  function safeImg(u) { return typeof u === 'string' && /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(u) ? u : ''; }
+
+  var api = { priceInfo: priceInfo, search: search, compare: compare, copyText: copyText, rows: rows, safeImg: safeImg };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.RP = api;
 })(this);
