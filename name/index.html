@@ -1246,8 +1246,8 @@ function reportToHQ(kind){ if(!window.HQBus)return;
 function rebuild(){ var savedDB=load('mzys_db',{}); for(var k in savedDB)importedDB[k]=savedDB[k];
   var db=buildOrderDB(parsedFiles.map(function(x){return x.parsed;}), importedDB); window._DB=db;
   parsedFiles.forEach(function(x){ x.audit=auditParsed(x.parsed, db); x.audit.results.forEach(function(r){ r.auto={v:r.verdict,p:r.problem}; var sv=savedVerdict(x.name,r.sid);
-    // 旧格式（没有 m）分不出是不是手动按的：程序现在判有问题、旧的写通过，就不套用，免得盖掉新规则抓到的问题
-    if(sv&&(sv.m||!(sv.v==='通过'&&r.auto.v==='有问题'))){ r.verdict=sv.v; r.problem=sv.p; } r.reviewed=savedReview(x.name,r.sid); r.hide=load('mzys_hide',{})[x.name+'#'+r.sid]||[]; }); setRegion(x); });
+    // 旧格式（没有 m）是自动连带存的，分不出是不是手动按的：不套用，照现在的规则判
+    if(sv&&sv.m){ r.verdict=sv.v; r.problem=sv.p; } r.reviewed=savedReview(x.name,r.sid); r.hide=load('mzys_hide',{})[x.name+'#'+r.sid]||[]; }); setRegion(x); });
   if(activeFile>=parsedFiles.length)activeFile=Math.max(0,parsedFiles.length-1);
   var has=parsedFiles.length>0;
   document.getElementById('welcome').style.display=has?'none':'flex';
@@ -2049,7 +2049,8 @@ function applySettings(){ document.querySelectorAll('#toggles input').forEach(fu
 var CHANGELOG=[
   {date:'2026-11-27', title:'新规则抓到的问题不会被旧判定盖掉', items:[
     '以前每次改判定，会把整份文件所有人当时的判定一起存起来；规则更新后，旧的「通过」会盖掉新抓到的问题（显示成「已手动设为通过」）',
-    '现在只记真的有人手动改过的；旧资料里写「通过」而现在判「有问题」的，一律照新结果，需要的话请重新按「通过」']},
+    '现在只记真的有人手动改过的；以前存的判定不再套用，一律照现在的规则判，手动改过的请重新按一次',
+    '新名的姓跟订单姓氏不一样时，名字卡标题照订单填的姓氏，新名里错的姓标红']},
   {date:'2026-11-27', title:'霄、消、俏这类字不算小字根', items:[
     '「肖」上面是「⺌」不是「小」：霄、宵、消、俏、峭、梢、稍、削、屑、趙等属龙可以用',
     '只有韩国写法才有的部件不算（肖、尚、歲这几组，约 56 个字不再算小；逞、朢不再算士）']},
@@ -2058,7 +2059,6 @@ var CHANGELOG=[
     '开关记在各自电脑的浏览器里']},
   {date:'2026-11-24', title:'新名姓氏不对要改、糸字旁不算小', items:[
     '新名开头的姓跟订单的「新名字姓氏」不一样（专家导错姓），判必须改，原因写「新下来的名字（付安宇）的姓「付」和订单的新名字姓氏「胡」不一样」',
-    '名字卡标题照订单填的姓氏，新名里错的姓标红',
     '糸字旁（紜、緒、絲、結）不算小字根：专家确认属龙可以用；「結」里面的「吉」还是有「士」']},
   {date:'2026-11-20', title:'学员页撞字写出关系和备注原文', items:[
     '「要处理的事」每条撞字下面写「关系：老公」这类，跟下载的原因一样',
