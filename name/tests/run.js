@@ -58,7 +58,7 @@ const CASES = require('./naming-cases.json');
       set('父亲名字', s[3]); set('母亲名字', '无'); set('禁忌字', '无'); set('是否双胞胎', '否'); set('兄弟姐妹', '无'); set('子女', '无'); set('新名', nm[0]); set('新名拼音', nm[1]); set('名册展示', s[8]); ws.addRow(r); }));
     [4, 5, 6, 7].forEach(rn => [1, 12].forEach(c => { ws.getRow(rn).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { theme: 5, tint: 0.8 } }; })); // 王小明、李丽涂同色（一家人）
     ws.addRow([]); const f = ws.addRow(['审核人：测试', '', '制表时间：', 46297, '回传时间：', 46327]); // 制表时间 10-02，跟文件名 10-01 不同：照文件原本的，不改
-    const buf = await wb.xlsx.writeBuffer();
+    const buf = await wb.xlsx.writeBuffer(); window._supBuf = buf;   // 后面「督导文件下载前的提醒」那题再用
     parsedFiles.length = 0; await loadWithBuffers([{ name: '技术单 2026-10-01（名正言顺）.xlsx', arrayBuffer: async () => buf }]);
     const x = parsedFiles[0], R = {};
     R.py = {}; x.audit.results.forEach(r => r.rows.forEach(w => { R.py[w.neu] = w.warns.filter(m => /技术单拼音/.test(m)).length; }));
@@ -265,6 +265,34 @@ const CASES = require('./naming-cases.json');
   { const nn = await p.evaluate(() => [extractNoteNames('家和万事兴，祝万事如意，心想事成，谢谢', '叶', {}), extractNoteNames('爷爷万大山，家和万事兴', '叶', {})]);
     ok(!nn[0].length, '备注只有吉祥话，不应该抓出人名，实际 ' + JSON.stringify(nn[0]));
     ok(nn[1].indexOf('万大山') >= 0 && nn[1].indexOf('万事兴') < 0, '备注写了爷爷万大山要抓到、万事兴不要，实际 ' + JSON.stringify(nn[1])); }
+  // ---------- 督导文件：有人没填督导 / 店铺 / 群，下载前用系统的提醒框（不是浏览器的 confirm） ----------
+  { const step = (js) => p.evaluate(js);
+    await step(async () => {
+      parsedFiles.length = 0; await loadWithBuffers([{ name: '技术单 2026-10-01（名正言顺）.xlsx', arrayBuffer: async () => window._supBuf }]); activeFile = 0;
+      window._nat = 0; window._oc = window.confirm; window.confirm = () => { window._nat++; return true; };   // 用到浏览器的 confirm 就记下来
+      window._dls = []; window._dl0 = dl; dl = async (blob, name) => { window._dls.push(name); };
+      window._sup1 = downloadSup();
+    });
+    const shown = await p.waitForSelector('dialog.g-notice[open]', { timeout: 3000 }).then(() => true, () => false);
+    ok(shown, '有人没填督导，下载前要出现系统的提醒框（dialog.g-notice）');
+    if (shown) {
+      const info = await step(() => { const d = document.querySelector('dialog.g-notice'); return { text: d.textContent, listHidden: d.querySelector('.gn-list').offsetHeight === 0 }; });   // 真的看不到，不只是 hidden 属性
+      ok(/位学员资料不完整/.test(info.text) && /李丽/.test(info.text), '提醒框要写几位学员不完整、列出名字，实际 ' + info.text.slice(0, 80));
+      ok(info.listHidden, '完整名单一开始收起来');
+      await p.click('dialog.g-notice .gn-more');
+      const list = await step(() => { const l = document.querySelector('dialog.g-notice .gn-list'); return { hidden: l.offsetHeight === 0, text: l.textContent }; });
+      ok(!list.hidden && /李丽/.test(list.text) && /督导/.test(list.text), '按「查看完整名单」要展开每位缺什么，实际 ' + JSON.stringify(list));
+      await p.click('dialog.g-notice [value="back"]');
+      const back = await step(async () => { try { await window._sup1; } catch (e) {} return { open: !!document.querySelector('dialog.g-notice[open]'), table: !!document.querySelector('#modalBox .suptblwrap'), dls: window._dls.length }; });
+      ok(!back.open && back.table && back.dls === 0, '按「返回补充资料」要关掉提醒、打开督导表、不下载，实际 ' + JSON.stringify(back));
+      await step(() => { closeModals(); window._sup2 = downloadSup(); });
+      await p.waitForSelector('dialog.g-notice[open]', { timeout: 3000 }).catch(() => {});
+      await p.click('dialog.g-notice [value="ok"]').catch(() => {});
+      const go = await step(async () => { try { await window._sup2; } catch (e) {} return window._dls; });
+      ok(go.length === 1 && /督导/.test(go[0]), '按「继续下载」要照原本的流程下载督导文件，实际 ' + JSON.stringify(go));
+    }
+    const nat = await step(() => { const n = window._nat; window.confirm = window._oc; dl = window._dl0; return n; });
+    ok(nat === 0, '督导文件下载前不能再用浏览器的 confirm，实际用了 ' + nat + ' 次'); }
   ok(!errs.length, '网页有 JS 错误：' + errs.join(' / '));
   console.log(`${fail ? '✗ 有 ' + fail + ' 项失败' : '✓ 全部通过'}（${pass} 项通过）`);
   await b.close(); process.exit(fail ? 1 : 0);
