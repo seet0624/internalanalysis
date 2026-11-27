@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>客服手册</title>
 <meta name="robots" content="noindex, nofollow">
-<script src="../hq/auth.js?v=20261127b" data-nobadge></script>
+<script src="../hq/auth.js?v=20261127c" data-nobadge></script>
 <script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
 <script src="../hq/bus.js?v=20261127a"></script>
 <style>
@@ -268,7 +268,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
 .home{white-space:nowrap}
 @media (max-width:480px){.bigsearch input{padding-right:16px}.bigsearch button{display:none}.ahead h2{font-size:25px}}
 </style>
-<link rel="stylesheet" href="../hq/gold.css?v=20261127b">
+<link rel="stylesheet" href="../hq/gold.css?v=20261127c">
 </head>
 <body class="g-pat">
 <div class="shell">
@@ -552,7 +552,7 @@ mark{background:#FBE7B5;color:inherit;border-radius:3px;padding:0 1px}
   });
   function copy(text, btn) {
     var done = function () { var o = btn.innerHTML; btn.textContent = '已复制'; btn.classList.add('copied'); setTimeout(function () { btn.innerHTML = o; btn.classList.remove('copied'); }, 1400); };
-    var fallback = function () { var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} t.remove(); if (ok) done(); else alert('复制失败，请手动选取'); };
+    var fallback = function () { var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); var ok = false; try { ok = document.execCommand('copy'); } catch (e) {} t.remove(); if (ok) done(); else HQAuth.input('复制失败，请手动复制这段', text); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
   }
   document.addEventListener('click', function (e) {

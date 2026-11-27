@@ -11,7 +11,7 @@ description: Add a new review tool / feature page to the 审核总部 site and w
 
 1. **新文件夹** `xxx/index.html`。开头载入：
    ```html
-   <script src="../hq/auth.js?v=20261127b"></script>
+   <script src="../hq/auth.js?v=20261127c"></script>
    <script src="../hq/bus.js?v=20261127a"></script>
    ```
    左上角放 `<a href="../">审核总部</a>`。`?v=` 照其他页现在用的版本（改了 hq/ 共用档案就各页一起换新）。工具自己资料夹的 `.js`（例如 `check.js`）也要加 `?v=`，不然浏览器会拿旧的 `.js` 配新的页面而出错。Excel 用 `../vendor/exceljs.min.js`、zip 用 `../vendor/jszip.min.js`。
