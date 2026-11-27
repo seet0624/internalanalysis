@@ -9,7 +9,9 @@ const have = new Set(); for (const s in PY) for (const c of PY[s]) have.add(c);
 const ids = {};
 for (const line of fs.readFileSync(process.argv[2], 'utf8').split('\n')) {
   const f = line.split('\t'); if (f.length < 3) continue;
-  ids[f[1]] = f.slice(2).map(x => x.replace(/\[[^\]]*\]/g, ''));
+  // 只标韩国写法 [K] 的拆法不算（「肖」大陆/台湾/日本是 ⺌月，只有韩国写成 小月）
+  const v = f.slice(2), keep = v.filter(x => !/\[[^\]]*\]$/.test(x) || /\[[^\]]*[GTJ][^\]]*\]/.test(x));
+  ids[f[1]] = (keep.length ? keep : v).map(x => x.replace(/\[[^\]]*\]/g, ''));
 }
 // 手动补正：壴 上面是士（喜、嘉、鼓、彭…）；寺 上面是土不是士
 ids['壴'] = ['⿱士豆']; ids['寺'] = ['⿱土寸'];
