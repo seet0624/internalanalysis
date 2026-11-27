@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>维修价目</title>
-<script src="../hq/auth.js?v=20261127b" data-nobadge></script>
+<script src="../hq/auth.js?v=20261127c" data-nobadge></script>
 <script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
 <script src="../hq/bus.js?v=20261127a"></script>
 <style>
@@ -146,7 +146,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .big{display:block;max-width:100%;height:auto;margin:20px auto 0;border-radius:10px}
 .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:60;max-width:calc(100vw - 32px);padding:10px 16px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:14px;box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
 </style>
-<link rel="stylesheet" href="../hq/gold.css?v=20261127b">
+<link rel="stylesheet" href="../hq/gold.css?v=20261127c">
 </head>
 <body class="g-pat">
 <div class="shell">
@@ -311,7 +311,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     } else if (b.dataset.p) pick(b.dataset.p);
     else if (b.dataset.copy) {
       var c = itemOf(b, 'copy'), text = RP.copyText(c.p.name, c.g.part, c.it);
-      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { toast('已复制：' + text); }, function () { window.prompt('复制这段：', text); });
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(function () { toast('已复制：' + text); }, function () { HQAuth.input('复制失败，请手动复制这段', text); });
     } else if (b.dataset.cmp) {
       var m = itemOf(b, 'cmp'), rows = RP.compare(DATA, m.p.name, m.g.part, m.it.q);
       $('dlgBody').innerHTML = '<h3>同类对比</h3><p class="small">' + esc((m.g.part ? m.g.part + ' · ' : '') + m.it.q) + '：' + rows.length + ' 个产品有这一项，便宜的排前面</p><ol class="cmp">' +

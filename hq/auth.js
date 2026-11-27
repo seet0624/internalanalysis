@@ -162,6 +162,10 @@
 
   // 退出前先跳一个确认窗口；按「退出」才登出回首页（Esc、取消都不会登出）
   function confirmLogout() {
+    if (document.querySelector('link[href*="gold.css"]')) {
+      ask('退出后要重新输入账号和密码才能使用。', { title: '确定要退出吗？', ok: '退出' }).then(function (yes) { if (yes) { logout(); location.href = ROOT + '?bye=1'; } });
+      return;
+    }
     var d = document.createElement('dialog');
     d.className = 'g-confirm';
     d.innerHTML = '<form method="dialog"><h2>确定要退出吗？</h2><p>退出后要重新输入账号和密码才能使用。</p>' +
@@ -171,41 +175,56 @@
     d.showModal();
   }
   // 系统提醒框（取代浏览器的 alert / confirm）：回传 Promise，'ok' 继续、'back' 返回、'close' 关掉。所有文字都会 esc
-  // o = { badge, title, sub, count, countText, desc, peopleTitle, people: [{ name, miss }], peopleNote, impactTitle, impact, ok, back, backSub }
+  // o = { badge, title, sub, tone:'info', count, countText, desc, peopleTitle, people: [{ name, miss }], peopleNote, impactTitle, impact, ok, download, back, backSub, input }
+  // 有 input（输入框的预设字）时，按确定回传输入的字，其他回传 null
   function notice(o) {
     var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
     var svg = function (d, w) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (w || 1.8) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
     var people = o.people || [];
+    var id = 'gn' + (notice.n = (notice.n || 0) + 1);   // 同时开两个也不会撞 id
     var d = document.createElement('dialog');
-    d.className = 'g-notice';
-    d.setAttribute('aria-labelledby', 'gnTitle');
+    d.className = 'g-notice' + (people.length || o.count != null ? '' : ' gn-sm');
+    d.setAttribute('aria-labelledby', id + 'T');
     d.innerHTML = '<form method="dialog" class="gn-in">' +
-      '<svg class="gn-lines" viewBox="0 0 900 120" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="gnGold" x1="0" x2="1"><stop offset="0" stop-color="#E8C77F" stop-opacity="0"/><stop offset=".45" stop-color="#C9923A"/><stop offset="1" stop-color="#E8C77F" stop-opacity="0"/></linearGradient></defs>' +
-      '<path d="M0 92 C180 62 330 118 520 86 S800 58 900 84" fill="none" stroke="url(#gnGold)" stroke-width="1.6"/><path d="M0 108 C200 82 360 126 560 100 S820 80 900 98" fill="none" stroke="url(#gnGold)" stroke-width="1" opacity=".7"/></svg>' +
-      '<button type="submit" value="close" class="gn-x" aria-label="关闭">×</button>' +
+      '<svg class="gn-lines" viewBox="0 0 900 120" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="' + id + 'G" x1="0" x2="1"><stop offset="0" stop-color="#E8C77F" stop-opacity="0"/><stop offset=".45" stop-color="#C9923A"/><stop offset="1" stop-color="#E8C77F" stop-opacity="0"/></linearGradient></defs>' +
+      '<path d="M0 92 C180 62 330 118 520 86 S800 58 900 84" fill="none" stroke="url(#' + id + 'G)" stroke-width="1.6"/><path d="M0 108 C200 82 360 126 560 100 S820 80 900 98" fill="none" stroke="url(#' + id + 'G)" stroke-width="1" opacity=".7"/></svg>' +
+      '<button type="button" class="gn-x" aria-label="关闭">×</button>' +
       (o.badge ? '<span class="gn-badge">' + esc(o.badge) + '</span>' : '') +
-      '<div class="gn-head"><span class="gn-ic">' + svg('<path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4.5M12 17h.01"/>', 1.9) + '</span>' +
-        '<div><h2 id="gnTitle">' + esc(o.title) + '</h2>' + (o.sub ? '<p>' + esc(o.sub) + '</p>' : '') + '</div></div>' +
+      '<div class="gn-head"><span class="gn-ic">' + (o.input != null ? svg('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>', 1.9) : o.tone === 'info' ? svg('<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 9.8"/>', 1.9) : svg('<path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4.5M12 17h.01"/>', 1.9)) + '</span>' +
+        '<div><h2 id="' + id + 'T">' + esc(o.title) + '</h2>' + (o.sub ? '<p>' + esc(o.sub) + '</p>' : '') + '</div></div>' +
       '<hr class="gn-rule">' +
       (o.count != null ? '<p class="gn-count"><b>' + esc(o.count) + '</b>' + esc(o.countText || '') + '</p>' : '') +
       (o.desc ? '<p class="gn-desc">' + esc(o.desc) + '</p>' : '') +
+      (o.input != null ? '<input class="gn-input" aria-labelledby="' + id + 'T" value="' + esc(o.input) + '">' : '') +
       (people.length ? '<section class="gn-card gn-people"><span class="gn-cardic">' + svg('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14.6c2.6.1 4.4 1.8 5 5.4"/>') + '</span>' +
         '<div class="gn-body"><h3>' + esc(o.peopleTitle || '涉及名单') + '</h3><p class="gn-names">' + esc(people.slice(0, 5).map(function (x) { return x.name; }).join('、') + (people.length > 5 ? '……' : '')) + '</p>' +
         (o.peopleNote ? '<p class="gn-small">' + esc(o.peopleNote) + '</p>' : '') + '</div>' +
-        '<button type="button" class="gn-more" aria-expanded="false" aria-controls="gnList">查看完整名单 <span class="gn-chev" aria-hidden="true">〉</span></button>' +
-        '<ul class="gn-list" id="gnList" hidden>' + people.map(function (x) { return '<li><b>' + esc(x.name) + '</b>' + (x.miss ? '<span>缺：' + esc(x.miss) + '</span>' : '') + '</li>'; }).join('') + '</ul></section>' : '') +
+        '<button type="button" class="gn-more" aria-expanded="false" aria-controls="' + id + 'L">查看完整名单 <span class="gn-chev" aria-hidden="true">〉</span></button>' +
+        '<ul class="gn-list" id="' + id + 'L" hidden>' + people.map(function (x) { return '<li><b>' + esc(x.name) + '</b>' + (x.miss ? '<span>缺：' + esc(x.miss) + '</span>' : '') + '</li>'; }).join('') + '</ul></section>' : '') +
       (o.impact ? '<section class="gn-card gn-impact"><span class="gn-cardic">' + svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>') + '</span><div><h3>' + esc(o.impactTitle || '') + '</h3><p>' + esc(o.impact) + '</p></div></section>' : '') +
-      '<div class="gn-acts"><button type="submit" value="ok" class="gn-ok" autofocus><span>' + svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>', 2) + esc(o.ok || '继续') + '</span></button>' +
-        (o.back ? '<button type="submit" value="back" class="gn-back"><span>' + svg('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>', 2) + esc(o.back) + '</span>' + (o.backSub ? '<small>' + esc(o.backSub) + '</small>' : '') + '</button>' : '') +
+      '<div class="gn-acts"><button type="submit" value="ok" class="gn-ok"' + (o.input != null ? '' : ' autofocus') + '><span>' + (o.download ? svg('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>', 2) : '') + esc(o.ok || '继续') + '</span></button>' +
+        (o.back ? '<button type="submit" value="back" class="gn-back"><span>' + (o.backSub ? svg('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>', 2) : '') + esc(o.back) + '</span>' + (o.backSub ? '<small>' + esc(o.backSub) + '</small>' : '') + '</button>' : '') +
       '</div></form>';
     document.body.appendChild(d);
+    d.querySelector('.gn-x').addEventListener('click', function () { d.close('close'); });   // 不是 submit：输入框按 Enter 才会按到「确定」
     var more = d.querySelector('.gn-more');
     if (more) more.addEventListener('click', function () { var l = d.querySelector('.gn-list'); l.hidden = !l.hidden; more.setAttribute('aria-expanded', String(!l.hidden)); });
     return new Promise(function (done) {
-      d.addEventListener('close', function () { var v = d.returnValue || 'close'; d.remove(); done(v === 'ok' || v === 'back' ? v : 'close'); });   // Esc 也算关掉
+      var inp = d.querySelector('.gn-input');
+      d.addEventListener('close', function () {
+        var v = d.returnValue || 'close'; d.remove();   // Esc 也算关掉
+        done(inp ? (v === 'ok' ? inp.value : null) : v === 'ok' || v === 'back' ? v : 'close');
+      });
       d.showModal();
+      if (inp) inp.select();
     });
   }
+  // 取代 alert：只有一个「知道了」
+  function say(msg, o) { o = o || {}; return notice({ title: o.title || '提示', tone: o.tone, desc: msg, ok: o.ok || '知道了' }); }
+  // 取代 confirm：回传 true / false
+  function ask(msg, o) { o = o || {}; return notice({ title: o.title || '请确认', desc: msg, ok: o.ok || '确定', back: o.cancel || '取消' }).then(function (a) { return a === 'ok'; }); }
+  // 取代 prompt：回传输入的字，取消回传 null
+  function input(title, value, o) { o = o || {}; return notice({ title: title, desc: o.desc, input: value == null ? '' : String(value), ok: o.ok || '确定', back: '取消' }); }
   // 换深浅色：浏览器支援就慢慢淡过去（像天黑 / 天亮），不支援或设了减少动态就直接换
   window.gSwap = function (fn) {
     var de = document.documentElement;
@@ -239,7 +258,7 @@
     // 照画面上的来翻，存不进去也能来回切
     btn.addEventListener('click', function () { var n = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; theme(n); window.gSwap(function () { apply(n); }); });
   }
-  window.HQAuth = { theme: theme, themeButton: themeButton, session: session, login: login, logout: logout, confirmLogout: confirmLogout, notice: notice, cloudLogin: cloudLogin, cloudGet: cloudGet, cloudAccess: cloudAccess, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
+  window.HQAuth = { theme: theme, themeButton: themeButton, session: session, login: login, logout: logout, confirmLogout: confirmLogout, notice: notice, say: say, ask: ask, input: input, cloudLogin: cloudLogin, cloudGet: cloudGet, cloudAccess: cloudAccess, can: can, root: ROOT, hash: function (id, pass) { return sha256(SALT + String(id).toLowerCase() + ':' + pass); } };
 
   if (isHQ) return;
   // 其他页：没登入、或这个身份不能进 → 回首页

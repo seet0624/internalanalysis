@@ -36,7 +36,8 @@ const CASES = require('./naming-cases.json');
   ok(JSON.stringify(await p.$$eval('#homeWho option', o => o.map(x => x.textContent).slice(-5))) === '["Anna","yulun","ning","martin","其他…"]', '首页审核人要有 Anna / yulun / ning / martin / 其他… 可以选');
   await p.selectOption('#homeWho', 'ning');
   ok(await p.evaluate(() => reviewerName()) === 'ning', '首页选审核人要记住');
-  await p.evaluate(() => { window._pr = window.prompt; window.prompt = () => '测试员甲'; }); await p.selectOption('#homeWho', '__other'); await p.evaluate(() => { window.prompt = window._pr; });
+  await p.selectOption('#homeWho', '__other'); await p.fill('dialog.g-notice .gn-input', '测试员甲'); await p.press('dialog.g-notice .gn-input', 'Enter');   // 系统输入框，按 Enter 等于按「确定」
+  await p.waitForFunction(() => !document.querySelector('dialog[open]') && reviewerName() === '测试员甲', null, { timeout: 2000 }).catch(() => {});
   ok(await p.evaluate(() => reviewerName()) === '测试员甲' && await p.$eval('#homeWho', s => s.value) === '测试员甲', '选「其他…」输入的名字要记住并显示');
 
   // 单独下载：整份是海外（文件名带 H、表里没有名册展示）的，单独下载也要带 H

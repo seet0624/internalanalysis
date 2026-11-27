@@ -82,4 +82,12 @@ t('国内每一页上方的「切换审核系统」按钮列都要有四个审�
     }
   }
 });
+t('国内每一页都不用浏览器的 alert / confirm / prompt（统一用 HQAuth.say / ask / input 的系统提醒框）', () => {
+  const fs = require('fs'), path = require('path'), root = path.join(__dirname, '..');
+  for (const page of ['name', 'tech', 'bjp', 'wuxing', 'manual', 'repair']) {
+    const html = fs.readFileSync(path.join(root, page, 'index.html'), 'utf8');
+    const hit = html.match(/(^|[^\w.$'"-])(window\.)?(alert|confirm|prompt)\(/m);
+    assert.strictEqual(hit, null, page + '/ 还在用浏览器的 ' + (hit && hit[0].trim()));
+  }
+});
 console.log(`全部通过（${n} 项）`);

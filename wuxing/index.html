@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>五行审核</title>
-<script src="../hq/auth.js?v=20261127b" data-nobadge></script>
+<script src="../hq/auth.js?v=20261127c" data-nobadge></script>
 <script>document.documentElement.setAttribute('data-theme', HQAuth.theme())</script>
 <script src="../hq/bus.js?v=20261127a"></script>
 <style>
@@ -110,7 +110,7 @@ td.res{min-width:180px}
 .file table{table-layout:fixed;min-width:760px}
 .file th:nth-child(1){width:11%}.file th:nth-child(2){width:15%}.file th:nth-child(3){width:13%}.file th:nth-child(4){width:33%}
 </style>
-<link rel="stylesheet" href="../hq/gold.css?v=20261127b">
+<link rel="stylesheet" href="../hq/gold.css?v=20261127c">
 </head>
 <body class="g-pat">
 <div class="shell">
@@ -322,7 +322,7 @@ td.res{min-width:180px}
         for (var i = 0; i < files.length; i++) { var n = files[i].name, k = 2; while (used[n]) n = '（第' + k++ + '份）' + files[i].name; used[n] = 1; zip.file(n, await files[i].wb.xlsx.writeBuffer()); }
         save(await zip.generateAsync({ type: 'blob' }), '五行审核（有问题，已标红）.zip');
       }
-    } catch (err) { alert('下载失败：' + (err.message || err)); }
+    } catch (err) { HQAuth.say('下载失败：' + (err.message || err), { title: '下载失败' }); }
     b.disabled = false;
   });
 
